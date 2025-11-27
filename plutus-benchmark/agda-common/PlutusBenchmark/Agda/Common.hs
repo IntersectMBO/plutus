@@ -21,13 +21,12 @@ type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
 
 benchTermAgdaCek :: Term -> Benchmarkable
 benchTermAgdaCek term =
-    nf unsafeRunAgdaCek $! term
+  nf unsafeRunAgdaCek $! term
 
 benchProgramAgdaCek :: Program -> Benchmarkable
 benchProgramAgdaCek (UPLC.Program _ _ term) =
-    nf unsafeRunAgdaCek $! term
+  nf unsafeRunAgdaCek $! term
 
 unsafeRunAgdaCek :: Term -> PLC.EvaluationResult Term
 unsafeRunAgdaCek =
-    either (error . \e -> "Agda evaluation error: " ++ show e) PLC.EvaluationSuccess . runUAgda
-
+  either (error . \e -> "Agda evaluation error: " ++ show e) PLC.EvaluationSuccess . runUAgda

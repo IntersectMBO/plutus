@@ -1,11 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
 
 import Blueprint.Definition.Spec qualified
+import Bool.Spec (boolTests)
 import Codec.CBOR.FlatTerm qualified as FlatTerm
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Codec.Serialise qualified as Serialise
@@ -19,19 +20,18 @@ import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, pr
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import List.Spec (listTests)
-import Bool.Spec (boolTests)
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
 import PlutusTx.Enum (Enum (..))
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
 import PlutusTx.Sqrt (Sqrt (Approximately, Exactly, Imaginary), isqrt, rsqrt)
-import Prelude hiding (Enum (..), Rational, negate, recip)
 import Rational.Laws (lawsTests)
 import Show.Spec qualified
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.Hedgehog (testPropertyNamed)
 import Test.Tasty.HUnit (Assertion, assertFailure, testCase, (@?=))
+import Test.Tasty.Hedgehog (testPropertyNamed)
+import Prelude hiding (Enum (..), Rational, negate, recip)
 
 main :: IO ()
 main = defaultMain tests
@@ -114,10 +114,10 @@ isqrtRoundTrip = property $ do
   let positiveInteger = Gen.integral (Range.linear 0 100000)
   x' <- forAll positiveInteger
   tripping x' sq (decodeExact . isqrt)
- where
-  sq x = x ^ (2 :: Integer)
-  decodeExact (Exactly x) = Right x
-  decodeExact s           = Left s
+  where
+    sq x = x ^ (2 :: Integer)
+    decodeExact (Exactly x) = Right x
+    decodeExact s = Left s
 
 serdeTests :: TestTree
 serdeTests =
@@ -143,7 +143,7 @@ dataRoundTrip = property $ do
 sixtyFourByteInteger :: Integer
 sixtyFourByteInteger = 2 ^ ((64 :: Integer) * 8)
 
-genData :: (MonadGen m) => m Data
+genData :: MonadGen m => m Data
 genData =
   let st = Gen.subterm genData id
       constrIndex = fromIntegral <$> Gen.integral @_ @Word64 Range.linearBounded
@@ -206,13 +206,13 @@ reciprocalFailsZeroNumerator = do
   -- the result should be 1 if there was an exception
   res @?= one
 
-genPositiveRational :: (Monad m) => PropertyT m Rational
+genPositiveRational :: Monad m => PropertyT m Rational
 genPositiveRational = do
   a <- forAll . Gen.integral $ Range.linear 1 100000
   b <- forAll . Gen.integral $ Range.linear 1 100000
   return (unsafeRatio a b)
 
-genNegativeRational :: (Monad m) => PropertyT m Rational
+genNegativeRational :: Monad m => PropertyT m Rational
 genNegativeRational = negate <$> genPositiveRational
 
 -- If x and y are positive rational numbers and x < y then 1/y < 1/x
@@ -341,24 +341,24 @@ enumFromThenToTests =
     , testCase "enumFromThenTo () () () == [()*]" $
         enumFromThenTo () () () @?=* [(), () .. ()]
     ]
- where
-  {- Check (approximately) that two possibly infinite lists are equal.  We can get infinite lists from
-     `enumFromThenTo`, both legitimately and because of implementation errors (which are exactly
-     what we're testing for here).  If we just use @?= then (a) it won't terminate if we give it
-     two equal infinite lists, and (b) if it fails and one of the lists is infinite then it'll try
-     to generate an infinite error message, again leading to non-termination.  To deal with this,
-     if an argument has more than 1000 elements then we assume it's infinite and just include an
-     initial segment in any error message, and when we're comparing two such "infinite" lists we
-     just compare the first 1000 elements.  The only infinite lists that enumFromThenTo can
-     generate are of the form [x,x,x,...], so this is definitely a safe strategy in this context.
-   -}
-  l1 @?=* l2 =
-    case (possiblyInfinite l1, possiblyInfinite l2) of
-      (False, False) -> l1 @?= l2
-      (True, False)  -> failWith (showInit l1) (show l2)
-      (False, True)  -> failWith (show l1) (showInit l2)
-      (True, True)   -> unless (take 1000 l1 == take 1000 l2) (failWith (showInit l1) (showInit l2))
-   where
-    possiblyInfinite l = drop 1000 l /= []
-    showInit l = "[" ++ intercalate "," (fmap show (take 5 l)) ++ ",...]"
-    failWith expected actual = assertFailure ("expected: " ++ expected ++ "\n but got: " ++ actual)
+  where
+    {- Check (approximately) that two possibly infinite lists are equal.  We can get infinite lists from
+       `enumFromThenTo`, both legitimately and because of implementation errors (which are exactly
+       what we're testing for here).  If we just use @?= then (a) it won't terminate if we give it
+       two equal infinite lists, and (b) if it fails and one of the lists is infinite then it'll try
+       to generate an infinite error message, again leading to non-termination.  To deal with this,
+       if an argument has more than 1000 elements then we assume it's infinite and just include an
+       initial segment in any error message, and when we're comparing two such "infinite" lists we
+       just compare the first 1000 elements.  The only infinite lists that enumFromThenTo can
+       generate are of the form [x,x,x,...], so this is definitely a safe strategy in this context.
+     -}
+    l1 @?=* l2 =
+      case (possiblyInfinite l1, possiblyInfinite l2) of
+        (False, False) -> l1 @?= l2
+        (True, False) -> failWith (showInit l1) (show l2)
+        (False, True) -> failWith (show l1) (showInit l2)
+        (True, True) -> unless (take 1000 l1 == take 1000 l2) (failWith (showInit l1) (showInit l2))
+      where
+        possiblyInfinite l = drop 1000 l /= []
+        showInit l = "[" ++ intercalate "," (fmap show (take 5 l)) ++ ",...]"
+        failWith expected actual = assertFailure ("expected: " ++ expected ++ "\n but got: " ++ actual)

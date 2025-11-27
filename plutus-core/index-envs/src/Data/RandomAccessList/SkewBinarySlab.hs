@@ -1,18 +1,19 @@
-{-# LANGUAGE BangPatterns         #-}
-{-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE PatternSynonyms      #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE ViewPatterns #-}
+
 module Data.RandomAccessList.SkewBinarySlab
-    ( RAList(Cons,Nil)
-    , safeIndexZero
-    , unsafeIndexZero
-    , Data.RandomAccessList.SkewBinarySlab.null
-    , uncons
-    , consSlab
-    ) where
+  ( RAList (Cons, Nil)
+  , safeIndexZero
+  , unsafeIndexZero
+  , Data.RandomAccessList.SkewBinarySlab.null
+  , uncons
+  , consSlab
+  ) where
 
 import Data.Bits (unsafeShiftR)
 import Data.Vector.NonEmpty qualified as NEV
@@ -48,110 +49,117 @@ So it's not an unqualified win, but it may be better in some cases.
 -- Why not just store `NonEmptyVector`s and add singleton values by making singleton
 -- vectors? The answer is that using only vectors makes simple consing significantly
 -- slower, and doesn't obviously make the other code paths faster.
--- | The values that can be stored in a node. Either a single value, or a non-empty vector of
--- values.
+{-| The values that can be stored in a node. Either a single value, or a non-empty vector of
+values. -}
 data Values a = One a | Many {-# UNPACK #-} !(NEV.NonEmptyVector a)
-    deriving stock (Eq, Show)
+  deriving stock (Eq, Show)
 
 valuesCount :: Values a -> Word64
-valuesCount (One _)  = 1
+valuesCount (One _) = 1
 valuesCount (Many v) = fromIntegral $ NEV.length v
 
 unsafeIndexValues :: Word64 -> Values a -> a
-unsafeIndexValues 0 (One a)  = a
-unsafeIndexValues _ (One _)  = error "out of bounds"
+unsafeIndexValues 0 (One a) = a
+unsafeIndexValues _ (One _) = error "out of bounds"
 unsafeIndexValues i (Many v) = v NEV.! fromIntegral i
 
 safeIndexValues :: Word64 -> Values a -> Maybe a
-safeIndexValues 0 (One a)  = Just a
-safeIndexValues _ (One _)  = Nothing
+safeIndexValues 0 (One a) = Just a
+safeIndexValues _ (One _) = Nothing
 safeIndexValues i (Many v) = v NEV.!? fromIntegral i
 
 -- O(1)
 unconsValues :: Values a -> RAList a -> (a, RAList a)
 unconsValues (One x) l = (x, l)
 unconsValues (Many v) l =
-    -- unconsing vectors is actually O(1), which is important!
-    let (x, xs) = NEV.uncons v
-        remaining = case NEV.fromVector xs of
-            Just v' -> consSlab v' l
-            Nothing -> l
-    in (x, remaining)
+  -- unconsing vectors is actually O(1), which is important!
+  let (x, xs) = NEV.uncons v
+      remaining = case NEV.fromVector xs of
+        Just v' -> consSlab v' l
+        Nothing -> l
+   in (x, remaining)
 
 -- | A complete binary tree.
-data Tree a = Leaf !(Values a)
-            -- Nodes track the number of elements in the tree (including those in the node)
-            | Node {-# UNPACK #-} !Word64 !(Values a) !(Tree a) !(Tree a)
-            deriving stock (Eq, Show)
+data Tree a
+  = Leaf !(Values a)
+  | -- Nodes track the number of elements in the tree (including those in the node)
+    Node {-# UNPACK #-} !Word64 !(Values a) !(Tree a) !(Tree a)
+  deriving stock (Eq, Show)
 
 treeCount :: Tree a -> Word64
-treeCount (Leaf v)       = valuesCount v
+treeCount (Leaf v) = valuesCount v
 treeCount (Node s _ _ _) = s
 
 unsafeIndexTree :: Word64 -> Tree a -> a
 unsafeIndexTree offset (Leaf v) = unsafeIndexValues offset v
 unsafeIndexTree offset (Node _ v t1 t2) =
-    let nCount = valuesCount v
-    in if offset < nCount
-    then unsafeIndexValues offset v
-    else
-        let offset' = offset - nCount
-            lCount = treeCount t1
-        in if offset' < lCount
-        then unsafeIndexTree offset' t1
-        else unsafeIndexTree (offset' - lCount) t2
+  let nCount = valuesCount v
+   in if offset < nCount
+        then unsafeIndexValues offset v
+        else
+          let offset' = offset - nCount
+              lCount = treeCount t1
+           in if offset' < lCount
+                then unsafeIndexTree offset' t1
+                else unsafeIndexTree (offset' - lCount) t2
 
 safeIndexTree :: Word64 -> Tree a -> Maybe a
 safeIndexTree offset (Leaf v) = safeIndexValues offset v
 safeIndexTree offset (Node _ v t1 t2) =
-    let nCount = valuesCount v
-    in if offset < nCount
-    then safeIndexValues offset v
-    else
-        let offset' = offset - nCount
-            lCount = treeCount t1
-        in if offset' < lCount
-        then safeIndexTree offset' t1
-        else safeIndexTree (offset' - lCount) t2
+  let nCount = valuesCount v
+   in if offset < nCount
+        then safeIndexValues offset v
+        else
+          let offset' = offset - nCount
+              lCount = treeCount t1
+           in if offset' < lCount
+                then safeIndexTree offset' t1
+                else safeIndexTree (offset' - lCount) t2
 
--- | A strict list of complete binary trees accompanied by their node size.
--- The trees appear in >=-node size order.
--- Note: this list is strict in its spine, unlike the Prelude list
-data RAList a = BHead
-               {-# UNPACK #-} !Word64 -- ^ the number of nodes in the head tree
-               !(Tree a) -- ^ the head tree
-               !(RAList a) -- ^ the tail trees
-             | Nil
-             deriving stock (Show)
-             deriving (IsList) via RAL.AsRAL (RAList a)
+{-| A strict list of complete binary trees accompanied by their node size.
+The trees appear in >=-node size order.
+Note: this list is strict in its spine, unlike the Prelude list -}
+data RAList a
+  = BHead
+      {-# UNPACK #-} !Word64
+      -- ^ the number of nodes in the head tree
+      !(Tree a)
+      -- ^ the head tree
+      !(RAList a)
+      -- ^ the tail trees
+  | Nil
+  deriving stock (Show)
+  deriving (IsList) via RAL.AsRAL (RAList a)
 
 -- Can't use the derived instance because it's no longer the case that lists with
 -- the same contents have to have the same structure! Could definitely write a
 -- faster implementation if it matters, though.
 instance Eq a => Eq (RAList a) where
-    l == l' = toList l == toList l'
+  l == l' = toList l == toList l'
 
 null :: RAList a -> Bool
 null Nil = True
-null _   = False
-{-# INLINABLE null #-}
+null _ = False
+{-# INLINEABLE null #-}
 
-{-# complete Cons, Nil #-}
-{-# complete BHead, Nil #-}
+{-# COMPLETE Cons, Nil #-}
+{-# COMPLETE BHead, Nil #-}
 
 -- /O(1)/
 pattern Cons :: a -> RAList a -> RAList a
-pattern Cons x xs <- (uncons -> Just (x, xs)) where
-  Cons x xs = cons x xs
+pattern Cons x xs <- (uncons -> Just (x, xs))
+  where
+    Cons x xs = cons x xs
 
 -- O(1) worst-case
 consValues :: Values a -> RAList a -> RAList a
 consValues x l = case l of
-    (BHead w1 t1 (BHead w2 t2 ts')) | w1 == w2 ->
+  (BHead w1 t1 (BHead w2 t2 ts'))
+    | w1 == w2 ->
         let ts = w1 + w2 + 1
             ec = treeCount t1 + treeCount t2 + valuesCount x
-        in BHead ts (Node ec x t1 t2) ts'
-    ts -> BHead 1 (Leaf x) ts
+         in BHead ts (Node ec x t1 t2) ts'
+  ts -> BHead 1 (Leaf x) ts
 
 -- O(1) worst-case
 cons :: a -> RAList a -> RAList a
@@ -170,47 +178,47 @@ consSlab x = consValues (Many x)
 -- so it adds up to being okay.
 uncons :: RAList a -> Maybe (a, RAList a)
 uncons = \case
-    BHead _ (Leaf v) ts -> Just $ unconsValues v ts
-    BHead _ (Node treeSize x t1 t2) ts ->
-        -- probably faster than `div w 2`
-        let halfSize = unsafeShiftR treeSize 1
-            -- split the node in two)
-        in Just $ unconsValues x (BHead halfSize t1 $ BHead halfSize t2 ts)
-    Nil -> Nothing
+  BHead _ (Leaf v) ts -> Just $ unconsValues v ts
+  BHead _ (Node treeSize x t1 t2) ts ->
+    -- probably faster than `div w 2`
+    let halfSize = unsafeShiftR treeSize 1
+     in -- split the node in two)
+        Just $ unconsValues x (BHead halfSize t1 $ BHead halfSize t2 ts)
+  Nil -> Nothing
 
 -- 0-based
 unsafeIndexZero :: RAList a -> Word64 -> a
-unsafeIndexZero Nil _  = error "out of bounds"
-unsafeIndexZero (BHead _ t ts) !i  =
-    let tCount = treeCount t
-    in if i < tCount
-    then unsafeIndexTree i t
-    else unsafeIndexZero ts (i - tCount)
+unsafeIndexZero Nil _ = error "out of bounds"
+unsafeIndexZero (BHead _ t ts) !i =
+  let tCount = treeCount t
+   in if i < tCount
+        then unsafeIndexTree i t
+        else unsafeIndexZero ts (i - tCount)
 
 -- 0-based
 safeIndexZero :: RAList a -> Word64 -> Maybe a
-safeIndexZero Nil _  = Nothing
-safeIndexZero (BHead _ t ts) !i  =
-    let tCount = treeCount t
-    in if i < tCount
-    then safeIndexTree i t
-    else safeIndexZero ts (i - tCount)
+safeIndexZero Nil _ = Nothing
+safeIndexZero (BHead _ t ts) !i =
+  let tCount = treeCount t
+   in if i < tCount
+        then safeIndexTree i t
+        else safeIndexZero ts (i - tCount)
 
 instance RAL.RandomAccessList (RAList a) where
-    type Element (RAList a) = a
+  type Element (RAList a) = a
 
-    {-# INLINABLE empty #-}
-    empty = Nil
-    {-# INLINABLE cons #-}
-    cons = Cons
-    {-# INLINABLE uncons #-}
-    uncons = uncons
-    {-# INLINABLE length #-}
-    length Nil            = 0
-    length (BHead _ t tl) = treeCount t + RAL.length tl
-    {-# INLINABLE consSlab #-}
-    consSlab = consSlab
-    {-# INLINABLE indexZero #-}
-    indexZero l i = safeIndexZero l i
-    {-# INLINABLE unsafeIndexZero #-}
-    unsafeIndexZero l i = unsafeIndexZero l i
+  {-# INLINEABLE empty #-}
+  empty = Nil
+  {-# INLINEABLE cons #-}
+  cons = Cons
+  {-# INLINEABLE uncons #-}
+  uncons = uncons
+  {-# INLINEABLE length #-}
+  length Nil = 0
+  length (BHead _ t tl) = treeCount t + RAL.length tl
+  {-# INLINEABLE consSlab #-}
+  consSlab = consSlab
+  {-# INLINEABLE indexZero #-}
+  indexZero l i = safeIndexZero l i
+  {-# INLINEABLE unsafeIndexZero #-}
+  unsafeIndexZero l i = unsafeIndexZero l i

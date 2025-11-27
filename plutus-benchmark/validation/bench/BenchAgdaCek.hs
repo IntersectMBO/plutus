@@ -1,6 +1,6 @@
-{- | Validation benchmarks for the Agda CEK machine. -}
-
 {-# LANGUAGE BangPatterns #-}
+
+-- | Validation benchmarks for the Agda CEK machine.
 module Main where
 
 import PlutusBenchmark.Agda.Common (benchTermAgdaCek)
@@ -14,6 +14,6 @@ import Control.DeepSeq (force)
 main :: IO ()
 main = do
   let mkAgdaCekBM file program =
-          let !benchTerm = force . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
-          in benchTermAgdaCek benchTerm
+        let !benchTerm = force . toNamedDeBruijnTerm . UPLC._progTerm $ unsafeUnflat file program
+         in benchTermAgdaCek benchTerm
   benchWith mkAgdaCekBM

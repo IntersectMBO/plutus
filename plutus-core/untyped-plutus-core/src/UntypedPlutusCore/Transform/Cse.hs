@@ -1,18 +1,21 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
+import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.AstSize (termAstSize)
-import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
-                                               recordSimplification)
+import UntypedPlutusCore.Transform.Simplifier
+  ( SimplifierStage (CSE)
+  , SimplifierT
+  , recordSimplification
+  )
 
 import Control.Arrow ((>>>))
 import Control.Lens (foldrOf, transformOf)
@@ -21,9 +24,9 @@ import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
 import Control.Monad.Trans.State.Strict (State, evalState, get, put)
 import Data.Foldable as Foldable (foldl')
-import Data.Hashable (Hashable)
 import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict qualified as Map
+import Data.Hashable (Hashable)
 import Data.List.Extra (isSuffixOf, sortOn)
 import Data.Ord (Down (..))
 import Data.Proxy (Proxy (..))
@@ -198,22 +201,22 @@ isAncestorOrSelf :: Path -> Path -> Bool
 isAncestorOrSelf = isSuffixOf
 
 data CseCandidate uni fun ann = CseCandidate
-  { ccFreshName     :: Name
-  , ccTerm          :: Term Name uni fun ()
+  { ccFreshName :: Name
+  , ccTerm :: Term Name uni fun ()
   , ccAnnotatedTerm :: Term Name uni fun (Path, ann)
-  -- ^ `ccTerm` is needed for equality comparison, while `ccAnnotatedTerm` is needed
-  -- for the actual substitution. They are always the same term barring the annotations.
+  {-^ `ccTerm` is needed for equality comparison, while `ccAnnotatedTerm` is needed
+  for the actual substitution. They are always the same term barring the annotations. -}
   }
 
-cse ::
-  ( MonadQuote m
-  , Hashable (Term Name uni fun ())
-  , Rename (Term Name uni fun ann)
-  , ToBuiltinMeaning uni fun
-  ) =>
-  BuiltinSemanticsVariant fun ->
-  Term Name uni fun ann ->
-  SimplifierT Name uni fun ann m (Term Name uni fun ann)
+cse
+  :: ( MonadQuote m
+     , Hashable (Term Name uni fun ())
+     , Rename (Term Name uni fun ann)
+     , ToBuiltinMeaning uni fun
+     )
+  => BuiltinSemanticsVariant fun
+  -> Term Name uni fun ann
+  -> SimplifierT Name uni fun ann m (Term Name uni fun ann)
 cse builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
@@ -266,28 +269,28 @@ annotate = flip evalState 0 . flip runReaderT [] . go
                 )
 
 -- | The third pass. See Note [CSE].
-countOccs ::
-  forall name uni fun ann.
-  (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun) =>
-  BuiltinSemanticsVariant fun ->
-  Term name uni fun (Path, ann) ->
-  -- | Here, the value of the inner map not only contains the count, but also contains
-  -- the annotated term, corresponding to the term that is the key of the outer map.
-  -- The annotated terms need to be recorded since they will be used for substitution.
-  HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+countOccs
+  :: forall name uni fun ann
+   . (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun)
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun (Path, ann)
+  -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+  {-^ Here, the value of the inner map not only contains the count, but also contains
+  the annotated term, corresponding to the term that is the key of the outer map.
+  The annotated terms need to be recorded since they will be used for substitution. -}
 countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
   where
-    addToMap ::
-      Term name uni fun (Path, ann) ->
-      HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)] ->
-      HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+    addToMap
+      :: Term name uni fun (Path, ann)
+      -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+      -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
     addToMap t0
       -- We don't consider work-free terms for CSE, because doing so may or may not
       -- have a size benefit, but certainly doesn't have any cost benefit (the cost
       -- will in fact be slightly higher due to the additional application).
       | isWorkFree builtinSemanticsVariant t0
-        || not (isBuiltinSaturated t0)
-        || isForcingBuiltin t0 =
+          || not (isBuiltinSaturated t0)
+          || isForcingBuiltin t0 =
           id
       | otherwise =
           Map.alter
@@ -307,23 +310,23 @@ countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
         _term -> True
 
     isForcingBuiltin = \case
-      Builtin{} -> True
+      Builtin {} -> True
       Force _ t -> isForcingBuiltin t
       _ -> False
 
 -- | Combine a new path with a number of existing (path, count) pairs.
-combinePaths ::
-  forall name uni fun ann.
-  Term name uni fun (Path, ann) ->
-  Path ->
-  [(Path, Term name uni fun (Path, ann), Int)] ->
-  [(Path, Term name uni fun (Path, ann), Int)]
+combinePaths
+  :: forall name uni fun ann
+   . Term name uni fun (Path, ann)
+  -> Path
+  -> [(Path, Term name uni fun (Path, ann), Int)]
+  -> [(Path, Term name uni fun (Path, ann), Int)]
 combinePaths t path = go 1
   where
-    go ::
-      Int ->
-      [(Path, Term name uni fun (Path, ann), Int)] ->
-      [(Path, Term name uni fun (Path, ann), Int)]
+    go
+      :: Int
+      -> [(Path, Term name uni fun (Path, ann), Int)]
+      -> [(Path, Term name uni fun (Path, ann), Int)]
     -- The new path is not a descendent-or-self of any existing path.
     go acc [] = [(path, t, acc)]
     go acc ((path', t', cnt) : paths)
@@ -337,23 +340,23 @@ combinePaths t path = go 1
       | path' `isAncestorOrSelf` path = (path', t', cnt + 1) : paths
       | otherwise = (path', t', cnt) : go acc paths
 
-mkCseTerm ::
-  forall uni fun ann m.
-  (MonadQuote m, Eq (Term Name uni fun ())) =>
-  [Term Name uni fun (Path, ann)] ->
-  -- | The original annotated term
-  Term Name uni fun (Path, ann) ->
-  m (Term Name uni fun ann)
+mkCseTerm
+  :: forall uni fun ann m
+   . (MonadQuote m, Eq (Term Name uni fun ()))
+  => [Term Name uni fun (Path, ann)]
+  -> Term Name uni fun (Path, ann)
+  -- ^ The original annotated term
+  -> m (Term Name uni fun ann)
 mkCseTerm ts t = do
   cs <- traverse mkCseCandidate ts
   pure . fmap snd $ Foldable.foldl' (flip applyCse) t cs
 
-applyCse ::
-  forall uni fun ann.
-  (Eq (Term Name uni fun ())) =>
-  CseCandidate uni fun ann ->
-  Term Name uni fun (Path, ann) ->
-  Term Name uni fun (Path, ann)
+applyCse
+  :: forall uni fun ann
+   . Eq (Term Name uni fun ())
+  => CseCandidate uni fun ann
+  -> Term Name uni fun (Path, ann)
+  -> Term Name uni fun (Path, ann)
 applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
     candidatePath = fst (termAnn (ccAnnotatedTerm c))
@@ -375,24 +378,24 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
             (LamAbs (termAnn t) (ccFreshName c) t)
             (ccAnnotatedTerm c)
       | currPath `isAncestorOrSelf` candidatePath = case t of
-          Var ann name            -> Var ann name
-          LamAbs ann name body    -> LamAbs ann name (mkLamApp body)
-          Apply ann fun arg       -> Apply ann (mkLamApp fun) (mkLamApp arg)
-          Force ann body          -> Force ann (mkLamApp body)
-          Delay ann body          -> Delay ann (mkLamApp body)
-          Constant ann val        -> Constant ann val
-          Builtin ann fun         -> Builtin ann fun
-          Error ann               -> Error ann
-          Constr ann i ts         -> Constr ann i (mkLamApp <$> ts)
+          Var ann name -> Var ann name
+          LamAbs ann name body -> LamAbs ann name (mkLamApp body)
+          Apply ann fun arg -> Apply ann (mkLamApp fun) (mkLamApp arg)
+          Force ann body -> Force ann (mkLamApp body)
+          Delay ann body -> Delay ann (mkLamApp body)
+          Constant ann val -> Constant ann val
+          Builtin ann fun -> Builtin ann fun
+          Error ann -> Error ann
+          Constr ann i ts -> Constr ann i (mkLamApp <$> ts)
           Case ann scrut branches -> Case ann (mkLamApp scrut) (mkLamApp <$> branches)
       | otherwise = t
       where
         currPath = fst (termAnn t)
 
 -- | Generate a fresh variable for the common subexpression.
-mkCseCandidate ::
-  forall uni fun ann m.
-  (MonadQuote m) =>
-  Term Name uni fun (Path, ann) ->
-  m (CseCandidate uni fun ann)
+mkCseCandidate
+  :: forall uni fun ann m
+   . MonadQuote m
+  => Term Name uni fun (Path, ann)
+  -> m (CseCandidate uni fun ann)
 mkCseCandidate t = CseCandidate <$> freshName "cse" <*> pure (void t) <*> pure t

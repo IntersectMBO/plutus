@@ -11,14 +11,20 @@ import MAlonzo.Code.Evaluator.Term (runUAgda, runUCountingAgda)
 import PlutusConformance.Common (UplcEvaluator (..), runUplcEvalTests)
 import PlutusCore (Error (..))
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Evaluation.Machine.CostModelInterface (CekMachineCosts, CostModelParams,
-                                                         applyCostModelParams)
+import PlutusCore.Evaluation.Machine.CostModelInterface
+  ( CekMachineCosts
+  , CostModelParams
+  , applyCostModelParams
+  )
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCostModelForTesting)
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
-import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel (BuiltinCostKeyMap, BuiltinCostMap,
-                                                             toSimpleBuiltinCostModel)
+import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
+  ( BuiltinCostKeyMap
+  , BuiltinCostMap
+  , toSimpleBuiltinCostModel
+  )
 import PlutusCore.Quote
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
@@ -44,12 +50,12 @@ toRawCostModel :: CostModelParams -> RawCostModel
 toRawCostModel params =
   let CostModel machineCosts builtinCosts =
         case applyCostModelParams defaultCekCostModelForTesting params of
-          Left e  -> error $ show e
+          Left e -> error $ show e
           Right r -> r
 
       costKeyMap =
         case fromJSON @BuiltinCostKeyMap $ toJSON builtinCosts of
-          Error s   -> error s
+          Error s -> error s
           Success m -> m
    in (machineCosts, toSimpleBuiltinCostModel costKeyMap)
 
@@ -113,15 +119,14 @@ agdaEvalUplcProg WithoutCosting =
                   runExceptT $
                     withExceptT FreeVariableErrorE $
                       unDeBruijnTerm tmEvaluated of
-                  Left _          -> Nothing
+                  Left _ -> Nothing
                   Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
 {-| A list of evaluation tests which are currently expected to fail.  Once a fix
  for a test is pushed, the test will succeed and should be removed from the
  list.  The entries of the list are paths from the root of plutus-conformance to
  the directory containing the test, eg
- "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
--}
+ "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
 failingEvaluationTests :: [FilePath]
 failingEvaluationTests =
   [ -- These "constant casing" tests fail because Agda metatheory does not yet
@@ -153,10 +158,9 @@ failingEvaluationTests =
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
-
-  -- The following are failing because the metatheory needs to be updated with
-  -- Value built-in functions
-  , "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
+  , -- The following are failing because the metatheory needs to be updated with
+    -- Value built-in functions
+    "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
   , "test-cases/uplc/evaluation/builtin/constant/value/empty-tokens"
   , "test-cases/uplc/evaluation/builtin/constant/value/empty"
   , "test-cases/uplc/evaluation/builtin/constant/value/ill-formed"
@@ -220,8 +224,7 @@ failingEvaluationTests =
  a test is pushed, the test will succeed and should be removed from the list.
  The entries of the list are paths from the root of plutus-conformance to the
  directory containing the test, eg
- "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
--}
+ "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1" -}
 failingBudgetTests :: [FilePath]
 failingBudgetTests =
   -- These currently fail because the Agda code doesn't know about the
@@ -244,10 +247,10 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-14"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-15"
   , "test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-16"
-  -- These "constant casing" tests fail because Agda metatheory does not yet
-  -- implement casing on constant values.
-  -- TODO: remove these tests once casing on constant is added to Agda metatheory.
-  , "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
+  , -- These "constant casing" tests fail because Agda metatheory does not yet
+    -- implement casing on constant values.
+    -- TODO: remove these tests once casing on constant is added to Agda metatheory.
+    "test-cases/uplc/evaluation/term/constant-case/bool/bool-01"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-02"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-03"
   , "test-cases/uplc/evaluation/term/constant-case/bool/bool-04"
@@ -273,9 +276,9 @@ failingBudgetTests =
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-01"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-02"
   , "test-cases/uplc/evaluation/term/constant-case/unit/unit-03"
-  -- The following are failing because the metatheory needs to be updated with
-  -- Value built-in functions
-  , "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
+  , -- The following are failing because the metatheory needs to be updated with
+    -- Value built-in functions
+    "test-cases/uplc/evaluation/builtin/constant/value/duplicate-keys"
   , "test-cases/uplc/evaluation/builtin/constant/value/empty-tokens"
   , "test-cases/uplc/evaluation/builtin/constant/value/empty"
   , "test-cases/uplc/evaluation/builtin/constant/value/ill-formed"

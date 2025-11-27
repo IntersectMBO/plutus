@@ -17,9 +17,9 @@ tests =
   runTestGhc ["Lookup"] $
     flip concatMap sizes $ \sz ->
       [ Tx.goldenEvalCekCatchBudget ("match-scott-list-" ++ show sz) $
-        Compiled.mkMatchWithListsCode (Compiled.workloadOfSize sz)
+          Compiled.mkMatchWithListsCode (Compiled.workloadOfSize sz)
       , Tx.goldenEvalCekCatchBudget ("match-builtin-list-" ++ show sz) $
-        Compiled.mkMatchWithBuiltinListsCode (Compiled.workloadOfSize sz)
+          Compiled.mkMatchWithBuiltinListsCode (Compiled.workloadOfSize sz)
       ]
   where
     sizes = [5, 10, 50, 100]

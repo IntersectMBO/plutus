@@ -1,5 +1,4 @@
 {-# LANGUAGE TypeApplications #-}
-
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module PlutusLedgerApi.Test.V1.Value where
@@ -27,32 +26,34 @@ valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue
 
 -- | The value of a 'TokenName' in a 'Value'.
 newtype FaceValue = FaceValue
-    { unFaceValue :: Integer
-    }
+  { unFaceValue :: Integer
+  }
 
 instance Arbitrary FaceValue where
-    -- We want to generate zeroes often, because there's a lot of corner cases associated with them
-    -- and all non-zero numbers are handled pretty much the same anyway, so there isn't much point
-    -- in diversifying them as much as possible.
-    arbitrary = frequency
-        [ (2, pure $ FaceValue 0)
-        , (1, FaceValue . fromIntegral <$> arbitrary @Int)
-        ]
+  -- We want to generate zeroes often, because there's a lot of corner cases associated with them
+  -- and all non-zero numbers are handled pretty much the same anyway, so there isn't much point
+  -- in diversifying them as much as possible.
+  arbitrary =
+    frequency
+      [ (2, pure $ FaceValue 0)
+      , (1, FaceValue . fromIntegral <$> arbitrary @Int)
+      ]
 
 instance Arbitrary Value where
-    arbitrary = do
-        -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
-        -- list of lists.
-        faceValues <- multiSplit0 0.2 . map unFaceValue =<< arbitrary
-        -- Generate 'TokenName's and 'CurrencySymbol's.
-        currencies <- uniqueNames (CurrencySymbol . toBuiltin . PLC.unK) =<<
-            traverse (uniqueNames (TokenName . toBuiltin . PLC.unK)) faceValues
-        pure $ listsToValue currencies
+  arbitrary = do
+    -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
+    -- list of lists.
+    faceValues <- multiSplit0 0.2 . map unFaceValue =<< arbitrary
+    -- Generate 'TokenName's and 'CurrencySymbol's.
+    currencies <-
+      uniqueNames (CurrencySymbol . toBuiltin . PLC.unK)
+        =<< traverse (uniqueNames (TokenName . toBuiltin . PLC.unK)) faceValues
+    pure $ listsToValue currencies
 
-    shrink
-        = map listsToValue
-        . coerce (shrink @[(NoArbitrary CurrencySymbol, [(NoArbitrary TokenName, Integer)])])
-        . valueToLists
+  shrink =
+    map listsToValue
+      . coerce (shrink @[(NoArbitrary CurrencySymbol, [(NoArbitrary TokenName, Integer)])])
+      . valueToLists
 
 valueFromBuiltin :: PLC.Value -> Value
 valueFromBuiltin =
@@ -60,5 +61,5 @@ valueFromBuiltin =
     . fmap (bimap (CurrencySymbol . toBuiltin . PLC.unK) inner)
     . Map.toList
     . PLC.unpack
- where
-  inner = fmap (bimap (TokenName . toBuiltin . PLC.unK) PLC.unQuantity) . Map.toList
+  where
+    inner = fmap (bimap (TokenName . toBuiltin . PLC.unK) PLC.unQuantity) . Map.toList

@@ -6,8 +6,7 @@ These declarations are used for two purposes:
 1. To generate an 'AsData' type declaration to be used in real validators.
 2. To generate a regular data type declaration to be used in a blueprint.
 
-Because of the GHC stage restriction, we have to keep these TH declarations in a separate module.
--}
+Because of the GHC stage restriction, we have to keep these TH declarations in a separate module. -}
 module Blueprint.Tests.Lib.AsData.Decls where
 
 import GHC.Generics (Generic)

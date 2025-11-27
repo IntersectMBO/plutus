@@ -6,16 +6,20 @@ import Generators
 
 import PlutusCore
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, IntegerCostedLiterally (..),
-                                                    NumBytesCostedAsNumWords (..), flattenCostRose,
-                                                    memoryUsage)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
+  ( ExMemoryUsage
+  , IntegerCostedLiterally (..)
+  , NumBytesCostedAsNumWords (..)
+  , flattenCostRose
+  , memoryUsage
+  )
 
 import Criterion.Main
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
 import Hedgehog qualified as H
 
-{- | Costing benchmarks for bitwise bytestring builtins and integer/bytestring conversions. -}
+-- | Costing benchmarks for bitwise bytestring builtins and integer/bytestring conversions.
 
 {- Most of the initial exploratory benchmarks were run with a set of small input
   bytestrings (up to size 160 / 1280 bytes) and then again with a set of large
@@ -27,7 +31,7 @@ numSamples :: Int
 numSamples = 150
 
 sampleSizes :: [Int]
-sampleSizes = [1..numSamples]
+sampleSizes = [1 .. numSamples]
 
 -- Smallish bytestring inputs: 150 entries.  Note that the length of a
 -- bytestring is eight times the size.
@@ -36,14 +40,14 @@ makeSample seed = makeSizedByteStrings seed sampleSizes
 
 -- Make an integer of size n which encodes to 0xFF...FF
 repunitOfSize :: Int -> Integer
-repunitOfSize n = 256^(8*n) - 1
+repunitOfSize n = 256 ^ (8 * n) - 1
 
 -- Calculate the index of the top (ie, righmost) bit in a bytestring.
 topBitIndex :: BS.ByteString -> Integer
-topBitIndex s = fromIntegral $ 8*(BS.length s)-1
+topBitIndex s = fromIntegral $ 8 * (BS.length s) - 1
 
 memoryUsageAsNumBytes :: ExMemoryUsage a => a -> Int
-memoryUsageAsNumBytes = (8*) . fromSatInt . sumCostStream . flattenCostRose . memoryUsage
+memoryUsageAsNumBytes = (8 *) . fromSatInt . sumCostStream . flattenCostRose . memoryUsage
 
 {- Experiments show that the times for big-endian and little-endian
    `byteStringToInteger` conversions are very similar, with big-endian
@@ -53,7 +57,7 @@ memoryUsageAsNumBytes = (8*) . fromSatInt . sumCostStream . flattenCostRose . me
    gives a good fit and extrapolates well to larger inputs. -}
 benchByteStringToInteger :: Benchmark
 benchByteStringToInteger =
-  createTwoTermBuiltinBenchElementwise ByteStringToInteger [] $ fmap (\x -> (True,x)) (makeSample seedA)
+  createTwoTermBuiltinBenchElementwise ByteStringToInteger [] $ fmap (\x -> (True, x)) (makeSample seedA)
 
 {- We have four possibilities for integer to bytestring conversions: they can be
  big- or little-endian, and they can also be of bounded or unbounded width.
@@ -71,13 +75,15 @@ benchByteStringToInteger =
  This is well within the 8192-byte limit. -}
 benchIntegerToByteString :: Benchmark
 benchIntegerToByteString =
-    let b = IntegerToByteString
-        inputs = fmap repunitOfSize sampleSizes
-        -- The minimum width of bytestring needed to fit the inputs into.
-        widthsInBytes = fmap (fromIntegral . memoryUsageAsNumBytes) inputs
-    in createThreeTermBuiltinBenchElementwiseWithWrappers
-       (id, NumBytesCostedAsNumWords, id) b [] $
-       zip3 (repeat True) widthsInBytes inputs
+  let b = IntegerToByteString
+      inputs = fmap repunitOfSize sampleSizes
+      -- The minimum width of bytestring needed to fit the inputs into.
+      widthsInBytes = fmap (fromIntegral . memoryUsageAsNumBytes) inputs
+   in createThreeTermBuiltinBenchElementwiseWithWrappers
+        (id, NumBytesCostedAsNumWords, id)
+        b
+        []
+        $ zip3 (repeat True) widthsInBytes inputs
 
 {- For `andByteString` with different-sized inputs, calling it with extension
 semantics (ie, first argument=True) takes up to about 5% longer than with
@@ -101,26 +107,27 @@ those.
 -}
 benchAndByteString :: Benchmark
 benchAndByteString =
-  let inputSizes = fmap (20*) [1..25]  -- 20..400: 625 cases, which should take an hour or so.
+  let inputSizes = fmap (20 *) [1 .. 25] -- 20..400: 625 cases, which should take an hour or so.
       xs = makeSizedByteStrings seedA inputSizes
       ys = makeSizedByteStrings seedB inputSizes
-  in createTwoTermBuiltinBenchWithFlag AndByteString [] True xs ys
-  -- This requires a special case in the costing codet because we don't include
-  -- the first argument (the flag).
+   in createTwoTermBuiltinBenchWithFlag AndByteString [] True xs ys
+
+-- This requires a special case in the costing codet because we don't include
+-- the first argument (the flag).
 
 {- For `complementByteString`, the time taken is linear in the length.  A model
  based on small input sizes extrapolates well to results for large inputs -}
 benchComplementByteString :: Benchmark
 benchComplementByteString =
   let xs = makeSample seedA
-  in createOneTermBuiltinBench ComplementByteString [] xs
+   in createOneTermBuiltinBench ComplementByteString [] xs
 
 {- `readBit` is pretty much constant time regardless of input size and the position of
 the bit to be read. -}
 benchReadBit :: Benchmark
 benchReadBit =
   let xs = makeSample seedA
-  in createTwoTermBuiltinBenchElementwise ReadBit [] $ pairWith topBitIndex xs
+   in createTwoTermBuiltinBenchElementwise ReadBit [] $ pairWith topBitIndex xs
 
 {- The `writeBits` function takes a bytestring, a list of positions to write to,
    and a boolean value to write at those positions.  Benchmarks show that the
@@ -132,14 +139,14 @@ benchReadBit =
 -}
 benchWriteBits :: Benchmark
 benchWriteBits =
-  let size = 128  -- This is equal to length 1024.
+  let size = 128 -- This is equal to length 1024.
       xs = makeSizedByteStrings seedA $ replicate numSamples size
-      updateCounts = [1..numSamples]
-      positions = zipWith (\x n -> replicate (10*n) (topBitIndex x)) xs updateCounts
+      updateCounts = [1 .. numSamples]
+      positions = zipWith (\x n -> replicate (10 * n) (topBitIndex x)) xs updateCounts
       -- Given an integer k, return a list of updates which write a bit 10*k
       -- times.  Here k will range from 1 to numSamples, which is 150.
       inputs = zip3 xs positions (replicate numSamples True)
-  in createThreeTermBuiltinBenchElementwise  WriteBits [] inputs
+   in createThreeTermBuiltinBenchElementwise WriteBits [] inputs
 
 {- For small inputs `replicateByte` looks constant-time.  For larger inputs it's
    linear.  We're limiting the output to 8192 bytes (size 1024), so we may as
@@ -150,11 +157,14 @@ benchWriteBits =
 benchReplicateByte :: Benchmark
 benchReplicateByte =
   let numCases = 128 :: Int
-      xs = fmap (fromIntegral . (64*)) [1..numCases] :: [Integer]
-      -- ^ This gives us replication counts up to 64*128 = 8192, the maximum allowed.
-      inputs = pairWith (const (0xFF::Integer)) xs
-  in createTwoTermBuiltinBenchElementwiseWithWrappers
-     (NumBytesCostedAsNumWords, id) ReplicateByte [] inputs
+      xs = fmap (fromIntegral . (64 *)) [1 .. numCases] :: [Integer]
+      -- \^ This gives us replication counts up to 64*128 = 8192, the maximum allowed.
+      inputs = pairWith (const (0xFF :: Integer)) xs
+   in createTwoTermBuiltinBenchElementwiseWithWrappers
+        (NumBytesCostedAsNumWords, id)
+        ReplicateByte
+        []
+        inputs
 
 {- Benchmarks with varying sizes of bytestrings and varying amounts of shifting
    show that the execution time of `shiftByteString` depends linearly on the
@@ -173,8 +183,11 @@ benchShiftByteString :: Benchmark
 benchShiftByteString =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
-      in createTwoTermBuiltinBenchElementwiseWithWrappers
-         (id, IntegerCostedLiterally) ShiftByteString [] inputs
+   in createTwoTermBuiltinBenchElementwiseWithWrappers
+        (id, IntegerCostedLiterally)
+        ShiftByteString
+        []
+        inputs
 
 {- The behaviour of `rotateByteString` is very similar to that of
    `shiftByteString` except that the time taken depends pretty much linearly on
@@ -188,8 +201,11 @@ benchRotateBytestring :: Benchmark
 benchRotateBytestring =
   let xs = makeSample seedA
       inputs = pairWith (const 1) xs
-  in createTwoTermBuiltinBenchElementwiseWithWrappers
-     (id, IntegerCostedLiterally) RotateByteString [] inputs
+   in createTwoTermBuiltinBenchElementwiseWithWrappers
+        (id, IntegerCostedLiterally)
+        RotateByteString
+        []
+        inputs
 
 {- For `countSetBits`, the time taken is linear in the length.  A model based on
    small input sizes (up to 1280 bytes) extrapolates well to results for large
@@ -197,8 +213,8 @@ benchRotateBytestring =
    take 1% or so longer than for an all-0x00 bytestring. -}
 benchCountSetBits :: Benchmark
 benchCountSetBits =
-  let xs = fmap (\n -> BS.replicate (8*n) 0xFF) sampleSizes  -- length 8, 16, ..., 1200
-  in createOneTermBuiltinBench CountSetBits [] xs
+  let xs = fmap (\n -> BS.replicate (8 * n) 0xFF) sampleSizes -- length 8, 16, ..., 1200
+   in createOneTermBuiltinBench CountSetBits [] xs
 
 {- For `findFirstSetBits` the time taken is pretty much linear in the length, with
    occasional bumps.  Unsurprisingly the function takes longest for an all-0x00
@@ -210,20 +226,20 @@ benchCountSetBits =
    well to results for large inputs. -}
 benchFindFirstSetBit :: Benchmark
 benchFindFirstSetBit =
-  let xs = fmap (\n -> BS.cons 0x80 (BS.replicate (8*n-1) 0x00)) sampleSizes
-  in createOneTermBuiltinBench FindFirstSetBit [] xs
+  let xs = fmap (\n -> BS.cons 0x80 (BS.replicate (8 * n - 1) 0x00)) sampleSizes
+   in createOneTermBuiltinBench FindFirstSetBit [] xs
 
 makeBenchmarks :: [Benchmark]
 makeBenchmarks =
-    [ benchIntegerToByteString
-    , benchByteStringToInteger
-    , benchAndByteString
-    , benchComplementByteString
-    , benchReadBit
-    , benchWriteBits
-    , benchReplicateByte
-    , benchShiftByteString
-    , benchRotateBytestring
-    , benchCountSetBits
-    , benchFindFirstSetBit
-    ]
+  [ benchIntegerToByteString
+  , benchByteStringToInteger
+  , benchAndByteString
+  , benchComplementByteString
+  , benchReadBit
+  , benchWriteBits
+  , benchReplicateByte
+  , benchShiftByteString
+  , benchRotateBytestring
+  , benchCountSetBits
+  , benchFindFirstSetBit
+  ]

@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+
 module PlutusCore.Flat.Test.Main where
 
 import PlutusCore.Flat
@@ -11,9 +12,8 @@ trampoline = id
 trampolineIO = id
 #endif
 
-
 longBools = replicate 1000000 False
 
 main = do
-    print $ length longBools
-    print $ (flat longBools)
+  print $ length longBools
+  print $ (flat longBools)

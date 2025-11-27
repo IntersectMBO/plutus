@@ -1,13 +1,13 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusTx.Blueprint.Class where
 
@@ -15,16 +15,20 @@ import Prelude hiding (maximum, minimum)
 
 import Data.ByteString (ByteString)
 import Data.Kind (Type)
-import PlutusTx.Blueprint.Schema (ListSchema (..), PairSchema (..), Schema (..), emptyBytesSchema,
-                                  emptyIntegerSchema)
+import PlutusTx.Blueprint.Schema
+  ( ListSchema (..)
+  , PairSchema (..)
+  , Schema (..)
+  , emptyBytesSchema
+  , emptyIntegerSchema
+  )
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal (BuiltinList, BuiltinPair, BuiltinUnit)
 
 {-|
   A class of types that have a Blueprint schema definition
-  and can reference other schema definitions of other types.
--}
+  and can reference other schema definitions of other types. -}
 class HasBlueprintSchema (t :: Type) (referencedTypes :: [Type]) where
   schema :: Schema referencedTypes
 
@@ -50,7 +54,7 @@ instance HasBlueprintSchema ByteString referencedTypes where
   schema = SchemaBytes emptySchemaInfo emptyBytesSchema
 
 instance
-  (HasBlueprintSchema a referencedTypes)
+  HasBlueprintSchema a referencedTypes
   => HasBlueprintSchema [a] referencedTypes
   where
   schema =
@@ -65,7 +69,7 @@ instance
       )
 
 instance
-  (HasBlueprintSchema a referencedTypes)
+  HasBlueprintSchema a referencedTypes
   => HasBlueprintSchema (BuiltinList a) referencedTypes
   where
   schema = SchemaBuiltInList emptySchemaInfo (schema @a)

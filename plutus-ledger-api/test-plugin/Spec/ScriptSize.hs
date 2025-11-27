@@ -1,7 +1,7 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
@@ -26,8 +26,12 @@ import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, assertEqual, assertFailure, testCase)
 import UntypedPlutusCore.Core.Type (progTerm)
-import UntypedPlutusCore.Evaluation.Machine.Cek (_cekReportResult, cekResultToEither, counting,
-                                                 noEmitter)
+import UntypedPlutusCore.Evaluation.Machine.Cek
+  ( cekResultToEither
+  , counting
+  , noEmitter
+  , _cekReportResult
+  )
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal (NTerm, runCekDeBruijn)
 
 tests :: TestTree

@@ -41,8 +41,7 @@ v1_evalCtxForTesting =
 {-| Constructing a V3 context with the first 223 parameters.
 As a result, the cost model parameters for `integerToByteString`
 and `byteStringToInteger` should be set to large numbers, preventing
-them from being used.
--}
+them from being used. -}
 v3_evalCtxTooFewParams :: V3.EvaluationContext
 v3_evalCtxTooFewParams =
   fst . unsafeFromRight . runWriterT $
@@ -146,7 +145,7 @@ saltedFunction =
                     void res
                       === void res'
                       .&&. fWhich
-                      === isRight res
+                        === isRight res
         , testProperty "unsaturated" \(n :: Word8) (n' :: Word8) salt fWhich ->
             let f =
                   ( if fWhich

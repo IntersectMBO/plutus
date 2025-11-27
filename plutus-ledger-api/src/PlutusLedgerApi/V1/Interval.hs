@@ -1,54 +1,58 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
-
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE TypeFamilies         #-}
-{-# LANGUAGE TypeOperators        #-}
 
 -- | A type for intervals and associated functions.
 module PlutusLedgerApi.V1.Interval
-    ( Interval(..)
-    , UpperBound(..)
-    , LowerBound(..)
-    , Extended(..)
-    , Closure
-    , member
-    , interval
-    , from
-    , to
-    , always
-    , never
-    , singleton
-    , hull
-    , intersection
-    , overlaps
-    , contains
-    , isEmpty
-    , before
-    , after
-    , lowerBound
-    , upperBound
-    , strictLowerBound
-    , strictUpperBound
-    ) where
+  ( Interval (..)
+  , UpperBound (..)
+  , LowerBound (..)
+  , Extended (..)
+  , Closure
+  , member
+  , interval
+  , from
+  , to
+  , always
+  , never
+  , singleton
+  , hull
+  , intersection
+  , overlaps
+  , contains
+  , isEmpty
+  , before
+  , after
+  , lowerBound
+  , upperBound
+  , strictLowerBound
+  , strictUpperBound
+  ) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
-import Prelude qualified as Haskell
 import Prettyprinter (Pretty (pretty), comma, (<+>))
+import Prelude qualified as Haskell
 
 import PlutusTx.Blueprint (ConstructorSchema (..), Schema (..))
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (schema))
-import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), HasSchemaDefinition, Unrolled,
-                                      definitionIdFromTypeK, definitionRef)
+import PlutusTx.Blueprint.Definition
+  ( HasBlueprintDefinition (..)
+  , HasSchemaDefinition
+  , Unrolled
+  , definitionIdFromTypeK
+  , definitionRef
+  )
 import PlutusTx.Blueprint.Definition.TF (Nub, type (++))
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..), emptySchemaInfo)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
@@ -59,7 +63,7 @@ import PlutusTx.Ord as PlutusTx
 import PlutusTx.Prelude
 
 -- See Note [Enumerable Intervals]
-{- | An interval of @a@s.
+{-| An interval of @a@s.
 
 The interval may be either closed or open at either end, meaning
 that the endpoints may or may not be included in the interval.
@@ -72,23 +76,23 @@ There is no 'Ord' instance, but 'contains' gives a partial order.
 Note that some of the functions on `Interval` rely on `Enum` in order to
 handle non-inclusive endpoints. For this reason, it may not be safe to
 use `Interval`s with non-inclusive endpoints on types whose `Enum`
-instances have partial methods.
--}
-data Interval a = Interval { ivFrom :: LowerBound a, ivTo :: UpperBound a }
-    deriving stock (Haskell.Show, Generic)
-    deriving anyclass (NFData)
+instances have partial methods. -}
+data Interval a = Interval {ivFrom :: LowerBound a, ivTo :: UpperBound a}
+  deriving stock (Haskell.Show, Generic)
+  deriving anyclass (NFData)
 
-instance (HasBlueprintDefinition a) => HasBlueprintDefinition (Interval a) where
-  type Unroll (Interval a) =
-    Nub (Interval a ': (Unrolled (LowerBound a) ++ Unrolled (UpperBound a)))
+instance HasBlueprintDefinition a => HasBlueprintDefinition (Interval a) where
+  type
+    Unroll (Interval a) =
+      Nub (Interval a ': (Unrolled (LowerBound a) ++ Unrolled (UpperBound a)))
   definitionId = definitionIdFromTypeK @_ @Interval Haskell.<> definitionId @a
 
 instance
   ( HasBlueprintDefinition a
   , HasSchemaDefinition (LowerBound a) referencedTypes
   , HasSchemaDefinition (UpperBound a) referencedTypes
-  ) =>
-  HasBlueprintSchema (Interval a) referencedTypes
+  )
+  => HasBlueprintSchema (Interval a) referencedTypes
   where
   {-# INLINEABLE schema #-}
   schema =
@@ -105,26 +109,26 @@ instance Functor Interval where
   fmap f (Interval fromA toA) = Interval (f <$> fromA) (f <$> toA)
 
 instance Pretty a => Pretty (Interval a) where
-    pretty (Interval l h) = pretty l <+> comma <+> pretty h
+  pretty (Interval l h) = pretty l <+> comma <+> pretty h
 
 -- | A set extended with a positive and negative infinity.
 data Extended a = NegInf | Finite a | PosInf
-    deriving stock (Haskell.Show, Generic)
-    deriving anyclass (NFData)
+  deriving stock (Haskell.Show, Generic)
+  deriving anyclass (NFData)
 
-instance (HasBlueprintDefinition a) => HasBlueprintDefinition (Extended a) where
+instance HasBlueprintDefinition a => HasBlueprintDefinition (Extended a) where
   type Unroll (Extended a) = Extended a ': Unrolled a
   definitionId = definitionIdFromTypeK @_ @Extended Haskell.<> definitionId @a
 
 instance Functor Extended where
-  fmap _ NegInf     = NegInf
+  fmap _ NegInf = NegInf
   fmap f (Finite a) = Finite (f a)
-  fmap _ PosInf     = PosInf
+  fmap _ PosInf = PosInf
 
 instance Pretty a => Pretty (Extended a) where
-    pretty NegInf     = pretty "-∞"
-    pretty PosInf     = pretty "+∞"
-    pretty (Finite a) = pretty a
+  pretty NegInf = pretty "-∞"
+  pretty PosInf = pretty "+∞"
+  pretty (Finite a) = pretty a
 
 -- See Note [Enumerable Intervals]
 -- | Whether a bound is inclusive or not.
@@ -132,10 +136,10 @@ type Closure = Bool
 
 -- | The upper bound of an interval.
 data UpperBound a = UpperBound (Extended a) Closure
-    deriving stock (Haskell.Show, Generic)
-    deriving anyclass (NFData)
+  deriving stock (Haskell.Show, Generic)
+  deriving anyclass (NFData)
 
-instance (HasBlueprintDefinition (Extended a)) => HasBlueprintDefinition (UpperBound a) where
+instance HasBlueprintDefinition (Extended a) => HasBlueprintDefinition (UpperBound a) where
   type Unroll (UpperBound a) = UpperBound a ': (Unrolled Closure ++ Unrolled (Extended a))
   definitionId = definitionIdFromTypeK @_ @UpperBound Haskell.<> definitionId @(Extended a)
 
@@ -144,13 +148,13 @@ instance
   , HasBlueprintDefinition a
   , HasSchemaDefinition (Extended a) referencedTypes
   , HasSchemaDefinition Closure referencedTypes
-  ) =>
-  HasBlueprintSchema (UpperBound a) referencedTypes
+  )
+  => HasBlueprintSchema (UpperBound a) referencedTypes
   where
   {-# INLINEABLE schema #-}
   schema =
     SchemaConstructor
-      emptySchemaInfo { title = Just "UpperBound"}
+      emptySchemaInfo {title = Just "UpperBound"}
       ( MkConstructorSchema
           0
           [ definitionRef @(Extended a) @referencedTypes
@@ -158,36 +162,36 @@ instance
           ]
       )
 
--- | For an enumerable type, turn an upper bound into a single inclusive
--- bounding value.
---
--- Since the type is enumerable, non-inclusive bounds are equivalent
--- to inclusive bounds on the predecessor.
---
--- See Note [Enumerable Intervals]
+{-| For an enumerable type, turn an upper bound into a single inclusive
+bounding value.
+
+Since the type is enumerable, non-inclusive bounds are equivalent
+to inclusive bounds on the predecessor.
+
+See Note [Enumerable Intervals] -}
 inclusiveUpperBound :: Enum a => UpperBound a -> Extended a
 -- already inclusive
-inclusiveUpperBound (UpperBound v True)           = v
+inclusiveUpperBound (UpperBound v True) = v
 -- take pred
 inclusiveUpperBound (UpperBound (Finite x) False) = Finite $ pred x
 -- an infinity: inclusive/non-inclusive makes no difference
-inclusiveUpperBound (UpperBound v False)          = v
+inclusiveUpperBound (UpperBound v False) = v
 
 instance Functor UpperBound where
   fmap f (UpperBound e c) = UpperBound (f <$> e) c
 
 instance Pretty a => Pretty (UpperBound a) where
-    pretty (UpperBound PosInf _) = pretty "+∞)"
-    pretty (UpperBound NegInf _) = pretty "-∞)"
-    pretty (UpperBound a True)   = pretty a <+> pretty "]"
-    pretty (UpperBound a False)  = pretty a <+> pretty ")"
+  pretty (UpperBound PosInf _) = pretty "+∞)"
+  pretty (UpperBound NegInf _) = pretty "-∞)"
+  pretty (UpperBound a True) = pretty a <+> pretty "]"
+  pretty (UpperBound a False) = pretty a <+> pretty ")"
 
 -- | The lower bound of an interval.
 data LowerBound a = LowerBound (Extended a) Closure
-    deriving stock (Haskell.Show, Generic)
-    deriving anyclass (NFData)
+  deriving stock (Haskell.Show, Generic)
+  deriving anyclass (NFData)
 
-instance (HasBlueprintDefinition (Extended a)) => HasBlueprintDefinition (LowerBound a) where
+instance HasBlueprintDefinition (Extended a) => HasBlueprintDefinition (LowerBound a) where
   type Unroll (LowerBound a) = LowerBound a ': (Unrolled Closure ++ Unrolled (Extended a))
   definitionId = definitionIdFromTypeK @_ @LowerBound Haskell.<> definitionId @(Extended a)
 
@@ -196,13 +200,13 @@ instance
   , HasBlueprintDefinition a
   , HasSchemaDefinition (Extended a) referencedTypes
   , HasSchemaDefinition Closure referencedTypes
-  ) =>
-  HasBlueprintSchema (LowerBound a) referencedTypes
+  )
+  => HasBlueprintSchema (LowerBound a) referencedTypes
   where
   {-# INLINEABLE schema #-}
   schema =
     SchemaConstructor
-      emptySchemaInfo { title = Just "LowerBound"}
+      emptySchemaInfo {title = Just "LowerBound"}
       ( MkConstructorSchema
           0
           [ definitionRef @(Extended a) @referencedTypes
@@ -210,209 +214,203 @@ instance
           ]
       )
 
--- | For an enumerable type, turn an lower bound into a single inclusive
--- bounding value.
---
--- Since the type is enumerable, non-inclusive bounds are equivalent
--- to inclusive bounds on the successor.
---
--- See Note [Enumerable Intervals]
+{-| For an enumerable type, turn an lower bound into a single inclusive
+bounding value.
+
+Since the type is enumerable, non-inclusive bounds are equivalent
+to inclusive bounds on the successor.
+
+See Note [Enumerable Intervals] -}
 inclusiveLowerBound :: Enum a => LowerBound a -> Extended a
 -- already inclusive
-inclusiveLowerBound (LowerBound v True)           = v
+inclusiveLowerBound (LowerBound v True) = v
 -- take succ
 inclusiveLowerBound (LowerBound (Finite x) False) = Finite $ succ x
 -- an infinity: inclusive/non-inclusive makes no difference
-inclusiveLowerBound (LowerBound v False)          = v
+inclusiveLowerBound (LowerBound v False) = v
 
 instance Functor LowerBound where
   fmap f (LowerBound e c) = LowerBound (f <$> e) c
 
 instance Pretty a => Pretty (LowerBound a) where
-    pretty (LowerBound PosInf _) = pretty "(+∞"
-    pretty (LowerBound NegInf _) = pretty "(-∞"
-    pretty (LowerBound a True)   = pretty "[" <+> pretty a
-    pretty (LowerBound a False)  = pretty "(" <+> pretty a
+  pretty (LowerBound PosInf _) = pretty "(+∞"
+  pretty (LowerBound NegInf _) = pretty "(-∞"
+  pretty (LowerBound a True) = pretty "[" <+> pretty a
+  pretty (LowerBound a False) = pretty "(" <+> pretty a
 
 instance Eq a => Eq (Extended a) where
-    {-# INLINABLE (==) #-}
-    NegInf   == NegInf   = True
-    PosInf   == PosInf   = True
-    Finite l == Finite r = l == r
-    _        == _        = False
+  {-# INLINEABLE (==) #-}
+  NegInf == NegInf = True
+  PosInf == PosInf = True
+  Finite l == Finite r = l == r
+  _ == _ = False
 
 instance Eq a => Haskell.Eq (Extended a) where
-    (==) = (PlutusTx.==)
+  (==) = (PlutusTx.==)
 
 instance Ord a => Ord (Extended a) where
-    {-# INLINABLE compare #-}
-    NegInf   `compare` NegInf   = EQ
-    NegInf   `compare` _        = LT
-    _        `compare` NegInf   = GT
-    PosInf   `compare` PosInf   = EQ
-    _        `compare` PosInf   = LT
-    PosInf   `compare` _        = GT
-    Finite l `compare` Finite r = l `compare` r
+  {-# INLINEABLE compare #-}
+  NegInf `compare` NegInf = EQ
+  NegInf `compare` _ = LT
+  _ `compare` NegInf = GT
+  PosInf `compare` PosInf = EQ
+  _ `compare` PosInf = LT
+  PosInf `compare` _ = GT
+  Finite l `compare` Finite r = l `compare` r
 
 instance Ord a => Haskell.Ord (Extended a) where
-    compare = PlutusTx.compare
+  compare = PlutusTx.compare
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Eq a) => Eq (UpperBound a) where
-    {-# INLINABLE (==) #-}
-    b1 == b2 = inclusiveUpperBound b1 == inclusiveUpperBound b2
+  {-# INLINEABLE (==) #-}
+  b1 == b2 = inclusiveUpperBound b1 == inclusiveUpperBound b2
 
 instance (Enum a, Eq a) => Haskell.Eq (UpperBound a) where
-    (==) = (PlutusTx.==)
+  (==) = (PlutusTx.==)
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => Ord (UpperBound a) where
-    {-# INLINABLE compare #-}
-    b1 `compare` b2 = inclusiveUpperBound b1 `compare` inclusiveUpperBound b2
+  {-# INLINEABLE compare #-}
+  b1 `compare` b2 = inclusiveUpperBound b1 `compare` inclusiveUpperBound b2
 
 instance (Enum a, Ord a) => Haskell.Ord (UpperBound a) where
-    compare = PlutusTx.compare
+  compare = PlutusTx.compare
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Eq a) => Eq (LowerBound a) where
-    {-# INLINABLE (==) #-}
-    b1 == b2 = inclusiveLowerBound b1 == inclusiveLowerBound b2
+  {-# INLINEABLE (==) #-}
+  b1 == b2 = inclusiveLowerBound b1 == inclusiveLowerBound b2
 
 instance (Enum a, Eq a) => Haskell.Eq (LowerBound a) where
-    (==) = (PlutusTx.==)
+  (==) = (PlutusTx.==)
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => Ord (LowerBound a) where
-    {-# INLINABLE compare #-}
-    b1 `compare` b2 = inclusiveLowerBound b1 `compare` inclusiveLowerBound b2
+  {-# INLINEABLE compare #-}
+  b1 `compare` b2 = inclusiveLowerBound b1 `compare` inclusiveLowerBound b2
 
 instance (Enum a, Ord a) => Haskell.Ord (LowerBound a) where
-    compare = PlutusTx.compare
+  compare = PlutusTx.compare
 
-{- | Construct a strict upper bound from a value.
-The resulting bound includes all values that are (strictly) smaller than the input value.
--}
+{-| Construct a strict upper bound from a value.
+The resulting bound includes all values that are (strictly) smaller than the input value. -}
 strictUpperBound :: a -> UpperBound a
 strictUpperBound a = UpperBound (Finite a) False
-{-# INLINABLE strictUpperBound #-}
+{-# INLINEABLE strictUpperBound #-}
 
-{- | Construct a strict lower bound from a value.
-The resulting bound includes all values that are (strictly) greater than the input value.
--}
+{-| Construct a strict lower bound from a value.
+The resulting bound includes all values that are (strictly) greater than the input value. -}
 strictLowerBound :: a -> LowerBound a
 strictLowerBound a = LowerBound (Finite a) False
-{-# INLINABLE strictLowerBound #-}
+{-# INLINEABLE strictLowerBound #-}
 
-{- | Construct a lower bound from a value.
-The resulting bound includes all values that are equal or greater than the input value.
--}
+{-| Construct a lower bound from a value.
+The resulting bound includes all values that are equal or greater than the input value. -}
 lowerBound :: a -> LowerBound a
 lowerBound a = LowerBound (Finite a) True
-{-# INLINABLE lowerBound #-}
+{-# INLINEABLE lowerBound #-}
 
-{- |  Construct an upper bound from a value.
-The resulting bound includes all values that are equal or smaller than the input value.
--}
+{-|  Construct an upper bound from a value.
+The resulting bound includes all values that are equal or smaller than the input value. -}
 upperBound :: a -> UpperBound a
 upperBound a = UpperBound (Finite a) True
-{-# INLINABLE upperBound #-}
+{-# INLINEABLE upperBound #-}
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => JoinSemiLattice (Interval a) where
-    {-# INLINABLE (\/) #-}
-    (\/) = hull
+  {-# INLINEABLE (\/) #-}
+  (\/) = hull
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => BoundedJoinSemiLattice (Interval a) where
-    {-# INLINABLE bottom #-}
-    bottom = never
+  {-# INLINEABLE bottom #-}
+  bottom = never
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => MeetSemiLattice (Interval a) where
-    {-# INLINABLE (/\) #-}
-    (/\) = intersection
+  {-# INLINEABLE (/\) #-}
+  (/\) = intersection
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => BoundedMeetSemiLattice (Interval a) where
-    {-# INLINABLE top #-}
-    top = always
+  {-# INLINEABLE top #-}
+  top = always
 
 -- See Note [Enumerable Intervals]
 instance (Enum a, Ord a) => Eq (Interval a) where
-    {-# INLINABLE (==) #-}
-    -- Degenerate case: both the intervals are empty.
-    -- There can be many empty intervals, so we check for this case
-    -- explicitly
-    iv1 == iv2 | isEmpty iv1 && isEmpty iv2 = True
-    (Interval lb1 ub1) == (Interval lb2 ub2) = lb1 == lb2 && ub1 == ub2
+  {-# INLINEABLE (==) #-}
+  -- Degenerate case: both the intervals are empty.
+  -- There can be many empty intervals, so we check for this case
+  -- explicitly
+  iv1 == iv2 | isEmpty iv1 && isEmpty iv2 = True
+  (Interval lb1 ub1) == (Interval lb2 ub2) = lb1 == lb2 && ub1 == ub2
 
 instance (Enum a, Ord a) => Haskell.Eq (Interval a) where
-    {-# INLINABLE (==) #-}
-    (==) = (PlutusTx.==)
+  {-# INLINEABLE (==) #-}
+  (==) = (PlutusTx.==)
 
--- | @interval a b@ includes all values that are greater than or equal to @a@
--- and smaller than or equal to @b@. Therefore it includes @a@ and @b@. In math. notation: [a,b]
+{-| @interval a b@ includes all values that are greater than or equal to @a@
+and smaller than or equal to @b@. Therefore it includes @a@ and @b@. In math. notation: [a,b] -}
 interval :: a -> a -> Interval a
 interval s s' = Interval (lowerBound s) (upperBound s')
-{-# INLINABLE interval #-}
+{-# INLINEABLE interval #-}
 
--- | Create an interval that includes just a single concrete point @a@,
--- i.e. having the same non-strict lower and upper bounds. In math.notation: [a,a]
+{-| Create an interval that includes just a single concrete point @a@,
+i.e. having the same non-strict lower and upper bounds. In math.notation: [a,a] -}
 singleton :: a -> Interval a
 singleton s = interval s s
-{-# INLINABLE singleton #-}
+{-# INLINEABLE singleton #-}
 
--- | @from a@ is an 'Interval' that includes all values that are
---  greater than or equal to @a@. In math. notation: [a,+∞]
+{-| @from a@ is an 'Interval' that includes all values that are
+ greater than or equal to @a@. In math. notation: [a,+∞] -}
 from :: a -> Interval a
 from s = Interval (lowerBound s) (UpperBound PosInf True)
-{-# INLINABLE from #-}
+{-# INLINEABLE from #-}
 
--- | @to a@ is an 'Interval' that includes all values that are
---  smaller than or equal to @a@. In math. notation: [-∞,a]
+{-| @to a@ is an 'Interval' that includes all values that are
+ smaller than or equal to @a@. In math. notation: [-∞,a] -}
 to :: a -> Interval a
 to s = Interval (LowerBound NegInf True) (upperBound s)
-{-# INLINABLE to #-}
+{-# INLINEABLE to #-}
 
 -- | An 'Interval' that covers every slot. In math. notation [-∞,+∞]
 always :: Interval a
 always = Interval (LowerBound NegInf True) (UpperBound PosInf True)
-{-# INLINABLE always #-}
+{-# INLINEABLE always #-}
 
-{- | An 'Interval' that is empty.
+{-| An 'Interval' that is empty.
 There can be many empty intervals, see `isEmpty`.
-The empty interval `never` is arbitrarily set to [+∞,-∞].
--}
+The empty interval `never` is arbitrarily set to [+∞,-∞]. -}
 never :: Interval a
 never = Interval (LowerBound PosInf True) (UpperBound NegInf True)
-{-# INLINABLE never #-}
+{-# INLINEABLE never #-}
 
 -- | Check whether a value is in an interval.
 member :: (Enum a, Ord a) => a -> Interval a -> Bool
 member a i = i `contains` singleton a
-{-# INLINABLE member #-}
+{-# INLINEABLE member #-}
 
--- | Check whether two intervals overlap, that is, whether there is a value that
---   is a member of both intervals.
+{-| Check whether two intervals overlap, that is, whether there is a value that
+  is a member of both intervals. -}
 overlaps :: (Enum a, Ord a) => Interval a -> Interval a -> Bool
 overlaps l r = not $ isEmpty (l `intersection` r)
-{-# INLINABLE overlaps #-}
+{-# INLINEABLE overlaps #-}
 
--- | 'intersection a b' is the largest interval that is contained in 'a' and in
---   'b', if it exists.
+{-| 'intersection a b' is the largest interval that is contained in 'a' and in
+  'b', if it exists. -}
 intersection :: (Enum a, Ord a) => Interval a -> Interval a -> Interval a
 intersection (Interval l1 h1) (Interval l2 h2) = Interval (max l1 l2) (min h1 h2)
-{-# INLINABLE intersection #-}
+{-# INLINEABLE intersection #-}
 
 -- | 'hull a b' is the smallest interval containing 'a' and 'b'.
 hull :: (Enum a, Ord a) => Interval a -> Interval a -> Interval a
 hull (Interval l1 h1) (Interval l2 h2) = Interval (min l1 l2) (max h1 h2)
-{-# INLINABLE hull #-}
+{-# INLINEABLE hull #-}
 
-{- | @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
+{-| @a `contains` b@ is true if the 'Interval' @b@ is entirely contained in
 @a@. That is, @a `contains` b@ if for every entry @s@, if @member s b@ then
-@member s a@.
--}
+@member s a@. -}
 contains :: (Enum a, Ord a) => Interval a -> Interval a -> Bool
 -- Everything contains the empty interval
 contains _ i2 | isEmpty i2 = True
@@ -422,28 +420,28 @@ contains i1 _ | isEmpty i1 = False
 -- Otherwise we check the endpoints. This doesn't work for empty intervals,
 -- hence the cases above.
 contains (Interval l1 h1) (Interval l2 h2) = l1 <= l2 && h2 <= h1
-{-# INLINABLE contains #-}
+{-# INLINEABLE contains #-}
 
-{- | Check if an 'Interval' is empty. -}
+-- | Check if an 'Interval' is empty.
 isEmpty :: (Enum a, Ord a) => Interval a -> Bool
 isEmpty (Interval lb ub) = case inclusiveLowerBound lb `compare` inclusiveUpperBound ub of
-    -- We have at least two possible values, the lower bound and the upper bound
-    LT -> False
-    -- We have one possible value, the lower bound/upper bound
-    EQ -> False
-    -- We have no possible values
-    GT -> True
-{-# INLINABLE isEmpty #-}
+  -- We have at least two possible values, the lower bound and the upper bound
+  LT -> False
+  -- We have one possible value, the lower bound/upper bound
+  EQ -> False
+  -- We have no possible values
+  GT -> True
+{-# INLINEABLE isEmpty #-}
 
 -- | Check if a value is earlier than the beginning of an 'Interval'.
 before :: (Enum a, Ord a) => a -> Interval a -> Bool
 before h (Interval f _) = lowerBound h < f
-{-# INLINABLE before #-}
+{-# INLINEABLE before #-}
 
 -- | Check if a value is later than the end of an 'Interval'.
-after :: (Enum a , Ord a) => a -> Interval a -> Bool
+after :: (Enum a, Ord a) => a -> Interval a -> Bool
 after h (Interval _ t) = upperBound h > t
-{-# INLINABLE after #-}
+{-# INLINEABLE after #-}
 
 {- Note [Enumerable Intervals]
 The 'Interval' type is set up to handle open intervals, where we have non-inclusive

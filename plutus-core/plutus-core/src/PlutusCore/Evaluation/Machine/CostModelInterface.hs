@@ -1,23 +1,25 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module PlutusCore.Evaluation.Machine.CostModelInterface
-    ( CostModelParams
-    , CekMachineCosts
-    , extractCostModelParams
-    , applyCostModelParams
-    , CostModelApplyError (..)
-    , CostModelApplyWarn (..)
-    )
+  ( CostModelParams
+  , CekMachineCosts
+  , extractCostModelParams
+  , applyCostModelParams
+  , CostModelApplyError (..)
+  , CostModelApplyWarn (..)
+  )
 where
 
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
-                                                                 cekMachineCostsPrefix)
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+  ( CekMachineCosts
+  , cekMachineCostsPrefix
+  )
 
 import Control.DeepSeq (NFData)
 import Control.Exception
@@ -221,109 +223,113 @@ The table then looks like this:
 
 The associated keys/names to the parameter values are arbitrarily set by the plutus team; the ledger does not hold any such names.
 
-See Note [Cost model parameters]
--}
+See Note [Cost model parameters] -}
 type CostModelParams = Map.Map Text.Text Int64
 
 -- See Note [Cost model parameters]
 -- | Extract the model parameters from a model.
 extractParams :: ToJSON a => a -> Maybe CostModelParams
 extractParams cm = case toJSON cm of
-    Object o ->
-        let
-            flattened = objToHm $ flattenObject "-" o
-            usingCostingIntegers = HM.mapMaybe (\case { Number n -> Just $ ceiling n; _ -> Nothing }) flattened
-            -- ^ Only (the contents of) the "Just" values are retained in the output map.
-            mapified = Map.fromList $ HM.toList usingCostingIntegers
-        in Just mapified
-    _ -> Nothing
-
+  Object o ->
+    let
+      flattened = objToHm $ flattenObject "-" o
+      usingCostingIntegers = HM.mapMaybe (\case Number n -> Just $ ceiling n; _ -> Nothing) flattened
+      -- \^ Only (the contents of) the "Just" values are retained in the output map.
+      mapified = Map.fromList $ HM.toList usingCostingIntegers
+     in
+      Just mapified
+  _ -> Nothing
 
 -- | A fatal error when trying to create a cost given some plain costmodel parameters.
-data CostModelApplyError =
-      CMUnknownParamError !Text.Text
-      -- ^ a costmodel parameter with the give name does not exist in the costmodel to be applied upon
-    | CMInternalReadError
-      -- ^ internal error when we are transforming the applyParams' input to json (should not happen)
-    | CMInternalWriteError !String
-      -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
-    deriving stock (Eq, Show, Generic, Data)
-    deriving anyclass (Exception, NFData, NoThunks)
+data CostModelApplyError
+  = -- | a costmodel parameter with the give name does not exist in the costmodel to be applied upon
+    CMUnknownParamError !Text.Text
+  | -- | internal error when we are transforming the applyParams' input to json (should not happen)
+    CMInternalReadError
+  | -- | internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
+    CMInternalWriteError !String
+  deriving stock (Eq, Show, Generic, Data)
+  deriving anyclass (Exception, NFData, NoThunks)
 
 -- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
-data CostModelApplyWarn =
-      CMTooManyParamsWarn { cmExpected :: !Int, cmActual :: !Int }
-      -- ^ See Note [Cost model parameters from the ledger's point of view]
-    | CMTooFewParamsWarn { cmExpected :: !Int, cmActual :: !Int }
-      -- ^ See Note [Cost model parameters from the ledger's point of view]
+data CostModelApplyWarn
+  = -- | See Note [Cost model parameters from the ledger's point of view]
+    CMTooManyParamsWarn {cmExpected :: !Int, cmActual :: !Int}
+  | -- | See Note [Cost model parameters from the ledger's point of view]
+    CMTooFewParamsWarn {cmExpected :: !Int, cmActual :: !Int}
 
 instance Pretty CostModelApplyError where
-    pretty = (preamble <+>) . \case
-        CMUnknownParamError k    -> "No such parameter in target cost model:" <+> pretty k
-        CMInternalReadError      -> "Internal problem occurred upon reading the given cost model parameters"
-        CMInternalWriteError str -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
-      where
-          preamble = "applyParams error:"
+  pretty =
+    (preamble <+>) . \case
+      CMUnknownParamError k -> "No such parameter in target cost model:" <+> pretty k
+      CMInternalReadError -> "Internal problem occurred upon reading the given cost model parameters"
+      CMInternalWriteError str -> "Internal problem occurred upon generating the applied cost model parameters with JSON error:" <+> pretty str
+    where
+      preamble = "applyParams error:"
 
 instance Pretty CostModelApplyWarn where
-    pretty = (preamble <+>) . \case
-        CMTooManyParamsWarn{..} -> "Too many cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
-        CMTooFewParamsWarn{..} -> "Too few cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
-      where
-          preamble = "applyParams warn:"
+  pretty =
+    (preamble <+>) . \case
+      CMTooManyParamsWarn {..} -> "Too many cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
+      CMTooFewParamsWarn {..} -> "Too few cost model parameters passed, expected" <+> pretty cmExpected <+> "but got" <+> pretty cmActual
+    where
+      preamble = "applyParams warn:"
 
 -- See Note [Cost model parameters]
 -- | Update a model by overwriting the parameters with the given ones.
-applyParams :: (FromJSON a, ToJSON a, MonadError CostModelApplyError m)
-            => a
-            -> CostModelParams
-            -> m a
+applyParams
+  :: (FromJSON a, ToJSON a, MonadError CostModelApplyError m)
+  => a
+  -> CostModelParams
+  -> m a
 applyParams cm params = case toJSON cm of
-    Object o ->
-        let
-            usingScientific = fmap (Number . fromIntegral) params
-            flattened = fromHash $ objToHm $ flattenObject "-" o
-        in do
-            -- this is where the overwriting happens
-            -- fail when key is in params (left) but not in the model (right)
-            merged <- Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened
-            let unflattened = unflattenObject "-" $ hmToObj $ toHash merged
-            case fromJSON (Object unflattened) of
-                Success a -> pure a
-                Error str -> throwError $ CMInternalWriteError str
-    _ -> throwError CMInternalReadError
+  Object o ->
+    let
+      usingScientific = fmap (Number . fromIntegral) params
+      flattened = fromHash $ objToHm $ flattenObject "-" o
+     in
+      do
+        -- this is where the overwriting happens
+        -- fail when key is in params (left) but not in the model (right)
+        merged <- Map.mergeA failMissing Map.preserveMissing (Map.zipWithMatched leftBiased) usingScientific flattened
+        let unflattened = unflattenObject "-" $ hmToObj $ toHash merged
+        case fromJSON (Object unflattened) of
+          Success a -> pure a
+          Error str -> throwError $ CMInternalWriteError str
+  _ -> throwError CMInternalReadError
   where
     toHash = HM.fromList . Map.toList
     fromHash = Map.fromList . HM.toList
     -- fail when field missing
-    failMissing = Map.traverseMissing $ \ k _v -> throwError $ CMUnknownParamError k
+    failMissing = Map.traverseMissing $ \k _v -> throwError $ CMUnknownParamError k
     -- left-biased merging when key found in both maps
     leftBiased _k l _r = l
 
-
 -- | Parameters for a machine step model and a builtin evaluation model bundled together.
-data SplitCostModelParams =
-    SplitCostModelParams {
-      _machineParams :: CostModelParams
-    , _builtinParams :: CostModelParams
-    }
+data SplitCostModelParams
+  = SplitCostModelParams
+  { _machineParams :: CostModelParams
+  , _builtinParams :: CostModelParams
+  }
 
--- | Split a CostModelParams object into two subobjects according to some prefix:
--- see item 5 of Note [Cost model parameters].
+{-| Split a CostModelParams object into two subobjects according to some prefix:
+see item 5 of Note [Cost model parameters]. -}
 splitParams :: Text.Text -> CostModelParams -> SplitCostModelParams
 splitParams prefix params =
-    let (machineparams, builtinparams) = Map.partitionWithKey (\k _ -> Text.isPrefixOf prefix k) params
-    in SplitCostModelParams machineparams builtinparams
+  let (machineparams, builtinparams) = Map.partitionWithKey (\k _ -> Text.isPrefixOf prefix k) params
+   in SplitCostModelParams machineparams builtinparams
 
 -- | Given a CostModel, produce a single map containing the parameters from both components
 extractCostModelParams
-    :: (ToJSON machinecosts, ToJSON builtincosts)
-    => CostModel machinecosts builtincosts -> Maybe CostModelParams
-extractCostModelParams model = -- this is using the applicative instance of Maybe
-    Map.union <$> extractParams (_machineCostModel model) <*> extractParams (_builtinCostModel model)
+  :: (ToJSON machinecosts, ToJSON builtincosts)
+  => CostModel machinecosts builtincosts -> Maybe CostModelParams
+extractCostModelParams model =
+  -- this is using the applicative instance of Maybe
+  Map.union <$> extractParams (_machineCostModel model) <*> extractParams (_builtinCostModel model)
 
--- | Given a set of cost model parameters, split it into two parts according to
--- some prefix and use those parts to update the components of a cost model.
+{-| Given a set of cost model parameters, split it into two parts according to
+some prefix and use those parts to update the components of a cost model. -}
+
 {- Strictly we don't need to do the splitting: when we call fromJSON in
    applyParams any superfluous objects in the map being decoded will be
    discarded, so we could update both components of the cost model with the
@@ -333,22 +339,23 @@ extractCostModelParams model = -- this is using the applicative instance of Mayb
    other languages) seem to vary in how unknown fields are handled), so let's be
    explicit. -}
 applySplitCostModelParams
-    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
-    => Text.Text
-    -> CostModel evaluatorcosts builtincosts
-    -> CostModelParams
-    -> m (CostModel evaluatorcosts builtincosts)
+  :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
+  => Text.Text
+  -> CostModel evaluatorcosts builtincosts
+  -> CostModelParams
+  -> m (CostModel evaluatorcosts builtincosts)
 applySplitCostModelParams prefix model params =
-    let SplitCostModelParams machineparams builtinparams = splitParams prefix params
-    in CostModel <$> applyParams (_machineCostModel model) machineparams
-                 <*> applyParams (_builtinCostModel model) builtinparams
+  let SplitCostModelParams machineparams builtinparams = splitParams prefix params
+   in CostModel
+        <$> applyParams (_machineCostModel model) machineparams
+        <*> applyParams (_builtinCostModel model) builtinparams
 
--- | Update a CostModel for the CEK machine with a given set of parameters.
--- Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).
--- Callers are recommended to call this once and cache the results.
+{-| Update a CostModel for the CEK machine with a given set of parameters.
+Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).
+Callers are recommended to call this once and cache the results. -}
 applyCostModelParams
-    :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
-    => CostModel evaluatorcosts builtincosts
-    -> CostModelParams
-    -> m (CostModel evaluatorcosts builtincosts)
+  :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
+  => CostModel evaluatorcosts builtincosts
+  -> CostModelParams
+  -> m (CostModel evaluatorcosts builtincosts)
 applyCostModelParams = applySplitCostModelParams cekMachineCostsPrefix

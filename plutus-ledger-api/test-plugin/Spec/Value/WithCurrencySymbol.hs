@@ -1,8 +1,8 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -22,19 +22,27 @@ import Data.ByteString (ByteString)
 import PlutusCore.Generators.QuickCheck.Builtin (ArbitraryBuiltin (arbitraryBuiltin), shrinkBuiltin)
 import PlutusLedgerApi.Test.V1.Value ()
 import PlutusLedgerApi.Test.V3.MintValue ()
-import PlutusLedgerApi.V1.Value (CurrencySymbol (..), TokenName (..), Value (..), currencySymbol,
-                                 singleton, symbols, tokenName, unCurrencySymbol,
-                                 withCurrencySymbol)
+import PlutusLedgerApi.V1.Value
+  ( CurrencySymbol (..)
+  , TokenName (..)
+  , Value (..)
+  , currencySymbol
+  , singleton
+  , symbols
+  , tokenName
+  , unCurrencySymbol
+  , withCurrencySymbol
+  )
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as List
-import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
-import Prelude qualified as Haskell
+import PlutusTx.Test.Run.Code (evaluationResultMatchesHaskell)
 import Test.QuickCheck
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.QuickCheck (testProperty)
+import Prelude qualified as Haskell
 
 tests :: TestTree
 tests = testGroup "withCurrencySymbol" [testPropsInHaskell, testPropsInPlinth]
@@ -102,7 +110,7 @@ test_Plinth_CorrectTokenQuantitiesAreSelected =
 --------------------------------------------------------------------------------
 -- Helper functions ------------------------------------------------------------
 
-scaleTestsBy :: (Testable prop) => Haskell.Int -> prop -> Property
+scaleTestsBy :: Testable prop => Haskell.Int -> prop -> Property
 scaleTestsBy factor =
   withMaxSuccess (100 Haskell.* factor) . mapSize (Haskell.* factor)
 

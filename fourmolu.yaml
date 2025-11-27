@@ -2,7 +2,7 @@
 indentation: 2
 
 # Max line length for automatic line breaking
-column-limit: 100
+column-limit: none
 
 # Styling of arrows in type signatures (choices: trailing, leading, or leading-args)
 function-arrows: leading
@@ -11,22 +11,22 @@ function-arrows: leading
 comma-style: leading
 
 # Styling of import/export lists (choices: leading, trailing, or diff-friendly)
-import-export-style: diff-friendly
+import-export-style: leading
 
 # Whether to full-indent or half-indent 'where' bindings past the preceding body
-indent-wheres: false
+indent-wheres: true
 
 # Whether to leave a space before an opening record brace
-record-brace-space: false
+record-brace-space: true
 
 # Number of spaces between top-level declarations
 newlines-between-decls: 1
 
 # How to print Haddock comments (choices: single-line, multi-line, or multi-line-compact)
-haddock-style: multi-line-compact
+haddock-style: multi-line
 
 # How to print module docstring
-haddock-style-module: null
+haddock-style-module: multi-line
 
 # Styling of let blocks (choices: auto, inline, newline, or mixed)
 let-style: auto
@@ -35,10 +35,10 @@ let-style: auto
 in-style: right-align
 
 # Whether to put parentheses around a single constraint (choices: auto, always, or never)
-single-constraint-parens: always
+single-constraint-parens: never
 
 # Whether to put parentheses around a single deriving class (choices: auto, always, or never)
-single-deriving-parens: auto
+single-deriving-parens: always
 
 # Output Unicode syntax (choices: detect, always, or never)
 unicode: never

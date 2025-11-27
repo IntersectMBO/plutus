@@ -1,8 +1,8 @@
-{-# LANGUAGE CPP                  #-}
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE FlexibleContexts     #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Test.Data.Flat
@@ -11,10 +11,12 @@ module Test.Data.Flat
 where
 
 import PlutusCore.Flat
+
 -- import           Flat.Encoder
 -- import           Flat.Decoder
 import Test.Data
 import Test.Data2.Flat ()
+
 -- import           Data.Word
 -- import           Data.Foldable
 -- import           Data.Int
@@ -23,12 +25,12 @@ import Test.Data2.Flat ()
 {-
 Compilation times:
            encoderS specials cases |
-| 7.10.3 | NO                      | 0:44 |
-| 7.10.3 | YES                     | 0:39 |
-| 8.0.1  | NO                      | 1:30 |
-| 8.0.1  | YES                     | 1:30 |
-| 8.0.2  | NO                      | 4:18 |
-| 8.0.2  | YES                     | 4:18 |
+\| 7.10.3 | NO                      | 0:44 |
+\| 7.10.3 | YES                     | 0:39 |
+\| 8.0.1  | NO                      | 1:30 |
+\| 8.0.1  | YES                     | 1:30 |
+\| 8.0.2  | NO                      | 4:18 |
+\| 8.0.2  | YES                     | 4:18 |
 -}
 -- GHC 8.0.2 chokes on this
 -- instance Flat A0
@@ -42,24 +44,32 @@ deriving instance Generic (a, b, c, d, e, f, g, h)
 deriving instance Generic (a, b, c, d, e, f, g, h, i)
 #endif
 
-instance {-# OVERLAPPABLE #-}( Flat a
-                             , Flat b
-                             , Flat c
-                             , Flat d
-                             , Flat e
-                             , Flat f
-                             , Flat g
-                             , Flat h) => Flat (a, b, c, d, e, f, g, h)
+instance
+  {-# OVERLAPPABLE #-}
+  ( Flat a
+  , Flat b
+  , Flat c
+  , Flat d
+  , Flat e
+  , Flat f
+  , Flat g
+  , Flat h
+  )
+  => Flat (a, b, c, d, e, f, g, h)
 
-instance {-# OVERLAPPABLE #-}( Flat a
-                             , Flat b
-                             , Flat c
-                             , Flat d
-                             , Flat e
-                             , Flat f
-                             , Flat g
-                             , Flat h
-                             , Flat i) => Flat (a, b, c, d, e, f, g, h, i)
+instance
+  {-# OVERLAPPABLE #-}
+  ( Flat a
+  , Flat b
+  , Flat c
+  , Flat d
+  , Flat e
+  , Flat f
+  , Flat g
+  , Flat h
+  , Flat i
+  )
+  => Flat (a, b, c, d, e, f, g, h, i)
 
 instance Flat N
 
@@ -95,6 +105,7 @@ instance Flat a => Flat (Phantom a)
 
 -- Slow to compile
 instance Flat Various
+
 -- Custom instances
 -- instance {-# OVERLAPPING #-} Flat (Tree (N,N,N)) --where
 --   size (Node t1 t2) = 1 + size t1 + size t2
@@ -119,9 +130,9 @@ instance Flat Various
 -- instance Flat a => Flat (Perfect a)
 -- instance Flat a => Flat (Fork a)
 -- instance Flat a => Flat (Nest a)
---instance   Flat a => Flat (Stream a) where decode = Stream <$> decode <*> decode
+-- instance   Flat a => Flat (Stream a) where decode = Stream <$> decode <*> decode
 -- instance Flat Expr
---instance (Flat a,Flat (f a),Flat (f (f a))) => Flat (PerfectF f a)
+-- instance (Flat a,Flat (f a),Flat (f (f a))) => Flat (PerfectF f a)
 -- instance Flat a => Flat (Stream a)
 {-
               |
@@ -193,7 +204,4 @@ One Two               |
 --   runWriter (encode a) s1
 --   size (Node t1 t2) = 1 + size t1 + size t2
 --   size (Leaf a) = 1 + size a
---instance Flat N
-
-
-
+-- instance Flat N

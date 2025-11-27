@@ -15,21 +15,21 @@ import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_strictifyBindings :: TestTree
 test_strictifyBindings =
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "StrictifyBindings"] $
-        map
-            (goldenPir (runIdentity . runTestPass (\tc -> strictifyBindingsPass tc def)) pTerm)
-            [ "pure1"
-            , "impure1"
-            , "unused"
-            , "conapp"
-            , "strict"
-            , "nonstrict1"
-            , "nonstrict2"
-            ]
+  runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "StrictifyBindings"] $
+    map
+      (goldenPir (runIdentity . runTestPass (\tc -> strictifyBindingsPass tc def)) pTerm)
+      [ "pure1"
+      , "impure1"
+      , "unused"
+      , "conapp"
+      , "strict"
+      , "nonstrict1"
+      , "nonstrict2"
+      ]
 
 prop_strictifyBindings :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_strictifyBindings biVariant =
-  withMaxSuccess numTestsForPassProp $
-    testPassProp
+  withMaxSuccess numTestsForPassProp
+    $ testPassProp
       runIdentity
-      $ \tc -> strictifyBindingsPass tc (def {_biSemanticsVariant = biVariant})
+    $ \tc -> strictifyBindingsPass tc (def {_biSemanticsVariant = biVariant})

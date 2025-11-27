@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
+
 module Spec.ContextDecoding where
 
 import Codec.Serialise qualified as S
@@ -13,16 +14,19 @@ import Test.Tasty
 import Test.Tasty.HUnit
 
 tests :: TestTree
-tests = testGroup "context decoding" [ test_v1Context ]
+tests = testGroup "context decoding" [test_v1Context]
 
 test_v1Context :: TestTree
 test_v1Context = testCase "v1context" $ do
   input <- BSL.readFile "test/Spec/v1-context-data"
   let (d :: Data) = S.deserialise input
-  assertBool "can't parse as V1 context"
+  assertBool
+    "can't parse as V1 context"
     (isJust $ fromBuiltinData @V1.ScriptContext (V1.BuiltinData d))
   -- Note, these should return Nothing and not throw
-  assertBool "can parse as V2 context"
+  assertBool
+    "can parse as V2 context"
     (isNothing $ fromBuiltinData @V2.ScriptContext (V2.BuiltinData d))
-  assertBool "can parse as V3 context"
+  assertBool
+    "can parse as V3 context"
     (isNothing $ fromBuiltinData @V3.ScriptContext (V3.BuiltinData d))

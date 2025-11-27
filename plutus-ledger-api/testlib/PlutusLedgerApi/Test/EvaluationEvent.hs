@@ -1,8 +1,8 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module PlutusLedgerApi.Test.EvaluationEvent
   ( ScriptEvaluationEvents (..)
@@ -39,20 +39,19 @@ data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
 instance Pretty ScriptEvaluationResult where
   pretty = viaShow
 
-{- | All the data needed to evaluate a script using the ledger API, except for the cost model
- parameters, as these are tracked separately.
--}
+{-| All the data needed to evaluate a script using the ledger API, except for the cost model
+ parameters, as these are tracked separately. -}
 data ScriptEvaluationData = ScriptEvaluationData
   { dataProtocolVersion :: MajorProtocolVersion
-  , dataBudget          :: ExBudget
-  , dataScript          :: SerialisedScript
-  , dataInputs          :: [PLC.Data]
+  , dataBudget :: ExBudget
+  , dataScript :: SerialisedScript
+  , dataInputs :: [PLC.Data]
   }
   deriving stock (Show, Generic)
   deriving anyclass (Serialise)
 
 instance Pretty ScriptEvaluationData where
-  pretty ScriptEvaluationData{..} =
+  pretty ScriptEvaluationData {..} =
     vsep
       [ "major protocol version:" <+> pretty dataProtocolVersion
       , "budget: " <+> pretty dataBudget
@@ -60,9 +59,8 @@ instance Pretty ScriptEvaluationData where
       , "data: " <+> nest 2 (vsep $ pretty <$> dataInputs)
       ]
 
-{- | Information about an on-chain script evaluation event, specifically the information needed
- to evaluate the script, and the expected result.
--}
+{-| Information about an on-chain script evaluation event, specifically the information needed
+ to evaluate the script, and the expected result. -}
 data ScriptEvaluationEvent
   = PlutusEvent PlutusLedgerLanguage ScriptEvaluationData ScriptEvaluationResult
   deriving stock (Show, Generic)
@@ -78,18 +76,17 @@ instance Pretty ScriptEvaluationEvent where
         , pretty res
         ]
 
-{- | This type contains a list of on-chain script evaluation events. All PlutusV1
+{-| This type contains a list of on-chain script evaluation events. All PlutusV1
  evaluations (if any) share the same cost parameters. Same with PlutusV2.
 
  Sharing the cost parameters lets us avoid creating a new `EvaluationContext` for
- each `ScriptEvaluationEvent`.
--}
+ each `ScriptEvaluationEvent`. -}
 data ScriptEvaluationEvents = ScriptEvaluationEvents
   { eventsCostParamsV1 :: Maybe [Int64]
   -- ^ Cost parameters shared by all PlutusV1 evaluation events in `eventsEvents`, if any.
   , eventsCostParamsV2 :: Maybe [Int64]
   -- ^ Cost parameters shared by all PlutusV2 evaluation events in `eventsEvents`, if any.
-  , eventsEvents       :: NonEmpty ScriptEvaluationEvent
+  , eventsEvents :: NonEmpty ScriptEvaluationEvent
   }
   deriving stock (Generic)
   deriving anyclass (Serialise)
@@ -164,7 +161,7 @@ checkEvaluationEvent
   -> ScriptEvaluationEvent
   -> Maybe UnexpectedEvaluationResult
 checkEvaluationEvent ctx params ev = case ev of
-  PlutusEvent PlutusV1 ScriptEvaluationData{..} expected ->
+  PlutusEvent PlutusV1 ScriptEvaluationData {..} expected ->
     case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
       Right script ->
         let (_, actual) =
@@ -177,7 +174,7 @@ checkEvaluationEvent ctx params ev = case ev of
                 dataInputs
          in verify expected actual
       Left err -> Just (DecodeError err)
-  PlutusEvent PlutusV2 ScriptEvaluationData{..} expected ->
+  PlutusEvent PlutusV2 ScriptEvaluationData {..} expected ->
     case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
       Right script ->
         let (_, actual) =
@@ -190,13 +187,13 @@ checkEvaluationEvent ctx params ev = case ev of
                 dataInputs
          in verify expected actual
       Left err -> Just (DecodeError err)
-  PlutusEvent PlutusV3 ScriptEvaluationData{..} expected ->
+  PlutusEvent PlutusV3 ScriptEvaluationData {..} expected ->
     case deserialiseScript PlutusV3 dataProtocolVersion dataScript of
       Right script -> do
         dataInput <-
           case dataInputs of
             [input] -> Just input
-            _       -> Nothing
+            _ -> Nothing
         let (_, actual) =
               V3.evaluateScriptRestricting
                 dataProtocolVersion

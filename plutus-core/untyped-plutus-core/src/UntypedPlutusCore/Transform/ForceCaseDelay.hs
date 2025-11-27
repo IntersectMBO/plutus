@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+
 {- Note [Applying force to delays in case branches]
 
 Often, the following pattern occurs in UPLC terms:
@@ -29,20 +30,23 @@ FIXME(https://github.com/IntersectMBO/plutus-private/issues/1644).
 
 -}
 module UntypedPlutusCore.Transform.ForceCaseDelay
-  ( forceCaseDelay,
+  ( forceCaseDelay
   )
 where
 
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (ForceCaseDelay), SimplifierT,
-                                               recordSimplification)
+import UntypedPlutusCore.Transform.Simplifier
+  ( SimplifierStage (ForceCaseDelay)
+  , SimplifierT
+  , recordSimplification
+  )
 
 import Control.Lens
 
 forceCaseDelay
-    :: Monad m
-    => Term name uni fun a
-    -> SimplifierT name uni fun a m (Term name uni fun a)
+  :: Monad m
+  => Term name uni fun a
+  -> SimplifierT name uni fun a m (Term name uni fun a)
 forceCaseDelay term = do
   let result = transformOf termSubterms processTerm term
   recordSimplification term ForceCaseDelay result
@@ -61,5 +65,5 @@ processTerm = \case
     findDelayUnderLambdas :: Term name uni fun a -> Maybe (Term name uni fun a)
     findDelayUnderLambdas = \case
       LamAbs ann var body -> LamAbs ann var <$> findDelayUnderLambdas body
-      Delay _ term    -> Just term
-      _               -> Nothing
+      Delay _ term -> Just term
+      _ -> Nothing

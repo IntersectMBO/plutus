@@ -1,8 +1,7 @@
 -- | Reexports from modules from the @Builtin@ folder.
-
 module PlutusCore.Builtin
-    ( module Export
-    ) where
+  ( module Export
+  ) where
 
 import PlutusCore.Builtin.Case as Export
 import PlutusCore.Builtin.HasConstant as Export

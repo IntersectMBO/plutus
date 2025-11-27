@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE GADTs              #-}
-{-# LANGUAGE KindSignatures     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module PlutusTx.Blueprint.Contract where
 
@@ -26,8 +26,7 @@ import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
 The 'referencedTypes' type variable is used to track the types used in the contract
 making sure their schemas are included in the blueprint and that they are referenced
-in a type-safe way. See Note ["Unrolling" types] for more details.
--}
+in a type-safe way. See Note ["Unrolling" types] for more details. -}
 data ContractBlueprint where
   MkContractBlueprint
     :: forall referencedTypes
@@ -43,7 +42,7 @@ data ContractBlueprint where
     -> ContractBlueprint
 
 instance ToJSON ContractBlueprint where
-  toJSON MkContractBlueprint{..} =
+  toJSON MkContractBlueprint {..} =
     Aeson.buildObject $
       requiredField "$schema" schemaUrl
         . requiredField
@@ -59,9 +58,9 @@ instance ToJSON ContractBlueprint where
         . requiredField "validators" contractValidators
         . optionalField "$id" contractId
         . optionalField "definitions" definitions
-   where
-    schemaUrl :: String
-    schemaUrl = "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json"
+    where
+      schemaUrl :: String
+      schemaUrl = "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json"
 
-    definitions :: Maybe (Map DefinitionId Aeson.Value)
-    definitions = ensure (not . Map.null) (definitionsToMap contractDefinitions toJSON)
+      definitions :: Maybe (Map DefinitionId Aeson.Value)
+      definitions = ensure (not . Map.null) (definitionsToMap contractDefinitions toJSON)

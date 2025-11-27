@@ -1,15 +1,15 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeApplications #-}
 
 module PlutusCore.Evaluation.Machine.ExMemory
-    ( CostingInteger
-    , ExMemory(..)
-    , ExCPU(..)
-    , dividedBy
-    ) where
+  ( CostingInteger
+  , ExMemory (..)
+  , ExCPU (..)
+  , dividedBy
+  ) where
 
 import Codec.Serialise (Serialise)
 import Control.DeepSeq
@@ -76,12 +76,13 @@ newtype ExMemory = ExMemory CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData, Read, Bounded)
   deriving (FromJSON, ToJSON) via CostingInteger
-  deriving Serialise via CostingInteger
-  deriving anyclass NoThunks
+  deriving (Serialise) via CostingInteger
+  deriving anyclass (NoThunks)
+
 instance Pretty ExMemory where
-    pretty (ExMemory i) = pretty (unSatInt i)
+  pretty (ExMemory i) = pretty (unSatInt i)
 instance PrettyBy config ExMemory where
-    prettyBy _ m = pretty m
+  prettyBy _ m = pretty m
 
 {- Note [Manual Semigroup and Monoid instances for Sum monoids]
 We don't do
@@ -97,39 +98,40 @@ So instead we implement @Semigroup A@ and @Monoid A@ instances manually for a 'S
 
 -- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Semigroup ExMemory where
-    (<>) = (+)
-    {-# INLINE (<>) #-}
+  (<>) = (+)
+  {-# INLINE (<>) #-}
 
-    stimes n mem = fromIntegral n * mem
-    {-# INLINE stimes #-}
+  stimes n mem = fromIntegral n * mem
+  {-# INLINE stimes #-}
 
 -- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Monoid ExMemory where
-    mempty = ExMemory 0
-    {-# INLINE mempty #-}
+  mempty = ExMemory 0
+  {-# INLINE mempty #-}
 
--- | Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
--- appproximately 106 days.
+{-| Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
+appproximately 106 days. -}
 newtype ExCPU = ExCPU CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData, Read, Bounded)
   deriving (FromJSON, ToJSON) via CostingInteger
-  deriving Serialise via CostingInteger
-  deriving anyclass NoThunks
+  deriving (Serialise) via CostingInteger
+  deriving anyclass (NoThunks)
+
 instance Pretty ExCPU where
-    pretty (ExCPU i) = pretty (unSatInt i)
+  pretty (ExCPU i) = pretty (unSatInt i)
 instance PrettyBy config ExCPU where
-    prettyBy _ m = pretty m
+  prettyBy _ m = pretty m
 
 -- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Semigroup ExCPU where
-    (<>) = (+)
-    {-# INLINE (<>) #-}
+  (<>) = (+)
+  {-# INLINE (<>) #-}
 
-    stimes n mem = fromIntegral n * mem
-    {-# INLINE stimes #-}
+  stimes n mem = fromIntegral n * mem
+  {-# INLINE stimes #-}
 
 -- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Monoid ExCPU where
-    mempty = ExCPU 0
-    {-# INLINE mempty #-}
+  mempty = ExCPU 0
+  {-# INLINE mempty #-}

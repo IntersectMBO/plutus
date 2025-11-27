@@ -1,21 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Benchmarking support for Marlowe's validators.
-module PlutusBenchmark.Marlowe.BenchUtil (
-  benchmarkToUPLC,
-  executeBenchmark,
-  evaluationContext,
-  readBenchmark,
-  readBenchmarks,
-  printBenchmark,
-  printResult,
-  tabulateResults,
-  writeFlatUPLC,
-  writeFlatUPLCs,
-  updateScriptHash,
-  semanticsBenchmarks,
-  rolePayoutBenchmarks,
-) where
+module PlutusBenchmark.Marlowe.BenchUtil
+  ( benchmarkToUPLC
+  , executeBenchmark
+  , evaluationContext
+  , readBenchmark
+  , readBenchmarks
+  , printBenchmark
+  , printResult
+  , tabulateResults
+  , writeFlatUPLC
+  , writeFlatUPLCs
+  , updateScriptHash
+  , semanticsBenchmarks
+  , rolePayoutBenchmarks
+  ) where
 
 import Codec.Serialise (deserialise)
 import Control.Monad (void)
@@ -35,8 +35,13 @@ import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Executable.AstIO (fromNamedDeBruijnUPLC)
 import PlutusCore.Executable.Common (writeProgram)
-import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),
-                                    PrintMode (Readable), UplcProg)
+import PlutusCore.Executable.Types
+  ( AstNameType (NamedDeBruijn)
+  , Format (Flat)
+  , Output (FileOutput)
+  , PrintMode (Readable)
+  , UplcProg
+  )
 import PlutusCore.MkPlc (mkConstant)
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V2
@@ -52,20 +57,19 @@ benchmarkToUPLC
   :: CompiledCode a
   -- ^ semantics or role payout validator.
   -> M.Benchmark
-  {- ^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by
-  the executable, it includes benchmarking results along with script info.
-  -}
+  {-^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by
+  the executable, it includes benchmarking results along with script info. -}
   -> UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -- ^ A named DeBruijn program, for turning to `Benchmarkable`.
-benchmarkToUPLC validator M.Benchmark{..} =
+benchmarkToUPLC validator M.Benchmark {..} =
   foldl1 (unsafeFromEither .* applyProgram) $
     void prog : [datum, redeemer, context]
- where
-  wrap = UPLC.Program () (UPLC.Version 1 0 0)
-  datum = wrap $ mkConstant () bDatum
-  redeemer = wrap $ mkConstant () bRedeemer
-  context = wrap $ mkConstant () $ toData bScriptContext
-  prog = getPlc validator
+  where
+    wrap = UPLC.Program () (UPLC.Version 1 0 0)
+    datum = wrap $ mkConstant () bDatum
+    redeemer = wrap $ mkConstant () bRedeemer
+    context = wrap $ mkConstant () $ toData bScriptContext
+    prog = getPlc validator
 
 -- | Read all of the benchmarking cases for a particular validator.
 readBenchmarks :: FilePath -> IO (Either String [Benchmark])
@@ -92,28 +96,28 @@ readBenchmark filename = do
               ExBudget
                 (fromInteger cpu)
                 (fromInteger memory)
-        pure Benchmark{..}
+        pure Benchmark {..}
       _ -> Left "Failed deserializing benchmark file."
 
 -- Rewrite all of a particular script hash in the script context.
 updateScriptHash :: ScriptHash -> ScriptHash -> ScriptContext -> ScriptContext
 updateScriptHash oldHash newHash scriptContext =
-  scriptContext{scriptContextTxInfo = txInfo'}
- where
-  updateAddress address@(Address (ScriptCredential hash) stakeCredential)
-    | hash == oldHash = Address (ScriptCredential newHash) stakeCredential
-    | otherwise = address
-  updateAddress address = address
-  updateTxOut txOut@TxOut{..} =
-    txOut{txOutAddress = updateAddress txOutAddress}
-  updateTxInInfo txInInfo@TxInInfo{..} =
-    txInInfo{txInInfoResolved = updateTxOut txInInfoResolved}
-  txInfo@TxInfo{..} = scriptContextTxInfo scriptContext
-  txInfo' =
-    txInfo
-      { txInfoInputs = updateTxInInfo <$> txInfoInputs
-      , txInfoOutputs = updateTxOut <$> txInfoOutputs
-      }
+  scriptContext {scriptContextTxInfo = txInfo'}
+  where
+    updateAddress address@(Address (ScriptCredential hash) stakeCredential)
+      | hash == oldHash = Address (ScriptCredential newHash) stakeCredential
+      | otherwise = address
+    updateAddress address = address
+    updateTxOut txOut@TxOut {..} =
+      txOut {txOutAddress = updateAddress txOutAddress}
+    updateTxInInfo txInInfo@TxInInfo {..} =
+      txInInfo {txInInfoResolved = updateTxOut txInInfoResolved}
+    txInfo@TxInfo {..} = scriptContextTxInfo scriptContext
+    txInfo' =
+      txInfo
+        { txInfoInputs = updateTxInInfo <$> txInfoInputs
+        , txInfoOutputs = updateTxOut <$> txInfoOutputs
+        }
 
 {-  | Revise the validator hashes in the benchmark's script context. Reasons:
 
@@ -128,7 +132,7 @@ it checking for another Marlowe script running in the same transaction. Thus,
 the script context needs editing here, too.
  -}
 rescript :: Benchmark -> Benchmark
-rescript benchmark@Benchmark{..} =
+rescript benchmark@Benchmark {..} =
   benchmark
     { bScriptContext =
         updateScriptHash
@@ -150,7 +154,7 @@ rolePayoutBenchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/scripts
 
 -- | Print a benchmarking case.
 printBenchmark :: Benchmark -> IO ()
-printBenchmark Benchmark{..} = do
+printBenchmark Benchmark {..} = do
   putStrLn "*** DATUM ***"
   print (fromData bDatum :: Maybe MarloweData)
   putStrLn "*** REDEEMER ***"
@@ -222,7 +226,7 @@ tabulateResults name hash validator benchmarks =
                 , show (logs, msg)
                 ]
               Left msg -> [na, na, cpuRef, memoryRef, show msg]
-        | benchmark@Benchmark{..} <- benchmarks
+        | benchmark@Benchmark {..} <- benchmarks
         , let txId = txInfoId $ scriptContextTxInfo bScriptContext
               cpuRef =
                 maybe na (show . unExCPU . exBudgetCPU) bReferenceCost
@@ -239,13 +243,13 @@ writeFlatUPLCs
 writeFlatUPLCs writer benchmarks folder =
   sequence_
     [ writer (folder </> show txId <> "-uplc" <.> "flat") benchmark
-    | benchmark@Benchmark{..} <- benchmarks
+    | benchmark@Benchmark {..} <- benchmarks
     , let txId = txInfoId $ scriptContextTxInfo bScriptContext
     ]
 
 -- | Write a flat UPLC file for a benchmark.
 writeFlatUPLC :: CompiledCode a -> FilePath -> Benchmark -> IO ()
-writeFlatUPLC validator filename Benchmark{..} =
+writeFlatUPLC validator filename Benchmark {..} =
   let
     wrap = Program () (Version 1 0 0)
     datum = wrap $ mkConstant () bDatum :: UplcProg ()
@@ -266,7 +270,7 @@ executeBenchmark
   -- ^ The benchmarking case.
   -> Either String (LogOutput, Either EvaluationError ExBudget)
   -- ^ An error or the cost.
-executeBenchmark serialisedValidator Benchmark{..} =
+executeBenchmark serialisedValidator Benchmark {..} =
   case evaluationContext of
     Left message -> Left message
     Right ec ->

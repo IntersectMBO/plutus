@@ -16,19 +16,19 @@ import System.Random (StdGen)
    fact probably only occupy one word).  We still need to guard against denial
    of service, and we may need to impose penalties for *really* large inputs. -}
 makeDefaultIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3..31] -- 16 entries
+makeDefaultIntegerArgs gen = makeSizedIntegers gen [1, 3 .. 31] -- 16 entries
 
 {- The default arguments give a constant costing function for addition and subtraction.
    These ones give us data where the linear trend is clear. -}
 makeLargeIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeLargeIntegerArgs gen = makeSizedIntegers gen [1, 70..1000] -- 15 entries
+makeLargeIntegerArgs gen = makeSizedIntegers gen [1, 70 .. 1000] -- 15 entries
 
 benchTwoIntegers :: StdGen -> (StdGen -> ([Integer], StdGen)) -> DefaultFun -> Benchmark
 benchTwoIntegers gen makeArgs builtinName =
-    createTwoTermBuiltinBench builtinName [] inputs inputs'
-    where
-      (inputs, gen') = makeArgs gen
-      (inputs', _)   = makeArgs gen'
+  createTwoTermBuiltinBench builtinName [] inputs inputs'
+  where
+    (inputs, gen') = makeArgs gen
+    (inputs', _) = makeArgs gen'
 
 {- Some larger inputs for cases where we're using the same number for both
    arguments.  (A) If we're not examining all NxN pairs then we can examine
@@ -36,12 +36,13 @@ benchTwoIntegers gen makeArgs builtinName =
    the results are very uniform with the smaller numbers, leading to occasional
    models with negative slopes.  Using larger numbers may help to avoid this. -}
 makeBiggerIntegerArgs :: StdGen -> ([Integer], StdGen)
-makeBiggerIntegerArgs gen = makeSizedIntegers gen [1, 3..101]
+makeBiggerIntegerArgs gen = makeSizedIntegers gen [1, 3 .. 101]
 
 benchSameTwoIntegers :: StdGen -> DefaultFun -> Benchmark
 benchSameTwoIntegers gen builtinName =
-   createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
-    where (numbers,_) = makeBiggerIntegerArgs gen
+  createTwoTermBuiltinBenchElementwise builtinName [] $ pairWith copyInteger numbers
+  where
+    (numbers, _) = makeBiggerIntegerArgs gen
 
 {- `expModInteger a e m` calculates `a^e` modulo `m`; if `e` is negative then the
 function fails unless gcd(a,m) = 1, in which case there is an integer `a'` such
@@ -69,29 +70,40 @@ call `modInteger` before calling `expModInteger`.
 benchExpModInteger :: StdGen -> Benchmark
 benchExpModInteger _gen =
   let fun = ExpModInteger
-      pow (a::Integer) (b::Integer) = a^b
-      moduli = fmap (\n -> pow 2 (32*n) - 11) [1, 3..31]
-      -- ^ 16 entries, sizes = 4, 12, ..., 124 bytes (memoryUsage = 1,2,...,16)
+      pow (a :: Integer) (b :: Integer) = a ^ b
+      moduli = fmap (\n -> pow 2 (32 * n) - 11) [1, 3 .. 31]
+      -- \^ 16 entries, sizes = 4, 12, ..., 124 bytes (memoryUsage = 1,2,...,16)
       es = fmap (\n -> pow 2 (fromIntegral $ integerLog2 n) - 1) moduli
-      -- ^ Largest number less than modulus with binary expansion 1111...1.
+   in -- \^ Largest number less than modulus with binary expansion 1111...1.
       -- This is the worst case.
 
-  in bgroup (show fun)
-     [bgroup (showMemoryUsage (m `div` 3))
-       [bgroup (showMemoryUsage e)
-         [mkBM a e m | a <- [m `div` 3] ] | e <- es ] | m <- moduli ]
-  where mkBM a e m =
-          benchDefault (showMemoryUsage m) $
-          mkApp3 ExpModInteger [] a e m
+      bgroup
+        (show fun)
+        [ bgroup
+            (showMemoryUsage (m `div` 3))
+            [ bgroup
+                (showMemoryUsage e)
+                [mkBM a e m | a <- [m `div` 3]]
+            | e <- es
+            ]
+        | m <- moduli
+        ]
+  where
+    mkBM a e m =
+      benchDefault (showMemoryUsage m) $
+        mkApp3 ExpModInteger [] a e m
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
-       [benchTwoIntegers gen makeLargeIntegerArgs AddInteger]-- SubtractInteger behaves identically.
+  [benchTwoIntegers gen makeLargeIntegerArgs AddInteger] -- SubtractInteger behaves identically.
     <> (benchTwoIntegers gen makeDefaultIntegerArgs <$> [MultiplyInteger, DivideInteger])
-           -- RemainderInteger, QuotientInteger, and ModInteger all behave identically.
-    <> (benchSameTwoIntegers gen <$> [ EqualsInteger
-                                     , LessThanInteger
-                                     , LessThanEqualsInteger
-                                     ])
-    <> [-- benchExpModInteger gen,
-        benchExpModInteger gen]
+    -- RemainderInteger, QuotientInteger, and ModInteger all behave identically.
+    <> ( benchSameTwoIntegers gen
+           <$> [ EqualsInteger
+               , LessThanInteger
+               , LessThanEqualsInteger
+               ]
+       )
+    <> [ -- benchExpModInteger gen,
+         benchExpModInteger gen
+       ]

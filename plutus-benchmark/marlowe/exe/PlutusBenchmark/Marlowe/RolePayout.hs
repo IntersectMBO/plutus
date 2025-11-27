@@ -1,26 +1,45 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusBenchmark.Marlowe.RolePayout (
-  benchmarks,
-  validatorBytes,
-  validatorHash,
-  exampleBenchmark,
-  writeUPLC,
-) where
+module PlutusBenchmark.Marlowe.RolePayout
+  ( benchmarks
+  , validatorBytes
+  , validatorHash
+  , exampleBenchmark
+  , writeUPLC
+  ) where
 
 import Data.Bifunctor (second)
 import PlutusBenchmark.Marlowe.BenchUtil (readBenchmarks, updateScriptHash, writeFlatUPLC)
-import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator, rolePayoutValidatorBytes,
-                                                   rolePayoutValidatorHash)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout
+  ( rolePayoutValidator
+  , rolePayoutValidatorBytes
+  , rolePayoutValidatorHash
+  )
 import PlutusBenchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
-import PlutusBenchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
-                                     makeRedeemerMap)
-import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), CurrencySymbol (..),
-                           ExBudget (ExBudget), Extended (NegInf, PosInf), Interval (Interval),
-                           LowerBound (LowerBound),
-                           ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
-                           ScriptHash, ScriptPurpose (Spending), SerialisedScript, TxInfo (..),
-                           TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
+import PlutusBenchmark.Marlowe.Util
+  ( lovelace
+  , makeBuiltinData
+  , makeDatumMap
+  , makeInput
+  , makeOutput
+  , makeRedeemerMap
+  )
+import PlutusLedgerApi.V2
+  ( Credential (PubKeyCredential, ScriptCredential)
+  , CurrencySymbol (..)
+  , ExBudget (ExBudget)
+  , Extended (NegInf, PosInf)
+  , Interval (Interval)
+  , LowerBound (LowerBound)
+  , ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo)
+  , ScriptHash
+  , ScriptPurpose (Spending)
+  , SerialisedScript
+  , TxInfo (..)
+  , TxOutRef (TxOutRef)
+  , UpperBound (UpperBound)
+  , singleton
+  )
 
 import PlutusLedgerApi.V1.Value (TokenName (TokenName))
 import PlutusTx.AssocMap qualified as AM (empty)
@@ -44,7 +63,7 @@ benchmarks =
 
 -- | Revise the validator hashes in the benchmark's script context.
 rescript :: Benchmark -> Benchmark
-rescript benchmark@Benchmark{..} =
+rescript benchmark@Benchmark {..} =
   benchmark
     { bScriptContext =
         updateScriptHash
@@ -125,7 +144,7 @@ exampleBenchmark =
         "95de9e2c3bface3de5739c0bd5197f0864315c1819c52783afb9b2ce075215f5"
         "d8799f581cd768a767450e9ffa2d68ae61e8476fb6267884e0477d7fd19703f9d84653656c6c6572ff"
     txInfoId = "4e16f03a5533f22adbc5097a07077f3b708b1bf74b42e6b2938dd2d4156207f0"
-    scriptContextTxInfo = TxInfo{..}
+    scriptContextTxInfo = TxInfo {..}
     scriptContextPurpose =
       Spending $ TxOutRef "ef6a9ef1b84bef3dad5e12d9bf128765595be4a92da45bda2599dc7fae7e2397" 1
    in
@@ -134,5 +153,5 @@ exampleBenchmark =
           "d8799f581cd768a767450e9ffa2d68ae61e8476fb6267884e0477d7fd19703f9d84653656c6c6572ff"
       )
       (makeBuiltinData "d87980")
-      ScriptContext{..}
+      ScriptContext {..}
       (Just $ ExBudget 477988519 1726844)

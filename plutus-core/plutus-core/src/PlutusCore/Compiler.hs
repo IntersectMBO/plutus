@@ -19,9 +19,9 @@ import Control.Monad.Reader (MonadReader)
 
 -- | Compile a PLC term to UPLC, and optimize it.
 compileTerm
-  :: (Compiling m uni fun name a
-  , MonadReader (CompilationOpts name fun a) m
-  )
+  :: ( Compiling m uni fun name a
+     , MonadReader (CompilationOpts name fun a) m
+     )
   => Term tyname name uni fun a
   -> m (UPLC.Term name uni fun a)
 compileTerm t = do
@@ -33,19 +33,19 @@ compileTerm t = do
 
 -- | Compile a PLC program to UPLC, and optimize it.
 compileProgram
-  :: (Compiling m uni fun name a
-  , MonadReader (CompilationOpts name fun a) m
-  )
+  :: ( Compiling m uni fun name a
+     , MonadReader (CompilationOpts name fun a) m
+     )
   => Program tyname name uni fun a
   -> m (UPLC.Program name uni fun a)
 compileProgram (Program a v t) = UPLC.Program a v <$> compileTerm t
 
--- | Compile a PLC program to UPLC, and optimize it. This includes
--- the compilation trace in the result.
+{-| Compile a PLC program to UPLC, and optimize it. This includes
+the compilation trace in the result. -}
 compileProgramWithTrace
-  :: (Compiling m uni fun name a
-  , MonadReader (CompilationOpts name fun a) m
-  )
+  :: ( Compiling m uni fun name a
+     , MonadReader (CompilationOpts name fun a) m
+     )
   => Program tyname name uni fun a
   -> m (UPLC.Program name uni fun a, UPLC.SimplifierTrace name uni fun a)
 compileProgramWithTrace (Program a v t) = do

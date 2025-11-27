@@ -1,5 +1,5 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE MultiWayIf        #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module PlutusBenchmark.NQueens (nqueens) where
@@ -22,14 +22,14 @@ nqueens dim
   where
     bytesNeeded :: Integer
     bytesNeeded = dim `quotient` 8
-    go ::
-      Integer ->
-      Integer ->
-      BuiltinByteString ->
-      BuiltinByteString ->
-      BuiltinByteString ->
-      BuiltinByteString ->
-      [(Integer, Integer)]
+    go
+      :: Integer
+      -> Integer
+      -> BuiltinByteString
+      -> BuiltinByteString
+      -> BuiltinByteString
+      -> BuiltinByteString
+      -> [(Integer, Integer)]
     go selectIx row down left right control
       | selectIx == dim = []
       | otherwise =
@@ -54,7 +54,7 @@ nqueens dim
                         -- than recomputing it every time we modify selectIx.
                         newControl = complementByteString . orByteString False newDown . orByteString False newLeft $ newRight
                      in case go 0 newRow newDown newLeft newRight newControl of
-                          []   -> go (selectIx + 1) row down left right control
+                          [] -> go (selectIx + 1) row down left right control
                           next -> (row, available) : next
     lastRow :: Integer
     lastRow = dim - 1
@@ -65,10 +65,11 @@ nqueens dim
 selectByteString :: Integer -> BuiltinByteString -> Integer
 selectByteString which bs
   | which <= 0 = findFirstSetBit bs
-  | otherwise = let i = selectByteString (which - 1) bs
-      in if i == (-1)
-         then (-1)
-         else i + 1 + findFirstSetBit (shiftByteString bs $ negate (i + 1))
+  | otherwise =
+      let i = selectByteString (which - 1) bs
+       in if i == (-1)
+            then (-1)
+            else i + 1 + findFirstSetBit (shiftByteString bs $ negate (i + 1))
 {-# INLINE selectByteString #-}
 
 writeBit :: BuiltinByteString -> Integer -> Bool -> BuiltinByteString

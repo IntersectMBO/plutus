@@ -1,14 +1,14 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Budget.Spec where
@@ -29,8 +29,8 @@ import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 AsData.asData
   [d|
@@ -340,7 +340,7 @@ compiledGte0 =
 
 -- | A version of @all@ that doesn't inline due to being recursive.
 recursiveAll :: forall a. (a -> Bool) -> [a] -> Bool
-recursiveAll _ []       = True
+recursiveAll _ [] = True
 recursiveAll f (x : xs) = if f x then recursiveAll f xs else False
 {-# INLINEABLE recursiveAll #-}
 
@@ -482,9 +482,9 @@ sumAtIndices d =
        'list
        [|s1 PlutusTx.+ s4 PlutusTx.+ s5|]
    )
- where
-  list :: List Integer
-  list = IsData.unsafeFromBuiltinData d
+  where
+    list :: List Integer
+    list = IsData.unsafeFromBuiltinData d
 
 compiledSumAtIndices :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 compiledSumAtIndices = $$(compile [||sumAtIndices||])
@@ -562,8 +562,7 @@ compiledShow =
 
 {-| In this example, the float-in pass cannot reduce the cost unless it allows
 unconditionally floating into type abstractions. Both branches are
-turned into type abstractions (because the `a + a` branch is not a value).
--}
+turned into type abstractions (because the `a + a` branch is not a value). -}
 compiledIfThenElse1 :: CompiledCode Integer
 compiledIfThenElse1 =
   $$( compile
@@ -577,8 +576,7 @@ compiledIfThenElse1 =
 
 {-| In this example, the float-in pass cannot reduce the cost unless it allows
 unconditionally floating into lambda abstractions. Both branches are
-lambda abstractions.
--}
+lambda abstractions. -}
 compiledIfThenElse2 :: CompiledCode Integer
 compiledIfThenElse2 =
   $$( compile

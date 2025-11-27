@@ -1,6 +1,4 @@
-{- | Golden cases for Cardan Open Oracle Protocol scripts.
--}
-
+-- | Golden cases for Cardan Open Oracle Protocol scripts.
 module Main (main) where
 
 import Test.Tasty
@@ -22,53 +20,52 @@ liftCodeDefAsData = liftCodeDef . toBuiltinData
 
 allTests :: TestTree
 allTests =
-  runTestNested ["coop", "test"] $ pure $ testNestedGhc
-    [ Tx.goldenEvalCekCatchBudget "mustBurnOwnSingleton" $
-        unsafeApplyCodeN
-          Scripts.fsV
-          (liftCodeDef $ Datum $ toBuiltinData ())
-          (liftCodeDefAsData ())
-          (liftCodeDefAsData correctMustBurnOwnSingletonValueContext)
-
-      , Tx.goldenEvalCekCatchBudget "certMpMinting" $
-          unsafeApplyCodeN
-            Scripts.certMp
-            (liftCodeDef certMpParams)
-            (liftCodeDefAsData $ Redeemer $ toBuiltinData CertMpMint)
-            (liftCodeDefAsData correctCertMpMintingContext)
-      , Tx.goldenEvalCekCatchBudget "certMpBurning" $
-          unsafeApplyCodeN
-            Scripts.certMp
-            (liftCodeDef certMpParams)
-            (liftCodeDefAsData $ Redeemer $ toBuiltinData CertMpBurn)
-            (liftCodeDefAsData correctCertMpBurningContext)
-
-      , Tx.goldenEvalCekCatchBudget "fsMpMinting" $
-        unsafeApplyCodeN
-          Scripts.fsMp
-          (liftCodeDef fsMpParams)
-          (liftCodeDefAsData $ Redeemer $ toBuiltinData FsMpMint)
-          (liftCodeDefAsData correctFsMpMintingContext)
-      , Tx.goldenEvalCekCatchBudget "fsMpBurning" $
-        unsafeApplyCodeN
-          Scripts.fsMp
-          (liftCodeDef fsMpParams)
-          (liftCodeDefAsData $ Redeemer $ toBuiltinData FsMpBurn)
-          (liftCodeDefAsData correctFsMpBurningContext)
-
-      , Tx.goldenEvalCekCatchBudget "authMpMinting" $
-        unsafeApplyCodeN
-          Scripts.authMp
-          (liftCodeDef authMpParams)
-          (liftCodeDefAsData $ Redeemer $ toBuiltinData AuthMpMint)
-          (liftCodeDefAsData correctAuthMpMintingContext)
-      , Tx.goldenEvalCekCatchBudget "authMpBurning" $
-        unsafeApplyCodeN
-          Scripts.authMp
-          (liftCodeDef authMpParams)
-          (liftCodeDefAsData $ Redeemer $ toBuiltinData AuthMpBurn)
-          (liftCodeDefAsData correctAuthMpBurningContext)
-    ]
+  runTestNested ["coop", "test"] $
+    pure $
+      testNestedGhc
+        [ Tx.goldenEvalCekCatchBudget "mustBurnOwnSingleton" $
+            unsafeApplyCodeN
+              Scripts.fsV
+              (liftCodeDef $ Datum $ toBuiltinData ())
+              (liftCodeDefAsData ())
+              (liftCodeDefAsData correctMustBurnOwnSingletonValueContext)
+        , Tx.goldenEvalCekCatchBudget "certMpMinting" $
+            unsafeApplyCodeN
+              Scripts.certMp
+              (liftCodeDef certMpParams)
+              (liftCodeDefAsData $ Redeemer $ toBuiltinData CertMpMint)
+              (liftCodeDefAsData correctCertMpMintingContext)
+        , Tx.goldenEvalCekCatchBudget "certMpBurning" $
+            unsafeApplyCodeN
+              Scripts.certMp
+              (liftCodeDef certMpParams)
+              (liftCodeDefAsData $ Redeemer $ toBuiltinData CertMpBurn)
+              (liftCodeDefAsData correctCertMpBurningContext)
+        , Tx.goldenEvalCekCatchBudget "fsMpMinting" $
+            unsafeApplyCodeN
+              Scripts.fsMp
+              (liftCodeDef fsMpParams)
+              (liftCodeDefAsData $ Redeemer $ toBuiltinData FsMpMint)
+              (liftCodeDefAsData correctFsMpMintingContext)
+        , Tx.goldenEvalCekCatchBudget "fsMpBurning" $
+            unsafeApplyCodeN
+              Scripts.fsMp
+              (liftCodeDef fsMpParams)
+              (liftCodeDefAsData $ Redeemer $ toBuiltinData FsMpBurn)
+              (liftCodeDefAsData correctFsMpBurningContext)
+        , Tx.goldenEvalCekCatchBudget "authMpMinting" $
+            unsafeApplyCodeN
+              Scripts.authMp
+              (liftCodeDef authMpParams)
+              (liftCodeDefAsData $ Redeemer $ toBuiltinData AuthMpMint)
+              (liftCodeDefAsData correctAuthMpMintingContext)
+        , Tx.goldenEvalCekCatchBudget "authMpBurning" $
+            unsafeApplyCodeN
+              Scripts.authMp
+              (liftCodeDef authMpParams)
+              (liftCodeDefAsData $ Redeemer $ toBuiltinData AuthMpBurn)
+              (liftCodeDefAsData correctAuthMpBurningContext)
+        ]
 
 main :: IO ()
 main = defaultMain allTests

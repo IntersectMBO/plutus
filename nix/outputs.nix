@@ -32,8 +32,11 @@ let
   project = import ./project.nix
     { inherit inputs pkgs lib metatheory r-with-packages utils; };
 
+  mkFourmolu = import ./fourmolu.nix
+    { inherit pkgs lib; };
+
   mkShell = ghc: import ./shell.nix
-    { inherit inputs pkgs lib project agda-tools metatheory r-with-packages ghc; };
+    { inherit inputs pkgs lib project agda-tools metatheory r-with-packages ghc mkFourmolu; };
 
   exposed-haskell-packages = {
     plutus-core-test = project.flake'.packages."plutus-core:test:plutus-core-test";

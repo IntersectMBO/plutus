@@ -1,16 +1,15 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
-
 module PlutusCore.Examples.Data.TreeForest
-    ( treeData
-    , forestData
-    , treeNode
-    , forestNil
-    , forestCons
-    ) where
+  ( treeData
+  , forestData
+  , treeNode
+  , forestNil
+  , forestCons
+  ) where
 
 import PlutusCore.Core
 import PlutusCore.MkPlc
@@ -80,137 +79,147 @@ using this representation:
 infixr 5 ~~>
 
 class HasArrow a where
-    (~~>) :: a -> a -> a
+  (~~>) :: a -> a -> a
 
 instance a ~ () => HasArrow (Kind a) where
-    (~~>) = KindArrow ()
+  (~~>) = KindArrow ()
 
 instance a ~ () => HasArrow (Type tyname uni a) where
-    (~~>) = TyFun ()
+  (~~>) = TyFun ()
 
 star :: Kind ()
 star = Type ()
 
 treeTag :: Type TyName uni ()
 treeTag = runQuote $ do
-    t <- freshTyName "t"
-    f <- freshTyName "f"
-    return
-        . TyLam () t star
-        . TyLam () f star
-        $ TyVar () t
+  t <- freshTyName "t"
+  f <- freshTyName "f"
+  return
+    . TyLam () t star
+    . TyLam () f star
+    $ TyVar () t
 
 forestTag :: Type TyName uni ()
 forestTag = runQuote $ do
-    t <- freshTyName "t"
-    f <- freshTyName "f"
-    return
-        . TyLam () t star
-        . TyLam () f star
-        $ TyVar () f
+  t <- freshTyName "t"
+  f <- freshTyName "f"
+  return
+    . TyLam () t star
+    . TyLam () f star
+    $ TyVar () f
 
 asTree :: Type TyName uni ()
 asTree = runQuote $ do
-    d <- freshTyName "d"
-    a <- freshTyName "a"
-    return
-        . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
-        . TyLam () a star
-        $ mkIterTyAppNoAnn (TyVar () d)
-            [ TyVar () a
-            , treeTag
-            ]
+  d <- freshTyName "d"
+  a <- freshTyName "a"
+  return
+    . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
+    . TyLam () a star
+    $ mkIterTyAppNoAnn
+      (TyVar () d)
+      [ TyVar () a
+      , treeTag
+      ]
 
 asForest :: Type TyName uni ()
 asForest = runQuote $ do
-    d <- freshTyName "d"
-    a <- freshTyName "a"
-    return
-        . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
-        . TyLam () a star
-        $ mkIterTyAppNoAnn (TyVar () d)
-            [ TyVar () a
-            , forestTag
-            ]
+  d <- freshTyName "d"
+  a <- freshTyName "a"
+  return
+    . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
+    . TyLam () a star
+    $ mkIterTyAppNoAnn
+      (TyVar () d)
+      [ TyVar () a
+      , forestTag
+      ]
 
 treeForestData :: RecursiveType uni fun ()
 treeForestData = runQuote $ do
-    treeForest <- freshTyName "treeForest"
-    a          <- freshTyName "a"
-    r          <- freshTyName "r"
-    tag        <- freshTyName "tag"
-    let vA = TyVar () a
-        vR = TyVar () r
-        recSpine = [TyVar () treeForest, vA]
-    let tree   = mkIterTyAppNoAnn asTree   recSpine
-        forest = mkIterTyAppNoAnn asForest recSpine
-        body
-            = TyForall () r (Type ())
-            $ mkIterTyAppNoAnn (TyVar () tag)
-                [ (vA ~~> forest ~~> vR) ~~> vR
-                , vR ~~> (tree ~~> forest ~~> vR) ~~> vR
-                ]
-    makeRecursiveType () treeForest
-        [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
-        body
+  treeForest <- freshTyName "treeForest"
+  a <- freshTyName "a"
+  r <- freshTyName "r"
+  tag <- freshTyName "tag"
+  let vA = TyVar () a
+      vR = TyVar () r
+      recSpine = [TyVar () treeForest, vA]
+  let tree = mkIterTyAppNoAnn asTree recSpine
+      forest = mkIterTyAppNoAnn asForest recSpine
+      body =
+        TyForall () r (Type ()) $
+          mkIterTyAppNoAnn
+            (TyVar () tag)
+            [ (vA ~~> forest ~~> vR) ~~> vR
+            , vR ~~> (tree ~~> forest ~~> vR) ~~> vR
+            ]
+  makeRecursiveType
+    ()
+    treeForest
+    [TyVarDecl () a star, TyVarDecl () tag $ star ~~> star ~~> star]
+    body
 
 treeData :: RecursiveType uni fun ()
 treeData = runQuote $ do
-    let RecursiveType treeForest wrapTreeForest = treeForestData
-        tree = TyApp () asTree treeForest
-    return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
+  let RecursiveType treeForest wrapTreeForest = treeForestData
+      tree = TyApp () asTree treeForest
+  return $ RecursiveType tree (\[a] -> wrapTreeForest [a, treeTag])
 
 forestData :: RecursiveType uni fun ()
 forestData = runQuote $ do
-    let RecursiveType treeForest wrapTreeForest = treeForestData
-        forest = TyApp () asForest treeForest
-    return $ RecursiveType forest (\[a] -> wrapTreeForest [a, forestTag])
+  let RecursiveType treeForest wrapTreeForest = treeForestData
+      forest = TyApp () asForest treeForest
+  return $ RecursiveType forest (\[a] -> wrapTreeForest [a, forestTag])
 
--- |
---
--- > /\(a :: *) -> \(x : a) (fr : forest a) ->
--- >     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr
+{-|
+
+> /\(a :: *) -> \(x : a) (fr : forest a) ->
+>     wrapTree [a] /\(r :: *) -> \(f : a -> forest a -> r) -> f x fr -}
 treeNode :: HasUniApply uni => Term TyName Name uni fun ()
-treeNode = runQuote $ normalizeTypesIn =<< do
-    let RecursiveType _      wrapTree = treeData
-        RecursiveType forest _        = forestData
-    a  <- freshTyName "a"
-    r  <- freshTyName "r"
-    x  <- freshName "x"
-    fr <- freshName "fr"
-    f  <- freshName "f"
-    let vA = TyVar () a
-        vR = TyVar () r
-    Normalized forestA <- normalizeType $ TyApp () forest vA
-    return
+treeNode =
+  runQuote $
+    normalizeTypesIn =<< do
+      let RecursiveType _ wrapTree = treeData
+          RecursiveType forest _ = forestData
+      a <- freshTyName "a"
+      r <- freshTyName "r"
+      x <- freshName "x"
+      fr <- freshName "fr"
+      f <- freshName "f"
+      let vA = TyVar () a
+          vR = TyVar () r
+      Normalized forestA <- normalizeType $ TyApp () forest vA
+      return
         . TyAbs () a (Type ())
         . LamAbs () x vA
         . LamAbs () fr forestA
         . wrapTree [vA]
         . TyAbs () r (Type ())
         . LamAbs () f (mkIterTyFun () [vA, forestA] vR)
-        $ mkIterAppNoAnn (Var () f)
-            [ Var () x
-            , Var () fr
-            ]
+        $ mkIterAppNoAnn
+          (Var () f)
+          [ Var () x
+          , Var () fr
+          ]
 
--- |
---
--- > /\(a :: *) ->
--- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z
+{-|
+
+> /\(a :: *) ->
+>     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> z -}
 forestNil :: HasUniApply uni => Term TyName Name uni fun ()
-forestNil = runQuote $ normalizeTypesIn =<< do
-    let RecursiveType tree   _          = treeData
-        RecursiveType forest wrapForest = forestData
-    a <- freshTyName "a"
-    r <- freshTyName "r"
-    z <- freshName "z"
-    f <- freshName "f"
-    let vA = TyVar () a
-        vR = TyVar () r
-    Normalized treeA   <- normalizeType $ TyApp () tree   vA
-    Normalized forestA <- normalizeType $ TyApp () forest vA
-    return
+forestNil =
+  runQuote $
+    normalizeTypesIn =<< do
+      let RecursiveType tree _ = treeData
+          RecursiveType forest wrapForest = forestData
+      a <- freshTyName "a"
+      r <- freshTyName "r"
+      z <- freshName "z"
+      f <- freshName "f"
+      let vA = TyVar () a
+          vR = TyVar () r
+      Normalized treeA <- normalizeType $ TyApp () tree vA
+      Normalized forestA <- normalizeType $ TyApp () forest vA
+      return
         . TyAbs () a (Type ())
         . wrapForest [vA]
         . TyAbs () r (Type ())
@@ -218,25 +227,27 @@ forestNil = runQuote $ normalizeTypesIn =<< do
         . LamAbs () f (mkIterTyFun () [treeA, forestA] vR)
         $ Var () z
 
--- |
---
--- > /\(a :: *) -> \(tr : tree a) (fr : forest a)
--- >     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr
+{-|
+
+> /\(a :: *) -> \(tr : tree a) (fr : forest a)
+>     wrapForest [a] /\(r :: *) -> \(z : r) (f : tree a -> forest a -> r) -> f tr fr -}
 forestCons :: HasUniApply uni => Term TyName Name uni fun ()
-forestCons = runQuote $ normalizeTypesIn =<< do
-    let RecursiveType tree   _          = treeData
-        RecursiveType forest wrapForest = forestData
-    a  <- freshTyName "a"
-    tr <- freshName "tr"
-    fr <- freshName "fr"
-    r  <- freshTyName "r"
-    z  <- freshName "z"
-    f  <- freshName "f"
-    let vA = TyVar () a
-        vR = TyVar () r
-    Normalized treeA   <- normalizeType $ TyApp () tree   vA
-    Normalized forestA <- normalizeType $ TyApp () forest vA
-    return
+forestCons =
+  runQuote $
+    normalizeTypesIn =<< do
+      let RecursiveType tree _ = treeData
+          RecursiveType forest wrapForest = forestData
+      a <- freshTyName "a"
+      tr <- freshName "tr"
+      fr <- freshName "fr"
+      r <- freshTyName "r"
+      z <- freshName "z"
+      f <- freshName "f"
+      let vA = TyVar () a
+          vR = TyVar () r
+      Normalized treeA <- normalizeType $ TyApp () tree vA
+      Normalized forestA <- normalizeType $ TyApp () forest vA
+      return
         . TyAbs () a (Type ())
         . LamAbs () tr treeA
         . LamAbs () fr forestA
@@ -244,7 +255,8 @@ forestCons = runQuote $ normalizeTypesIn =<< do
         . TyAbs () r (Type ())
         . LamAbs () z vR
         . LamAbs () f (mkIterTyFun () [treeA, forestA] vR)
-        $ mkIterAppNoAnn (Var () f)
-            [ Var () tr
-            , Var () fr
-            ]
+        $ mkIterAppNoAnn
+          (Var () f)
+          [ Var () tr
+          , Var () fr
+          ]

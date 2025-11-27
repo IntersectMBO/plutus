@@ -1,5 +1,5 @@
 module Universe
-   ( module Export
-   ) where
+  ( module Export
+  ) where
 
 import Universe.Core as Export

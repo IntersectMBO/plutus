@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
@@ -30,23 +30,23 @@ import Unsafe.Coerce (unsafeCoerce)
 usesSopList :: Plinth.CompiledCode Integer
 usesSopList =
   $$(Plinth.compile [||lookupByIndex sopListOfInts||])
- where
-  lookupByIndex :: [Integer] -> Integer
-  lookupByIndex xs = xs SOP.!! 99
+  where
+    lookupByIndex :: [Integer] -> Integer
+    lookupByIndex xs = xs SOP.!! 99
 
 usesBuiltinList :: Plinth.CompiledCode Integer
 usesBuiltinList =
   $$(Plinth.compile [||lookupByIndex (toOpaque sopListOfInts)||])
- where
-  lookupByIndex :: BuiltinList Integer -> Integer
-  lookupByIndex xs = xs BuiltinList.!! 99
+  where
+    lookupByIndex :: BuiltinList Integer -> Integer
+    lookupByIndex xs = xs BuiltinList.!! 99
 
 usesArray :: Plinth.CompiledCode Integer
 usesArray =
   $$(Plinth.compile [||lookupByIndex (sopListToArray sopListOfInts)||])
- where
-  lookupByIndex :: BuiltinArray Integer -> Integer
-  lookupByIndex xs = indexArray xs 99
+  where
+    lookupByIndex :: BuiltinArray Integer -> Integer
+    lookupByIndex xs = indexArray xs 99
 
 sopListConstruction :: Plinth.CompiledCode [Integer]
 sopListConstruction = $$(Plinth.compile [||sopListOfInts||])
@@ -145,23 +145,23 @@ printPercentage oldResult newResult = do
   putStrLn $ improvementPercentage cpuOld cpuNew
   putStr "MEM change: "
   putStrLn $ improvementPercentage memOld memNew
- where
-  improvementPercentage :: Double -> Double -> String
-  improvementPercentage old new =
-    printf "%+.2f" ((new - old) / old * 100.0) <> " %"
+  where
+    improvementPercentage :: Double -> Double -> String
+    improvementPercentage old new =
+      printf "%+.2f" ((new - old) / old * 100.0) <> " %"
 
-  evalResultToCpuMem :: ExBudget -> (Double, Double)
-  evalResultToCpuMem
-    ExBudget
-      { exBudgetCPU = ExCPU cpu
-      , exBudgetMemory = ExMemory mem
-      } = (toDouble cpu, toDouble mem)
-     where
-      toDouble :: CostingInteger -> Double
-      toDouble x = fromIntegral (unsafeCoerce x :: Int)
+    evalResultToCpuMem :: ExBudget -> (Double, Double)
+    evalResultToCpuMem
+      ExBudget
+        { exBudgetCPU = ExCPU cpu
+        , exBudgetMemory = ExMemory mem
+        } = (toDouble cpu, toDouble mem)
+        where
+          toDouble :: CostingInteger -> Double
+          toDouble x = fromIntegral (unsafeCoerce x :: Int)
 
 subtractBudget :: ExBudget -> ExBudget -> ExBudget
 subtractBudget
-  ExBudget{exBudgetCPU = ExCPU cpu1, exBudgetMemory = ExMemory mem1}
-  ExBudget{exBudgetCPU = ExCPU cpu2, exBudgetMemory = ExMemory mem2} =
+  ExBudget {exBudgetCPU = ExCPU cpu1, exBudgetMemory = ExMemory mem1}
+  ExBudget {exBudgetCPU = ExCPU cpu2, exBudgetMemory = ExMemory mem2} =
     ExBudget (ExCPU (cpu1 - cpu2)) (ExMemory (mem1 - mem2))

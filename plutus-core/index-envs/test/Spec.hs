@@ -1,6 +1,6 @@
 module Main
-    ( main
-    ) where
+  ( main
+  ) where
 
 import RAList.Spec qualified as RAList
 import Test.Tasty

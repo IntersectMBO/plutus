@@ -14,14 +14,14 @@ import PlutusTx.List qualified as P
 import PlutusTx.Numeric qualified as P
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as P
-import Rational.Laws.Helpers (
-  forAllWithPP,
-  genInteger,
-  genIntegerPos,
-  genRational,
-  normalAndEquivalentToMaybe,
-  testCoverProperty,
- )
+import Rational.Laws.Helpers
+  ( forAllWithPP
+  , genInteger
+  , genIntegerPos
+  , genRational
+  , normalAndEquivalentToMaybe
+  , testCoverProperty
+  )
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Prelude hiding (pred, succ)
@@ -115,23 +115,23 @@ propRatioSign = property $ do
     (-1, -1) -> signIndicator === Just Plutus.GT
     (1, 1) -> signIndicator === Just Plutus.GT
     _ -> signIndicator === Just Plutus.LT
- where
-  go :: Gen (Plutus.Integer, Plutus.Integer)
-  go = Gen.choice [zeroNum, sameSign, diffSign]
-  zeroNum :: Gen (Plutus.Integer, Plutus.Integer)
-  zeroNum = (0,) <$> Gen.filter (/= Plutus.zero) genInteger
-  sameSign :: Gen (Plutus.Integer, Plutus.Integer)
-  sameSign = do
-    gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
-    (,) <$> gen <*> gen
-  diffSign :: Gen (Plutus.Integer, Plutus.Integer)
-  diffSign = do
-    (genN, genD) <-
-      Gen.element
-        [ (genIntegerPos, negate <$> genIntegerPos)
-        , (negate <$> genIntegerPos, genIntegerPos)
-        ]
-    (,) <$> genN <*> genD
+  where
+    go :: Gen (Plutus.Integer, Plutus.Integer)
+    go = Gen.choice [zeroNum, sameSign, diffSign]
+    zeroNum :: Gen (Plutus.Integer, Plutus.Integer)
+    zeroNum = (0,) <$> Gen.filter (/= Plutus.zero) genInteger
+    sameSign :: Gen (Plutus.Integer, Plutus.Integer)
+    sameSign = do
+      gen <- Gen.element [genIntegerPos, negate <$> genIntegerPos]
+      (,) <$> gen <*> gen
+    diffSign :: Gen (Plutus.Integer, Plutus.Integer)
+    diffSign = do
+      (genN, genD) <-
+        Gen.element
+          [ (genIntegerPos, negate <$> genIntegerPos)
+          , (negate <$> genIntegerPos, genIntegerPos)
+          ]
+      (,) <$> genN <*> genD
 
 propConstructionAgreement :: Property
 propConstructionAgreement = property $ do
@@ -218,7 +218,6 @@ propEnumFromToThenTo = property $ do
   P.enumFromTo x y === P.enumFromThenTo x (x P.+ Plutus.one) y
 
 {-| Converts a 'Rational' to a GHC 'Rational', preserving value. Does not
-work on-chain.
--}
+work on-chain. -}
 toGHC :: P.Rational -> Rational
 toGHC r = P.numerator r GHC.% P.denominator r

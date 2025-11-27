@@ -1,16 +1,16 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE NamedFieldPuns     #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 
-module PlutusTx.Test.Run.Code (
-  module Eval,
-  evaluationResultMatchesHaskell,
-  assertEvaluatesSuccessfully,
-  assertEvaluatesWithError,
-  assertResult,
-) where
+module PlutusTx.Test.Run.Code
+  ( module Eval
+  , evaluationResultMatchesHaskell
+  , assertEvaluatesSuccessfully
+  , assertEvaluatesWithError
+  , assertResult
+  ) where
 
 import Prelude
 
@@ -30,10 +30,9 @@ import UntypedPlutusCore (DefaultUni)
    from).  We evaluate the lifted Haskell value as well, because lifting may
    produce reducible terms. The function is polymorphic in the comparison
    operator so that we can use it with both HUnit Assertions and QuickCheck
-   Properties.
--}
+   Properties. -}
 evaluationResultMatchesHaskell
-  :: (Tx.Lift DefaultUni hask)
+  :: Tx.Lift DefaultUni hask
   => CompiledCode a
   -> (forall r. (Eq r, Show r) => r -> r -> k)
   -> hask
@@ -44,8 +43,8 @@ evaluationResultMatchesHaskell actual =
 assertEvaluatesSuccessfully :: CompiledCode a -> Assertion
 assertEvaluatesSuccessfully code = do
   case evaluateCompiledCode code of
-    EvalResult{evalResult = Right _} -> pure ()
-    EvalResult{evalResult = Left err, evalResultTraces} ->
+    EvalResult {evalResult = Right _} -> pure ()
+    EvalResult {evalResult = Left err, evalResultTraces} ->
       assertFailure $
         Text.unpack $
           Text.unlines
@@ -58,8 +57,8 @@ assertEvaluatesSuccessfully code = do
 assertEvaluatesWithError :: CompiledCode a -> Assertion
 assertEvaluatesWithError code = do
   case evaluateCompiledCode code of
-    EvalResult{evalResult = Left _} -> pure ()
-    EvalResult{evalResult = Right _, evalResultTraces} ->
+    EvalResult {evalResult = Left _} -> pure ()
+    EvalResult {evalResult = Right _, evalResultTraces} ->
       assertFailure $
         Text.unpack $
           Text.unlines

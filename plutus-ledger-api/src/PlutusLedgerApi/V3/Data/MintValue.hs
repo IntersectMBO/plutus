@@ -1,11 +1,11 @@
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE DerivingVia        #-}
-{-# LANGUAGE FlexibleInstances  #-}
-{-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE TypeApplications   #-}
-{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -30,16 +30,19 @@ import PlutusTx.Prelude
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol, TokenName, Value (..))
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
-import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), definitionIdFromType,
-                                      definitionRef)
+import PlutusTx.Blueprint.Definition
+  ( HasBlueprintDefinition (..)
+  , definitionIdFromType
+  , definitionRef
+  )
 import PlutusTx.Blueprint.Schema (MapSchema (..), Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo, title)
 import PlutusTx.Data.AssocMap (Map)
 import PlutusTx.Data.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
-import Prelude qualified as Haskell
 import Prettyprinter (Pretty)
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
+import Prelude qualified as Haskell
 
 {- Note [MintValue vs Value]
 
@@ -69,7 +72,7 @@ instance HasBlueprintDefinition MintValue where
 instance HasBlueprintSchema MintValue referencedTypes where
   schema =
     SchemaMap
-      emptySchemaInfo{title = Just "MintValue"}
+      emptySchemaInfo {title = Just "MintValue"}
       MkMapSchema
         { keySchema = definitionRef @CurrencySymbol
         , valueSchema =
@@ -100,9 +103,8 @@ mintValueMinted (UnsafeMintValue m) =
   mapMaybeQuantities (\x -> if x > 0 then Just x else Nothing) m
 {-# INLINEABLE mintValueMinted #-}
 
-{- | Get the 'Value' burned by the 'MintValue'.
-All the negative quantities in the 'MintValue' become positive in the resulting 'Value'.
--}
+{-| Get the 'Value' burned by the 'MintValue'.
+All the negative quantities in the 'MintValue' become positive in the resulting 'Value'. -}
 mintValueBurned :: MintValue -> Value
 mintValueBurned (UnsafeMintValue m) =
   mapMaybeQuantities (\x -> if x < 0 then Just (abs x) else Nothing) m

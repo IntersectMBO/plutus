@@ -1,10 +1,9 @@
+{-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
 
-{-# LANGUAGE DataKinds #-}
-
--- | This module helps to visualize and debug the 'BuiltinMeaning' inference machinery from the
--- @Elaborate@ and @Meaning@ modules.
+{-| This module helps to visualize and debug the 'BuiltinMeaning' inference machinery from the
+@Elaborate@ and @Meaning@ modules. -}
 module PlutusCore.Builtin.Debug
   ( elaborateDebug
   , makeBuiltinMeaningDebug
@@ -19,17 +18,18 @@ import PlutusCore.Core as Export
 import PlutusCore.Default as Export
 import PlutusCore.Name.Unique as Export
 
--- | Instantiate type variables in the type of a value using 'ElaborateFromTo'. Example usages:
---
--- >>> :t elaborateDebug False
--- elaborateDebug False :: Bool
--- >>> :t elaborateDebug fst
--- elaborateDebug fst
---   :: (TyVarRep ('TyNameRep "a" 0), TyVarRep ('TyNameRep "b" 1))
---      -> TyVarRep ('TyNameRep "a" 0)
+{-| Instantiate type variables in the type of a value using 'ElaborateFromTo'. Example usages:
+
+>>> :t elaborateDebug False
+elaborateDebug False :: Bool
+>>> :t elaborateDebug fst
+elaborateDebug fst
+  :: (TyVarRep ('TyNameRep "a" 0), TyVarRep ('TyNameRep "b" 1))
+     -> TyVarRep ('TyNameRep "a" 0) -}
 elaborateDebug
-    :: forall a j. ElaborateFromTo DefaultUni 0 j (Term TyName Name DefaultUni DefaultFun ()) a
-    => a -> a
+  :: forall a j
+   . ElaborateFromTo DefaultUni 0 j (Term TyName Name DefaultUni DefaultFun ()) a
+  => a -> a
 elaborateDebug = id
 
 -- >>> :t makeBuiltinMeaningDebug $ \_ -> ()
@@ -108,6 +108,7 @@ elaborateDebug = id
 --     • In the expression:
 --         makeBuiltinMeaningDebug (undefined :: Opaque val (f Bool) -> ())
 makeBuiltinMeaningDebug
-    :: forall a. MakeBuiltinMeaning a (Term TyName Name DefaultUni DefaultFun ())
-    => a -> a
+  :: forall a
+   . MakeBuiltinMeaning a (Term TyName Name DefaultUni DefaultFun ())
+  => a -> a
 makeBuiltinMeaningDebug = id

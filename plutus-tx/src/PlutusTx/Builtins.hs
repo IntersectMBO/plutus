@@ -1,180 +1,185 @@
 -- editorconfig-checker-disable-file
 
 -- | Primitive names and functions for working with Plutus Core builtins.
-module PlutusTx.Builtins (
-  -- * Bytestring builtins
-  BuiltinByteString,
-  appendByteString,
-  consByteString,
-  sliceByteString,
-  lengthOfByteString,
-  indexByteString,
-  emptyByteString,
-  equalsByteString,
-  lessThanByteString,
-  lessThanEqualsByteString,
-  greaterThanByteString,
-  greaterThanEqualsByteString,
-  sha2_256,
-  sha3_256,
-  blake2b_224,
-  blake2b_256,
-  keccak_256,
-  ripemd_160,
-  verifyEd25519Signature,
-  verifyEcdsaSecp256k1Signature,
-  verifySchnorrSecp256k1Signature,
-  decodeUtf8,
-  BuiltinByteStringHex (..),
-  BuiltinByteStringUtf8 (..),
+module PlutusTx.Builtins
+  ( -- * Bytestring builtins
+    BuiltinByteString
+  , appendByteString
+  , consByteString
+  , sliceByteString
+  , lengthOfByteString
+  , indexByteString
+  , emptyByteString
+  , equalsByteString
+  , lessThanByteString
+  , lessThanEqualsByteString
+  , greaterThanByteString
+  , greaterThanEqualsByteString
+  , sha2_256
+  , sha3_256
+  , blake2b_224
+  , blake2b_256
+  , keccak_256
+  , ripemd_160
+  , verifyEd25519Signature
+  , verifyEcdsaSecp256k1Signature
+  , verifySchnorrSecp256k1Signature
+  , decodeUtf8
+  , BuiltinByteStringHex (..)
+  , BuiltinByteStringUtf8 (..)
 
-  -- * Integer builtins
-  Integer,
-  addInteger,
-  subtractInteger,
-  multiplyInteger,
-  divideInteger,
-  modInteger,
-  quotientInteger,
-  remainderInteger,
-  greaterThanInteger,
-  greaterThanEqualsInteger,
-  lessThanInteger,
-  lessThanEqualsInteger,
-  equalsInteger,
-  expModInteger,
-  BI.caseInteger,
+    -- * Integer builtins
+  , Integer
+  , addInteger
+  , subtractInteger
+  , multiplyInteger
+  , divideInteger
+  , modInteger
+  , quotientInteger
+  , remainderInteger
+  , greaterThanInteger
+  , greaterThanEqualsInteger
+  , lessThanInteger
+  , lessThanEqualsInteger
+  , equalsInteger
+  , expModInteger
+  , BI.caseInteger
 
-  -- * Error
-  error,
+    -- * Error
+  , error
 
-  -- * Data
-  BuiltinData,
-  chooseData,
-  matchData,
-  matchData',
-  equalsData,
-  serialiseData,
-  mkConstr,
-  mkMap,
-  mkList,
-  mkI,
-  mkB,
-  unsafeDataAsConstr,
-  unsafeDataAsMap,
-  unsafeDataAsList,
-  unsafeDataAsI,
-  unsafeDataAsB,
-  BI.builtinDataToData,
-  BI.dataToBuiltinData,
+    -- * Data
+  , BuiltinData
+  , chooseData
+  , matchData
+  , matchData'
+  , equalsData
+  , serialiseData
+  , mkConstr
+  , mkMap
+  , mkList
+  , mkI
+  , mkB
+  , unsafeDataAsConstr
+  , unsafeDataAsMap
+  , unsafeDataAsList
+  , unsafeDataAsI
+  , unsafeDataAsB
+  , BI.builtinDataToData
+  , BI.dataToBuiltinData
 
-  -- * Strings
-  BuiltinString,
-  appendString,
-  emptyString,
-  equalsString,
-  encodeUtf8,
+    -- * Strings
+  , BuiltinString
+  , appendString
+  , emptyString
+  , equalsString
+  , encodeUtf8
 
-  -- * Pairs
-  pairToPair,
-  BI.casePair,
+    -- * Pairs
+  , pairToPair
+  , BI.casePair
 
-  -- * Lists
-  mkNil,
-  mkNilOpaque,
-  null,
-  BI.caseList',
-  caseList,
-  matchList,
-  matchList',
-  headMaybe,
-  BI.head,
-  BI.tail,
-  BI.drop,
-  uncons,
-  unsafeUncons,
+    -- * Lists
+  , mkNil
+  , mkNilOpaque
+  , null
+  , BI.caseList'
+  , caseList
+  , matchList
+  , matchList'
+  , headMaybe
+  , BI.head
+  , BI.tail
+  , BI.drop
+  , uncons
+  , unsafeUncons
 
-  -- * Arrays
-  BI.BuiltinArray,
-  BI.listToArray,
-  sopListToArray,
-  BI.lengthOfArray,
-  BI.indexArray,
+    -- * Arrays
+  , BI.BuiltinArray
+  , BI.listToArray
+  , sopListToArray
+  , BI.lengthOfArray
+  , BI.indexArray
 
-  -- * Tracing
-  trace,
+    -- * Tracing
+  , trace
 
-  -- * BLS12_381
-  BuiltinBLS12_381_G1_Element,
-  bls12_381_G1_equals,
-  bls12_381_G1_add,
-  bls12_381_G1_scalarMul,
-  bls12_381_G1_multiScalarMul,
-  bls12_381_G1_neg,
-  bls12_381_G1_compress,
-  bls12_381_G1_uncompress,
-  bls12_381_G1_hashToGroup,
-  bls12_381_G1_compressed_zero,
-  bls12_381_G1_compressed_generator,
-  BuiltinBLS12_381_G2_Element,
-  bls12_381_G2_equals,
-  bls12_381_G2_add,
-  bls12_381_G2_scalarMul,
-  bls12_381_G2_multiScalarMul,
-  bls12_381_G2_neg,
-  bls12_381_G2_compress,
-  bls12_381_G2_uncompress,
-  bls12_381_G2_hashToGroup,
-  bls12_381_G2_compressed_zero,
-  bls12_381_G2_compressed_generator,
-  BuiltinBLS12_381_MlResult,
-  bls12_381_millerLoop,
-  bls12_381_mulMlResult,
-  bls12_381_finalVerify,
+    -- * BLS12_381
+  , BuiltinBLS12_381_G1_Element
+  , bls12_381_G1_equals
+  , bls12_381_G1_add
+  , bls12_381_G1_scalarMul
+  , bls12_381_G1_multiScalarMul
+  , bls12_381_G1_neg
+  , bls12_381_G1_compress
+  , bls12_381_G1_uncompress
+  , bls12_381_G1_hashToGroup
+  , bls12_381_G1_compressed_zero
+  , bls12_381_G1_compressed_generator
+  , BuiltinBLS12_381_G2_Element
+  , bls12_381_G2_equals
+  , bls12_381_G2_add
+  , bls12_381_G2_scalarMul
+  , bls12_381_G2_multiScalarMul
+  , bls12_381_G2_neg
+  , bls12_381_G2_compress
+  , bls12_381_G2_uncompress
+  , bls12_381_G2_hashToGroup
+  , bls12_381_G2_compressed_zero
+  , bls12_381_G2_compressed_generator
+  , BuiltinBLS12_381_MlResult
+  , bls12_381_millerLoop
+  , bls12_381_mulMlResult
+  , bls12_381_finalVerify
 
-  -- * Conversions
-  fromOpaque,
-  toOpaque,
-  useToOpaque,
-  useFromOpaque,
-  fromBuiltin,
-  toBuiltin,
+    -- * Conversions
+  , fromOpaque
+  , toOpaque
+  , useToOpaque
+  , useFromOpaque
+  , fromBuiltin
+  , toBuiltin
 
-  -- * Logical
-  ByteOrder (..),
-  integerToByteString,
-  byteStringToInteger,
-  andByteString,
-  orByteString,
-  xorByteString,
-  complementByteString,
-  readBit,
-  writeBits,
-  replicateByte,
+    -- * Logical
+  , ByteOrder (..)
+  , integerToByteString
+  , byteStringToInteger
+  , andByteString
+  , orByteString
+  , xorByteString
+  , complementByteString
+  , readBit
+  , writeBits
+  , replicateByte
 
-  -- * Bitwise
-  shiftByteString,
-  rotateByteString,
-  countSetBits,
-  findFirstSetBit,
+    -- * Bitwise
+  , shiftByteString
+  , rotateByteString
+  , countSetBits
+  , findFirstSetBit
 
-  -- * Value
-  BI.insertCoin,
-  BI.lookupCoin,
-  BI.unionValue,
-  BI.valueContains,
-  BI.mkValue,
-  BI.unsafeDataAsValue,
-  BI.scaleValue,
-) where
+    -- * Value
+  , BI.insertCoin
+  , BI.lookupCoin
+  , BI.unionValue
+  , BI.valueContains
+  , BI.mkValue
+  , BI.unsafeDataAsValue
+  , BI.scaleValue
+  ) where
 
 import Data.Maybe
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.HasBuiltin
 import PlutusTx.Builtins.HasOpaque
-import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
-                                   BuiltinBLS12_381_G2_Element (..), BuiltinBLS12_381_MlResult (..),
-                                   BuiltinByteString (..), BuiltinData, BuiltinString)
+import PlutusTx.Builtins.Internal
+  ( BuiltinBLS12_381_G1_Element (..)
+  , BuiltinBLS12_381_G2_Element (..)
+  , BuiltinBLS12_381_MlResult (..)
+  , BuiltinByteString (..)
+  , BuiltinData
+  , BuiltinString
+  )
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
 
@@ -242,8 +247,7 @@ ripemd_160 = BI.ripemd_160
 
 {-| Ed25519 signature verification. Verify that the signature is a signature of
 the message by the public key. This will fail if key or the signature are not
-of the expected length.
--}
+of the expected length. -}
 verifyEd25519Signature
   :: BuiltinByteString
   -- ^ Public Key (32 bytes)
@@ -319,8 +323,7 @@ this implements the format for the verification key that we accept, given a
 length argument of 33 and the @SECP256K1_EC_COMPRESSED@ flag.
 *
 [@secp256k1_ecdsa_serialize_compact@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1.h#L487);
-this implements the format for the signature that we accept.
--}
+this implements the format for the signature that we accept. -}
 verifyEcdsaSecp256k1Signature
   :: BuiltinByteString
   -- ^ Verification key (33 bytes)
@@ -357,8 +360,7 @@ a big-endian integer, as specified in BIP-340.
 this implements the format for the verification key that we accept.
 *
 [@secp256k1_schnorrsig_sign@](https://github.com/bitcoin-core/secp256k1/blob/master/include/secp256k1_schnorrsig.h#L129);
-this implements the signing logic for signatures this builtin can verify.
--}
+this implements the signing logic for signatures this builtin can verify. -}
 verifySchnorrSecp256k1Signature
   :: BuiltinByteString
   -- ^ Verification key (32 bytes)
@@ -502,8 +504,7 @@ sopListToArray l = BI.listToArray (toOpaque l)
 {-# INLINEABLE sopListToArray #-}
 
 {-| Given five values for the five different constructors of 'BuiltinData', selects
-one depending on which corresponds to the actual constructor of the given value.
--}
+one depending on which corresponds to the actual constructor of the given value. -}
 chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a
 chooseData = BI.chooseData
 {-# INLINEABLE chooseData #-}
@@ -589,8 +590,7 @@ matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
 {-# INLINEABLE matchData' #-}
 
 {-| Given a 'BuiltinData' value and matching functions for the five constructors,
-applies the appropriate matcher to the arguments of the constructor and returns the result.
--}
+applies the appropriate matcher to the arguments of the constructor and returns the result. -}
 matchData
   :: BuiltinData
   -> (Integer -> [BuiltinData] -> r)
@@ -714,7 +714,7 @@ bls12_381_finalVerify a b = fromOpaque (BI.bls12_381_finalVerify a b)
 -- The PLC builtins take a boolean argument to indicate the endianness of the
 -- conversion, but here we use GHC.ByteOrder.ByteOrder for clarity.
 byteOrderToBool :: ByteOrder -> Bool
-byteOrderToBool BigEndian    = True
+byteOrderToBool BigEndian = True
 byteOrderToBool LittleEndian = False
 {-# INLINEABLE byteOrderToBool #-}
 
@@ -731,8 +731,7 @@ the left for big-endian conversions and on the right for little-endian
 conversions); if the input integer is too big to fit into a bytestring of the
 specified width then the conversion will fail.  Conversion will also fail if
 the specified width is greater than 8192 or the input integer is too big to
-fit into a bytestring of length 8192.
--}
+fit into a bytestring of length 8192. -}
 integerToByteString :: ByteOrder -> Integer -> Integer -> BuiltinByteString
 integerToByteString endianness = BI.integerToByteString (toOpaque (byteOrderToBool endianness))
 {-# INLINEABLE integerToByteString #-}
@@ -741,8 +740,7 @@ integerToByteString endianness = BI.integerToByteString (toOpaque (byteOrderToBo
 [CIP-121](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0121).
 The first argument indicates the endianness of the conversion and the second
 is the bytestring to be converted.  There is no limitation on the size of
-the bytestring.  The empty bytestring is converted to the integer 0.
--}
+the bytestring.  The empty bytestring is converted to the integer 0. -}
 byteStringToInteger :: ByteOrder -> BuiltinByteString -> Integer
 byteStringToInteger endianness =
   BI.byteStringToInteger (toOpaque (byteOrderToBool endianness))
@@ -751,22 +749,19 @@ byteStringToInteger endianness =
 -- Bitwise operations
 
 {-| Shift a 'BuiltinByteString', as per
-[CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
--}
+[CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123). -}
 shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 shiftByteString = BI.shiftByteString
 {-# INLINEABLE shiftByteString #-}
 
 {-| Rotate a 'BuiltinByteString', as per
-[CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
--}
+[CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123). -}
 rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
 rotateByteString = BI.rotateByteString
 {-# INLINEABLE rotateByteString #-}
 
 {-| Count the set bits in a 'BuiltinByteString', as per
-[CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
--}
+[CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123). -}
 countSetBits :: BuiltinByteString -> Integer
 countSetBits = BI.countSetBits
 {-# INLINEABLE countSetBits #-}
@@ -775,8 +770,7 @@ countSetBits = BI.countSetBits
 [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 
 If given a 'BuiltinByteString' which consists only of zero bytes (including the empty
-'BuiltinByteString', this returns @-1@.
--}
+'BuiltinByteString', this returns @-1@. -}
 findFirstSetBit :: BuiltinByteString -> Integer
 findFirstSetBit = BI.findFirstSetBit
 {-# INLINEABLE findFirstSetBit #-}
@@ -794,8 +788,7 @@ if 'False', truncation semantics will be used instead.
 * [Padding and truncation
 semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
 * [Bit indexing
-scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
--}
+scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme) -}
 andByteString
   :: Bool
   -> BuiltinByteString
@@ -815,8 +808,7 @@ if 'False', truncation semantics will be used instead.
 * [Padding and truncation
 semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
 * [Bit indexing
-scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
--}
+scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme) -}
 orByteString
   :: Bool
   -> BuiltinByteString
@@ -836,8 +828,7 @@ if 'False', truncation semantics will be used instead.
 * [Padding and truncation
 semantics](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#padding-versus-truncation-semantics)
 * [Bit indexing
-scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
--}
+scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme) -}
 xorByteString
   :: Bool
   -> BuiltinByteString
@@ -852,8 +843,7 @@ xorByteString b = BI.xorByteString (toOpaque b)
 = See also
 
 * [Bit indexing
-scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
--}
+scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme) -}
 complementByteString
   :: BuiltinByteString
   -> BuiltinByteString
@@ -871,8 +861,7 @@ index is either negative, or equal to or greater than the total number of bits i
 * [Bit indexing
 scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 * [Operation
-description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#readbit)
--}
+description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#readbit) -}
 readBit
   :: BuiltinByteString
   -> Integer
@@ -907,8 +896,7 @@ and once to clear them.
 * [Bit indexing
 scheme](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#bit-indexing-scheme)
 * [Operation
-description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits)
--}
+description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#writebits) -}
 writeBits
   :: BuiltinByteString
   -> [Integer]
@@ -924,8 +912,7 @@ argument that isn't a byte (less than 0, greater than 255).
 = See also
 
 * [Operation
-description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#replicateByteString)
--}
+description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0122#replicateByteString) -}
 replicateByte
   :: Integer
   -> Integer
@@ -938,8 +925,7 @@ replicateByte = BI.replicateByte
 = See also
 
 * [Operation
-description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0109)
--}
+description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0109) -}
 expModInteger
   :: Integer
   -> Integer

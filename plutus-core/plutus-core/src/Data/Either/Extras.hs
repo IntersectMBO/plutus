@@ -10,8 +10,8 @@ unsafeFromEither :: Exception e => Either e a -> a
 unsafeFromEither = either throw id
 {-# INLINE unsafeFromEither #-}
 
--- | If argument is `Right` return its value,
--- otherwise apply the given action to the value of Left and return its result.
+{-| If argument is `Right` return its value,
+otherwise apply the given action to the value of Left and return its result. -}
 fromRightM :: Monad m => (a -> m b) -> Either a b -> m b
 fromRightM f = either f pure
 {-# INLINE fromRightM #-}

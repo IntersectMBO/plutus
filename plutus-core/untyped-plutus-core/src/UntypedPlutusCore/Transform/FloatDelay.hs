@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-{- | The Float Delay optimization floats `Delay` from arguments into function bodies,
+{-| The Float Delay optimization floats `Delay` from arguments into function bodies,
 if possible. It turns @(\n -> ...Force n...Force n...) (Delay arg)@ into
 @(\n -> ...Force (Delay n)...Force (Delay n)...) arg@.
 
@@ -51,8 +51,7 @@ Why is this optimization performed on UPLC, not PIR?
        @ket f = ...a... in ...f...f...@.
 
     2. This optimization mainly interacts with ForceDelayCancel and the inliner, and
-       both are part of the UPLC simplifier.
--}
+       both are part of the UPLC simplifier. -}
 module UntypedPlutusCore.Transform.FloatDelay (floatDelay) where
 
 import PlutusCore qualified as PLC
@@ -61,52 +60,53 @@ import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Name.UniqueSet qualified as USet
 import UntypedPlutusCore.Core.Plated (termSubterms)
 import UntypedPlutusCore.Core.Type (Term (..))
-import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (FloatDelay), SimplifierT,
-                                               recordSimplification)
+import UntypedPlutusCore.Transform.Simplifier
+  ( SimplifierStage (FloatDelay)
+  , SimplifierT
+  , recordSimplification
+  )
 
 import Control.Lens (forOf, forOf_, transformOf)
 import Control.Monad.Trans.Writer.CPS (Writer, execWriter, runWriter, tell)
 
-floatDelay ::
-  ( PLC.MonadQuote m
-  , PLC.Rename (Term name uni fun a)
-  , PLC.HasUnique name PLC.TermUnique
-  ) =>
-  Term name uni fun a ->
-  SimplifierT name uni fun a m (Term name uni fun a)
+floatDelay
+  :: ( PLC.MonadQuote m
+     , PLC.Rename (Term name uni fun a)
+     , PLC.HasUnique name PLC.TermUnique
+     )
+  => Term name uni fun a
+  -> SimplifierT name uni fun a m (Term name uni fun a)
 floatDelay term = do
   result <-
     PLC.rename term >>= \t ->
-        pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
+      pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
   recordSimplification term FloatDelay result
   return result
 
-{- | First pass. Returns the names of all variables, at least one occurrence
-of which is not under `Force`.
--}
-unforcedVars ::
-  forall name uni fun a
-  . (PLC.HasUnique name PLC.TermUnique)
+{-| First pass. Returns the names of all variables, at least one occurrence
+of which is not under `Force`. -}
+unforcedVars
+  :: forall name uni fun a
+   . PLC.HasUnique name PLC.TermUnique
   => Term name uni fun a
   -> PLC.UniqueSet PLC.TermUnique
 unforcedVars = execWriter . go
   where
     go :: Term name uni fun a -> Writer (PLC.UniqueSet PLC.TermUnique) ()
     go = \case
-      Var _ n       -> tell (USet.singletonName n)
-      Force _ Var{} -> pure ()
-      t             -> forOf_ termSubterms t go
+      Var _ n -> tell (USet.singletonName n)
+      Force _ Var {} -> pure ()
+      t -> forOf_ termSubterms t go
 
-{- | Second pass. Removes `Delay` from eligible arguments, and returns
-the names of variables whose corresponding arguments are modified.
--}
-simplifyArgs ::
-  forall name uni fun a.
-  (PLC.HasUnique name PLC.TermUnique) =>
-  -- | The set of variables returned by `unforcedVars`.
-  PLC.UniqueSet PLC.TermUnique ->
-  Term name uni fun a ->
-  (Term name uni fun a, PLC.UniqueMap PLC.TermUnique a)
+{-| Second pass. Removes `Delay` from eligible arguments, and returns
+the names of variables whose corresponding arguments are modified. -}
+simplifyArgs
+  :: forall name uni fun a
+   . PLC.HasUnique name PLC.TermUnique
+  => PLC.UniqueSet PLC.TermUnique
+  -- ^ The set of variables returned by `unforcedVars`.
+  -> Term name uni fun a
+  -> (Term name uni fun a, PLC.UniqueMap PLC.TermUnique a)
 simplifyArgs blacklist = runWriter . go
   where
     go :: Term name uni fun ann -> Writer (PLC.UniqueMap PLC.TermUnique ann) (Term name uni fun ann)
@@ -120,7 +120,7 @@ simplifyArgs blacklist = runWriter . go
 
 -- | Third pass. Turns @Force n@ into @Force (Delay n)@ for all eligibile @n@.
 simplifyBodies
-  :: (PLC.HasUnique name PLC.TermUnique)
+  :: PLC.HasUnique name PLC.TermUnique
   => PLC.UniqueMap PLC.TermUnique a
   -> Term name uni fun a
   -> Term name uni fun a
@@ -129,23 +129,22 @@ simplifyBodies whitelist = transformOf termSubterms $ \case
     | Just ann <- UMap.lookupName n whitelist -> Delay ann var
   t -> t
 
-{- | Whether evaluating the given `Term` is pure and essentially work-free
-(barring the CEK machine overhead).
--}
+{-| Whether evaluating the given `Term` is pure and essentially work-free
+(barring the CEK machine overhead). -}
 
 --- This should be the erased version of 'PlutusIR.Transform.LetFloat.isEssentiallyWorkFree'.
 isEssentiallyWorkFree :: Term name uni fun a -> Bool
 isEssentiallyWorkFree = \case
-  LamAbs{}   -> True
-  Constant{} -> True
-  Delay{}    -> True
-  Constr{}   -> True
-  Builtin{}  -> True
-  Var{}      -> False
-  Force{}    -> False
+  LamAbs {} -> True
+  Constant {} -> True
+  Delay {} -> True
+  Constr {} -> True
+  Builtin {} -> True
+  Var {} -> False
+  Force {} -> False
   -- Unsaturated builtin applications should also be essentially work-free,
   -- but this is currently not implemented for UPLC.
   -- `UntypedPlutusCore.Transform.Inline.isPure` has the same problem.
-  Apply{}    -> False
-  Case{}     -> False
-  Error{}    -> False
+  Apply {} -> False
+  Case {} -> False
+  Error {} -> False

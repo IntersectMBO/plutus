@@ -1,17 +1,17 @@
 -- editorconfig-checker-disable-file
--- | The internal module of the renamer that defines the actual algorithms,
--- but not the user-facing API.
 
+{-| The internal module of the renamer that defines the actual algorithms,
+but not the user-facing API. -}
 module PlutusCore.Rename.Internal
-    ( module Export
-    , Renamed (..)
-    , Dupable (..)
-    , withFreshenedTyVarDecl
-    , withFreshenedVarDecl
-    , renameTypeM
-    , renameTermM
-    , renameProgramM
-    ) where
+  ( module Export
+  , Renamed (..)
+  , Dupable (..)
+  , withFreshenedTyVarDecl
+  , withFreshenedVarDecl
+  , renameTypeM
+  , renameTermM
+  , renameProgramM
+  ) where
 
 import PlutusCore.Core
 import PlutusCore.Name.Unique
@@ -20,94 +20,96 @@ import PlutusCore.Rename.Monad as Export
 
 import Control.Monad.Reader
 
--- | A wrapper for signifying that the value inside of it satisfies global uniqueness.
---
--- It's safe to call 'unRenamed', it's not safe to call 'Renamed', hence the latter is only exported
--- from this internal module and should not be exported from the main API.
---
--- Don't provide any instances allowing the user to create a 'Renamed' (even out of an existing one
--- like with 'Functor').
+{-| A wrapper for signifying that the value inside of it satisfies global uniqueness.
+
+It's safe to call 'unRenamed', it's not safe to call 'Renamed', hence the latter is only exported
+from this internal module and should not be exported from the main API.
+
+Don't provide any instances allowing the user to create a 'Renamed' (even out of an existing one
+like with 'Functor'). -}
 newtype Renamed a = Renamed
-    { unRenamed :: a
-    } deriving stock (Show, Eq)
+  { unRenamed :: a
+  }
+  deriving stock (Show, Eq)
 
--- | @Dupable a@ is isomorphic to @a@, but the only way to extract the @a@ is via 'liftDupable'
--- (defined in the main API module because of a constraint requirement) which renames the stored
--- value along the way. This type is used whenever
---
--- 1. preserving global uniqueness is required
--- 2. some value may be used multiple times
---
--- so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
--- global uniqueness is preserved.
---
--- 'unDupable' is not supposed to be exported. Don't provide any instances allowing the user to
--- access the underlying value.
+{-| @Dupable a@ is isomorphic to @a@, but the only way to extract the @a@ is via 'liftDupable'
+(defined in the main API module because of a constraint requirement) which renames the stored
+value along the way. This type is used whenever
+
+1. preserving global uniqueness is required
+2. some value may be used multiple times
+
+so we annotate such a value with 'Dupable' and call 'liftDupable' at each usage, which ensures
+global uniqueness is preserved.
+
+'unDupable' is not supposed to be exported. Don't provide any instances allowing the user to
+access the underlying value. -}
 newtype Dupable a = Dupable
-    { unDupable :: a
-    } deriving stock (Show, Eq)
+  { unDupable :: a
+  }
+  deriving stock (Show, Eq)
 
--- | Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
--- from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation.
+{-| Replace the unique in the name stored in a 'TyVarDecl' by a new unique, save the mapping
+from the old unique to the new one and supply the updated 'TyVarDecl' to a continuation. -}
 withFreshenedTyVarDecl
-    :: (HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann), MonadQuote m, MonadReader ren m)
-    => TyVarDecl tyname ann
-    -> (TyVarDecl tyname ann -> m c)
-    -> m c
+  :: (HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann), MonadQuote m, MonadReader ren m)
+  => TyVarDecl tyname ann
+  -> (TyVarDecl tyname ann -> m c)
+  -> m c
 withFreshenedTyVarDecl (TyVarDecl ann name kind) cont =
-    withFreshenedName name $ \nameFr -> cont $ TyVarDecl ann nameFr kind
+  withFreshenedName name $ \nameFr -> cont $ TyVarDecl ann nameFr kind
 
--- | Replace the unique in the name stored in a 'VarDecl' by a new unique, save the mapping
--- from the old unique to the new one and supply to a continuation the computation that
--- renames the type stored in the updated 'VarDecl'.
--- The reason the continuation receives a computation rather than a pure term is that we may want
--- to bring several term and type variables in scope before renaming the types of term variables.
--- This situation arises when we want to rename a bunch of mutually recursive bindings.
+{-| Replace the unique in the name stored in a 'VarDecl' by a new unique, save the mapping
+from the old unique to the new one and supply to a continuation the computation that
+renames the type stored in the updated 'VarDecl'.
+The reason the continuation receives a computation rather than a pure term is that we may want
+to bring several term and type variables in scope before renaming the types of term variables.
+This situation arises when we want to rename a bunch of mutually recursive bindings. -}
 withFreshenedVarDecl
-    :: (HasUniques (Term tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
-    => VarDecl tyname name uni ann
-    -> (m (VarDecl tyname name uni ann) -> m c)
-    -> m c
+  :: (HasUniques (Term tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
+  => VarDecl tyname name uni ann
+  -> (m (VarDecl tyname name uni ann) -> m c)
+  -> m c
 withFreshenedVarDecl (VarDecl ann name ty) cont =
-    withFreshenedName name $ \nameFr -> cont $ VarDecl ann nameFr <$> renameTypeM ty
+  withFreshenedName name $ \nameFr -> cont $ VarDecl ann nameFr <$> renameTypeM ty
 
 -- | Rename a 'Type' in the 'RenameM' monad.
 renameTypeM
-    :: (HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann), MonadQuote m, MonadReader ren m)
-    => Type tyname uni ann -> m (Type tyname uni ann)
-renameTypeM (TyLam ann name kind ty)    =
-    withFreshenedName name $ \nameFr -> TyLam ann nameFr kind <$> renameTypeM ty
+  :: (HasRenaming ren TypeUnique, HasUniques (Type tyname uni ann), MonadQuote m, MonadReader ren m)
+  => Type tyname uni ann -> m (Type tyname uni ann)
+renameTypeM (TyLam ann name kind ty) =
+  withFreshenedName name $ \nameFr -> TyLam ann nameFr kind <$> renameTypeM ty
 renameTypeM (TyForall ann name kind ty) =
-    withFreshenedName name $ \nameFr -> TyForall ann nameFr kind <$> renameTypeM ty
-renameTypeM (TyIFix ann pat arg)        = TyIFix ann <$> renameTypeM pat <*> renameTypeM arg
-renameTypeM (TyApp ann fun arg)         = TyApp ann <$> renameTypeM fun <*> renameTypeM arg
-renameTypeM (TyFun ann dom cod)         = TyFun ann <$> renameTypeM dom <*> renameTypeM cod
-renameTypeM (TyVar ann name)            = TyVar ann <$> renameNameM name
-renameTypeM (TySOP ann tyls)            = TySOP ann <$> (traverse . traverse) renameTypeM tyls
-renameTypeM ty@TyBuiltin{}              = pure ty
+  withFreshenedName name $ \nameFr -> TyForall ann nameFr kind <$> renameTypeM ty
+renameTypeM (TyIFix ann pat arg) = TyIFix ann <$> renameTypeM pat <*> renameTypeM arg
+renameTypeM (TyApp ann fun arg) = TyApp ann <$> renameTypeM fun <*> renameTypeM arg
+renameTypeM (TyFun ann dom cod) = TyFun ann <$> renameTypeM dom <*> renameTypeM cod
+renameTypeM (TyVar ann name) = TyVar ann <$> renameNameM name
+renameTypeM (TySOP ann tyls) = TySOP ann <$> (traverse . traverse) renameTypeM tyls
+renameTypeM ty@TyBuiltin {} = pure ty
 
 -- | Rename a 'Term' in the 'RenameM' monad.
 renameTermM
-    :: (HasUniques (Term tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
-    => Term tyname name uni fun ann -> m (Term tyname name uni fun ann)
-renameTermM (LamAbs ann name ty body)  =
-    withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTypeM ty <*> renameTermM body
+  :: (HasUniques (Term tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
+  => Term tyname name uni fun ann -> m (Term tyname name uni fun ann)
+renameTermM (LamAbs ann name ty body) =
+  withFreshenedName name $ \nameFr -> LamAbs ann nameFr <$> renameTypeM ty <*> renameTermM body
 renameTermM (TyAbs ann name kind body) =
-    withFreshenedName name $ \nameFr -> TyAbs ann nameFr kind <$> renameTermM body
-renameTermM (IWrap ann pat arg term)   =
-    IWrap ann <$> renameTypeM pat <*> renameTypeM arg <*> renameTermM term
-renameTermM (Apply ann fun arg)        = Apply ann <$> renameTermM fun <*> renameTermM arg
-renameTermM (Unwrap ann term)          = Unwrap ann <$> renameTermM term
-renameTermM (Error ann ty)             = Error ann <$> renameTypeM ty
-renameTermM (TyInst ann term ty)       = TyInst ann <$> renameTermM term <*> renameTypeM ty
-renameTermM (Var ann name)             = Var ann <$> renameNameM name
-renameTermM (Constr ann ty i es)       = Constr ann <$> renameTypeM ty <*> pure i <*> traverse renameTermM es
-renameTermM (Case ann ty arg cs)       = Case ann <$> renameTypeM ty <*> renameTermM arg <*> traverse renameTermM cs
-renameTermM con@Constant{}             = pure con
-renameTermM bi@Builtin{}               = pure bi
+  withFreshenedName name $ \nameFr -> TyAbs ann nameFr kind <$> renameTermM body
+renameTermM (IWrap ann pat arg term) =
+  IWrap ann <$> renameTypeM pat <*> renameTypeM arg <*> renameTermM term
+renameTermM (Apply ann fun arg) = Apply ann <$> renameTermM fun <*> renameTermM arg
+renameTermM (Unwrap ann term) = Unwrap ann <$> renameTermM term
+renameTermM (Error ann ty) = Error ann <$> renameTypeM ty
+renameTermM (TyInst ann term ty) = TyInst ann <$> renameTermM term <*> renameTypeM ty
+renameTermM (Var ann name) = Var ann <$> renameNameM name
+renameTermM (Constr ann ty i es) = Constr ann <$> renameTypeM ty <*> pure i <*> traverse renameTermM es
+renameTermM (Case ann ty arg cs) = Case ann <$> renameTypeM ty <*> renameTermM arg <*> traverse renameTermM cs
+renameTermM con@Constant {} = pure con
+renameTermM bi@Builtin {} = pure bi
 
 -- | Rename a 'Program' in the 'RenameM' monad.
 renameProgramM
-    :: (HasUniques (Program tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
-    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
+  :: (HasUniques (Program tyname name uni fun ann), MonadQuote m, MonadReader ScopedRenaming m)
+  => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
 renameProgramM (Program ann ver term) = Program ann ver <$> renameTermM term

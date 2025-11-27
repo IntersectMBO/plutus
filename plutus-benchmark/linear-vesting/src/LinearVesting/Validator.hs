@@ -1,16 +1,16 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE BlockArguments        #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MultiWayIf            #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE Strict                #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE Strict #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -22,9 +22,9 @@
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:conservative-optimisation #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-remove-trace #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:preserve-logging #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module LinearVesting.Validator where
 
@@ -39,13 +39,13 @@ import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as List
 
 data VestingDatum = VestingDatum
-  { beneficiary              :: Address
-  , vestingAsset             :: AssetClass
-  , totalVestingQty          :: Integer
-  , vestingPeriodStart       :: Integer
-  , vestingPeriodEnd         :: Integer
+  { beneficiary :: Address
+  , vestingAsset :: AssetClass
+  , totalVestingQty :: Integer
+  , vestingPeriodStart :: Integer
+  , vestingPeriodEnd :: Integer
   , firstUnlockPossibleAfter :: Integer
-  , totalInstallments        :: Integer
+  , totalInstallments :: Integer
   }
   deriving stock (Haskell.Show)
 
@@ -62,12 +62,12 @@ $( PlutusTx.makeIsDataIndexed
 
 countInputsAtScript :: ScriptHash -> List TxInInfo -> Integer
 countInputsAtScript scriptHash = go 0
- where
-  go :: Integer -> List TxInInfo -> Integer
-  go n = List.caseList' n \txIn txIns ->
-    case addressCredential (txOutAddress (txInInfoResolved txIn)) of
-      ScriptCredential vh | vh == scriptHash -> go (n + 1) txIns
-      _                                      -> go n txIns
+  where
+    go :: Integer -> List TxInInfo -> Integer
+    go n = List.caseList' n \txIn txIns ->
+      case addressCredential (txOutAddress (txInInfoResolved txIn)) of
+        ScriptCredential vh | vh == scriptHash -> go (n + 1) txIns
+        _ -> go n txIns
 
 validateVestingPartialUnlock :: ScriptContext -> Bool
 validateVestingPartialUnlock ctx =
@@ -162,19 +162,19 @@ typedValidator context =
         validateVestingFullUnlock $ trace "Full unlock requested" context
       PartialUnlock ->
         validateVestingPartialUnlock $ trace "Partial unlock requested" context
- where
-  {-# INLINEABLE redeemer #-}
-  redeemer :: VestingRedeemer
-  redeemer =
-    case fromBuiltinData (getRedeemer (scriptContextRedeemer context)) of
-      Nothing -> traceError "Failed to parse Redeemer"
-      Just r  -> trace "Parsed Redeemer" r
+  where
+    {-# INLINEABLE redeemer #-}
+    redeemer :: VestingRedeemer
+    redeemer =
+      case fromBuiltinData (getRedeemer (scriptContextRedeemer context)) of
+        Nothing -> traceError "Failed to parse Redeemer"
+        Just r -> trace "Parsed Redeemer" r
 
 {-# INLINEABLE untypedValidator #-}
 untypedValidator :: BuiltinData -> BuiltinUnit
 untypedValidator scriptContextData =
   case trace "Parsing ScriptContext..." (fromBuiltinData scriptContextData) of
-    Nothing  -> traceError "Failed to parse ScriptContext"
+    Nothing -> traceError "Failed to parse ScriptContext"
     Just ctx -> check $ typedValidator $ trace "Parsed ScriptContext" ctx
 
 validatorCode :: CompiledCode (BuiltinData -> BuiltinUnit)

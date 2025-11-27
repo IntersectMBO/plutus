@@ -1,7 +1,7 @@
-{-# LANGUAGE BangPatterns     #-}
-{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Inline.Spec where
@@ -14,8 +14,8 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Optimize.Inline (inline)
-import PlutusTx.Test (goldenBundle, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
+import PlutusTx.Test (goldenBundle, goldenPirReadable, goldenUPlcReadable)
 
 tests :: TestNested
 tests =
@@ -34,12 +34,12 @@ tests =
       , goldenPirReadable "always-inline-local" compiledAlwaysInlineLocal
       , goldenUPlcReadable "always-inline-local" compiledAlwaysInlineLocal
       ]
- where
-  applyOneTwoThree f =
-    f
-      `unsafeApplyCode` liftCodeDef 1
-      `unsafeApplyCode` liftCodeDef 2
-      `unsafeApplyCode` liftCodeDef 3
+  where
+    applyOneTwoThree f =
+      f
+        `unsafeApplyCode` liftCodeDef 1
+        `unsafeApplyCode` liftCodeDef 2
+        `unsafeApplyCode` liftCodeDef 3
 
 double :: Integer -> Integer
 double x = x `PlutusTx.addInteger` x
@@ -113,12 +113,11 @@ recursive =
 (like `square`).
 
 The third usage of `square` is inlined in PIR, but not in UPLC, since
-in UPLC the inlining is reversed by CSE.
--}
+in UPLC the inlining is reversed by CSE. -}
 inlineLocalOnce :: Integer -> Integer
 inlineLocalOnce x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` inline square
- where
-  !square = x `PlutusTx.multiplyInteger` x
+  where
+    !square = x `PlutusTx.multiplyInteger` x
 {-# INLINEABLE inlineLocalOnce #-}
 
 -- Use INLINE pragma on local variable `square` to make it always inlined.
@@ -126,9 +125,9 @@ inlineLocalOnce x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` in
 -- reversed by CSE in UPLC.
 alwaysInlineLocal :: Integer -> Integer
 alwaysInlineLocal x = square `PlutusTx.addInteger` square `PlutusTx.addInteger` square
- where
-  !square = x `PlutusTx.multiplyInteger` x
-  {-# INLINE square #-}
+  where
+    !square = x `PlutusTx.multiplyInteger` x
+    {-# INLINE square #-}
 {-# INLINEABLE alwaysInlineLocal #-}
 
 compiledInlineLocalOnce :: CompiledCode (Integer -> Integer)

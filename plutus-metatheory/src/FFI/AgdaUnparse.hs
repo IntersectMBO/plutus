@@ -38,21 +38,25 @@ instance AgdaUnparse AgdaFFI.UTerm where
       AgdaFFI.UBuiltin fun -> "(UBuiltin " ++ agdaUnparse fun ++ ")"
       AgdaFFI.UDelay term -> "(UDelay " ++ agdaUnparse term ++ ")"
       AgdaFFI.UForce term -> "(UForce " ++ agdaUnparse term ++ ")"
-      AgdaFFI.UConstr i terms -> "(UConstr " ++ agdaUnparse (fromInteger i :: Natural)
-                                      ++ " " ++ agdaUnparse terms ++ ")"
+      AgdaFFI.UConstr i terms ->
+        "(UConstr "
+          ++ agdaUnparse (fromInteger i :: Natural)
+          ++ " "
+          ++ agdaUnparse terms
+          ++ ")"
       AgdaFFI.UCase term cases -> "(UCase " ++ agdaUnparse term ++ " " ++ agdaUnparse cases ++ ")"
 
 instance AgdaUnparse UPLC.DefaultFun where
   agdaUnparse = usToHyphen . lowerInitialChar . show
 
 instance AgdaUnparse SimplifierStage where
-  agdaUnparse FloatDelay     = "floatDelayT"
-  agdaUnparse ForceDelay     = "forceDelayT"
+  agdaUnparse FloatDelay = "floatDelayT"
+  agdaUnparse ForceDelay = "forceDelayT"
   agdaUnparse ForceCaseDelay = "forceCaseDelayT"
-  agdaUnparse CaseOfCase     = "caseOfCaseT"
-  agdaUnparse CaseReduce     = "caseReduceT"
-  agdaUnparse Inline         = "inlineT"
-  agdaUnparse CSE            = "cseT"
+  agdaUnparse CaseOfCase = "caseOfCaseT"
+  agdaUnparse CaseReduce = "caseReduceT"
+  agdaUnparse Inline = "inlineT"
+  agdaUnparse CSE = "cseT"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show
@@ -60,11 +64,11 @@ instance AgdaUnparse Natural where
 instance AgdaUnparse Integer where
   agdaUnparse x =
     case (x < 0) of
-      True  -> "(ℤ.negsuc " ++ show (x - 1) ++ ")"
-      False ->  "(ℤ.pos " ++ show x ++ ")"
+      True -> "(ℤ.negsuc " ++ show (x - 1) ++ ")"
+      False -> "(ℤ.pos " ++ show x ++ ")"
 
 instance AgdaUnparse Bool where
-  agdaUnparse True  = "true"
+  agdaUnparse True = "true"
   agdaUnparse False = "false"
 
 instance AgdaUnparse Char where
@@ -78,7 +82,7 @@ instance AgdaUnparse ByteString where
 instance AgdaUnparse () where
   agdaUnparse _ = "tt"
 
-agdaUnfold :: (AgdaUnparse a , Foldable f) => f a -> String
+agdaUnfold :: (AgdaUnparse a, Foldable f) => f a -> String
 agdaUnfold l = "(" ++ foldr (\x xs -> agdaUnparse x ++ " ∷ " ++ xs) "[]" l ++ ")"
 
 instance AgdaUnparse a => AgdaUnparse [a] where
@@ -87,7 +91,7 @@ instance AgdaUnparse a => AgdaUnparse [a] where
 instance (AgdaUnparse a, AgdaUnparse b) => AgdaUnparse (a, b) where
   agdaUnparse (x, y) = "(" ++ agdaUnparse x ++ " , " ++ agdaUnparse y ++ ")"
 
-instance (AgdaUnparse a) => AgdaUnparse (Vector a) where
+instance AgdaUnparse a => AgdaUnparse (Vector a) where
   agdaUnparse v = "(mkArray (" ++ agdaUnfold v ++ "))"
 
 instance AgdaUnparse Data where
@@ -136,8 +140,8 @@ instance AgdaUnparse (UPLC.DefaultUni (PLC.Esc a)) where
 
 instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
   agdaUnparse (PLC.Some valOf) =
-    "(tagCon " ++
-      case valOf of
+    "(tagCon "
+      ++ case valOf of
         PLC.ValueOf PLC.DefaultUniInteger val ->
           "integer " ++ agdaUnparse val
         PLC.ValueOf PLC.DefaultUniByteString val ->
@@ -154,32 +158,29 @@ instance AgdaUnparse (PLC.Some (PLC.ValueOf UPLC.DefaultUni)) where
           "value " ++ agdaUnparse val
         PLC.ValueOf univ@(PLC.DefaultUniList elemType) val ->
           agdaUnparse univ
-          ++ " "
-          ++
-            ( PLC.bring (Proxy @AgdaUnparse) elemType
-            $ agdaUnparse val
-            )
+            ++ " "
+            ++ ( PLC.bring (Proxy @AgdaUnparse) elemType $
+                   agdaUnparse val
+               )
         PLC.ValueOf univ@(PLC.DefaultUniPair type1 type2) val ->
           agdaUnparse univ
-          ++ " "
-          ++
-            ( PLC.bring (Proxy @AgdaUnparse) type1
-            $ PLC.bring (Proxy @AgdaUnparse) type2
-            $ agdaUnparse val
-            )
+            ++ " "
+            ++ ( PLC.bring (Proxy @AgdaUnparse) type1 $
+                   PLC.bring (Proxy @AgdaUnparse) type2 $
+                     agdaUnparse val
+               )
         PLC.ValueOf PLC.DefaultUniBLS12_381_G1_Element val ->
-          "bls12-381-g1-element " ++  agdaUnparse val
+          "bls12-381-g1-element " ++ agdaUnparse val
         PLC.ValueOf PLC.DefaultUniBLS12_381_G2_Element val ->
-          "bls12-381-g2-element " ++  agdaUnparse val
+          "bls12-381-g2-element " ++ agdaUnparse val
         PLC.ValueOf PLC.DefaultUniBLS12_381_MlResult val ->
           "bls12-381-mlresult " ++ agdaUnparse val
-        PLC.ValueOf univ@(PLC.DefaultUniArray elemType)  val ->
+        PLC.ValueOf univ@(PLC.DefaultUniArray elemType) val ->
           agdaUnparse univ
-          ++ " "
-          ++
-            ( PLC.bring (Proxy @AgdaUnparse) elemType
-            $ agdaUnparse val
-            )
+            ++ " "
+            ++ ( PLC.bring (Proxy @AgdaUnparse) elemType $
+                   agdaUnparse val
+               )
         PLC.ValueOf (PLC.DefaultUniApply _ _) _ ->
           error "Application of an unknown type is not supported."
-    ++ ")"
+      ++ ")"

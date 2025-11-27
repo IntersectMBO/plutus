@@ -1,18 +1,18 @@
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE BlockArguments      #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 {-# HLINT ignore "Eta reduce" #-}
 {-# HLINT ignore "Redundant if" #-}
@@ -65,9 +65,11 @@ emptyByteStringArray = plc (Proxy @"emptyByteStringArray") (P.mkNil @P.BuiltinBy
 
 emptyComplexArray
   :: CompiledCode
-      (P.BuiltinList
-         (P.BuiltinList
-            (P.BuiltinPair P.BuiltinByteString (P.BuiltinPair (P.BuiltinList Integer) Bool))))
+       ( P.BuiltinList
+           ( P.BuiltinList
+               (P.BuiltinPair P.BuiltinByteString (P.BuiltinPair (P.BuiltinList Integer) Bool))
+           )
+       )
 emptyComplexArray = plc (Proxy @"emptyComplexArray") P.mkNil
 
 monoId :: CompiledCode (Integer -> Integer)
@@ -168,7 +170,7 @@ defaultCaseDuplicationNested = plc (Proxy @"defaultCaseDuplicationNested") do
           _ -> 3
 
 integerCase :: CompiledCode Integer
-integerCase = plc (Proxy @"integerCase") ((\case {1 -> 42; 2 -> 100; _ -> -1}) (2 :: Integer))
+integerCase = plc (Proxy @"integerCase") ((\case 1 -> 42; 2 -> 100; _ -> -1) (2 :: Integer))
 
 integerMatchFunction :: Integer -> Integer
 integerMatchFunction 1 = 12

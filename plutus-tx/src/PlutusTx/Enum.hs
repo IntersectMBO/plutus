@@ -13,18 +13,17 @@ import PlutusTx.Trace
 -- | Class 'Enum' defines operations on sequentially ordered types.
 class Enum a where
   {-# MINIMAL toEnum, fromEnum #-}
+
   {-| The successor of a value.  For numeric types, 'succ' adds 1.
 
   For types that implement 'Ord', @succ x@ should be the least element
-  that is greater than @x@, and 'error' if there is none.
-  -}
+  that is greater than @x@, and 'error' if there is none. -}
   succ :: a -> a
 
   {-| The predecessor of a value.  For numeric types, 'pred' subtracts 1.
 
   For types that implement 'Ord', @pred x@ should be the greatest element
-  that is less than @x@, and 'error' if there is none.
-  -}
+  that is less than @x@, and 'error' if there is none. -}
   pred :: a -> a
 
   -- | Convert from an 'Integer'.
@@ -38,8 +37,7 @@ class Enum a where
 
   {-| Construct a list from the given range (corresponds to [a,b..c]).  This
   has the same semantics as the Haskell version,so if a==b and c>=b then you
-  get an infinite list, which you probably don't want in Plutus Core.
-  -}
+  get an infinite list, which you probably don't want in Plutus Core. -}
   enumFromThenTo :: a -> a -> a -> [a]
 
   {-# INLINEABLE succ #-}
@@ -76,16 +74,16 @@ instance Enum Integer where
     if delta >= 0
       then up_list x
       else dn_list x
-   where
-    delta = subtractInteger y x
-    up_list x1 =
-      if x1 > lim
-        then []
-        else x1 : up_list (addInteger x1 delta)
-    dn_list x1 =
-      if x1 < lim
-        then []
-        else x1 : dn_list (addInteger x1 delta)
+    where
+      delta = subtractInteger y x
+      up_list x1 =
+        if x1 > lim
+          then []
+          else x1 : up_list (addInteger x1 delta)
+      dn_list x1 =
+        if x1 < lim
+          then []
+          else x1 : dn_list (addInteger x1 delta)
 
 instance Enum () where
   {-# INLINEABLE succ #-}
@@ -105,10 +103,10 @@ instance Enum () where
 instance Enum Bool where
   {-# INLINEABLE succ #-}
   succ False = True
-  succ True  = traceError succBoolBadArgumentError
+  succ True = traceError succBoolBadArgumentError
 
   {-# INLINEABLE pred #-}
-  pred True  = False
+  pred True = False
   pred False = traceError predBoolBadArgumentError
 
   {-# INLINEABLE toEnum #-}
@@ -119,7 +117,7 @@ instance Enum Bool where
 
   {-# INLINEABLE fromEnum #-}
   fromEnum False = 0
-  fromEnum True  = 1
+  fromEnum True = 1
 
 instance Enum Ordering where
   {-# INLINEABLE succ #-}

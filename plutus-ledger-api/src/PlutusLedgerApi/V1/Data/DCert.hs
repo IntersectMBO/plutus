@@ -1,27 +1,27 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE PatternSynonyms      #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
-{-# OPTIONS_GHC -fno-specialise #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 
 -- | Digests of certificates that are included in transactions.
 module PlutusLedgerApi.V1.Data.DCert
-    ( DCert
-    , pattern DCertDelegRegKey
-    , pattern DCertDelegDeRegKey
-    , pattern DCertDelegDelegate
-    , pattern DCertPoolRegister
-    , pattern DCertPoolRetire
-    , pattern DCertGenesis
-    , pattern DCertMir
-    ) where
+  ( DCert
+  , pattern DCertDelegRegKey
+  , pattern DCertDelegDeRegKey
+  , pattern DCertDelegDelegate
+  , pattern DCertPoolRegister
+  , pattern DCertPoolRetire
+  , pattern DCertGenesis
+  , pattern DCertMir
+  ) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
@@ -36,8 +36,8 @@ import PlutusTx.Prelude qualified as P
 import PlutusTx.Show (deriveShow)
 import Prettyprinter.Extras (Pretty, PrettyShow (PrettyShow))
 
--- | A representation of the ledger DCert. Some information is digested, and
---   not included
+{-| A representation of the ledger DCert. Some information is digested, and
+  not included -}
 PlutusTx.asData
   [d|
     data DCert
@@ -45,26 +45,26 @@ PlutusTx.asData
       | DCertDelegDeRegKey StakingCredential
       | DCertDelegDelegate
           StakingCredential
-          -- ^ delegator
+          -- \^ delegator
           PubKeyHash
-          -- ^ delegatee
-      | -- | A digest of the PoolParams
+      | -- \^ delegatee
+        -- \| A digest of the PoolParams
         DCertPoolRegister
           PubKeyHash
-          -- ^ poolId
+          -- \^ poolId
           PubKeyHash
-          -- ^ pool VFR
-      | -- | The retirement certificate and the Epoch in which the retirement will take place
+      | -- \^ pool VFR
+        -- \| The retirement certificate and the Epoch in which the retirement will take place
         DCertPoolRetire PubKeyHash Integer -- NB: Should be Word64 but we only have Integer on-chain
-      | -- | A really terse Digest
+      | -- \| A really terse Digest
         DCertGenesis
-      | -- | Another really terse Digest
+      | -- \| Another really terse Digest
         DCertMir
-        deriving stock (Eq, Ord, Show, Generic)
-        deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-        deriving anyclass (NFData, HasBlueprintDefinition)
-        deriving Pretty via (PrettyShow DCert)
-  |]
+      deriving stock (Eq, Ord, Show, Generic)
+      deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
+      deriving anyclass (NFData, HasBlueprintDefinition)
+      deriving (Pretty) via (PrettyShow DCert)
+    |]
 
 {-# ANN DCertDelegRegKey (SchemaTitle "DCertDelegRegKey") #-}
 {-# ANN DCertDelegRegKey (SchemaDescription "Delegation key registration certificate") #-}
@@ -87,17 +87,16 @@ PlutusTx.asData
 {-# ANN DCertMir (SchemaTitle "DCertMir") #-}
 {-# ANN DCertMir (SchemaDescription "MIR key") #-}
 
-
 instance P.Eq DCert where
-    {-# INLINABLE (==) #-}
-    DCertDelegRegKey sc == DCertDelegRegKey sc'                = sc P.== sc'
-    DCertDelegDeRegKey sc == DCertDelegDeRegKey sc'            = sc P.== sc'
-    DCertDelegDelegate sc pkh == DCertDelegDelegate sc' pkh'   = sc P.== sc' && pkh P.== pkh'
-    DCertPoolRegister pid pvfr == DCertPoolRegister pid' pvfr' = pid P.== pid' && pvfr P.== pvfr'
-    DCertPoolRetire pkh i == DCertPoolRetire pkh' i'           = pkh P.== pkh' && i P.== i'
-    DCertGenesis == DCertGenesis                               = True
-    DCertMir == DCertMir                                       = True
-    _ == _                                                     = False
+  {-# INLINEABLE (==) #-}
+  DCertDelegRegKey sc == DCertDelegRegKey sc' = sc P.== sc'
+  DCertDelegDeRegKey sc == DCertDelegDeRegKey sc' = sc P.== sc'
+  DCertDelegDelegate sc pkh == DCertDelegDelegate sc' pkh' = sc P.== sc' && pkh P.== pkh'
+  DCertPoolRegister pid pvfr == DCertPoolRegister pid' pvfr' = pid P.== pid' && pvfr P.== pvfr'
+  DCertPoolRetire pkh i == DCertPoolRetire pkh' i' = pkh P.== pkh' && i P.== i'
+  DCertGenesis == DCertGenesis = True
+  DCertMir == DCertMir = True
+  _ == _ = False
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

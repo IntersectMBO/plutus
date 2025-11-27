@@ -2,8 +2,7 @@
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 
 {-| Functions in this module are for internal compiler use only, and should not
-be used elsewhere.
--}
+be used elsewhere. -}
 module PlutusTx.AsData.Internal where
 
 import PlutusTx.Builtins.Internal as BI

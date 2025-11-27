@@ -1,13 +1,13 @@
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
-module Main (
-  main,
-) where
+module Main
+  ( main
+  ) where
 
 import PlutusPrelude
 
@@ -46,13 +46,13 @@ import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore.Flat qualified as Flat
-import Prelude hiding (readFile)
 import System.FilePath
 import Test.Tasty
 import Test.Tasty.Golden
-import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 import Test.Tasty.Options
+import Prelude hiding (readFile)
 
 main :: IO ()
 main = do
@@ -77,8 +77,9 @@ main = do
 
 propFlat :: Property
 propFlat = property $ do
-  prog <- forAllPretty . runAstGen $
-    regenConstantsUntil isSerialisable =<< genProgram @DefaultFun
+  prog <-
+    forAllPretty . runAstGen $
+      regenConstantsUntil isSerialisable =<< genProgram @DefaultFun
   Hedgehog.tripping prog Flat.flat Flat.unflat
 
 {- The following tests check that (A) the parser can
@@ -89,10 +90,9 @@ propFlat = property $ do
 
 type DefaultError = Error DefaultUni DefaultFun SrcSpan
 
-{- | Test that the parser can successfully consume the output from the
+{-| Test that the parser can successfully consume the output from the
    prettyprinter for the unit and boolean types.  We use a unit test here
-   because there are only three possibilities (@()@, @false@, and @true@).
--}
+   because there are only three possibilities (@()@, @false@, and @true@). -}
 testLexConstant :: Assertion
 testLexConstant =
   for_ smallConsts $ \t -> do
@@ -142,29 +142,27 @@ genConstantForTest =
     k2 = m * m
     m = fromIntegral (maxBound :: Int) :: Integer
 
-{- | Check that printing followed by parsing is the identity function on
-  constants.
--}
+{-| Check that printing followed by parsing is the identity function on
+  constants. -}
 propLexConstant :: Property
 propLexConstant = mapTestLimitAtLeast 200 (`div` 10) . property $ do
   term <- forAllPretty $ Constant () <$> runAstGen genConstantForTest
   Hedgehog.tripping term displayPlc (fmap void . parseTm)
   where
-    parseTm ::
-      T.Text ->
-      Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SrcSpan)
+    parseTm
+      :: T.Text
+      -> Either ParserErrorBundle (Term TyName Name DefaultUni DefaultFun SrcSpan)
     parseTm tm = runQuoteT $ parseTerm tm
 
-{- | Generate a random 'Program', pretty-print it, and parse the pretty-printed
-text, hopefully returning the same thing.
--}
+{-| Generate a random 'Program', pretty-print it, and parse the pretty-printed
+text, hopefully returning the same thing. -}
 propParser :: Property
 propParser = property $ do
   prog <- forAllPretty . runAstGen $ regenConstantsUntil isSerialisable =<< genProgram
   Hedgehog.tripping prog displayPlc (fmap void . parseProg)
   where
-    parseProg ::
-      T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SrcSpan)
+    parseProg
+      :: T.Text -> Either ParserErrorBundle (Program TyName Name DefaultUni DefaultFun SrcSpan)
     parseProg = runQuoteT . parseProgram
 
 type TestFunction = T.Text -> Either DefaultError T.Text
@@ -172,7 +170,7 @@ type TestFunction = T.Text -> Either DefaultError T.Text
 asIO :: TestFunction -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . readFile
 
-errorgen :: (PrettyPlc a) => a -> BSL.ByteString
+errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcSimple
 
 asGolden :: TestFunction -> TestName -> TestTree
@@ -183,27 +181,26 @@ asGolden f file = goldenVsString file (base ++ ".golden" ++ ext) (asIO f file)
 -- TODO: evaluation tests should go under the 'Evaluation' module,
 -- normalization tests -- under 'Normalization', etc.
 
-{- | Parse and rewrite so that names are globally unique, not just unique within
+{-| Parse and rewrite so that names are globally unique, not just unique within
 their scope.
-don't require there to be no free variables at this point, we might be parsing an open term
--}
-parseScoped ::
-  ( MonadError (Error DefaultUni DefaultFun SrcSpan) m
-  , MonadQuote m
-  ) =>
-  T.Text ->
-  m (Program TyName Name DefaultUni DefaultFun SrcSpan)
+don't require there to be no free variables at this point, we might be parsing an open term -}
+parseScoped
+  :: ( MonadError (Error DefaultUni DefaultFun SrcSpan) m
+     , MonadQuote m
+     )
+  => T.Text
+  -> m (Program TyName Name DefaultUni DefaultFun SrcSpan)
 -- don't require there to be no free variables at this point, we might be parsing an open term
 parseScoped =
   through (modifyError UniqueCoherencyErrorE . Uniques.checkProgram (const True))
-  <=< rename
-  <=< modifyError ParseErrorE . parseProgram
+    <=< rename
+    <=< modifyError ParseErrorE
+    . parseProgram
 
-printType ::
-  ( MonadError (Error DefaultUni DefaultFun SrcSpan) m
-  ) =>
-  T.Text ->
-  m T.Text
+printType
+  :: MonadError (Error DefaultUni DefaultFun SrcSpan) m
+  => T.Text
+  -> m T.Text
 printType txt =
   runQuoteT $
     render . prettyBy (prettyConfigPlcClassicSimple prettyConfigPlcOptions) <$> do
@@ -214,11 +211,11 @@ printType txt =
 testsType :: [FilePath] -> TestTree
 testsType = testGroup "golden type synthesis tests" . fmap (asGolden printType)
 
-format ::
-  (MonadError ParserErrorBundle m) =>
-  PrettyConfigPlc ->
-  T.Text ->
-  m T.Text
+format
+  :: MonadError ParserErrorBundle m
+  => PrettyConfigPlc
+  -> T.Text
+  -> m T.Text
 format cfg = runQuoteT . fmap (displayBy cfg) . (rename <=< parseProgram)
 
 testsGolden :: [FilePath] -> TestTree

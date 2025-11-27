@@ -1,22 +1,21 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE CPP             #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ViewPatterns    #-}
+{-# LANGUAGE ViewPatterns #-}
 
-module PlutusTx.IsData.TH (
-  unsafeFromDataClause,
-  unstableMakeIsData,
-  makeIsDataIndexed,
-  makeIsDataAsList,
-  mkConstrCreateExpr,
-  mkUnsafeConstrMatchPattern,
-  mkConstrPartsMatchPattern,
-  mkUnsafeConstrPartsMatchPattern,
-  AsDataProdType (..),
-
-  fromDataClause,
-) where
+module PlutusTx.IsData.TH
+  ( unsafeFromDataClause
+  , unstableMakeIsData
+  , makeIsDataIndexed
+  , makeIsDataAsList
+  , mkConstrCreateExpr
+  , mkUnsafeConstrMatchPattern
+  , mkConstrPartsMatchPattern
+  , mkUnsafeConstrPartsMatchPattern
+  , AsDataProdType (..)
+  , fromDataClause
+  ) where
 
 import Data.Foldable as Foldable (foldl')
 import Data.Functor ((<&>))
@@ -60,10 +59,10 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
       extractFieldNames <&> \n ->
         [p|(fromBuiltinData -> Just $(TH.varP n))|]
     extractArgsPat = go extractArgPats
-     where
-      go []       = [p|_|]
-      go [x]      = [p|(Builtins.headMaybe -> Just $x)|]
-      go (x : xs) = [p|(Builtins.uncons -> Just ($x, $(go xs)))|]
+      where
+        go [] = [p|_|]
+        go [x] = [p|(Builtins.headMaybe -> Just $x)|]
+        go (x : xs) = [p|(Builtins.uncons -> Just ($x, $(go xs)))|]
     pat = [p|($ixMatchPat, $extractArgsPat)|]
    in
     pat
@@ -75,14 +74,14 @@ mkListPartsMatchPattern extractFieldNames =
     extractArgPats =
       extractFieldNames <&> \n ->
         [p|(fromBuiltinData -> Just $(TH.varP n))|]
-    go []       = [p|_|]
-    go [x]      = [p|(Builtins.headMaybe -> Just $x)|]
+    go [] = [p|_|]
+    go [x] = [p|(Builtins.headMaybe -> Just $x)|]
     go (x : xs) = [p|(Builtins.uncons -> Just ($x, $(go xs)))|]
-   in [p|$(go extractArgPats)|]
+   in
+    [p|$(go extractArgPats)|]
 
 {-| If generating pattern synonyms for a product type declared with 'asData',
-we can avoid the index match, as we know that the type only has one constructor.
--}
+we can avoid the index match, as we know that the type only has one constructor. -}
 data AsDataProdType
   = IsAsDataProdType
   | IsNotAsDataProdType
@@ -127,26 +126,26 @@ mkUnsafeConstrPartsMatchPattern isProduct conIx extractFieldNames =
       extractFieldNames <&> \n ->
         [p|(unsafeFromBuiltinData -> $(TH.varP n))|]
     extractArgsPat = go extractArgPats
-     where
-      go []       = [p|_|]
-      go [x]      = [p|(BI.head -> $x)|]
-      go (x : xs) = [p|(wrapUnsafeUncons -> ($x, $(go xs)))|]
+      where
+        go [] = [p|_|]
+        go [x] = [p|(BI.head -> $x)|]
+        go (x : xs) = [p|(wrapUnsafeUncons -> ($x, $(go xs)))|]
     pat =
       -- We can safely omit the index match if we know that the type is a product type
       case isProduct of
-        IsAsDataProdType    -> [p|$extractArgsPat|]
+        IsAsDataProdType -> [p|$extractArgsPat|]
         IsNotAsDataProdType -> [p|($ixMatchPat, $extractArgsPat)|]
    in
     pat
 
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
-toDataClause (TH.ConstructorInfo{TH.constructorName = name, TH.constructorFields = argTys}, index) = do
+toDataClause (TH.ConstructorInfo {TH.constructorName = name, TH.constructorFields = argTys}, index) = do
   argNames <- for argTys $ \_ -> TH.newName "arg"
   let create = mkConstrCreateExpr (fromIntegral index) argNames
   TH.clause [TH.conP name (fmap TH.varP argNames)] (TH.normalB create) []
 
 toDataListClause :: TH.ConstructorInfo -> TH.Q TH.Clause
-toDataListClause TH.ConstructorInfo{TH.constructorName = name, TH.constructorFields = argTys} = do
+toDataListClause TH.ConstructorInfo {TH.constructorName = name, TH.constructorFields = argTys} = do
   argNames <- for argTys $ \_ -> TH.newName "arg"
   let create = [|BI.mkList $(mkListCreateExpr argNames)|]
   TH.clause [TH.conP name (fmap TH.varP argNames)] (TH.normalB create) []
@@ -155,7 +154,7 @@ toDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
 toDataClauses indexedCons = toDataClause <$> indexedCons
 
 reconstructCase :: (TH.ConstructorInfo, Int) -> TH.MatchQ
-reconstructCase (TH.ConstructorInfo{TH.constructorName = name, TH.constructorFields = argTys}, index) = do
+reconstructCase (TH.ConstructorInfo {TH.constructorName = name, TH.constructorFields = argTys}, index) = do
   argNames <- for argTys $ \_ -> TH.newName "arg"
 
   -- Build the constructor application, assuming that all the arguments are in scope
@@ -192,7 +191,7 @@ fromDataClause indexedCons = do
   TH.clause [TH.varP dName] (TH.normalB body) []
 
 fromDataListClause :: TH.ConstructorInfo -> TH.Q TH.Clause
-fromDataListClause TH.ConstructorInfo{TH.constructorName = consName, TH.constructorFields = argTys} = do
+fromDataListClause TH.ConstructorInfo {TH.constructorName = consName, TH.constructorFields = argTys} = do
   dName <- TH.newName "d"
   argsName <- TH.newName "args"
   -- Call the clause for each constructor, falling through to the next one, until we get to the end in which case we call 'error'
@@ -222,7 +221,7 @@ fromDataListClause TH.ConstructorInfo{TH.constructorName = consName, TH.construc
   TH.clause [TH.varP dName] (TH.normalB body) []
 
 unsafeReconstructCase :: (TH.ConstructorInfo, Int) -> TH.MatchQ
-unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName = name, TH.constructorFields = argTys}, index) = do
+unsafeReconstructCase (TH.ConstructorInfo {TH.constructorName = name, TH.constructorFields = argTys}, index) = do
   argNames <- for argTys $ \_ -> TH.newName "arg"
 
   -- Build the constructor application, assuming that all the arguments are in scope
@@ -234,7 +233,7 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName = name, TH.construc
     []
 
 unsafeReconstructListCase :: TH.ConstructorInfo -> TH.MatchQ
-unsafeReconstructListCase TH.ConstructorInfo{TH.constructorName = name, TH.constructorFields = argTys} = do
+unsafeReconstructListCase TH.ConstructorInfo {TH.constructorName = name, TH.constructorFields = argTys} = do
   argNames <- for argTys $ \_ -> TH.newName "arg"
 
   -- Build the constructor application, assuming that all the arguments are in scope
@@ -261,7 +260,7 @@ unsafeFromDataClause indexedCons = do
 
     intCasingEligible =
       let idxs = snd <$> indexedConsSorted
-      in [0..(length idxs - 1)] == idxs
+       in [0 .. (length idxs - 1)] == idxs
 
   if intCasingEligible
     then do
@@ -269,12 +268,13 @@ unsafeFromDataClause indexedCons = do
         kases =
           TH.listE $
             (\(conInfo, _) -> TH.lamCaseE [unsafeReconstructListCase conInfo, finalCase])
-            <$> indexedConsSorted
+              <$> indexedConsSorted
         body =
-          [| BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
-               \($(TH.varP indexName)) ($(TH.varP argsName)) ->
-                 (caseInteger $(TH.varE indexName) $kases) $(TH.varE argsName)
-           |]
+          [|
+            BI.casePair (BI.unsafeDataAsConstr $(TH.varE dName)) $
+              \($(TH.varP indexName)) ($(TH.varP argsName)) ->
+                (caseInteger $(TH.varE indexName) $kases) $(TH.varE argsName)
+            |]
 
       TH.clause [TH.varP dName] (TH.normalB body) []
     else do
@@ -320,15 +320,13 @@ defaultIndex name = do
 
 {-| Generate a 'FromData' and a 'ToData' instance for a type.
 This may not be stable in the face of constructor additions,
-renamings, etc. Use 'makeIsDataIndexed' if you need stability.
--}
+renamings, etc. Use 'makeIsDataIndexed' if you need stability. -}
 unstableMakeIsData :: TH.Name -> TH.Q [TH.Dec]
 unstableMakeIsData name = makeIsDataIndexed name =<< defaultIndex name
 
 {-| Generate a 'ToData', 'FromData and a 'UnsafeFromData' instances for a type,
 using an explicit mapping of constructor names to indices.
-Use this for types where you need to keep the representation stable.
--}
+Use this for types where you need to keep the representation stable. -}
 makeIsDataIndexed :: TH.Name -> [(TH.Name, Int)] -> TH.Q [TH.Dec]
 makeIsDataIndexed dataTypeName indices = do
   dataTypeInfo <- TH.reifyDatatype dataTypeName
@@ -337,7 +335,7 @@ makeIsDataIndexed dataTypeName indices = do
 
   indexedCons <- for (TH.datatypeCons dataTypeInfo) $ \ctorInfo ->
     case lookup (TH.constructorName ctorInfo) indices of
-      Just i  -> pure (ctorInfo, i)
+      Just i -> pure (ctorInfo, i)
       Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName ctorInfo)
 
   toDataInst <- do
@@ -377,7 +375,7 @@ makeIsDataIndexed dataTypeName indices = do
         [unsafeFromDataPrag, unsafeFromDataDecl]
 
   pure [toDataInst, fromDataInst, unsafeFromDataInst]
- where
+  where
 #if MIN_VERSION_template_haskell(2,17,0)
       tyvarbndrName (TH.PlainTV n _)    = n
       tyvarbndrName (TH.KindedTV n _ _) = n
@@ -389,8 +387,7 @@ makeIsDataIndexed dataTypeName indices = do
 {-| Generates `FromData` and `ToData` instances for a type.
 Requires the type to have exactly one constructor,
 since instances created by `deriveIsDataAsList` use a list encoding
-instead of `Constr` and thus cannot represent constructor indices.
--}
+instead of `Constr` and thus cannot represent constructor indices. -}
 makeIsDataAsList :: TH.Name -> TH.Q [TH.Dec]
 makeIsDataAsList dataTypeName = do
   dataTypeInfo <- TH.reifyDatatype dataTypeName
@@ -400,7 +397,7 @@ makeIsDataAsList dataTypeName = do
   cons <-
     case TH.datatypeCons dataTypeInfo of
       [cons] -> pure cons
-      _      -> fail "Only data types with single constructor are eligible for 'makeIsDataAsList'"
+      _ -> fail "Only data types with single constructor are eligible for 'makeIsDataAsList'"
 
   toDataInst <- do
     let constraints =
@@ -439,7 +436,7 @@ makeIsDataAsList dataTypeName = do
         [unsafeFromDataPrag, unsafeFromDataDecl]
 
   pure [toDataInst, fromDataInst, unsafeFromDataInst]
- where
+  where
 #if MIN_VERSION_template_haskell(2,17,0)
       tyvarbndrName (TH.PlainTV n _)    = n
       tyvarbndrName (TH.KindedTV n _ _) = n
@@ -447,7 +444,6 @@ makeIsDataAsList dataTypeName = do
       tyvarbndrName (TH.PlainTV n)      = n
       tyvarbndrName (TH.KindedTV n _)   = n
 #endif
-
 
 {- Note [indexMatchCase and fallthrough]
 `indexMatchCase` and `fallthrough` need to be non-strict, because (1) at most one of them

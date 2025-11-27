@@ -11,7 +11,7 @@ let
           (/\dead ->
              trace
                {all dead a. Maybe a}
-               "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 42, _covLocEndLine = 42, _covLocStartCol = 26, _covLocEndCol = 33})"
+               "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 42, _covLocEndLine = 42, _covLocStartCol = 8, _covLocEndCol = 15})"
                (/\dead -> Nothing)
                {all dead. dead})
           {all dead. dead}
@@ -107,11 +107,11 @@ in
     (/\dead ->
        trace
          {all dead. Maybe bool}
-         "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 1, _covLocEndCol = 33})"
+         "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 1, _covLocEndCol = 15})"
          (/\dead ->
             trace
               {all dead. Maybe bool}
-              "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 9, _covLocEndCol = 33})"
+              "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 9, _covLocEndCol = 15})"
               (/\dead ->
                  Maybe_match
                    {integer}

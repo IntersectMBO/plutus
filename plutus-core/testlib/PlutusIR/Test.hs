@@ -1,19 +1,19 @@
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module PlutusIR.Test
-    ( module PlutusIR.Test
-    , initialSrcSpan
-    , topSrcSpan
-    , rethrow
-    , PLC.prettyPlcClassicSimple
-    ) where
+  ( module PlutusIR.Test
+  , initialSrcSpan
+  , topSrcSpan
+  , rethrow
+  , PLC.prettyPlcClassicSimple
+  ) where
 
 import PlutusPrelude
 import Test.Tasty.Extras
@@ -64,8 +64,8 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-  ) =>
-  ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
+  )
+  => ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
   toTPlc = asIfThrown . fmap void . compileWithOpts id
 
@@ -84,8 +84,8 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
-  ) =>
-  ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
+  )
+  => ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
   toUPlc = toTPlc >=> toUPlc
 
@@ -102,33 +102,32 @@ instance PLC.AnnInline PLC.SrcSpans where
 pTermAsProg :: Parser (PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
 pTermAsProg = fmap (PIR.Program mempty PLC.latestVersion) pTerm
 
-{- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if
-it caught them in 'IO'.
--}
-asIfThrown ::
-  (Exception e) =>
-  Except e a ->
-  ExceptT SomeException IO a
+{-| Adapt an computation that keeps its errors in an 'Except' into one that looks as if
+it caught them in 'IO'. -}
+asIfThrown
+  :: Exception e
+  => Except e a
+  -> ExceptT SomeException IO a
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileWithOpts ::
-  ( PLC.GEq uni
-  , PLC.Typecheckable uni fun
-  , PLC.CaseBuiltin uni
-  , Ord a
-  , PLC.AnnInline a
-  , PLC.PrettyUni uni
-  , PLC.Pretty fun
-  , PLC.Pretty a
-  , Default (BuiltinsInfo uni fun)
-  , Default (PLC.CostingPart uni fun)
-  , Default (RewriteRules uni fun)
-  ) =>
-  (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
-  PIR.Program PIR.TyName PIR.Name uni fun a ->
-  Except
-    (PIR.Error uni fun (PIR.Provenance a))
-    (PLC.Program PIR.TyName PIR.Name uni fun (PIR.Provenance a))
+compileWithOpts
+  :: ( PLC.GEq uni
+     , PLC.Typecheckable uni fun
+     , PLC.CaseBuiltin uni
+     , Ord a
+     , PLC.AnnInline a
+     , PLC.PrettyUni uni
+     , PLC.Pretty fun
+     , PLC.Pretty a
+     , Default (BuiltinsInfo uni fun)
+     , Default (PLC.CostingPart uni fun)
+     , Default (RewriteRules uni fun)
+     )
+  => (CompilationCtx uni fun a -> CompilationCtx uni fun a)
+  -> PIR.Program PIR.TyName PIR.Name uni fun a
+  -> Except
+       (PIR.Error uni fun (PIR.Provenance a))
+       (PLC.Program PIR.TyName PIR.Name uni fun (PIR.Provenance a))
 compileWithOpts optsMod pir = do
   tcConfig <- modifyError PIR.PLCTypeError $ PLC.getDefTypeCheckConfig noProvenance
   let pirCtx = optsMod (toDefaultCompilationCtx tcConfig)
@@ -155,16 +154,16 @@ withGoldenFileM name op = do
 ppCatch :: (a -> Doc ann) -> ExceptT SomeException IO a -> IO T.Text
 ppCatch toDoc value = render . either (pretty . show) toDoc <$> runExceptT value
 
-goldenPir :: (PrettyPlc b) => (a -> b) -> Parser a -> String -> TestNested
+goldenPir :: PrettyPlc b => (a -> b) -> Parser a -> String -> TestNested
 goldenPir op = goldenPirM (return . op)
 
-goldenPirUnique :: (Pretty b) => (a -> b) -> Parser a -> String -> TestNested
+goldenPirUnique :: Pretty b => (a -> b) -> Parser a -> String -> TestNested
 goldenPirUnique op = goldenPirMUnique (return . op)
 
 goldenPirDoc :: (a -> Doc ann) -> Parser a -> String -> TestNested
 goldenPirDoc op = goldenPirDocM (return . op)
 
-goldenPirMUnique :: forall a b. (Pretty b) => (a -> IO b) -> Parser a -> String -> TestNested
+goldenPirMUnique :: forall a b. Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirMUnique op parser name = withGoldenFileM name parseOrError
   where
     parseOrError :: T.Text -> IO T.Text
@@ -173,7 +172,7 @@ goldenPirMUnique op parser name = withGoldenFileM name parseOrError
           parseTxt txt = runQuoteT $ parse parser name txt
        in either (return . display) (fmap display . op) . parseTxt
 
-goldenPirM :: forall a b. (PrettyPlc b) => (a -> IO b) -> Parser a -> String -> TestNested
+goldenPirM :: forall a b. PrettyPlc b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
   where
     parseOrError :: T.Text -> IO T.Text
@@ -192,21 +191,25 @@ goldenPirDocM op parser name = withGoldenFileM name parseOrError
        in either (return . display) (fmap (renderStrict . layoutPretty defaultLayoutOptions) . op)
             . parseTxt
 
-goldenPlcFromPir ::
-  (ToTPlc a PLC.DefaultUni PLC.DefaultFun) =>
-  Parser a ->
-  String ->
-  TestNested
+goldenPlcFromPir
+  :: ToTPlc a PLC.DefaultUni PLC.DefaultFun
+  => Parser a
+  -> String
+  -> TestNested
 goldenPlcFromPir = goldenPirM $ \ast -> ppCatch prettyPlcReadableSimple $ do
   p <- toTPlc ast
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
-goldenPlcFromPirScott ::
-  (Ord a, Typeable a, Pretty a, PLC.AnnInline a
-  , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) =>
-  Parser prog ->
-  String ->
-  TestNested
+goldenPlcFromPirScott
+  :: ( Ord a
+     , Typeable a
+     , Pretty a
+     , PLC.AnnInline a
+     , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a
+     )
+  => Parser prog
+  -> String
+  -> TestNested
 goldenPlcFromPirScott = goldenPirM $ \ast -> ppCatch prettyPlcReadableSimple $ do
   p <-
     asIfThrown
@@ -215,27 +218,27 @@ goldenPlcFromPirScott = goldenPirM $ \ast -> ppCatch prettyPlcReadableSimple $ d
       $ ast
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
-goldenNamedUPlcFromPir ::
-  (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
-  Parser a ->
-  String ->
-  TestNested
+goldenNamedUPlcFromPir
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  => Parser a
+  -> String
+  -> TestNested
 goldenNamedUPlcFromPir = goldenPirM $ ppCatch prettyPlcReadableSimple . toUPlc
 
-goldenEvalPir ::
-  (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
-  Parser a ->
-  String ->
-  TestNested
+goldenEvalPir
+  :: ToUPlc a PLC.DefaultUni PLC.DefaultFun
+  => Parser a
+  -> String
+  -> TestNested
 goldenEvalPir = goldenPirM (\ast -> ppCatch prettyPlcReadableSimple $ runUPlc [ast])
 
-goldenTypeFromPir ::
-  forall a.
-  (Pretty a, Typeable a) =>
-  a ->
-  Parser (Term PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) ->
-  String ->
-  TestNested
+goldenTypeFromPir
+  :: forall a
+   . (Pretty a, Typeable a)
+  => a
+  -> Parser (Term PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a)
+  -> String
+  -> TestNested
 goldenTypeFromPir x =
   goldenPirM $ \ast -> ppCatch prettyPlcReadable $
     withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $

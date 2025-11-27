@@ -1,22 +1,22 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Evaluation.Spec (test_evaluation) where
 
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 import PlutusCore.Test
@@ -36,7 +36,7 @@ import Type.Reflection
 
 type Term uni fun = PLC.Term TyName Name uni fun ()
 
-{- | Evaluating a builtin function should never throw any exception (the evaluation is allowed
+{-| Evaluating a builtin function should never throw any exception (the evaluation is allowed
  to fail with a `BuiltinError`, of course).
 
  The test covers both succeeding and failing evaluations and verifies that in either case
@@ -44,153 +44,153 @@ type Term uni fun = PLC.Term TyName Name uni fun ()
  guarantee failure, but most likely), and the succeeding cases generate `Term` arguments
  based on a builtin function's `TypeScheme`. For `Opaque` arguments it generates arbitrary
  `Term`s (which technically doesn't guarantee evaluation success, although it is the case
- with all current builtin functions).
--}
+ with all current builtin functions). -}
 test_builtinsDon'tThrow :: TestTree
 test_builtinsDon'tThrow =
-    testGroup "Builtins don't throw" $
-        enumerate @(BuiltinSemanticsVariant DefaultFun) <&> \semvar ->
-            testGroup (fromString . render $ "Version: " <> pretty semvar) $
-                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModelForTesting
-                in enumerate @DefaultFun <&> \fun ->
-                    -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
-                    -- @Default@ for BuiltinSemanticsVariants
-                    testPropertyNamed
-                        (display fun)
-                        (fromString $ display fun)
-                        (mapTestLimitAtLeast 99 (`div` 50) $
-                            prop_builtinEvaluation runtimes fun gen f)
+  testGroup "Builtins don't throw" $
+    enumerate @(BuiltinSemanticsVariant DefaultFun) <&> \semvar ->
+      testGroup (fromString . render $ "Version: " <> pretty semvar) $
+        let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModelForTesting
+         in enumerate @DefaultFun <&> \fun ->
+              -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
+              -- @Default@ for BuiltinSemanticsVariants
+              testPropertyNamed
+                (display fun)
+                (fromString $ display fun)
+                ( mapTestLimitAtLeast 99 (`div` 50) $
+                    prop_builtinEvaluation runtimes fun gen f
+                )
   where
     gen bn = Gen.choice [genArgsWellTyped def bn, genArgsArbitrary def bn]
     f bn args = \case
-        Left e -> do
-            annotate "Builtin function evaluation failed"
-            annotate $ "Function: " <> display bn
-            annotate $ "Arguments: " <> display args
-            annotate $ "Error " <> show e
-            failure
-        Right _ -> success
+      Left e -> do
+        annotate "Builtin function evaluation failed"
+        annotate $ "Function: " <> display bn
+        annotate $ "Arguments: " <> display args
+        annotate $ "Error " <> show e
+        failure
+      Right _ -> success
 
 data AlwaysThrows
-    = -- | A builtin function whose denotation always throws an exception.
-      AlwaysThrows
-    deriving stock (Eq, Ord, Show, Bounded, Enum, Ix)
+  = -- | A builtin function whose denotation always throws an exception.
+    AlwaysThrows
+  deriving stock (Eq, Ord, Show, Bounded, Enum, Ix)
 
 instance Pretty AlwaysThrows where
-    pretty = pretty . show
+  pretty = pretty . show
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
-    type CostingPart uni AlwaysThrows = ()
-    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariantX
+  type CostingPart uni AlwaysThrows = ()
+  data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariantX
 
-    toBuiltinMeaning _semvar AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
-      where
-        f :: Integer -> Integer
-        f _ = error "This builtin function always throws an exception."
+  toBuiltinMeaning _semvar AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
+    where
+      f :: Integer -> Integer
+      f _ = error "This builtin function always throws an exception."
 
 instance Default (BuiltinSemanticsVariant AlwaysThrows) where
-    def = AlwaysThrowsSemanticsVariantX
+  def = AlwaysThrowsSemanticsVariantX
 
-{- | This test verifies that if evaluating a builtin function actually throws an exception,
- we'd get a `Left` value, which would cause `test_builtinsDon'tThrow` to fail.
--}
+{-| This test verifies that if evaluating a builtin function actually throws an exception,
+ we'd get a `Left` value, which would cause `test_builtinsDon'tThrow` to fail. -}
 test_alwaysThrows :: TestTree
 test_alwaysThrows =
-    testGroup
-        "Builtins throwing exceptions should cause tests to fail"
-        [ testPropertyNamed (display AlwaysThrows) (fromString . display $ AlwaysThrows) $
-            prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped semvar) f
-        ]
+  testGroup
+    "Builtins throwing exceptions should cause tests to fail"
+    [ testPropertyNamed (display AlwaysThrows) (fromString . display $ AlwaysThrows) $
+        prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped semvar) f
+    ]
   where
     semvar = AlwaysThrowsSemanticsVariantX
     runtimes = toBuiltinsRuntime semvar ()
     f bn args = \case
-        Left _ -> success
-        Right _ -> do
-            annotate "Expect builtin function evaluation to throw exceptions, but it didn't"
-            annotate $ "Function: " <> display bn
-            annotate $ "Arguments: " <> display args
-            failure
+      Left _ -> success
+      Right _ -> do
+        annotate "Expect builtin function evaluation to throw exceptions, but it didn't"
+        annotate $ "Function: " <> display bn
+        annotate $ "Arguments: " <> display args
+        failure
 
-prop_builtinEvaluation ::
-    forall uni fun.
-    (PrettyUni uni, Pretty fun) =>
-    BuiltinsRuntime fun (Term uni fun) ->
-    fun ->
-    -- | A function making a generator for @fun@'s arguments.
-    (fun -> Gen [Term uni fun]) ->
-    -- | A function that takes a builtin function, a list of arguments, and the evaluation
-    -- outcome, and decides whether to pass or fail the property.
-    (fun ->
-        [Term uni fun] ->
-        Either SomeException (BuiltinResult (Term uni fun)) ->
-        PropertyT IO ()) ->
-    Property
+prop_builtinEvaluation
+  :: forall uni fun
+   . (PrettyUni uni, Pretty fun)
+  => BuiltinsRuntime fun (Term uni fun)
+  -> fun
+  -> (fun -> Gen [Term uni fun])
+  -- ^ A function making a generator for @fun@'s arguments.
+  -> ( fun
+       -> [Term uni fun]
+       -> Either SomeException (BuiltinResult (Term uni fun))
+       -> PropertyT IO ()
+     )
+  {-^ A function that takes a builtin function, a list of arguments, and the evaluation
+  outcome, and decides whether to pass or fail the property. -}
+  -> Property
 prop_builtinEvaluation runtimes bn mkGen f = property $ do
-    args0 <- forAllNoShow $ mkGen bn
-    let
-        eval ::
-            [Term uni fun] ->
-            BuiltinRuntime (Term uni fun) ->
-            BuiltinResult (Term uni fun)
-        eval [] (BuiltinCostedResult _ y) =
-            y
-        eval (arg : args) (BuiltinExpectArgument toRuntime) =
-            eval args (toRuntime arg)
-        eval args (BuiltinExpectForce runtime) =
-            eval args runtime
-        eval _ _ =
-            -- TODO: can we make this function run in @GenT BuiltinResult@ and generate arguments
-            -- on the fly to avoid this error case?
-            error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
-        runtime0 = lookupBuiltin bn runtimes
-    f bn args0 =<< liftIO (try @SomeException . evaluate $ eval args0 runtime0)
+  args0 <- forAllNoShow $ mkGen bn
+  let
+    eval
+      :: [Term uni fun]
+      -> BuiltinRuntime (Term uni fun)
+      -> BuiltinResult (Term uni fun)
+    eval [] (BuiltinCostedResult _ y) =
+      y
+    eval (arg : args) (BuiltinExpectArgument toRuntime) =
+      eval args (toRuntime arg)
+    eval args (BuiltinExpectForce runtime) =
+      eval args runtime
+    eval _ _ =
+      -- TODO: can we make this function run in @GenT BuiltinResult@ and generate arguments
+      -- on the fly to avoid this error case?
+      error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
+    runtime0 = lookupBuiltin bn runtimes
+  f bn args0 =<< liftIO (try @SomeException . evaluate $ eval args0 runtime0)
 
-genArgsWellTyped ::
-    forall uni fun.
-    (GenTypedTerm uni, ToBuiltinMeaning uni fun)
-    => PLC.BuiltinSemanticsVariant fun
-    -> fun
-    -> Gen [Term uni fun]
+genArgsWellTyped
+  :: forall uni fun
+   . (GenTypedTerm uni, ToBuiltinMeaning uni fun)
+  => PLC.BuiltinSemanticsVariant fun
+  -> fun
+  -> Gen [Term uni fun]
 genArgsWellTyped semvar = genArgs semvar genTypedTerm
 
 -- | Generate arbitrary (most likely ill-typed) Term arguments to a builtin function.
-genArgsArbitrary ::
-    forall uni fun.
-    (GenArbitraryTerm uni, ToBuiltinMeaning uni fun)
-    => PLC.BuiltinSemanticsVariant fun
-    -> fun ->
-    Gen [Term uni fun]
+genArgsArbitrary
+  :: forall uni fun
+   . (GenArbitraryTerm uni, ToBuiltinMeaning uni fun)
+  => PLC.BuiltinSemanticsVariant fun
+  -> fun
+  -> Gen [Term uni fun]
 genArgsArbitrary semvar = genArgs semvar (\_ -> genArbitraryTerm @uni)
 
 -- | Generate value arguments to a builtin function based on its `TypeScheme`.
-genArgs ::
-    forall uni fun.
-    ToBuiltinMeaning uni fun
-    => PLC.BuiltinSemanticsVariant fun
-    -> (forall (a :: GHC.Type). KnownTypeAst TyName uni a => TypeRep a -> Gen (Term uni fun))
-    -> fun
-    -> Gen [Term uni fun]
+genArgs
+  :: forall uni fun
+   . ToBuiltinMeaning uni fun
+  => PLC.BuiltinSemanticsVariant fun
+  -> (forall (a :: GHC.Type). KnownTypeAst TyName uni a => TypeRep a -> Gen (Term uni fun))
+  -> fun
+  -> Gen [Term uni fun]
 genArgs semvar genArg bn = sequenceA $ case meaning of
-    BuiltinMeaning tySch _ _ -> go tySch
-      where
-        go :: forall args res. TypeScheme (Term uni fun) args res -> [Gen (Term uni fun)]
-        go = \case
-            TypeSchemeResult    -> []
-            TypeSchemeArrow sch -> genArg (typeRep @(Head args)) : go sch
-            TypeSchemeAll _ sch -> go sch
+  BuiltinMeaning tySch _ _ -> go tySch
+    where
+      go :: forall args res. TypeScheme (Term uni fun) args res -> [Gen (Term uni fun)]
+      go = \case
+        TypeSchemeResult -> []
+        TypeSchemeArrow sch -> genArg (typeRep @(Head args)) : go sch
+        TypeSchemeAll _ sch -> go sch
   where
     meaning :: BuiltinMeaning (Term uni fun) (CostingPart uni fun)
     meaning = toBuiltinMeaning semvar bn
 
 type family Head a where
-    Head (x ': xs) = x
+  Head (x ': xs) = x
 
 test_evaluation :: TestTree
 test_evaluation =
-    testGroup
-        "evaluation"
-        [ test_machines
-        , test_builtinsDon'tThrow
-        , test_alwaysThrows
-        ]
+  testGroup
+    "evaluation"
+    [ test_machines
+    , test_builtinsDon'tThrow
+    , test_alwaysThrows
+    ]

@@ -1,19 +1,19 @@
-{-# LANGUAGE AllowAmbiguousTypes      #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE DeriveAnyClass           #-}
-{-# LANGUAGE DerivingStrategies       #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE PartialTypeSignatures    #-}
-{-# LANGUAGE PatternSynonyms          #-}
-{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE ViewPatterns             #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Blueprint.Spec where
 
@@ -24,8 +24,13 @@ import Data.Typeable (Typeable, (:~:) (Refl))
 import GHC.Generics (Generic)
 import PlutusTx.AsData qualified as PlutusTx
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
-import PlutusTx.Blueprint.Definition (Definitions, HasBlueprintDefinition, UnrollAll, Unrolled,
-                                      definitionsFor)
+import PlutusTx.Blueprint.Definition
+  ( Definitions
+  , HasBlueprintDefinition
+  , UnrollAll
+  , Unrolled
+  , definitionsFor
+  )
 import PlutusTx.Blueprint.Definition.Id (definitionIdFromTypeK)
 import PlutusTx.Blueprint.Definition.Unroll (definitionId)
 import PlutusTx.Blueprint.Schema (Schema (..))
@@ -70,7 +75,7 @@ type Phantom :: forall k. k -> Type
 data Phantom p = MkPhantom
 
 deriving stock instance Generic (Phantom p)
-instance (Typeable p) => HasBlueprintDefinition (Phantom (p :: k)) where
+instance Typeable p => HasBlueprintDefinition (Phantom (p :: k)) where
   definitionId =
     definitionIdFromTypeK @(Type -> Type) @Phantom
       <> definitionIdFromTypeK @k @p

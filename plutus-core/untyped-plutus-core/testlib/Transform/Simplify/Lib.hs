@@ -11,12 +11,21 @@ import PlutusCore.Pretty (PrettyPlc, Render (render), prettyPlcReadableSimple)
 import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsString)
-import UntypedPlutusCore (Name, SimplifierTrace, Term, defaultSimplifyOpts, runSimplifierT,
-                          soInlineCallsiteGrowth, soMaxCseIterations, soMaxSimplifierIterations,
-                          soPreserveLogging, termSimplifier)
+import UntypedPlutusCore
+  ( Name
+  , SimplifierTrace
+  , Term
+  , defaultSimplifyOpts
+  , runSimplifierT
+  , soInlineCallsiteGrowth
+  , soMaxCseIterations
+  , soMaxSimplifierIterations
+  , soPreserveLogging
+  , termSimplifier
+  )
 
 -- TODO Fix duplication with other golden tests, quite annoying
-goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
+goldenVsPretty :: PrettyPlc a => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
   goldenVsString name ("untyped-plutus-core/test/Transform/" ++ name ++ extn) $
     pure . BSL.fromStrict . encodeUtf8 . render $
@@ -32,11 +41,11 @@ goldenVsSimplified name =
 testSimplify
   :: Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
-      ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-      , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
-      )
+       ( Term Name PLC.DefaultUni PLC.DefaultFun ()
+       , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       )
 testSimplify =
-    runSimplifierT
+  runSimplifierT
     . termSimplifier
       ( defaultSimplifyOpts
           -- Just run one iteration, to see what that does
@@ -57,11 +66,11 @@ goldenVsCse name =
 testCse
   :: Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
-      ( Term Name PLC.DefaultUni PLC.DefaultFun ()
-      , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
-      )
+       ( Term Name PLC.DefaultUni PLC.DefaultFun ()
+       , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
+       )
 testCse =
-    runSimplifierT
+  runSimplifierT
     . termSimplifier
       ( defaultSimplifyOpts
           -- Just run one iteration, to see what that does

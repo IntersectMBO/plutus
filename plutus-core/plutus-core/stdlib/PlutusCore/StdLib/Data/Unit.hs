@@ -1,14 +1,13 @@
--- | @unit@ and related functions.
-
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 
+-- | @unit@ and related functions.
 module PlutusCore.StdLib.Data.Unit
-    ( unit
-    , unitval
-    , sequ
-    ) where
+  ( unit
+  , unitval
+  , sequ
+  ) where
 
 import PlutusCore.Core
 import PlutusCore.MkPlc
@@ -26,9 +25,9 @@ unitval = mkConstant () ()
 -- | 'seq' specified to '()' as a PLC term.
 sequ :: (TermLike term tyname Name uni fun, uni `HasTypeAndTermLevel` ()) => term ()
 sequ = runQuote $ do
-    x <- freshName "x"
-    y <- freshName "y"
-    return
-        . lamAbs () x unit
-        . lamAbs () y unit
-        $ unitval
+  x <- freshName "x"
+  y <- freshName "y"
+  return
+    . lamAbs () x unit
+    . lamAbs () y unit
+    $ unitval

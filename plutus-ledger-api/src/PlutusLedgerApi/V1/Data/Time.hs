@@ -1,11 +1,11 @@
-{-# LANGUAGE BlockArguments       #-}
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NoImplicitPrelude    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 -- Otherwise we get a complaint about the 'fromIntegral'
 -- call in the generated instance of 'Integral' for 'Ada'
 {-# OPTIONS_GHC -Wno-identities #-}
@@ -13,12 +13,12 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 -- | UTCTime and UTCTime ranges.
-module PlutusLedgerApi.V1.Data.Time (
-  POSIXTime (..),
-  POSIXTimeRange,
-  DiffMilliSeconds (..),
-  fromMilliSeconds,
-) where
+module PlutusLedgerApi.V1.Data.Time
+  ( POSIXTime (..)
+  , POSIXTimeRange
+  , DiffMilliSeconds (..)
+  , fromMilliSeconds
+  ) where
 
 import PlutusTx.Prelude
 import Prelude qualified as Haskell
@@ -54,11 +54,10 @@ newtype DiffMilliSeconds = DiffMilliSeconds Integer
     )
 
 instance HasBlueprintSchema DiffMilliSeconds referencedTypes where
-  schema = SchemaInteger emptySchemaInfo{title = Just "DiffMilliSeconds"} emptyIntegerSchema
+  schema = SchemaInteger emptySchemaInfo {title = Just "DiffMilliSeconds"} emptyIntegerSchema
 
 {-| POSIX time is measured as the number of /milliseconds/ since 1970-01-01T00:00:00Z.
-This is not the same as Haskell's `Data.Time.Clock.POSIX.POSIXTime`
--}
+This is not the same as Haskell's `Data.Time.Clock.POSIX.POSIXTime` -}
 newtype POSIXTime = POSIXTime {getPOSIXTime :: Integer}
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
@@ -79,7 +78,7 @@ newtype POSIXTime = POSIXTime {getPOSIXTime :: Integer}
     )
 
 instance HasBlueprintSchema POSIXTime referencedTypes where
-  schema = SchemaInteger emptySchemaInfo{title = Just "POSIXTime"} emptyIntegerSchema
+  schema = SchemaInteger emptySchemaInfo {title = Just "POSIXTime"} emptyIntegerSchema
 
 instance Pretty POSIXTime where
   pretty (POSIXTime i) = "POSIXTime" <+> pretty i
