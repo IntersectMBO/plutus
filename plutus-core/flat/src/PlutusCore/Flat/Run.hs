@@ -1,18 +1,18 @@
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
--- |Encoding and decoding functions
-module PlutusCore.Flat.Run (
-    flat,
-    flatRaw,
-    unflat,
-    unflatWith,
-    unflatRaw,
-    unflatRawWith,
-    unflatRawWithOffset,
-) where
+-- | Encoding and decoding functions
+module PlutusCore.Flat.Run
+  ( flat
+  , flatRaw
+  , unflat
+  , unflatWith
+  , unflatRaw
+  , unflatRawWith
+  , unflatRawWithOffset
+  ) where
 
 import Data.ByteString qualified as B
 import PlutusCore.Flat.Class (Flat (decode, encode), getSize)
@@ -22,23 +22,23 @@ import PlutusCore.Flat.Encoder (NumBits)
 import PlutusCore.Flat.Encoder qualified as E
 import PlutusCore.Flat.Filler (postAligned, postAlignedDecoder)
 
--- |Encode padded value.
+-- | Encode padded value.
 flat :: Flat a => a -> B.ByteString
 flat = flatRaw . postAligned
 
--- |Decode padded value.
+-- | Decode padded value.
 unflat :: (Flat a, AsByteString b) => b -> Decoded a
 unflat = unflatWith decode
 
--- |Decode padded value, using the provided unpadded decoder.
+-- | Decode padded value, using the provided unpadded decoder.
 unflatWith :: AsByteString b => Get a -> b -> Decoded a
 unflatWith dec = unflatRawWith (postAlignedDecoder dec)
 
--- |Decode unpadded value.
+-- | Decode unpadded value.
 unflatRaw :: (Flat a, AsByteString b) => b -> Decoded a
 unflatRaw = unflatRawWith decode
 
--- |Unflat unpadded value, using provided decoder
+-- | Unflat unpadded value, using provided decoder
 unflatRawWith :: AsByteString b => Get a -> b -> Decoded a
 unflatRawWith dec bs = unflatRawWithOffset dec bs 0
 
@@ -51,12 +51,12 @@ unflatRawWithOffset dec bs = strictDecoder dec (toByteString bs)
 -- unflatRawWithOffset :: AsByteString b => Get a -> b -> Int -> Decoded a
 -- unflatRawWithOffset dec bs = strictDecoder dec (toByteString bs)
 
--- |Encode unpadded value
+-- | Encode unpadded value
 flatRaw :: (Flat a, AsByteString b) => a -> b
 flatRaw a =
-    fromByteString $
-        E.strictEncoder
-            (getSize a)
+  fromByteString $
+    E.strictEncoder
+      (getSize a)
 
 #ifdef ETA_VERSION
         (E.trampolineEncoding (encode a))

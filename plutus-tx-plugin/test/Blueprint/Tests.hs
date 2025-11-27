@@ -1,17 +1,28 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Blueprint.Tests where
 
 import Prelude
 
-import Blueprint.Tests.Lib (Bytes, Datum, DatumPayload, Param2a, Param2b, Params, Redeemer,
-                            Redeemer2, goldenJson, serialisedScript, validatorScript1,
-                            validatorScript2)
+import Blueprint.Tests.Lib
+  ( Bytes
+  , Datum
+  , DatumPayload
+  , Param2a
+  , Param2b
+  , Params
+  , Redeemer
+  , Redeemer2
+  , goldenJson
+  , serialisedScript
+  , validatorScript1
+  , validatorScript2
+  )
 import Blueprint.Tests.Lib.AsData.Blueprint (Datum2)
 import Control.Monad.Reader.Class (asks)
 import Data.ByteString.Base16 qualified as Base16
@@ -27,8 +38,11 @@ import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (..))
 import PlutusTx.Blueprint.Preamble (Preamble (..))
 import PlutusTx.Blueprint.Purpose qualified as Purpose
 import PlutusTx.Blueprint.TH (deriveArgumentBlueprint, deriveParameterBlueprint)
-import PlutusTx.Blueprint.Validator (CompiledValidator (..), ValidatorBlueprint (..),
-                                     compiledValidator)
+import PlutusTx.Blueprint.Validator
+  ( CompiledValidator (..)
+  , ValidatorBlueprint (..)
+  , compiledValidator
+  )
 import PlutusTx.Blueprint.Write (writeBlueprint)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 import System.FilePath (joinPath)
@@ -134,8 +148,8 @@ testCompiledValidator = do
     compiledScriptInHex <- Text.readFile exampleScriptPath
     let fromHex = Base16.decode . Text.encodeUtf8 . Text.strip
         toHex = Text.decodeUtf8 . Base16.encode
-    MkCompiledValidator{..} <-
+    MkCompiledValidator {..} <-
       case compiledValidator PlutusV2 <$> fromHex compiledScriptInHex of
         Left err -> fail $ "Error when hex-decoding: " <> err
-        Right x  -> pure x
+        Right x -> pure x
     toHex compiledValidatorHash @?= "ffbd2f1be8910706804dcb12a1ca72a5573374e9a6c7b93a4e8858a4"

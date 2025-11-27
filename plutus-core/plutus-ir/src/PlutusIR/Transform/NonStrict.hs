@@ -1,7 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 -- | Compile non-strict bindings into strict bindings.
 module PlutusIR.Transform.NonStrict (compileNonStrictBindings, compileNonStrictBindingsPass, compileNonStrictBindingsPassSC) where
 
@@ -50,7 +51,7 @@ compileNonStrictBindingsPassSC
   -> Bool
   -> Pass m TyName Name uni fun a
 compileNonStrictBindingsPassSC tcConfig useUnit =
-    renamePass <> compileNonStrictBindingsPass tcConfig useUnit
+  renamePass <> compileNonStrictBindingsPass tcConfig useUnit
 
 compileNonStrictBindingsPass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, MonadQuote m)
@@ -61,55 +62,56 @@ compileNonStrictBindingsPass tcConfig useUnit =
   NamedPass "compile non-strict bindings" $
     Pass
       (compileNonStrictBindings useUnit)
-      [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
+      [Typechecks tcConfig]
+      [ConstCondition (Typechecks tcConfig)]
 
--- | Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
--- unique names.
+{-| Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
+unique names. -}
 compileNonStrictBindings :: MonadQuote m => Bool -> Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
 compileNonStrictBindings useUnit t = do
-    (t', substs) <- liftQuote $ flip runStateT mempty $ strictifyTerm useUnit t
-    -- See Note [Compiling non-strict bindings]
-    pure $ termSubstNames (\n -> Map.lookup n substs) t'
+  (t', substs) <- liftQuote $ flip runStateT mempty $ strictifyTerm useUnit t
+  -- See Note [Compiling non-strict bindings]
+  pure $ termSubstNames (\n -> Map.lookup n substs) t'
 
 strictifyTerm
-    :: (MonadState (Substs uni fun a) m, MonadQuote m)
-    => Bool -> Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
+  :: (MonadState (Substs uni fun a) m, MonadQuote m)
+  => Bool -> Term TyName Name uni fun a -> m (Term TyName Name uni fun a)
 strictifyTerm useUnit =
-    -- See Note [Using unit versus force/delay]
-    let transformation = if useUnit then strictifyBindingWithUnit else strictifyBinding
-    in transformMOf termSubterms (traverseOf termBindings transformation)
+  -- See Note [Using unit versus force/delay]
+  let transformation = if useUnit then strictifyBindingWithUnit else strictifyBinding
+   in transformMOf termSubterms (traverseOf termBindings transformation)
 
 strictifyBinding
-    :: (MonadState (Substs uni fun a) m, MonadQuote m)
-    => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
+  :: (MonadState (Substs uni fun a) m, MonadQuote m)
+  => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
 strictifyBinding = \case
-    TermBind x NonStrict (VarDecl x' name ty) rhs -> do
-        -- The annotation to use for new synthetic nodes
-        let ann = x'
+  TermBind x NonStrict (VarDecl x' name ty) rhs -> do
+    -- The annotation to use for new synthetic nodes
+    let ann = x'
 
-        a <- freshTyName "dead"
-        -- See Note [Compiling non-strict bindings]
-        modify $ Map.insert name $ TyInst ann (Var ann name) (TyForall ann a (Type ann) (TyVar ann a))
+    a <- freshTyName "dead"
+    -- See Note [Compiling non-strict bindings]
+    modify $ Map.insert name $ TyInst ann (Var ann name) (TyForall ann a (Type ann) (TyVar ann a))
 
-        pure $ TermBind x Strict (VarDecl x' name (TyForall ann a (Type ann) ty)) (TyAbs ann a (Type ann) rhs)
-    x -> pure x
+    pure $ TermBind x Strict (VarDecl x' name (TyForall ann a (Type ann) ty)) (TyAbs ann a (Type ann) rhs)
+  x -> pure x
 
 strictifyBindingWithUnit
-    :: (MonadState (Substs uni fun a) m, MonadQuote m)
-    => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
+  :: (MonadState (Substs uni fun a) m, MonadQuote m)
+  => Binding TyName Name uni fun a -> m (Binding TyName Name uni fun a)
 strictifyBindingWithUnit = \case
-    TermBind x NonStrict (VarDecl x' name ty) rhs -> do
-        -- The annotation to use for new synthetic nodes
-        let ann = x'
+  TermBind x NonStrict (VarDecl x' name ty) rhs -> do
+    -- The annotation to use for new synthetic nodes
+    let ann = x'
 
-        argName <- liftQuote $ freshName "arg"
-        -- TODO: These are created at every use site, we should bind them globally
-        let unit = ann <$ Unit.unit
-            unitval = ann <$ Unit.unitval
-            forced = Apply ann (Var ann name) unitval
+    argName <- liftQuote $ freshName "arg"
+    -- TODO: These are created at every use site, we should bind them globally
+    let unit = ann <$ Unit.unit
+        unitval = ann <$ Unit.unitval
+        forced = Apply ann (Var ann name) unitval
 
-        -- See Note [Compiling non-strict bindings]
-        modify $ Map.insert name forced
+    -- See Note [Compiling non-strict bindings]
+    modify $ Map.insert name forced
 
-        pure $ TermBind x Strict (VarDecl x' name (TyFun ann unit ty)) (LamAbs ann argName unit rhs)
-    x -> pure x
+    pure $ TermBind x Strict (VarDecl x' name (TyFun ann unit ty)) (LamAbs ann argName unit rhs)
+  x -> pure x

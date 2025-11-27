@@ -22,23 +22,27 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 
 unificationFailure :: (MonadError String m, Pretty a, Pretty b) => a -> b -> m any
-unificationFailure x y = throwError $ concat
-    [ "Failed to unify\n\n  "
-    , display x
-    , "\n\nand\n\n  "
-    , display y
-    , "\n\n"
-    ]
+unificationFailure x y =
+  throwError $
+    concat
+      [ "Failed to unify\n\n  "
+      , display x
+      , "\n\nand\n\n  "
+      , display y
+      , "\n\n"
+      ]
 
 resolutionFailure :: MonadError String m => TyName -> Type TyName DefaultUni () -> String -> m any
-resolutionFailure name1 ty2 reason = throwError $ concat
-    [ "Unification failure: cannot resolve '"
-    , display name1
-    , " as\n\n  "
-    , display ty2
-    , "\n\n because "
-    , reason
-    ]
+resolutionFailure name1 ty2 reason =
+  throwError $
+    concat
+      [ "Unification failure: cannot resolve '"
+      , display name1
+      , " as\n\n  "
+      , display ty2
+      , "\n\n because "
+      , reason
+      ]
 
 {- Note [The unification algorithm]
 Type unification expects a context (mapping from type variables to their kinds) and a set of
@@ -94,22 +98,24 @@ context, so that's another source of inefficiency.
 
 -- See Note [The unification algorithm].
 -- | Perform unification. Sound but not complete.
-unifyType :: TypeCtx
-          -- ^ Type context
-          -> Set TyName
-          -- ^ @flex@, the flexible variables (those that can be unified)
-          -> Type TyName DefaultUni ()
-          -- ^ @t1@
-          -> Type TyName DefaultUni ()
-          -- ^ @t2@
-          -> Either String TypeSub
-          -- ^ Either an error or a substitution (from a subset of @flex@) unifying @t1@ and @t2@
+unifyType
+  :: TypeCtx
+  -- ^ Type context
+  -> Set TyName
+  -- ^ @flex@, the flexible variables (those that can be unified)
+  -> Type TyName DefaultUni ()
+  -- ^ @t1@
+  -> Type TyName DefaultUni ()
+  -- ^ @t2@
+  -> Either String TypeSub
+  -- ^ Either an error or a substitution (from a subset of @flex@) unifying @t1@ and @t2@
 unifyType ctx flex a0 b0 =
-    execStateT (runReaderT (goType (normalizeTy a0) (normalizeTy b0)) Set.empty) Map.empty
+  execStateT (runReaderT (goType (normalizeTy a0) (normalizeTy b0)) Set.empty) Map.empty
   where
-    goTyName :: TyName
-             -> Type TyName DefaultUni ()
-             -> ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+    goTyName
+      :: TyName
+      -> Type TyName DefaultUni ()
+      -> ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
     goTyName name1 ty2 =
       -- If the variable is unified with itself, we don't need to do anything.
       when (TyVar () name1 /= ty2) $ do
@@ -119,7 +125,7 @@ unifyType ctx flex a0 b0 =
           -- If the meta is already resolved, then look it up in the substitution and continue
           -- unification.
           Just ty1' -> goType ty1' ty2
-          Nothing   -> do
+          Nothing -> do
             -- When a meta gets resolved, we do no substitute for all the variables in the solution,
             -- i.e. the solution can contain variables that themselves are resolved metas. Hence for
             -- computing the free variables of a type we have to look in the substitution to find
@@ -140,9 +146,9 @@ unifyType ctx flex a0 b0 =
             when (Set.member name1 fvs) $
               resolutionFailure name1 ty2 "the variable appears free in the type"
             -- Cannot resolve a meta to an ill-kinded type.
-            case checkKind ctx ty2 (Map.findWithDefault (error "impossible") name1 ctx ) of
-                Left msg -> resolutionFailure name1 ty2 $ "of kind mismatch:\n\n" ++ msg
-                Right () -> pure ()
+            case checkKind ctx ty2 (Map.findWithDefault (error "impossible") name1 ctx) of
+              Left msg -> resolutionFailure name1 ty2 $ "of kind mismatch:\n\n" ++ msg
+              Right () -> pure ()
             -- Cannot capture a locally bound variable.
             -- Covers situations like @(\x -> _y) =?= (\x -> x)@.
             -- As naive as the occurs check.
@@ -151,35 +157,36 @@ unifyType ctx flex a0 b0 =
                 "the type contains bound variables: " ++ display (Set.toList locals)
             put $ Map.insert name1 ty2 sub
 
-    goType :: Type TyName DefaultUni ()
-           -> Type TyName DefaultUni ()
-           -> ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
-    goType (TyVar _ x)         b                   = goTyName x b
-    goType a                   (TyVar _ y)         = goTyName y a
-    goType (TyFun _ a1 a2)     (TyFun _ b1 b2)     = goType a1 b1 *> goType a2 b2
+    goType
+      :: Type TyName DefaultUni ()
+      -> Type TyName DefaultUni ()
+      -> ReaderT (Set TyName) (StateT TypeSub (Either String)) ()
+    goType (TyVar _ x) b = goTyName x b
+    goType a (TyVar _ y) = goTyName y a
+    goType (TyFun _ a1 a2) (TyFun _ b1 b2) = goType a1 b1 *> goType a2 b2
     -- This is only structural recursion, because we don't attempt to do higher-order unification.
-    goType (TyApp _ a1 a2)     (TyApp _ b1 b2)     = goType a1 b1 *> goType a2 b2
-    goType (TyBuiltin _ c1)    (TyBuiltin _ c2)    = when (c1 /= c2) $ unificationFailure c1 c2
-    goType (TyIFix _ a1 a2)    (TyIFix _ b1 b2)    = goType a1 b1 *> goType a2 b2
+    goType (TyApp _ a1 a2) (TyApp _ b1 b2) = goType a1 b1 *> goType a2 b2
+    goType (TyBuiltin _ c1) (TyBuiltin _ c2) = when (c1 /= c2) $ unificationFailure c1 c2
+    goType (TyIFix _ a1 a2) (TyIFix _ b1 b2) = goType a1 b1 *> goType a2 b2
     goType (TyForall _ x k a') (TyForall _ y l b') = do
       when (k /= l) $ unificationFailure k l
       locals <- ask
       -- See Note [Renaming during unification].
       let z = freshenTyNameWith (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
-    goType (TyLam _ x k a')    (TyLam _ y l b')    = do
+    goType (TyLam _ x k a') (TyLam _ y l b') = do
       when (k /= l) $ unificationFailure k l
       locals <- ask
       -- See Note [Renaming during unification].
       let z = freshenTyNameWith (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
     goType (TySOP _ sum1) (TySOP _ sum2)
-        -- Sums must be of the same arity.
-        | Just sum12 <- zipExact sum1 sum2
-        = for_ sum12 $ \(prod1, prod2) -> do
+      -- Sums must be of the same arity.
+      | Just sum12 <- zipExact sum1 sum2 =
+          for_ sum12 $ \(prod1, prod2) -> do
             -- Products within sums must be of the same arity.
             case zipExact prod1 prod2 of
-                Nothing     -> unificationFailure prod1 prod2
-                -- SOPs unify componentwise.
-                Just prod12 -> traverse_ (uncurry goType) prod12
+              Nothing -> unificationFailure prod1 prod2
+              -- SOPs unify componentwise.
+              Just prod12 -> traverse_ (uncurry goType) prod12
     goType a b = unificationFailure a b

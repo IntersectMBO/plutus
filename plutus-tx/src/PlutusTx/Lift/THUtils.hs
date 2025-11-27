@@ -1,5 +1,5 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module PlutusTx.Lift.THUtils where
@@ -21,15 +21,14 @@ import Language.Haskell.TH.Syntax qualified as TH
 import Prelude as Haskell
 
 {-| Very nearly the same as 'TH.showName', but doesn't print uniques, since we don't need to
-incorporate them into our names.
--}
+incorporate them into our names. -}
 showName :: TH.Name -> T.Text
 showName n = T.pack $ case n of
-  TH.Name occ TH.NameS         -> TH.occString occ
-  TH.Name occ (TH.NameQ m)     -> TH.modString m ++ "." ++ TH.occString occ
+  TH.Name occ TH.NameS -> TH.occString occ
+  TH.Name occ (TH.NameQ m) -> TH.modString m ++ "." ++ TH.occString occ
   TH.Name occ (TH.NameG _ _ m) -> TH.modString m ++ "." ++ TH.occString occ
-  TH.Name occ (TH.NameU _)     -> TH.occString occ
-  TH.Name occ (TH.NameL _)     -> TH.occString occ
+  TH.Name occ (TH.NameU _) -> TH.occString occ
+  TH.Name occ (TH.NameL _) -> TH.occString occ
 
 -- | Normalize a type, in particular getting rid of things like 'TH.ListT' in favour of applications of the actual name.
 normalizeType :: TH.Type -> TH.Type
@@ -52,15 +51,15 @@ requireExtension ext = do
   enabled <- TH.isExtEnabled ext
   unless enabled $ fail $ "Extension must be enabled: " ++ show ext
 
-mkTyVarDecl :: (MonadQuote m) => TH.Name -> Kind () -> m (TH.Name, TyVarDecl TyName ())
+mkTyVarDecl :: MonadQuote m => TH.Name -> Kind () -> m (TH.Name, TyVarDecl TyName ())
 mkTyVarDecl name kind = do
   tyName <- safeFreshTyName $ showName name
   pure (name, TyVarDecl () tyName kind)
 
 isNewtype :: TH.DatatypeInfo -> Bool
-isNewtype TH.DatatypeInfo{TH.datatypeVariant = variant} = case variant of
+isNewtype TH.DatatypeInfo {TH.datatypeVariant = variant} = case variant of
   TH.Newtype -> True
-  _          -> False
+  _ -> False
 
 -- | "Safe" wrapper around 'TH.listE' for typed TH.
 tyListE :: [TH.TExpQ a] -> TH.TExpQ [a]

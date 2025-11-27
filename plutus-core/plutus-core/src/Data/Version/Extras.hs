@@ -4,12 +4,11 @@ module Data.Version.Extras
   ( gitAwareVersionInfo
   ) where
 
-
 import Data.Version qualified as Data.Version
 
-
 gitAwareVersionInfo
-  :: Data.Version.Version -- ^ The version, usually coming from the Paths_<pkg> module
+  :: Data.Version.Version
+  -- ^ The version, usually coming from the Paths_<pkg> module
   -> String
 gitAwareVersionInfo version = version' <> gitRev <> gitCommitDate
   where

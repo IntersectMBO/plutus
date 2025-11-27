@@ -39,7 +39,9 @@ instance NoThunks (BuiltinRuntime val) where
         -- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only
         -- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.
         -- TODO: remove the CPP when rest of IOE moves to nothunks>=0.2
-#if MIN_VERSION_nothunks(0,2,0)
+#if MIN_VERSION_nothunks(0,3,0)
+        BuiltinCostedResult _ _    -> pure . Just $ ThunkInfo ctx Nothing
+#elif MIN_VERSION_nothunks(0,2,0)
         BuiltinCostedResult _ _    -> pure . Just . ThunkInfo $ Left ctx
 #else
         -- Plutus has moved to nothunks>=0.2, but some other IOE repos are using nothunks<0.2.

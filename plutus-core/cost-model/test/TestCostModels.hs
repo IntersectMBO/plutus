@@ -1,9 +1,9 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -23,8 +23,15 @@ import Data.String (fromString)
 import Unsafe.Coerce (unsafeCoerce)
 
 import H.Prelude as H (MonadR, io)
-import Language.R as R (R, SomeSEXP, defaultConfig, fromSomeSEXP, runRegion, unsafeRunRegion,
-                        withEmbeddedR)
+import Language.R as R
+  ( R
+  , SomeSEXP
+  , defaultConfig
+  , fromSomeSEXP
+  , runRegion
+  , unsafeRunRegion
+  , withEmbeddedR
+  )
 import Language.R.QQ (r)
 
 import Hedgehog
@@ -32,7 +39,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Main qualified as HH (defaultMain)
 import Hedgehog.Range qualified as Range
 
-{- | This module is supposed to test that the R cost models for built-in functions
+{-| This module is supposed to test that the R cost models for built-in functions
    defined in models.R (using the CSV output from 'cost-model-budgeting-bench'))
    produce the same results as the Haskell versions. However there are a couple
    of subtleties.  (A) The R models use floating point numbers and the Haskell
@@ -42,12 +49,11 @@ import Hedgehog.Range qualified as Range
    the microToPico function from CreateBuiltinCostModel to convert R results to
    picoseconds expressed as CostingIntegers.  To deal with (A), we don't check
    for exact equality of the outputs but instead check that the R result and the
-   Haskell result agreee to within a factor of 2/100 (two percent).
--}
+   Haskell result agreee to within a factor of 2/100 (two percent). -}
 
 -- Maximum allowable difference beween R result and Haskell result.
 epsilon :: Double
-epsilon = 2/100
+epsilon = 2 / 100
 
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from
@@ -76,9 +82,10 @@ numberOfTests = 100
 -- of inputs, but that we also get small inputs.
 memUsageGen :: Gen CostingInteger
 memUsageGen =
-    Gen.choice [small, large]
-        where small = unsafeToSatInt <$> Gen.integral (Range.constant 0 2)
-              large = unsafeToSatInt <$> Gen.integral (Range.linear 0 5000)
+  Gen.choice [small, large]
+  where
+    small = unsafeToSatInt <$> Gen.integral (Range.constant 0 2)
+    large = unsafeToSatInt <$> Gen.integral (Range.linear 0 5000)
 
 -- Smaller inputs for testing the piecewise costing functions for integer
 -- division operations, where the Haskell model differs from the R one for
@@ -104,18 +111,19 @@ data TestDomain
   = Everywhere
   | OnDiagonal
   | BelowDiagonal
-  -- Small values for integer division builtins with quadratic costing functions; we want
-  -- to keep away from the regions where the floor comes into play.
-  | BelowDiagonal'
+  | -- Small values for integer division builtins with quadratic costing functions; we want
+    -- to keep away from the regions where the floor comes into play.
+    BelowDiagonal'
 
 -- Approximate equality
 (~=) :: CostingInteger -> CostingInteger -> Bool
 x ~= y
-  | x==0 && y==0 = True
+  | x == 0 && y == 0 = True
   | otherwise = err < epsilon
-    where x' = fromSatInt x :: Double
-          y' = fromSatInt y :: Double
-          err = abs ((x'-y')/y')
+  where
+    x' = fromSatInt x :: Double
+    y' = fromSatInt y :: Double
+    err = abs ((x' - y') / y')
 
 -- Runs property tests in the `R` Monad.
 propertyR :: PropertyT (R s) () -> Property
@@ -155,166 +163,191 @@ propertyR prop = withTests numberOfTests $ property $ unsafeHoist unsafeRunRegio
 -}
 newtype ExM = ExM CostingInteger
 instance ExMemoryUsage ExM where
-    memoryUsage (ExM n) = singletonRose n
+  memoryUsage (ExM n) = singletonRose n
 
 -- Creates the model on the R side, loads the parameters over to Haskell, and
 -- runs both models with a bunch of ExMemory combinations and compares the
 -- outputs.
 testPredictOne
-    :: CostingFun ModelOneArgument
-    -> SomeSEXP s
-    -> Property
-testPredictOne costingFunH modelR = propertyR $
-  let predictR :: MonadR m => CostingInteger -> m CostingInteger
-      predictR x =
-        let
-          xD = fromSatInt x :: Double
-        in
-          microToPico . fromSomeSEXP <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs))[[1]]|]
-      predictH :: CostingInteger -> CostingInteger
-      predictH x =
-        coerce $ exBudgetCPU $ sumExBudgetStream $
-        runCostingFunOneArgument costingFunH (ExM x)
-      sizeGen = memUsageGen
-  in do
-    x <- forAll sizeGen
-    byR <- lift $ predictR x
-    -- Sometimes R gives us models which pass through the origin, so we have to allow zero cost
-    -- because of that
-    diff byR (>=) 0
-    diff byR (~=) (predictH x)
+  :: CostingFun ModelOneArgument
+  -> SomeSEXP s
+  -> Property
+testPredictOne costingFunH modelR =
+  propertyR $
+    let predictR :: MonadR m => CostingInteger -> m CostingInteger
+        predictR x =
+          let
+            xD = fromSatInt x :: Double
+           in
+            microToPico . fromSomeSEXP <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs))[[1]]|]
+        predictH :: CostingInteger -> CostingInteger
+        predictH x =
+          coerce $
+            exBudgetCPU $
+              sumExBudgetStream $
+                runCostingFunOneArgument costingFunH (ExM x)
+        sizeGen = memUsageGen
+     in do
+          x <- forAll sizeGen
+          byR <- lift $ predictR x
+          -- Sometimes R gives us models which pass through the origin, so we have to allow zero cost
+          -- because of that
+          diff byR (>=) 0
+          diff byR (~=) (predictH x)
 
 testPredictTwo
-    :: CostingFun ModelTwoArguments
-    -> SomeSEXP s
-    -> TestDomain
-    -> Property
-testPredictTwo costingFunH modelR domain = propertyR $
-  let predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
-      predictR x y =
-        let
-          xD = fromSatInt x :: Double
-          yD = fromSatInt y :: Double
-        in
-          microToPico . fromSomeSEXP <$>
-          [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
-      predictH :: CostingInteger -> CostingInteger -> CostingInteger
-      predictH x y =
-        coerce $ exBudgetCPU $ sumExBudgetStream $
-        runCostingFunTwoArguments costingFunH (ExM x) (ExM y)
-      sizeGen = case domain of
-                  Everywhere     -> twoArgs
-                  OnDiagonal     -> memUsageGen >>= \x -> pure (x,x)
-                  BelowDiagonal  -> Gen.filter (uncurry (>=)) twoArgs
-                  BelowDiagonal' -> Gen.filter (uncurry (>=)) twoArgs'
-        where twoArgs = (,) <$> memUsageGen <*> memUsageGen
-              twoArgs' = (,) <$> memUsageGen40 <*> memUsageGen40
-  in do
-    (x, y) <- forAll sizeGen
-    byR <- lift $ predictR x y
-    diff byR (>=) 0
-    diff byR (~=) (predictH x y)
+  :: CostingFun ModelTwoArguments
+  -> SomeSEXP s
+  -> TestDomain
+  -> Property
+testPredictTwo costingFunH modelR domain =
+  propertyR $
+    let predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
+        predictR x y =
+          let
+            xD = fromSatInt x :: Double
+            yD = fromSatInt y :: Double
+           in
+            microToPico . fromSomeSEXP
+              <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
+        predictH :: CostingInteger -> CostingInteger -> CostingInteger
+        predictH x y =
+          coerce $
+            exBudgetCPU $
+              sumExBudgetStream $
+                runCostingFunTwoArguments costingFunH (ExM x) (ExM y)
+        sizeGen = case domain of
+          Everywhere -> twoArgs
+          OnDiagonal -> memUsageGen >>= \x -> pure (x, x)
+          BelowDiagonal -> Gen.filter (uncurry (>=)) twoArgs
+          BelowDiagonal' -> Gen.filter (uncurry (>=)) twoArgs'
+          where
+            twoArgs = (,) <$> memUsageGen <*> memUsageGen
+            twoArgs' = (,) <$> memUsageGen40 <*> memUsageGen40
+     in do
+          (x, y) <- forAll sizeGen
+          byR <- lift $ predictR x y
+          diff byR (>=) 0
+          diff byR (~=) (predictH x y)
 
 testPredictThree
-    :: CostingFun ModelThreeArguments
-    -> SomeSEXP s
-    -> Property
-testPredictThree costingFunH modelR = propertyR $
-  let predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
-      predictR x y z =
-        let
-          xD = fromSatInt x :: Double
-          yD = fromSatInt y :: Double
-          zD = fromSatInt z :: Double
-        in microToPico . fromSomeSEXP <$>
-              [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
-      predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
-      predictH x y z =
-        coerce $ exBudgetCPU $ sumExBudgetStream $
-        runCostingFunThreeArguments costingFunH (ExM x) (ExM y) (ExM z)
-      sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
-  in do
-    (x, y, z) <- forAll sizeGen
-    byR <- lift $ predictR x y z
-    diff byR (>=) 0
-    diff byR (~=) (predictH x y z)
-
+  :: CostingFun ModelThreeArguments
+  -> SomeSEXP s
+  -> Property
+testPredictThree costingFunH modelR =
+  propertyR $
+    let predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
+        predictR x y z =
+          let
+            xD = fromSatInt x :: Double
+            yD = fromSatInt y :: Double
+            zD = fromSatInt z :: Double
+           in
+            microToPico . fromSomeSEXP
+              <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
+        predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
+        predictH x y z =
+          coerce $
+            exBudgetCPU $
+              sumExBudgetStream $
+                runCostingFunThreeArguments costingFunH (ExM x) (ExM y) (ExM z)
+        sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
+     in do
+          (x, y, z) <- forAll sizeGen
+          byR <- lift $ predictR x y z
+          diff byR (>=) 0
+          diff byR (~=) (predictH x y z)
 
 testPredictSix
-    :: CostingFun ModelSixArguments
-    -> SomeSEXP s
-    -> Property
-testPredictSix costingFunH modelR = propertyR $
-  let predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger
-               -> CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
-      predictR x y z u v  w =
-        let
-          xD = fromSatInt x :: Double
-          yD = fromSatInt y :: Double
-          zD = fromSatInt z :: Double
-          uD = fromSatInt u :: Double
-          vD = fromSatInt v :: Double
-          wD = fromSatInt w :: Double
-        in
-          microToPico . fromSomeSEXP <$>
-          [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
+  :: CostingFun ModelSixArguments
+  -> SomeSEXP s
+  -> Property
+testPredictSix costingFunH modelR =
+  propertyR $
+    let predictR
+          :: MonadR m
+          => CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> m CostingInteger
+        predictR x y z u v w =
+          let
+            xD = fromSatInt x :: Double
+            yD = fromSatInt y :: Double
+            zD = fromSatInt z :: Double
+            uD = fromSatInt u :: Double
+            vD = fromSatInt v :: Double
+            wD = fromSatInt w :: Double
+           in
+            microToPico . fromSomeSEXP
+              <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
                                           u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs))[[1]]|]
-      predictH
-        :: CostingInteger
-        -> CostingInteger
-        -> CostingInteger
-        -> CostingInteger
-        -> CostingInteger
-        -> CostingInteger
-        -> CostingInteger
-      predictH x y z u v w =
-        coerce $ exBudgetCPU $ sumExBudgetStream $
-        runCostingFunSixArguments costingFunH (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
-      sizeGen =
-        (,,,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
-        <*> memUsageGen
-  in do
-    (x, y, z, u, v, w) <- forAll sizeGen
-    byR <- lift $ predictR x y z u v w
-    diff byR (>=) 0
-    diff byR (~=) (predictH x y z u v w)
+        predictH
+          :: CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+        predictH x y z u v w =
+          coerce $
+            exBudgetCPU $
+              sumExBudgetStream $
+                runCostingFunSixArguments costingFunH (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w)
+        sizeGen =
+          (,,,,,)
+            <$> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+     in do
+          (x, y, z, u, v, w) <- forAll sizeGen
+          byR <- lift $ predictR x y z u v w
+          diff byR (>=) 0
+          diff byR (~=) (predictH x y z u v w)
 
 makeProp1
-    :: String
-    -> (forall f . BuiltinCostModelBase f -> f ModelOneArgument)
-    -> HModels
-    -> RModels s
-    -> (PropertyName, Property)
+  :: String
+  -> (forall f. BuiltinCostModelBase f -> f ModelOneArgument)
+  -> HModels
+  -> RModels s
+  -> (PropertyName, Property)
 makeProp1 name getField modelsH modelsR =
-    (fromString name, testPredictOne (getField modelsH) (getConst $ getField modelsR))
+  (fromString name, testPredictOne (getField modelsH) (getConst $ getField modelsR))
 
 makeProp2
-    :: String
-    -> (forall f . BuiltinCostModelBase f -> f ModelTwoArguments)
-    -> HModels
-    -> RModels s
-    -> TestDomain
-    -> (PropertyName, Property)
+  :: String
+  -> (forall f. BuiltinCostModelBase f -> f ModelTwoArguments)
+  -> HModels
+  -> RModels s
+  -> TestDomain
+  -> (PropertyName, Property)
 makeProp2 name getField modelsH modelsR domain =
-    (fromString name, testPredictTwo (getField modelsH) (getConst $ getField modelsR) domain)
+  (fromString name, testPredictTwo (getField modelsH) (getConst $ getField modelsR) domain)
 
 makeProp3
-    :: String
-    -> (forall f . BuiltinCostModelBase f -> f ModelThreeArguments)
-    -> HModels
-    -> RModels s
-    -> (PropertyName, Property)
-makeProp3 name getField modelsH modelsR  =
-    (fromString name, testPredictThree (getField modelsH) (getConst $ getField modelsR))
+  :: String
+  -> (forall f. BuiltinCostModelBase f -> f ModelThreeArguments)
+  -> HModels
+  -> RModels s
+  -> (PropertyName, Property)
+makeProp3 name getField modelsH modelsR =
+  (fromString name, testPredictThree (getField modelsH) (getConst $ getField modelsR))
 
 makeProp6
-    :: String
-    -> (forall f . BuiltinCostModelBase f -> f ModelSixArguments)
-    -> HModels
-    -> RModels s
-    -> (PropertyName, Property)
+  :: String
+  -> (forall f. BuiltinCostModelBase f -> f ModelSixArguments)
+  -> HModels
+  -> RModels s
+  -> (PropertyName, Property)
 makeProp6 name getField modelsH modelsR =
-    (fromString name, testPredictSix (getField modelsH) (getConst $ getField modelsR))
+  (fromString name, testPredictSix (getField modelsH) (getConst $ getField modelsR))
 
 main :: IO ()
 main =
@@ -322,128 +355,120 @@ main =
     modelsH <- CreateBuiltinCostModel.createBuiltinCostModel DFP.benchingResultsFile DFP.rModelFile
     modelsR <- CreateBuiltinCostModel.costModelsR DFP.benchingResultsFile DFP.rModelFile
     H.io $ HH.defaultMain [checkSequential $ Group "Costing function tests" (tests modelsH modelsR)]
-      where tests modelsH modelsR =
-            -- 'modelsR' and `modelsH' don't appear explicitly below, but 'genTest' generates code which uses them.
-              [ $(genTest 2 "addInteger")            Everywhere
-              , $(genTest 2 "subtractInteger")       Everywhere
-              , $(genTest 2 "multiplyInteger")       Everywhere
-              , $(genTest 2 "divideInteger")         BelowDiagonal'
-              , $(genTest 2 "quotientInteger")       BelowDiagonal'
-              , $(genTest 2 "remainderInteger")      BelowDiagonal'
-              , $(genTest 2 "modInteger")            BelowDiagonal'
-              , $(genTest 2 "lessThanInteger")       Everywhere
-              , $(genTest 2 "lessThanEqualsInteger") Everywhere
-              , $(genTest 2 "equalsInteger")         Everywhere
-              -- , $(genTest 3 "expModInteger")
-              -- ^ Doesn't work because of the penalty for initial modular reduction.
+  where
+    tests modelsH modelsR =
+      -- 'modelsR' and `modelsH' don't appear explicitly below, but 'genTest' generates code which uses them.
+      [ $(genTest 2 "addInteger") Everywhere
+      , $(genTest 2 "subtractInteger") Everywhere
+      , $(genTest 2 "multiplyInteger") Everywhere
+      , $(genTest 2 "divideInteger") BelowDiagonal'
+      , $(genTest 2 "quotientInteger") BelowDiagonal'
+      , $(genTest 2 "remainderInteger") BelowDiagonal'
+      , $(genTest 2 "modInteger") BelowDiagonal'
+      , $(genTest 2 "lessThanInteger") Everywhere
+      , $(genTest 2 "lessThanEqualsInteger") Everywhere
+      , $(genTest 2 "equalsInteger") Everywhere
+      , -- , $(genTest 3 "expModInteger")
+        -- \^ Doesn't work because of the penalty for initial modular reduction.
 
-              -- Bytestrings
-              , $(genTest 2 "appendByteString")         Everywhere
-              , $(genTest 2 "consByteString")           Everywhere
-              , $(genTest 3 "sliceByteString")
-              , $(genTest 1 "lengthOfByteString")
-              , $(genTest 2 "indexByteString")          Everywhere
-              , $(genTest 2 "equalsByteString")         OnDiagonal
-              , $(genTest 2 "lessThanByteString")       Everywhere
-              , $(genTest 2 "lessThanEqualsByteString") Everywhere
-
-              -- Cryptography and hashes
-              , $(genTest 1 "sha2_256")
-              , $(genTest 1 "sha3_256")
-              , $(genTest 1 "blake2b_256")
-              , $(genTest 3 "verifyEd25519Signature")
-              , $(genTest 3 "verifyEcdsaSecp256k1Signature")
-              , $(genTest 3 "verifySchnorrSecp256k1Signature")
-
-              -- Strings
-              , $(genTest 2 "appendString") Everywhere
-              , $(genTest 2 "equalsString") OnDiagonal
-              , $(genTest 1 "encodeUtf8")
-              , $(genTest 1 "decodeUtf8")
-
-              -- Bool
-              , $(genTest 3 "ifThenElse")
-
-              -- Unit
-              , $(genTest 2 "chooseUnit") Everywhere
-
-              -- Tracing
-              , $(genTest 2 "trace") Everywhere
-
-              -- Pairs
-              , $(genTest 1 "fstPair")
-              , $(genTest 1 "sndPair")
-
-              -- Lists
-              , $(genTest 3 "chooseList")
-              , $(genTest 2 "mkCons") Everywhere
-              , $(genTest 1 "headList")
-              , $(genTest 1 "tailList")
-              , $(genTest 1 "nullList")
-              , $(genTest 2 "dropList") Everywhere
-
-              -- Arrays
-              , $(genTest 1 "lengthOfArray")
-              , $(genTest 1 "listToArray")
-              , $(genTest 2 "indexArray") Everywhere
-
-              -- Data
-              , $(genTest 6 "chooseData")
-              , $(genTest 2 "constrData") Everywhere
-              , $(genTest 1 "mapData")
-              , $(genTest 1 "listData")
-              , $(genTest 1 "iData")
-              , $(genTest 1 "bData")
-              , $(genTest 1 "unConstrData")
-              , $(genTest 1 "unMapData")
-              , $(genTest 1 "unListData")
-              , $(genTest 1 "unIData")
-              , $(genTest 1 "unBData")
-              , $(genTest 2 "equalsData") Everywhere
-              , $(genTest 1 "serialiseData")
-
-              -- Misc constructors
-              , $(genTest 2 "mkPairData") Everywhere
-              , $(genTest 1 "mkNilData")
-              , $(genTest 1 "mkNilPairData")
-
-              -- BLS
-              , $(genTest 2 "bls12_381_G1_add")         Everywhere
-              , $(genTest 1 "bls12_381_G1_neg")
-              , $(genTest 2 "bls12_381_G1_scalarMul")   Everywhere
-              , $(genTest 2 "bls12_381_G1_equal")       Everywhere
-              , $(genTest 1 "bls12_381_G1_compress")
-              , $(genTest 1 "bls12_381_G1_uncompress")
-              , $(genTest 2 "bls12_381_G1_hashToGroup") Everywhere
-              , $(genTest 2 "bls12_381_G2_add")         Everywhere
-              , $(genTest 1 "bls12_381_G2_neg")
-              , $(genTest 2 "bls12_381_G2_scalarMul")   Everywhere
-              , $(genTest 2 "bls12_381_G2_equal")       Everywhere
-              , $(genTest 1 "bls12_381_G2_compress")
-              , $(genTest 1 "bls12_381_G2_uncompress")
-              , $(genTest 2 "bls12_381_G2_hashToGroup") Everywhere
-              , $(genTest 2 "bls12_381_millerLoop")     Everywhere
-              , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
-              , $(genTest 2 "bls12_381_finalVerify")    Everywhere
-
-              -- Keccak_256, Blake2b_224, Ripemd_160
-              , $(genTest 1 "keccak_256")
-              , $(genTest 1 "blake2b_224")
-              , $(genTest 1 "ripemd_160")
-
-              -- Bitwise operations
-              , $(genTest 3 "integerToByteString")
-              , $(genTest 2 "byteStringToInteger") Everywhere
-              , $(genTest 3 "andByteString")
-              , $(genTest 3 "orByteString")
-              , $(genTest 3 "xorByteString")
-              , $(genTest 1 "complementByteString")
-              , $(genTest 2 "readBit")             Everywhere
-              , $(genTest 3 "writeBits")
-              , $(genTest 2 "replicateByte")       Everywhere
-              , $(genTest 2 "shiftByteString")     Everywhere
-              , $(genTest 2 "rotateByteString")    Everywhere
-              , $(genTest 1 "countSetBits")
-              , $(genTest 1 "findFirstSetBit")
-              ]
-
+        -- Bytestrings
+        $(genTest 2 "appendByteString") Everywhere
+      , $(genTest 2 "consByteString") Everywhere
+      , $(genTest 3 "sliceByteString")
+      , $(genTest 1 "lengthOfByteString")
+      , $(genTest 2 "indexByteString") Everywhere
+      , $(genTest 2 "equalsByteString") OnDiagonal
+      , $(genTest 2 "lessThanByteString") Everywhere
+      , $(genTest 2 "lessThanEqualsByteString") Everywhere
+      , -- Cryptography and hashes
+        $(genTest 1 "sha2_256")
+      , $(genTest 1 "sha3_256")
+      , $(genTest 1 "blake2b_256")
+      , $(genTest 3 "verifyEd25519Signature")
+      , $(genTest 3 "verifyEcdsaSecp256k1Signature")
+      , $(genTest 3 "verifySchnorrSecp256k1Signature")
+      , -- Strings
+        $(genTest 2 "appendString") Everywhere
+      , $(genTest 2 "equalsString") OnDiagonal
+      , $(genTest 1 "encodeUtf8")
+      , $(genTest 1 "decodeUtf8")
+      , -- Bool
+        $(genTest 3 "ifThenElse")
+      , -- Unit
+        $(genTest 2 "chooseUnit") Everywhere
+      , -- Tracing
+        $(genTest 2 "trace") Everywhere
+      , -- Pairs
+        $(genTest 1 "fstPair")
+      , $(genTest 1 "sndPair")
+      , -- Lists
+        $(genTest 3 "chooseList")
+      , $(genTest 2 "mkCons") Everywhere
+      , $(genTest 1 "headList")
+      , $(genTest 1 "tailList")
+      , $(genTest 1 "nullList")
+      , $(genTest 2 "dropList") Everywhere
+      , -- Arrays
+        $(genTest 1 "lengthOfArray")
+      , $(genTest 1 "listToArray")
+      , $(genTest 2 "indexArray") Everywhere
+      , -- Builtin Values
+        $(genTest 3 "lookupCoin")
+      , $(genTest 2 "valueContains") Everywhere
+      , $(genTest 1 "valueData")
+      , $(genTest 1 "unValueData")
+      , -- Data
+        $(genTest 6 "chooseData")
+      , $(genTest 2 "constrData") Everywhere
+      , $(genTest 1 "mapData")
+      , $(genTest 1 "listData")
+      , $(genTest 1 "iData")
+      , $(genTest 1 "bData")
+      , $(genTest 1 "unConstrData")
+      , $(genTest 1 "unMapData")
+      , $(genTest 1 "unListData")
+      , $(genTest 1 "unIData")
+      , $(genTest 1 "unBData")
+      , $(genTest 2 "equalsData") Everywhere
+      , $(genTest 1 "serialiseData")
+      , -- Misc constructors
+        $(genTest 2 "mkPairData") Everywhere
+      , $(genTest 1 "mkNilData")
+      , $(genTest 1 "mkNilPairData")
+      , -- BLS
+        $(genTest 2 "bls12_381_G1_add") Everywhere
+      , $(genTest 1 "bls12_381_G1_neg")
+      , $(genTest 2 "bls12_381_G1_scalarMul") Everywhere
+      , $(genTest 2 "bls12_381_G1_equal") Everywhere
+      , $(genTest 1 "bls12_381_G1_compress")
+      , $(genTest 1 "bls12_381_G1_uncompress")
+      , $(genTest 2 "bls12_381_G1_hashToGroup") Everywhere
+      , $(genTest 2 "bls12_381_G2_add") Everywhere
+      , $(genTest 1 "bls12_381_G2_neg")
+      , $(genTest 2 "bls12_381_G2_scalarMul") Everywhere
+      , $(genTest 2 "bls12_381_G2_equal") Everywhere
+      , $(genTest 1 "bls12_381_G2_compress")
+      , $(genTest 1 "bls12_381_G2_uncompress")
+      , $(genTest 2 "bls12_381_G2_hashToGroup") Everywhere
+      , $(genTest 2 "bls12_381_millerLoop") Everywhere
+      , $(genTest 2 "bls12_381_mulMlResult") Everywhere
+      , $(genTest 2 "bls12_381_finalVerify") Everywhere
+      , -- Keccak_256, Blake2b_224, Ripemd_160
+        $(genTest 1 "keccak_256")
+      , $(genTest 1 "blake2b_224")
+      , $(genTest 1 "ripemd_160")
+      , -- Bitwise operations
+        $(genTest 3 "integerToByteString")
+      , $(genTest 2 "byteStringToInteger") Everywhere
+      , $(genTest 3 "andByteString")
+      , $(genTest 3 "orByteString")
+      , $(genTest 3 "xorByteString")
+      , $(genTest 1 "complementByteString")
+      , $(genTest 2 "readBit") Everywhere
+      , $(genTest 3 "writeBits")
+      , $(genTest 2 "replicateByte") Everywhere
+      , $(genTest 2 "shiftByteString") Everywhere
+      , $(genTest 2 "rotateByteString") Everywhere
+      , $(genTest 1 "countSetBits")
+      , $(genTest 1 "findFirstSetBit")
+      ]

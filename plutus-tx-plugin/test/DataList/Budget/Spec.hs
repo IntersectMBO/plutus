@@ -1,19 +1,19 @@
-{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module DataList.Budget.Spec where
 
-import Prelude hiding (any, elem, filter, length)
 import System.FilePath
 import Test.Tasty.Extras
+import Prelude hiding (any, elem, filter, length)
 
 import PlutusTx.Code
 import PlutusTx.Data.List qualified as L
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 tests :: TestNested
 tests =

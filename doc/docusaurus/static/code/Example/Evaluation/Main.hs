@@ -1,10 +1,10 @@
-{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
@@ -76,9 +76,9 @@ argumentLifted = liftCodeDef 2
 
 errorOrResult :: Either String EvalResult
 errorOrResult = fmap evaluateCompiledCode appliedSafely
- where
-  appliedSafely :: Either String (CompiledCode Integer)
-  appliedSafely = compiledCode `applyCode` argumentLifted
+  where
+    appliedSafely :: Either String (CompiledCode Integer)
+    appliedSafely = compiledCode `applyCode` argumentLifted
 
 -- END SafeApplicationResult
 
@@ -86,9 +86,9 @@ errorOrResult = fmap evaluateCompiledCode appliedSafely
 
 result :: EvalResult
 result = evaluateCompiledCode appliedUnsafely
- where
-  appliedUnsafely :: CompiledCode Integer
-  appliedUnsafely = compiledCode `unsafeApplyCode` argumentCompiled
+  where
+    appliedUnsafely :: CompiledCode Integer
+    appliedUnsafely = compiledCode `unsafeApplyCode` argumentCompiled
 
 -- END UnsafeApplicationResult
 
@@ -110,11 +110,10 @@ main = do
   Text.putStrLn "the latest Protocol Version evaluation:"
   Text.putStrLn "--------------------------------------------"
   Text.putStrLn $ displayEvalResult result
--- END PrintResult
+  -- END PrintResult
 
   Text.putStrLn ""
   Text.putStrLn "Simulating PlutusV2 / Alonzo Protocol Version evaluation:"
   Text.putStrLn "--------------------------------------------------------"
   Text.putStrLn $ displayEvalResult resultV2
   Text.putStrLn ""
-

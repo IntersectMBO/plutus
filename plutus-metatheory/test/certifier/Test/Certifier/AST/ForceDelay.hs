@@ -31,23 +31,30 @@ import Test.Certifier.AST (testFailureItem, testSuccessItem)
 -- Constructors positive: [0,2,3,4]
 simpleSuccessBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleSuccessBefore = runQuote $ do
-        x <- freshName "x"
-        return (Force ()
-                    (Apply ()
-                        (LamAbs () x
-                            (Delay () (mkConstant () (1 :: Integer)))
-                        )
-                        (mkConstant () (2 :: Integer))
-                    )
-                )
+  x <- freshName "x"
+  return
+    ( Force
+        ()
+        ( Apply
+            ()
+            ( LamAbs
+                ()
+                x
+                (Delay () (mkConstant () (1 :: Integer)))
+            )
+            (mkConstant () (2 :: Integer))
+        )
+    )
 
 simpleSuccessAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleSuccessAfter = runQuote $ do
-        x <- freshName "x"
-        return (Apply ()
-                (LamAbs () x (mkConstant () (1 :: Integer)))
-                (mkConstant () (2 :: Integer))
-                )
+  x <- freshName "x"
+  return
+    ( Apply
+        ()
+        (LamAbs () x (mkConstant () (1 :: Integer)))
+        (mkConstant () (2 :: Integer))
+    )
 
 -- Nested application that reverts to Translation,
 -- and then more Force-Delay cleanup
@@ -59,42 +66,61 @@ simpleSuccessAfter = runQuote $ do
 -- Constructors positive: [0,1,2,3,5]
 nestedBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 nestedBefore = runQuote $ do
-        x <- freshName "x"
-        y <- freshName "y"
-        return (Force ()
-                (Delay ()
-                    (Apply ()
-                        (LamAbs () x
-                            (Apply ()
-                                (LamAbs () y
-                                    (Force () (Delay () (
-                                        (mkConstant () (2 :: Integer))
-                                    )))
+  x <- freshName "x"
+  y <- freshName "y"
+  return
+    ( Force
+        ()
+        ( Delay
+            ()
+            ( Apply
+                ()
+                ( LamAbs
+                    ()
+                    x
+                    ( Apply
+                        ()
+                        ( LamAbs
+                            ()
+                            y
+                            ( Force
+                                ()
+                                ( Delay
+                                    ()
+                                    ((mkConstant () (2 :: Integer)))
                                 )
-                                (mkConstant () (3 :: Integer))
                             )
                         )
-                        (mkConstant () (1 :: Integer))
+                        (mkConstant () (3 :: Integer))
                     )
                 )
-                )
+                (mkConstant () (1 :: Integer))
+            )
+        )
+    )
 
 nestedAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 nestedAfter = runQuote $ do
-        x <- freshName "x"
-        y <- freshName "y"
-        return (Apply ()
-                    (LamAbs () x
-                        (Apply ()
-                            (LamAbs () y
-                                (mkConstant () (2 :: Integer))
-                            )
-                            (mkConstant () (3 :: Integer))
-                        )
-                    )
-                    (mkConstant () (1 :: Integer))
+  x <- freshName "x"
+  y <- freshName "y"
+  return
+    ( Apply
+        ()
+        ( LamAbs
+            ()
+            x
+            ( Apply
+                ()
+                ( LamAbs
+                    ()
+                    y
+                    (mkConstant () (2 :: Integer))
                 )
-
+                (mkConstant () (3 :: Integer))
+            )
+        )
+        (mkConstant () (1 :: Integer))
+    )
 
 -- Force traverses ifThenElse
 --  (force [
@@ -113,31 +139,38 @@ nestedAfter = runQuote $ do
 -- Constructors positive: [6]
 ifThenElseSuccessBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 ifThenElseSuccessBefore =
-    (Force ()
-        (Apply ()
-            (Apply ()
-                (Apply ()
-                    (Force () (Builtin () PLC.IfThenElse))
-                    (mkConstant () (True :: Bool))
-                )
-                (Delay () (mkConstant () (1 :: Integer)))
-            )
-            (Delay () (mkConstant () (2 :: Integer)))
-        )
-    )
+  ( Force
+      ()
+      ( Apply
+          ()
+          ( Apply
+              ()
+              ( Apply
+                  ()
+                  (Force () (Builtin () PLC.IfThenElse))
+                  (mkConstant () (True :: Bool))
+              )
+              (Delay () (mkConstant () (1 :: Integer)))
+          )
+          (Delay () (mkConstant () (2 :: Integer)))
+      )
+  )
 
 ifThenElseSuccessAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 ifThenElseSuccessAfter =
-    (Apply ()
-        (Apply ()
-            (Apply ()
-                (Force () (Builtin () PLC.IfThenElse))
-                (mkConstant () (True :: Bool))
-            )
-            (mkConstant () (1 :: Integer))
-        )
-        (mkConstant () (2 :: Integer))
-    )
+  ( Apply
+      ()
+      ( Apply
+          ()
+          ( Apply
+              ()
+              (Force () (Builtin () PLC.IfThenElse))
+              (mkConstant () (True :: Bool))
+          )
+          (mkConstant () (1 :: Integer))
+      )
+      (mkConstant () (2 :: Integer))
+  )
 
 -- "Negative" tests
 -- Deliberately fail each constructor.
@@ -154,11 +187,14 @@ simpleForceBreakAfter = (mkConstant () (1 :: Integer))
 -- Constructors [0,1,4]
 -- Constructors violated: [1]
 simpleFailBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-simpleFailBefore = (Force ()
-                     (Delay ()
-                        (Delay () (mkConstant () (1 :: Integer)))
-                     )
-                    )
+simpleFailBefore =
+  ( Force
+      ()
+      ( Delay
+          ()
+          (Delay () (mkConstant () (1 :: Integer)))
+      )
+  )
 
 simpleFailAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 simpleFailAfter = (mkConstant () (1 :: Integer))
@@ -166,50 +202,61 @@ simpleFailAfter = (mkConstant () (1 :: Integer))
 -- Traverse an application when you shouldn't -- no matching lambda
 -- Constructors violated: [2]
 simpleAppBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-simpleAppBreakBefore = (Force ()
-                    (Apply ()
-                        (Delay () (mkConstant () (1 :: Integer)))
-                        (mkConstant () (2 :: Integer))
-                    )
-                )
+simpleAppBreakBefore =
+  ( Force
+      ()
+      ( Apply
+          ()
+          (Delay () (mkConstant () (1 :: Integer)))
+          (mkConstant () (2 :: Integer))
+      )
+  )
 
 simpleAppBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-simpleAppBreakAfter = (Apply ()
-                        (mkConstant () (1 :: Integer))
-                        (mkConstant () (2 :: Integer))
-                        )
+simpleAppBreakAfter =
+  ( Apply
+      ()
+      (mkConstant () (1 :: Integer))
+      (mkConstant () (2 :: Integer))
+  )
 
 -- Traverse an application when you shouldn't -- broken applied term
 -- Constructors violated: [2,0]
 appTermBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 appTermBreakBefore = runQuote $ do
-        x <- freshName "x"
-        return  (Apply ()
-                    (LamAbs () x (mkConstant () (1 :: Integer)))
-                    (Force () (mkConstant () (2 :: Integer)))
-                )
+  x <- freshName "x"
+  return
+    ( Apply
+        ()
+        (LamAbs () x (mkConstant () (1 :: Integer)))
+        (Force () (mkConstant () (2 :: Integer)))
+    )
 
 appTermBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 appTermBreakAfter = runQuote $ do
-        x <- freshName "x"
-        return  (Apply ()
-                    (LamAbs () x (mkConstant () (1 :: Integer)))
-                    (mkConstant () (2 :: Integer))
-                )
+  x <- freshName "x"
+  return
+    ( Apply
+        ()
+        (LamAbs () x (mkConstant () (1 :: Integer)))
+        (mkConstant () (2 :: Integer))
+    )
 
 -- Traverse a lambda when you shouldn't -- no applied term
 -- Constructors violated: [3]
 lambdaBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lambdaBreakBefore = runQuote $ do
-        x <- freshName "x"
-        return  (Force ()
-                    (LamAbs () x (Delay () (mkConstant () (1 :: Integer))))
-                )
+  x <- freshName "x"
+  return
+    ( Force
+        ()
+        (LamAbs () x (Delay () (mkConstant () (1 :: Integer))))
+    )
 
 lambdaBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lambdaBreakAfter = runQuote $ do
-        x <- freshName "x"
-        return (LamAbs () x (mkConstant () (1 :: Integer)))
+  x <- freshName "x"
+  return (LamAbs () x (mkConstant () (1 :: Integer)))
 
 -- Valid force-delay, but invalid sub-tree change.
 -- Constructors violated: [4]
@@ -226,69 +273,110 @@ lastDelayBreakAfter = (mkConstant () (2 :: Integer))
 -- Constructors violated: [5]
 lastAbsBreakBefore :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lastAbsBreakBefore = runQuote $ do
-        x <- freshName "x"
-        return (Force ()
-                    (Delay ()
-                        (Apply ()
-                            (LamAbs () x (mkConstant () (1 :: Integer)))
-                            (mkConstant () (3 :: Integer))
-                        )
-                    )
-                )
+  x <- freshName "x"
+  return
+    ( Force
+        ()
+        ( Delay
+            ()
+            ( Apply
+                ()
+                (LamAbs () x (mkConstant () (1 :: Integer)))
+                (mkConstant () (3 :: Integer))
+            )
+        )
+    )
 lastAbsBreakAfter :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 lastAbsBreakAfter = runQuote $ do
-        x <- freshName "x"
-        return (Apply ()
-                    (LamAbs () x (mkConstant () (2 :: Integer)))
-                    (mkConstant () (3 :: Integer))
-                )
-
+  x <- freshName "x"
+  return
+    ( Apply
+        ()
+        (LamAbs () x (mkConstant () (2 :: Integer)))
+        (mkConstant () (3 :: Integer))
+    )
 
 successItems
-    :: [
-            (String
-            , SimplifierStage
-            , Term Name PLC.DefaultUni PLC.DefaultFun ()
-            , Term Name PLC.DefaultUni PLC.DefaultFun ()
-            )
-            ]
+  :: [ ( String
+       , SimplifierStage
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
+       )
+     ]
 successItems =
-    [
-        ("Simple one lambda", ForceDelay
-            , simpleSuccessBefore, simpleSuccessAfter)
-        ,("Nested", ForceDelay
-            , nestedBefore, nestedAfter)
-        , ("ifThenElse", ForceDelay
-              , ifThenElseSuccessBefore, ifThenElseSuccessAfter)
-    ]
+  [
+    ( "Simple one lambda"
+    , ForceDelay
+    , simpleSuccessBefore
+    , simpleSuccessAfter
+    )
+  ,
+    ( "Nested"
+    , ForceDelay
+    , nestedBefore
+    , nestedAfter
+    )
+  ,
+    ( "ifThenElse"
+    , ForceDelay
+    , ifThenElseSuccessBefore
+    , ifThenElseSuccessAfter
+    )
+  ]
 failItems
-    :: [
-            (String
-            , SimplifierStage
-            , Term Name PLC.DefaultUni PLC.DefaultFun ()
-            , Term Name PLC.DefaultUni PLC.DefaultFun ())
-        ]
+  :: [ ( String
+       , SimplifierStage
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
+       , Term Name PLC.DefaultUni PLC.DefaultFun ()
+       )
+     ]
 failItems =
-    [
-        ("Simple extra delay", ForceDelay
-            , simpleFailBefore, simpleFailAfter)
-        , ("Simple force break", ForceDelay
-            , simpleForceBreakBefore, simpleForceBreakAfter)
-        , ("Simple app break", ForceDelay
-            , simpleAppBreakBefore, simpleAppBreakAfter)
-        , ("App term break", ForceDelay
-            , appTermBreakBefore, appTermBreakAfter)
-        , ("Lambda break", ForceDelay
-            , lambdaBreakBefore, lambdaBreakAfter)
-        , ("Last delay break", ForceDelay
-            , lastDelayBreakBefore, lastDelayBreakAfter)
-        , ("Last abs break", ForceDelay
-            , lastAbsBreakBefore, lastAbsBreakAfter)
-    ]
+  [
+    ( "Simple extra delay"
+    , ForceDelay
+    , simpleFailBefore
+    , simpleFailAfter
+    )
+  ,
+    ( "Simple force break"
+    , ForceDelay
+    , simpleForceBreakBefore
+    , simpleForceBreakAfter
+    )
+  ,
+    ( "Simple app break"
+    , ForceDelay
+    , simpleAppBreakBefore
+    , simpleAppBreakAfter
+    )
+  ,
+    ( "App term break"
+    , ForceDelay
+    , appTermBreakBefore
+    , appTermBreakAfter
+    )
+  ,
+    ( "Lambda break"
+    , ForceDelay
+    , lambdaBreakBefore
+    , lambdaBreakAfter
+    )
+  ,
+    ( "Last delay break"
+    , ForceDelay
+    , lastDelayBreakBefore
+    , lastDelayBreakAfter
+    )
+  ,
+    ( "Last abs break"
+    , ForceDelay
+    , lastAbsBreakBefore
+    , lastAbsBreakAfter
+    )
+  ]
 
 forceDelayASTTests :: TestTree
 forceDelayASTTests =
-        testGroup "force-delay ast tests"
-            $ fmap testSuccessItem successItems
-            <> fmap testFailureItem failItems
-
+  testGroup "force-delay ast tests" $
+    fmap testSuccessItem successItems
+      <> fmap testFailureItem failItems

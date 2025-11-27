@@ -1,36 +1,44 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
-module PlutusTx.Numeric (
-  -- * Type classes
-  AdditiveSemigroup (..),
-  AdditiveMonoid (..),
-  AdditiveGroup (..),
-  MultiplicativeSemigroup (..),
-  MultiplicativeMonoid (..),
-  Semiring,
-  Ring,
-  Module (..),
+module PlutusTx.Numeric
+  ( -- * Type classes
+    AdditiveSemigroup (..)
+  , AdditiveMonoid (..)
+  , AdditiveGroup (..)
+  , MultiplicativeSemigroup (..)
+  , MultiplicativeMonoid (..)
+  , Semiring
+  , Ring
+  , Module (..)
 
-  -- * Helper newtypes
-  Additive (..),
-  Multiplicative (..),
+    -- * Helper newtypes
+  , Additive (..)
+  , Multiplicative (..)
 
-  -- * Helper functions
-  negate,
-  divMod,
-  quotRem,
-  abs,
-) where
+    -- * Helper functions
+  , negate
+  , divMod
+  , quotRem
+  , abs
+  ) where
 
 import Data.Coerce (coerce)
 import Data.Semigroup (Product (Product), Sum (Sum))
 import PlutusTx.Bool (Bool (False, True), (&&), (||))
-import PlutusTx.Builtins (Integer, addInteger, divideInteger, modInteger, multiplyInteger,
-                          quotientInteger, remainderInteger, subtractInteger)
+import PlutusTx.Builtins
+  ( Integer
+  , addInteger
+  , divideInteger
+  , modInteger
+  , multiplyInteger
+  , quotientInteger
+  , remainderInteger
+  , subtractInteger
+  )
 import PlutusTx.Monoid (Group, Monoid (mempty), gsub)
 import PlutusTx.Ord (Ord ((<)))
 import PlutusTx.Semigroup (Semigroup ((<>)))
@@ -43,29 +51,29 @@ class AdditiveSemigroup a where
   (+) :: a -> a -> a
 
 -- | A 'Monoid' that it is sensible to describe using addition and zero.
-class (AdditiveSemigroup a) => AdditiveMonoid a where
+class AdditiveSemigroup a => AdditiveMonoid a where
   zero :: a
 
 -- | A 'Group' that it is sensible to describe using addition, zero, and subtraction.
-class (AdditiveMonoid a) => AdditiveGroup a where
+class AdditiveMonoid a => AdditiveGroup a where
   (-) :: a -> a -> a
 
-negate :: (AdditiveGroup a) => a -> a
+negate :: AdditiveGroup a => a -> a
 negate x = zero - x
 {-# INLINEABLE negate #-}
 
 -- | A newtype wrapper to derive 'Additive' classes via.
 newtype Additive a = Additive a
 
-instance (Semigroup a) => AdditiveSemigroup (Additive a) where
+instance Semigroup a => AdditiveSemigroup (Additive a) where
   {-# INLINEABLE (+) #-}
   (+) = coerce ((<>) :: a -> a -> a)
 
-instance (Monoid a) => AdditiveMonoid (Additive a) where
+instance Monoid a => AdditiveMonoid (Additive a) where
   {-# INLINEABLE zero #-}
   zero = Additive mempty
 
-instance (Group a) => AdditiveGroup (Additive a) where
+instance Group a => AdditiveGroup (Additive a) where
   {-# INLINEABLE (-) #-}
   (-) = coerce (gsub :: a -> a -> a)
 
@@ -74,7 +82,7 @@ class MultiplicativeSemigroup a where
   (*) :: a -> a -> a
 
 -- | A 'Semigroup' that it is sensible to describe using multiplication and one.
-class (MultiplicativeSemigroup a) => MultiplicativeMonoid a where
+class MultiplicativeSemigroup a => MultiplicativeMonoid a where
   one :: a
 
 -- TODO: multiplicative group? I haven't added any since for e.g. integers division
@@ -83,11 +91,11 @@ class (MultiplicativeSemigroup a) => MultiplicativeMonoid a where
 -- | A newtype wrapper to derive 'Multiplicative' classes via.
 newtype Multiplicative a = Multiplicative a
 
-instance (Semigroup a) => MultiplicativeSemigroup (Multiplicative a) where
+instance Semigroup a => MultiplicativeSemigroup (Multiplicative a) where
   {-# INLINEABLE (*) #-}
   (*) = coerce ((<>) :: a -> a -> a)
 
-instance (Monoid a) => MultiplicativeMonoid (Multiplicative a) where
+instance Monoid a => MultiplicativeMonoid (Multiplicative a) where
   {-# INLINEABLE one #-}
   one = Multiplicative mempty
 
@@ -137,19 +145,19 @@ instance MultiplicativeMonoid Bool where
 class (Ring s, AdditiveGroup v) => Module s v | v -> s where
   scale :: s -> v -> v
 
-instance (AdditiveSemigroup a) => Semigroup (Sum a) where
+instance AdditiveSemigroup a => Semigroup (Sum a) where
   {-# INLINEABLE (<>) #-}
   (<>) = coerce ((+) :: a -> a -> a)
 
-instance (AdditiveMonoid a) => Monoid (Sum a) where
+instance AdditiveMonoid a => Monoid (Sum a) where
   {-# INLINEABLE mempty #-}
   mempty = Sum zero
 
-instance (MultiplicativeSemigroup a) => Semigroup (Product a) where
+instance MultiplicativeSemigroup a => Semigroup (Product a) where
   {-# INLINEABLE (<>) #-}
   (<>) = coerce ((*) :: a -> a -> a)
 
-instance (MultiplicativeMonoid a) => Monoid (Product a) where
+instance MultiplicativeMonoid a => Monoid (Product a) where
   {-# INLINEABLE mempty #-}
   mempty = Product one
 

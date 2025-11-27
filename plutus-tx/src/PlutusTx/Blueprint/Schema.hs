@@ -1,16 +1,16 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
-{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusTx.Blueprint.Schema where
 
@@ -38,8 +38,7 @@ import Prelude hiding (max, maximum, min, minimum)
 
   The 'referencedTypes' phantom type parameter is used to track the types used in the contract
   making sure their schemas are included in the blueprint and that they are referenced
-  in a type-safe way.
--}
+  in a type-safe way. -}
 data Schema (referencedTypes :: [Type])
   = SchemaInteger SchemaInfo IntegerSchema
   | SchemaBytes SchemaInfo BytesSchema
@@ -61,11 +60,11 @@ data Schema (referencedTypes :: [Type])
   | SchemaDefinitionRef DefinitionId
   deriving stock (Eq, Ord, Show, Generic, Data)
 
-deriving anyclass instance (Typeable referencedTypes) => Plated (Schema referencedTypes)
+deriving anyclass instance Typeable referencedTypes => Plated (Schema referencedTypes)
 
 instance ToJSON (Schema referencedTypes) where
   toJSON = \case
-    SchemaInteger info MkIntegerSchema{..} ->
+    SchemaInteger info MkIntegerSchema {..} ->
       dataType info "integer"
         & optionalField "multipleOf" multipleOf
         & optionalField "minimum" minimum
@@ -73,30 +72,30 @@ instance ToJSON (Schema referencedTypes) where
         & optionalField "exclusiveMinimum" exclusiveMinimum
         & optionalField "exclusiveMaximum" exclusiveMaximum
         & Aeson.Object
-    SchemaBytes info MkBytesSchema{..} ->
+    SchemaBytes info MkBytesSchema {..} ->
       dataType info "bytes"
         & optionalField "enum" (fmap toHex <$> nonEmpty enum)
         & optionalField "maxLength" maxLength
         & optionalField "minLength" minLength
         & Aeson.Object
-     where
-      toHex :: ByteString -> Text
-      toHex = Text.decodeUtf8 . Base16.encode
-    SchemaList info MkListSchema{..} ->
+      where
+        toHex :: ByteString -> Text
+        toHex = Text.decodeUtf8 . Base16.encode
+    SchemaList info MkListSchema {..} ->
       dataType info "list"
         & requiredField "items" itemSchema
         & optionalField "minItems" minItems
         & optionalField "maxItems" maxItems
         & optionalField "uniqueItems" uniqueItems
         & Aeson.Object
-    SchemaMap info MkMapSchema{..} ->
+    SchemaMap info MkMapSchema {..} ->
       dataType info "map"
         & requiredField "keys" keySchema
         & requiredField "values" valueSchema
         & optionalField "minItems" minItems
         & optionalField "maxItems" maxItems
         & Aeson.Object
-    SchemaConstructor info MkConstructorSchema{..} ->
+    SchemaConstructor info MkConstructorSchema {..} ->
       dataType info "constructor"
         & requiredField "index" index
         & requiredField "fields" fieldSchemas
@@ -113,7 +112,7 @@ instance ToJSON (Schema referencedTypes) where
       Aeson.Object $ dataType info "#bytes"
     SchemaBuiltInString info ->
       Aeson.Object $ dataType info "#string"
-    SchemaBuiltInPair info MkPairSchema{left, right} ->
+    SchemaBuiltInPair info MkPairSchema {left, right} ->
       dataType info "#pair"
         & requiredField "left" left
         & requiredField "right" right
@@ -132,16 +131,16 @@ instance ToJSON (Schema referencedTypes) where
       Aeson.object ["not" .= schema]
     SchemaDefinitionRef definitionId ->
       Aeson.object ["$ref" .= ("#/definitions/" <> definitionIdToText definitionId)]
-   where
-    dataType :: SchemaInfo -> String -> Aeson.Object
-    dataType info ty = requiredField "dataType" ty (infoFields info)
+    where
+      dataType :: SchemaInfo -> String -> Aeson.Object
+      dataType info ty = requiredField "dataType" ty (infoFields info)
 
-    infoFields :: SchemaInfo -> Aeson.Object
-    infoFields info =
-      KeyMap.empty
-        & optionalField "title" (title info)
-        & optionalField "description" (description info)
-        & optionalField "$comment" (comment info)
+      infoFields :: SchemaInfo -> Aeson.Object
+      infoFields info =
+        KeyMap.empty
+          & optionalField "title" (title info)
+          & optionalField "description" (description info)
+          & optionalField "$comment" (comment info)
 
 withSchemaInfo :: (SchemaInfo -> SchemaInfo) -> Schema referencedTypes -> Schema referencedTypes
 withSchemaInfo f = \case
@@ -165,11 +164,11 @@ withSchemaInfo f = \case
   SchemaDefinitionRef definitionId -> SchemaDefinitionRef definitionId
 
 data IntegerSchema = MkIntegerSchema
-  { multipleOf       :: Maybe Integer
+  { multipleOf :: Maybe Integer
   -- ^ An instance is valid if division by this value results in an integer.
-  , minimum          :: Maybe Integer
+  , minimum :: Maybe Integer
   -- ^ An instance is valid only if it is greater than or exactly equal to "minimum".
-  , maximum          :: Maybe Integer
+  , maximum :: Maybe Integer
   -- ^ An instance is valid only if it is less than or exactly equal to "maximum".
   , exclusiveMinimum :: Maybe Integer
   -- ^ An instance is valid only if it is strictly greater than "exclusiveMinimum".
@@ -189,10 +188,9 @@ emptyIntegerSchema =
     }
 
 data BytesSchema = MkBytesSchema
-  { enum      :: [ByteString]
-  {- ^ An instance validates successfully if once hex-encoded,
-  its value matches one of the specified values.
-  -}
+  { enum :: [ByteString]
+  {-^ An instance validates successfully if once hex-encoded,
+  its value matches one of the specified values. -}
   , minLength :: Maybe Natural
   -- ^ An instance is valid if its length is greater than, or equal to, this value.
   , maxLength :: Maybe Natural
@@ -201,19 +199,18 @@ data BytesSchema = MkBytesSchema
   deriving stock (Eq, Ord, Show, Generic, Data)
 
 emptyBytesSchema :: BytesSchema
-emptyBytesSchema = MkBytesSchema{enum = [], minLength = Nothing, maxLength = Nothing}
+emptyBytesSchema = MkBytesSchema {enum = [], minLength = Nothing, maxLength = Nothing}
 
 data ListSchema (referencedTypes :: [Type]) = MkListSchema
-  { itemSchema  :: Schema referencedTypes
+  { itemSchema :: Schema referencedTypes
   -- ^ Element schema
-  , minItems    :: Maybe Natural
+  , minItems :: Maybe Natural
   -- ^ An array instance is valid if its size is greater than, or equal to, this value.
-  , maxItems    :: Maybe Natural
+  , maxItems :: Maybe Natural
   -- ^ An array instance is valid if its size is less than, or equal to, this value.
   , uniqueItems :: Maybe Bool
-  {- ^ If this value is false, the instance validates successfully.
-  If it is set to True, the instance validates successfully if all of its elements are unique.
-  -}
+  {-^ If this value is false, the instance validates successfully.
+  If it is set to True, the instance validates successfully if all of its elements are unique. -}
   }
   deriving stock (Eq, Ord, Show, Generic, Data)
 
@@ -227,19 +224,19 @@ mkListSchema itemSchema =
     }
 
 data MapSchema (referencedTypes :: [Type]) = MkMapSchema
-  { keySchema   :: Schema referencedTypes
+  { keySchema :: Schema referencedTypes
   -- ^ Key schema
   , valueSchema :: Schema referencedTypes
   -- ^ Value schema
-  , minItems    :: Maybe Natural
+  , minItems :: Maybe Natural
   -- ^ A map instance is valid if its size is greater than, or equal to, this value.
-  , maxItems    :: Maybe Natural
+  , maxItems :: Maybe Natural
   -- ^ A map instance is valid if its size is less than, or equal to, this value.
   }
   deriving stock (Eq, Ord, Show, Generic, Data)
 
 data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
-  { index        :: Natural
+  { index :: Natural
   -- ^ Constructor index
   , fieldSchemas :: [Schema referencedTypes]
   -- ^ Field schemas
@@ -247,7 +244,7 @@ data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
   deriving stock (Eq, Ord, Show, Generic, Data)
 
 data PairSchema (referencedTypes :: [Type]) = MkPairSchema
-  { left  :: Schema referencedTypes
+  { left :: Schema referencedTypes
   -- ^ Schema of the first element
   , right :: Schema referencedTypes
   -- ^ Schema of the second element

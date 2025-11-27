@@ -1,8 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ImpredicativeTypes  #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE ViewPatterns #-}
+
 module PlutusIR.Transform.CaseOfCase (caseOfCase, caseOfCasePass, caseOfCasePassSC) where
 
 import Control.Lens hiding (Strict, cons)
@@ -15,8 +16,13 @@ import PlutusCore.Name.Unique qualified as PLC
 import PlutusCore.Quote
 import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.VarInfo (VarInfo (DatatypeConstructor, DatatypeMatcher), VarsInfo,
-                                  getConstructorArities, lookupVarInfo, termVarInfo)
+import PlutusIR.Analysis.VarInfo
+  ( VarInfo (DatatypeConstructor, DatatypeMatcher)
+  , VarsInfo
+  , getConstructorArities
+  , lookupVarInfo
+  , termVarInfo
+  )
 import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.MkPir
@@ -25,25 +31,25 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude
 
-caseOfCasePassSC ::
-    forall m uni fun a.
-    (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a) =>
-    TC.PirTCConfig uni fun ->
-    BuiltinsInfo uni fun ->
-    Bool ->
-    a ->
-    Pass m TyName Name uni fun a
+caseOfCasePassSC
+  :: forall m uni fun a
+   . (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a)
+  => TC.PirTCConfig uni fun
+  -> BuiltinsInfo uni fun
+  -> Bool
+  -> a
+  -> Pass m TyName Name uni fun a
 caseOfCasePassSC tcconfig binfo conservative newAnn =
   renamePass <> caseOfCasePass tcconfig binfo conservative newAnn
 
-caseOfCasePass ::
-    forall m uni fun a.
-    ( PLC.Typecheckable uni fun, PLC.GEq uni, MonadQuote m, Ord a) =>
-    TC.PirTCConfig uni fun ->
-    BuiltinsInfo uni fun ->
-    Bool ->
-    a ->
-    Pass m TyName Name uni fun a
+caseOfCasePass
+  :: forall m uni fun a
+   . (PLC.Typecheckable uni fun, PLC.GEq uni, MonadQuote m, Ord a)
+  => TC.PirTCConfig uni fun
+  -> BuiltinsInfo uni fun
+  -> Bool
+  -> a
+  -> Pass m TyName Name uni fun a
 caseOfCasePass tcconfig binfo conservative newAnn =
   NamedPass "case-of-case" $
     Pass
@@ -67,46 +73,46 @@ Example:
     case s of
       C1 a -> case x of { D1 -> w; D2 -> z; }
       C2 b -> case y of { D1 -> w; D2 -> z; }
-@
--}
-caseOfCase ::
-    forall m tyname uni fun a.
-    ( Ord fun, PLC.HasUnique tyname PLC.TypeUnique
-    , PLC.MonadQuote m -- we need this because we do generate new names
-    ) =>
-    BuiltinsInfo uni fun ->
-    Bool ->
-    a ->
-    Term tyname Name uni fun a ->
-    m (Term tyname Name uni fun a)
+@ -}
+caseOfCase
+  :: forall m tyname uni fun a
+   . ( Ord fun
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.MonadQuote m -- we need this because we do generate new names
+     )
+  => BuiltinsInfo uni fun
+  -> Bool
+  -> a
+  -> Term tyname Name uni fun a
+  -> m (Term tyname Name uni fun a)
 -- See Note [Case-of-case and conapps]
 caseOfCase binfo conservative newAnn t = do
-    let vinfo = termVarInfo t
-    liftQuote $ transformMOf termSubterms (processTerm binfo vinfo conservative newAnn) t
+  let vinfo = termVarInfo t
+  liftQuote $ transformMOf termSubterms (processTerm binfo vinfo conservative newAnn) t
 
-processTerm ::
-    forall tyname uni fun a .
-    (Ord fun, PLC.HasUnique tyname PLC.TypeUnique) =>
-    BuiltinsInfo uni fun ->
-    VarsInfo tyname Name uni a ->
-    Bool ->
-    a ->
-    Term tyname Name uni fun a ->
-    Quote (Term tyname Name uni fun a)
+processTerm
+  :: forall tyname uni fun a
+   . (Ord fun, PLC.HasUnique tyname PLC.TypeUnique)
+  => BuiltinsInfo uni fun
+  -> VarsInfo tyname Name uni a
+  -> Bool
+  -> a
+  -> Term tyname Name uni fun a
+  -> Quote (Term tyname Name uni fun a)
 processTerm binfo vinfo conservative newAnn t
-    -- We have a saturated datatype matcher application
-    | Just (smcO@(SplitMatchContext _ (outerScrut, _, _) _ _), reconstructOuter, _) <- splitMatch binfo vinfo t
-    -- The scrutinee is itself an application
-    , Just (smcI, reconstructInner, innerBranchArities) <- splitMatch binfo vinfo outerScrut
-    = do
+  -- We have a saturated datatype matcher application
+  | Just (smcO@(SplitMatchContext _ (outerScrut, _, _) _ _), reconstructOuter, _) <- splitMatch binfo vinfo t
+  , -- The scrutinee is itself an application
+    Just (smcI, reconstructInner, innerBranchArities) <- splitMatch binfo vinfo outerScrut =
+      do
         nt <- runMaybeT $ tryDoCaseOfCase vinfo conservative newAnn (smcO, reconstructOuter) (smcI, reconstructInner) innerBranchArities
         case nt of
           Just newTerm -> pure newTerm
-          Nothing      -> pure t
-    | otherwise = pure t
+          Nothing -> pure t
+  | otherwise = pure t
 
-tryDoCaseOfCase ::
-  VarsInfo tyname Name uni a
+tryDoCaseOfCase
+  :: VarsInfo tyname Name uni a
   -> Bool
   -> a
   -> (SplitMatchContext tyname Name uni fun a, SplitMatchContext tyname Name uni fun a -> Term tyname Name uni fun a)
@@ -120,67 +126,68 @@ tryDoCaseOfCase
   (SplitMatchContext outerVars (_, outerScrutTy, outerScrutAnn) (outerResTy, outerResTyAnn) outerBranches, reconstructOuter)
   -- Note: we don't use the inner result type, we're going to replace it
   (SplitMatchContext innerVars (innerScrut, innerScrutTy, innerScrutAnn) _ innerBranches, reconstructInner)
-  innerBranchArities
-  = do
-  kName <- lift $ freshName "k_caseOfCase"
-  sName <- lift $ freshName "scrutinee"
-  let
-    -- If a term is a constructor application, returns the name of the constructor
-    conAppHead (splitApplication -> (Var _ n, _)) | Just (DatatypeConstructor{}) <- lookupVarInfo n vinfo = Just n
-    conAppHead _ = Nothing
-    -- Gets all the constructor application heads from inside the branches of the inner match
-    innerBranchConAppHeads = mapMaybe conAppHead $ innerBranches ^.. underBranches innerBranchArities
-    -- Check whether a) all the branches are conapps, and b) all the conapps are distinct.
-    -- See Note [Case-of-case and conapps]
-    allDistinctBranchConApps =
+  innerBranchArities =
+    do
+      kName <- lift $ freshName "k_caseOfCase"
+      sName <- lift $ freshName "scrutinee"
       let
-        -- Otherwise we've lost something when we did the traversal and we don't know what's going on
-        lengthsMatch = length innerBranchConAppHeads == length innerBranchArities
-        distinctCons = distinct innerBranchConAppHeads
-      in lengthsMatch && distinctCons
-    -- If we're being conservative (so trying to avoid code growth), and we don't know that the inlined
-    -- version will reduce, then bind the outer case to a function to avoid code growth
-    bindOuterCase = conservative && not allDistinctBranchConApps
+        -- If a term is a constructor application, returns the name of the constructor
+        conAppHead (splitApplication -> (Var _ n, _)) | Just (DatatypeConstructor {}) <- lookupVarInfo n vinfo = Just n
+        conAppHead _ = Nothing
+        -- Gets all the constructor application heads from inside the branches of the inner match
+        innerBranchConAppHeads = mapMaybe conAppHead $ innerBranches ^.. underBranches innerBranchArities
+        -- Check whether a) all the branches are conapps, and b) all the conapps are distinct.
+        -- See Note [Case-of-case and conapps]
+        allDistinctBranchConApps =
+          let
+            -- Otherwise we've lost something when we did the traversal and we don't know what's going on
+            lengthsMatch = length innerBranchConAppHeads == length innerBranchArities
+            distinctCons = distinct innerBranchConAppHeads
+           in
+            lengthsMatch && distinctCons
+        -- If we're being conservative (so trying to avoid code growth), and we don't know that the inlined
+        -- version will reduce, then bind the outer case to a function to avoid code growth
+        bindOuterCase = conservative && not allDistinctBranchConApps
 
-  let
-    mkNewOuterMatch newScrut =
-      reconstructOuter $ SplitMatchContext outerVars (newScrut, outerScrutTy, outerScrutAnn) (outerResTy, outerResTyAnn) outerBranches
-    -- \(x :: scrutTy) -> case x of ...
-    newOuterMatchFn = LamAbs newAnn sName (newAnn <$ outerScrutTy) $ mkNewOuterMatch (Var newAnn sName)
-    -- k_caseOfCase :: scrutTy -> outerResTy = ...
-    newOuterMatchFnBinding =
-      TermBind newAnn Strict (VarDecl newAnn kName (TyFun newAnn (newAnn <$ outerScrutTy) outerResTy)) newOuterMatchFn
-    mkNewInnerBranchBody scrut =
-      if bindOuterCase
-      -- k_caseOfCase scrut
-      then Apply newAnn (Var newAnn kName) scrut
-      -- case scrut of ...
-      else mkNewOuterMatch scrut
+      let
+        mkNewOuterMatch newScrut =
+          reconstructOuter $ SplitMatchContext outerVars (newScrut, outerScrutTy, outerScrutAnn) (outerResTy, outerResTyAnn) outerBranches
+        -- \(x :: scrutTy) -> case x of ...
+        newOuterMatchFn = LamAbs newAnn sName (newAnn <$ outerScrutTy) $ mkNewOuterMatch (Var newAnn sName)
+        -- k_caseOfCase :: scrutTy -> outerResTy = ...
+        newOuterMatchFnBinding =
+          TermBind newAnn Strict (VarDecl newAnn kName (TyFun newAnn (newAnn <$ outerScrutTy) outerResTy)) newOuterMatchFn
+        mkNewInnerBranchBody scrut =
+          if bindOuterCase
+            -- k_caseOfCase scrut
+            then Apply newAnn (Var newAnn kName) scrut
+            -- case scrut of ...
+            else mkNewOuterMatch scrut
 
-  newInnerBranches <- MaybeT $ pure $ mapBranches mkNewInnerBranchBody innerBranches innerBranchArities
+      newInnerBranches <- MaybeT $ pure $ mapBranches mkNewInnerBranchBody innerBranches innerBranchArities
 
-  let
-    newInnerMatch =
-      reconstructInner $ SplitMatchContext innerVars (innerScrut, innerScrutTy, innerScrutAnn) (outerResTy, outerResTyAnn) newInnerBranches
+      let
+        newInnerMatch =
+          reconstructInner $ SplitMatchContext innerVars (innerScrut, innerScrutTy, innerScrutAnn) (outerResTy, outerResTyAnn) newInnerBranches
 
-  pure $
-    if bindOuterCase
-    then mkLet newAnn NonRec [newOuterMatchFnBinding] newInnerMatch
-    else newInnerMatch
+      pure $
+        if bindOuterCase
+          then mkLet newAnn NonRec [newOuterMatchFnBinding] newInnerMatch
+          else newInnerMatch
 
--- | Apply the given function to the term "inside" the case branches in the given 'AppContext'.
--- Must be given an arity for each branch so it knows how many binders to go under.
-mapBranches ::
-  forall tyname name uni fun a
-  . (Term tyname name uni fun a -> Term tyname name uni fun a)
+{-| Apply the given function to the term "inside" the case branches in the given 'AppContext'.
+Must be given an arity for each branch so it knows how many binders to go under. -}
+mapBranches
+  :: forall tyname name uni fun a
+   . (Term tyname name uni fun a -> Term tyname name uni fun a)
   -> AppContext tyname name uni fun a
   -> [Arity]
   -> Maybe (AppContext tyname name uni fun a)
 mapBranches f = go
-    where
+  where
     go :: AppContext tyname name uni fun a -> [Arity] -> Maybe (AppContext tyname name uni fun a)
     go AppContextEnd [] = Just AppContextEnd
-    go (TermAppContext branch ann ctx) (arity:arities) =
+    go (TermAppContext branch ann ctx) (arity : arities) =
       -- This makes the whole thing return Nothing if the traversal has no targets, i.e. if the
       -- arity doesn't match the term we're looking at. I can't see a way to do this with a more
       -- general traversal, so there's some duplication between this and the simpler 'underBranches'.
@@ -190,27 +197,29 @@ mapBranches f = go
 -- | Traverses under the branches in the application context.
 underBranches :: [Arity] -> Traversal' (AppContext tyname name uni fun a) (Term tyname name uni fun a)
 underBranches as f = go as
-    where
+  where
     go [] AppContextEnd = pure AppContextEnd
-    go (arity:arities) (TermAppContext branch ann ctx) =
+    go (arity : arities) (TermAppContext branch ann ctx) =
       TermAppContext <$> underBinders arity f branch <*> pure ann <*> go arities ctx
     go _ ctx = pure ctx
 
 -- | Split a match, either a normal datatype match or a builtin 'match'.
-splitMatch :: forall tyname name uni fun a . (Ord fun, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique) =>
-  BuiltinsInfo uni fun
+splitMatch
+  :: forall tyname name uni fun a
+   . (Ord fun, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
+  => BuiltinsInfo uni fun
   -> VarsInfo tyname name uni a
   -> Term tyname name uni fun a
   -> Maybe (SplitMatchContext tyname name uni fun a, SplitMatchContext tyname name uni fun a -> Term tyname name uni fun a, [Arity])
 splitMatch binfo vinfo t = do
   let (hd, args) = splitApplication t
   (p, arities) <- case hd of
-    (Var _ matcherName)     -> do
+    (Var _ matcherName) -> do
       let p = asNormalDatatypeMatch vinfo matcherName
       info <- lookupVarInfo matcherName vinfo
       constrArities <- case info of
         DatatypeMatcher parentTyName -> getConstructorArities parentTyName vinfo
-        _                            -> Nothing
+        _ -> Nothing
       -- The branch arities don't include the type arguments for the constructor
       let branchArities = fmap (dropWhile ((==) TypeParam)) constrArities
       pure (p, branchArities)
@@ -218,7 +227,7 @@ splitMatch binfo vinfo t = do
       p <- asBuiltinDatatypeMatch binfo matcherName
       branchArities <- builtinDatatypeMatchBranchArities binfo matcherName
       pure (p, branchArities)
-    _                       -> Nothing
+    _ -> Nothing
   withPrism p $ \reconstruct match ->
     case match args of
       Right sm ->

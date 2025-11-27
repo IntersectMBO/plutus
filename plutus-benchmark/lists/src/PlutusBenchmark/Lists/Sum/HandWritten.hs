@@ -15,7 +15,6 @@ import PlutusTx qualified as Tx
 import PlutusTx.Builtins.Internal qualified as BI
 import UntypedPlutusCore qualified as UPLC
 
-
 ---------------- Hand-written folds, using stuff from PlutusCore.StdLib.Data  ----------------
 
 mkBuiltinList :: [Integer] -> Term
@@ -23,11 +22,11 @@ mkBuiltinList l = compiledCodeToTerm (Tx.liftCodeDef $ BI.BuiltinList l)
 
 mkSumLeftBuiltinTerm :: [Integer] -> Term
 mkSumLeftBuiltinTerm l =
-    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sum UseChoose)) (mkBuiltinList l)
+  UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sum UseChoose)) (mkBuiltinList l)
 
 mkSumRightBuiltinTerm :: [Integer] -> Term
 mkSumRightBuiltinTerm l =
-    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sumr UseChoose)) (mkBuiltinList l)
+  UPLC.Apply () (debruijnTermUnsafe $ eraseTerm (BuiltinList.sumr UseChoose)) (mkBuiltinList l)
 
 mkScottList :: [Integer] -> Term
 mkScottList l = compiledCodeToTerm (Tx.liftCode PLC.plcVersion100 l)
@@ -37,10 +36,10 @@ mkSumLeftScottTerm l = UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.s
 
 mkSumRightScottTerm :: [Integer] -> Term
 mkSumRightScottTerm l =
-    UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.sumr) (mkScottList l)
+  UPLC.Apply () (debruijnTermUnsafe $ eraseTerm ScottList.sumr) (mkScottList l)
 
-
-debruijnTermUnsafe :: UPLC.Term UPLC.Name uni fun ann
-                    -> UPLC.Term UPLC.NamedDeBruijn uni fun ann
+debruijnTermUnsafe
+  :: UPLC.Term UPLC.Name uni fun ann
+  -> UPLC.Term UPLC.NamedDeBruijn uni fun ann
 debruijnTermUnsafe =
-    fromRight (error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm
+  fromRight (error "debruijnTermUnsafe") . runExcept @UPLC.FreeVariableError . UPLC.deBruijnTerm

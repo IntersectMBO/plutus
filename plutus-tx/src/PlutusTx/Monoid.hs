@@ -15,7 +15,7 @@ import PlutusTx.Semigroup
 {- HLINT ignore -}
 
 -- | Plutus Tx version of 'Data.Monoid.Monoid'.
-class (Semigroup a) => Monoid a where
+class Semigroup a => Monoid a where
   -- | Plutus Tx version of 'Data.Monoid.mempty'.
   mempty :: a
 
@@ -23,12 +23,12 @@ class (Semigroup a) => Monoid a where
 -- simpler representation
 
 -- | Plutus Tx version of 'Data.Monoid.mappend'.
-mappend :: (Monoid a) => a -> a -> a
+mappend :: Monoid a => a -> a -> a
 mappend = (<>)
 {-# INLINEABLE mappend #-}
 
 -- | Plutus Tx version of 'Data.Monoid.mconcat'.
-mconcat :: (Monoid a) => [a] -> a
+mconcat :: Monoid a => [a] -> a
 mconcat = foldr mappend mempty
 {-# INLINEABLE mconcat #-}
 
@@ -44,7 +44,7 @@ instance Monoid [a] where
   {-# INLINEABLE mempty #-}
   mempty = []
 
-instance (Semigroup a) => Monoid (Maybe a) where
+instance Semigroup a => Monoid (Maybe a) where
   {-# INLINEABLE mempty #-}
   mempty = Nothing
 
@@ -56,7 +56,7 @@ instance (Monoid a, Monoid b) => Monoid (a, b) where
   {-# INLINEABLE mempty #-}
   mempty = (mempty, mempty)
 
-instance (Monoid a) => Monoid (Dual a) where
+instance Monoid a => Monoid (Dual a) where
   {-# INLINEABLE mempty #-}
   mempty = Dual mempty
 
@@ -68,9 +68,9 @@ instance Monoid (First a) where
   {-# INLINEABLE mempty #-}
   mempty = First Nothing
 
-class (Monoid a) => Group a where
+class Monoid a => Group a where
   inv :: a -> a
 
-gsub :: (Group a) => a -> a -> a
+gsub :: Group a => a -> a -> a
 gsub x y = x <> inv y
 {-# INLINEABLE gsub #-}

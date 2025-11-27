@@ -1,10 +1,10 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
 -- | Float bindings inwards.
 module PlutusIR.Transform.LetFloatIn (floatTerm, floatTermPass, floatTermPassSC) where
@@ -172,37 +172,41 @@ type Uniques = Set PLC.Unique
 
 data FloatInContext = FloatInContext
   { _ctxtInManyOccRhs :: Bool
-  -- ^ Whether we are in the RHS of a binding whose LHS is used more than once.
-  -- See Note [Float-in] #5
-  , _ctxtUsages       :: Usages.Usages
-  , _ctxtRelaxed      :: Bool
+  {-^ Whether we are in the RHS of a binding whose LHS is used more than once.
+  See Note [Float-in] #5 -}
+  , _ctxtUsages :: Usages.Usages
+  , _ctxtRelaxed :: Bool
   -- ^ Whether to float-in more aggressively. See Note [Float-in] #6
   }
 
 makeLenses ''FloatInContext
 
-floatTermPassSC ::
-    forall m uni fun a.
-    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
-    , PLC.MonadQuote m
-    ) =>
-    TC.PirTCConfig uni fun ->
-    BuiltinsInfo uni fun ->
-    Bool ->
-    Pass m TyName Name uni fun a
+floatTermPassSC
+  :: forall m uni fun a
+   . ( PLC.Typecheckable uni fun
+     , PLC.GEq uni
+     , Ord a
+     , PLC.MonadQuote m
+     )
+  => TC.PirTCConfig uni fun
+  -> BuiltinsInfo uni fun
+  -> Bool
+  -> Pass m TyName Name uni fun a
 floatTermPassSC tcconfig binfo relaxed =
-    renamePass <> floatTermPass tcconfig binfo relaxed
+  renamePass <> floatTermPass tcconfig binfo relaxed
 
-floatTermPass ::
-    forall m uni fun a.
-    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
-    , Applicative m
-    ) =>
-    TC.PirTCConfig uni fun ->
-    BuiltinsInfo uni fun ->
-    -- | Whether to float-in more aggressively. See Note [Float-in] #6
-    Bool ->
-    Pass m TyName Name uni fun a
+floatTermPass
+  :: forall m uni fun a
+   . ( PLC.Typecheckable uni fun
+     , PLC.GEq uni
+     , Ord a
+     , Applicative m
+     )
+  => TC.PirTCConfig uni fun
+  -> BuiltinsInfo uni fun
+  -> Bool
+  -- ^ Whether to float-in more aggressively. See Note [Float-in] #6
+  -> Pass m TyName Name uni fun a
 floatTermPass tcconfig binfo relaxed =
   NamedPass "let float-in" $
     Pass
@@ -211,32 +215,32 @@ floatTermPass tcconfig binfo relaxed =
       [ConstCondition (Typechecks tcconfig)]
 
 -- | Float bindings in the given `Term` inwards.
-floatTerm ::
-  forall tyname name uni fun a.
-  ( PLC.HasUnique name PLC.TermUnique
-  , PLC.HasUnique tyname PLC.TypeUnique
-  , PLC.ToBuiltinMeaning uni fun
-  ) =>
-  BuiltinsInfo uni fun ->
-  -- | Whether to float-in more aggressively. See Note [Float-in] #6
-  Bool ->
-  Term tyname name uni fun a ->
-  Term tyname name uni fun a
+floatTerm
+  :: forall tyname name uni fun a
+   . ( PLC.HasUnique name PLC.TermUnique
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.ToBuiltinMeaning uni fun
+     )
+  => BuiltinsInfo uni fun
+  -> Bool
+  -- ^ Whether to float-in more aggressively. See Note [Float-in] #6
+  -> Term tyname name uni fun a
+  -> Term tyname name uni fun a
 floatTerm binfo relaxed t0 =
   fmap fst $ floatTermInner (Usages.termUsages t0) (termVarInfo t0) t0
   where
-    floatTermInner ::
-      Usages.Usages ->
-      VarsInfo tyname name uni a ->
-      Term tyname name uni fun a ->
-      Term tyname name uni fun (a, Uniques)
+    floatTermInner
+      :: Usages.Usages
+      -> VarsInfo tyname name uni a
+      -> Term tyname name uni fun a
+      -> Term tyname name uni fun (a, Uniques)
     floatTermInner usgs vinfo = go
       where
         -- Float bindings in the given `Term` inwards, and annotate each term with the set of
         -- `Unique`s of used variables in the `Term`.
-        go ::
-          Term tyname name uni fun a ->
-          Term tyname name uni fun (a, Uniques)
+        go
+          :: Term tyname name uni fun a
+          -> Term tyname name uni fun (a, Uniques)
         go t = case t of
           Apply a fun0 arg0 ->
             let fun = go fun0
@@ -301,14 +305,14 @@ floatTerm binfo relaxed t0 =
               us = typeUniqs ty <> termUniqs arg <> foldMap termUniqs cs
              in
               Case (a, us) ty arg cs
-          Constant{} -> noUniq t
-          Builtin{} -> noUniq t
+          Constant {} -> noUniq t
+          Builtin {} -> noUniq t
 
         -- Float bindings in the given `Binding` inwards, and calculate the set of
         -- `Unique`s of used variables in the result `Binding`.
-        goBinding ::
-          Binding tyname name uni fun a ->
-          Binding tyname name uni fun (a, Uniques)
+        goBinding
+          :: Binding tyname name uni fun a
+          -> Binding tyname name uni fun (a, Uniques)
         goBinding = \case
           TermBind a s var0 rhs0 ->
             let var = goVarDecl var0
@@ -382,44 +386,43 @@ bindingUniqs = snd . bindingAnn
 varDeclUniqs :: VarDecl tyname name uni (a, Uniques) -> Uniques
 varDeclUniqs = snd . view PLC.varDeclAnn
 
-noUniq :: (Functor f) => f a -> f (a, Uniques)
+noUniq :: Functor f => f a -> f (a, Uniques)
 noUniq = fmap (,mempty)
 
 -- See Note [Float-in] #1
 floatable
-    :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
-    => BuiltinsInfo uni fun
-    -> VarsInfo tyname name uni a
-    -> Binding tyname name uni fun a
-    -> Bool
+  :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+  => BuiltinsInfo uni fun
+  -> VarsInfo tyname name uni a
+  -> Binding tyname name uni fun a
+  -> Bool
 floatable binfo vinfo = \case
   -- See Note [Float-in] #1
-  TermBind _a Strict _var rhs     -> isWorkFree binfo vinfo rhs
+  TermBind _a Strict _var rhs -> isWorkFree binfo vinfo rhs
   TermBind _a NonStrict _var _rhs -> True
   -- See Note [Float-in] #2
-  TypeBind{}                      -> True
+  TypeBind {} -> True
   -- See Note [Float-in] #2
-  DatatypeBind{}                  -> True
+  DatatypeBind {} -> True
 
-{- | Given a `Term` and a `Binding`, determine whether the `Binding` can be
+{-| Given a `Term` and a `Binding`, determine whether the `Binding` can be
  placed somewhere inside the `Term`.
 
  If yes, return the result `Term`. Otherwise, return a `Let` constructed from
- the given `Binding` and `Term`.
--}
-floatInBinding ::
-  forall tyname name uni fun a.
-  ( PLC.HasUnique name PLC.TermUnique
-  , PLC.HasUnique tyname PLC.TypeUnique
-  , PLC.ToBuiltinMeaning uni fun
-  ) =>
-  BuiltinsInfo uni fun ->
-  VarsInfo tyname name uni a ->
-  -- | Annotation to be attached to the constructed `Let`.
-  a ->
-  Binding tyname name uni fun (a, Uniques) ->
-  Term tyname name uni fun (a, Uniques) ->
-  Reader FloatInContext (Term tyname name uni fun (a, Uniques))
+ the given `Binding` and `Term`. -}
+floatInBinding
+  :: forall tyname name uni fun a
+   . ( PLC.HasUnique name PLC.TermUnique
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.ToBuiltinMeaning uni fun
+     )
+  => BuiltinsInfo uni fun
+  -> VarsInfo tyname name uni a
+  -> a
+  -- ^ Annotation to be attached to the constructed `Let`.
+  -> Binding tyname name uni fun (a, Uniques)
+  -> Term tyname name uni fun (a, Uniques)
+  -> Reader FloatInContext (Term tyname name uni fun (a, Uniques))
 floatInBinding binfo vinfo letAnn = \b ->
   if floatable binfo vinfo (fmap fst b)
     then go b
@@ -427,10 +430,10 @@ floatInBinding binfo vinfo letAnn = \b ->
       let us = termUniqs body <> bindingUniqs b
        in pure $ Let (letAnn, us) NonRec (pure b) body
   where
-    go ::
-      Binding tyname name uni fun (a, Uniques) ->
-      Term tyname name uni fun (a, Uniques) ->
-      Reader FloatInContext (Term tyname name uni fun (a, Uniques))
+    go
+      :: Binding tyname name uni fun (a, Uniques)
+      -> Term tyname name uni fun (a, Uniques)
+      -> Reader FloatInContext (Term tyname name uni fun (a, Uniques))
     go b !body = case body of
       Apply (a, usBody) fun arg
         | Set.disjoint declaredUniqs (termUniqs fun) -> do
@@ -441,7 +444,7 @@ floatInBinding binfo vinfo letAnn = \b ->
             let inManyOccRhs = case fun of
                   LamAbs _ name _ _ ->
                     Usages.getUsageCount name usgs > 1
-                  Builtin{} -> False
+                  Builtin {} -> False
                   -- We need to be conservative here, this could be something
                   -- that computes to a function that uses its argument repeatedly.
                   _ -> True
@@ -544,13 +547,12 @@ floatInBinding binfo vinfo letAnn = \b ->
         declaredUniqs = Set.fromList $ b ^.. bindingIds
         usBind = bindingUniqs b
 
-{- |
+{-|
 Search the given list of elements for the unique one whose 'Uniques' are non-disjoint
-with the given 'Uniques'. Then, split the list at that point.
--}
+with the given 'Uniques'. Then, split the list at that point. -}
 findNonDisjoint :: Uniques -> [t] -> (t -> Uniques) -> Maybe ([t], t, [t])
 findNonDisjoint us bs getUniques = case is of
   [(t, i)] -> Just (take i bs, t, drop (i + 1) bs)
-  _        -> Nothing
+  _ -> Nothing
   where
     is = List.filter (\(t, _) -> not $ getUniques t `Set.disjoint` us) (bs `zip` [0 ..])

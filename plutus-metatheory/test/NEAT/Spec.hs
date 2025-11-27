@@ -20,9 +20,18 @@ import Test.Tasty.HUnit
 import UntypedPlutusCore qualified as U
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
-import MAlonzo.Code.Evaluator.Term (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                                    normalizeTypeAgda, normalizeTypeTermAgda, runTCEKAgda,
-                                    runTCKAgda, runTLAgda, runUAgda)
+import MAlonzo.Code.Evaluator.Term
+  ( checkKindAgda
+  , checkTypeAgda
+  , inferKindAgda
+  , inferTypeAgda
+  , normalizeTypeAgda
+  , normalizeTypeTermAgda
+  , runTCEKAgda
+  , runTCKAgda
+  , runTLAgda
+  , runUAgda
+  )
 import PlutusCore.DeBruijn
 import Raw hiding (TypeError, tynames)
 
@@ -32,16 +41,20 @@ main :: IO ()
 main = defaultMain allTests
 
 allTests :: TestTree
-allTests = testGroup "NEAT"
-  [ localOption (GenDepth 12) $
-    bigTest "type-level"
-      (Type ())
-      (packAssertion prop_Type)
-  , localOption (GenDepth 18) $
-    bigTest "term-level"
-      (TyBuiltinG TyUnitG)
-      (packAssertion prop_Term)
-  ]
+allTests =
+  testGroup
+    "NEAT"
+    [ localOption (GenDepth 12) $
+        bigTest
+          "type-level"
+          (Type ())
+          (packAssertion prop_Type)
+    , localOption (GenDepth 18) $
+        bigTest
+          "term-level"
+          (TyBuiltinG TyUnitG)
+          (packAssertion prop_Term)
+    ]
 
 -- one type-level test to rule them all
 prop_Type :: Kind () -> ClosedTypeG -> ExceptT TestFail Quote ()
@@ -54,11 +67,14 @@ prop_Type k tyG = do
   tyDB <- withExceptT FVErrorP $ deBruijnTy ty
 
   -- 1. check soundness of Agda kindchecker with respect to NEAT:
-  withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
-    checkKindAgda tyDB (convK k)
+  withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
+    liftEither $
+      checkKindAgda tyDB (convK k)
   -- infer kind using Agda kind inferer:
-  k1a <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
-    liftEither $ inferKindAgda tyDB
+  k1a <-
+    withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
+      liftEither $
+        inferKindAgda tyDB
   let k1 = unconvK k1a
   -- infer kind using production kind inferer:
   k2 <- withExceptT TypeError $ inferKind defKindCheckConfig ty
@@ -67,14 +83,16 @@ prop_Type k tyG = do
   unless (k1 == k2) $
     throwCtrex (CtrexKindMismatch k tyG k1 k2)
 
-
   -- normalize type using Agda type normalizer:
-  ty' <- withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
-    liftEither $ normalizeTypeAgda tyDB
+  ty' <-
+    withExceptT (const $ Ctrex (CtrexTypeNormalizationFail k tyG)) $
+      liftEither $
+        normalizeTypeAgda tyDB
 
   -- 3. check that the Agda type normalizer doesn't mange the kind:
   withExceptT (const $ Ctrex (CtrexKindPreservationFail k tyG)) $
-    liftEither $ checkKindAgda ty' (convK k)
+    liftEither $
+      checkKindAgda ty' (convK k)
 
   -- convert Agda normalized type back to named notation:
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy ty'
@@ -84,8 +102,6 @@ prop_Type k tyG = do
   -- 4. check the Agda type normalizer agrees with the NEAT type normalizer:
   unless (ty1 == ty2) $
     throwCtrex (CtrexNormalizeConvertCommuteTypes k tyG ty1 ty2)
-
-
 
 -- one term-level test to rule them all
 prop_Term :: ClosedTypeG -> ClosedTermG -> ExceptT TestFail Quote ()
@@ -100,26 +116,33 @@ prop_Term tyG tmG = do
   tmDB <- withExceptT FVErrorP $ deBruijnTerm tm
 
   -- 1. check the term in the type
-  withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $ liftEither $
-    checkTypeAgda tyDB tmDB
+  withExceptT (const $ Ctrex (CtrexTypeCheckFail tyG tmG)) $
+    liftEither $
+      checkTypeAgda tyDB tmDB
 
   -- 2. run production CK against metatheory CK
-  tmPlcCK <- withExceptT CkP $ liftEither $
-    evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def tm `catchError` handleError ty
-  tmCK <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "0" tyG tmG)) $
-    liftEither $ runTCKAgda tmDB
+  tmPlcCK <-
+    withExceptT CkP $
+      liftEither $
+        evaluateCkNoEmit defaultBuiltinsRuntimeForTesting def tm `catchError` handleError ty
+  tmCK <-
+    withExceptT (const $ Ctrex (CtrexTermEvaluationFail "0" tyG tmG)) $
+      liftEither $
+        runTCKAgda tmDB
   tmCKN <- withExceptT FVErrorP $ unDeBruijnTerm tmCK
   unless (tmPlcCK == tmCKN) $
-    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [("prod CK",tmPlcCK),("meta CK",tmCKN)])
+    throwCtrex (CtrexTermEvaluationMismatch tyG tmG [("prod CK", tmPlcCK), ("meta CK", tmCKN)])
 
   -- 3. run all the metatheory evaluators against each other. Taking
   -- care to normalize the types in the output of runCKAgda. The other
   -- versions return terms with already normalized types.
-  let namedEvs = [("meta red",runTLAgda),("meta CK",runTCKAgda),("meta CEK",runTCEKAgda)]
-  let (ss,evs) = unzip namedEvs
+  let namedEvs = [("meta red", runTLAgda), ("meta CK", runTCKAgda), ("meta CEK", runTCEKAgda)]
+  let (ss, evs) = unzip namedEvs
   let tmEvsM = map ($ tmDB) evs
-  tmEvs <- withExceptT (const $ Ctrex (CtrexTermEvaluationFail "typed" tyG tmG)) $
-    liftEither $ sequence tmEvsM
+  tmEvs <-
+    withExceptT (const $ Ctrex (CtrexTermEvaluationFail "typed" tyG tmG)) $
+      liftEither $
+        sequence tmEvsM
   tmEvsN <- withExceptT FVErrorP $ traverse unDeBruijnTerm tmEvs
 
   unless (length (nub tmEvsN) == 1) $ throwCtrex (CtrexTermEvaluationMismatch tyG tmG (zip ss tmEvsN))
@@ -131,23 +154,29 @@ prop_Term tyG tmG = do
   tmUDB <- withExceptT FVErrorP $ U.deBruijnTerm tmU
   -- reduce the untyped term
   tmUDB' <- case runUAgda tmUDB of
-      Left (RuntimeError UserError) -> pure $ U.Error ()
-      _ -> withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG))
-          $ liftEither $ runUAgda tmUDB
+    Left (RuntimeError UserError) -> pure $ U.Error ()
+    _ ->
+      withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "untyped CEK" tyG tmG)) $
+        liftEither $
+          runUAgda tmUDB
   -- turn it back into a named term
   tmU' <- withExceptT FVErrorP $ U.unDeBruijnTerm tmUDB'
   -- reduce the original de Bruijn typed term
-  tmDB'' <- withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG)) $
-    liftEither $ runTCEKAgda tmDB
+  tmDB'' <-
+    withExceptT (\e -> Ctrex (CtrexTermEvaluationFail "typed CEK" tyG tmG)) $
+      liftEither $
+        runTCEKAgda tmDB
   -- turn it back into a named term
   tm'' <- withExceptT FVErrorP $ unDeBruijnTerm tmDB''
   -- erase it after the fact
   let tmU'' = eraseTerm tm''
   unless (tmU' == tmU'') $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce" , tmU'),("reduce;erase" , tmU'')])
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("erase;reduce", tmU'), ("reduce;erase", tmU'')])
 
   -- 4. run prod untyped CEK against meta untyped CEK
-  tmU''' <- withExceptT UCekP $ liftEither $
-    U.evaluateCekNoEmit defaultCekParametersForTesting tmU'' `catchError` handleUError
+  tmU''' <-
+    withExceptT UCekP $
+      liftEither $
+        U.evaluateCekNoEmit defaultCekParametersForTesting tmU'' `catchError` handleUError
   unless (tmU' == tmU''') $
-    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("meta U" , tmU'),("prod U" , tmU'')])
+    throwCtrex (CtrexUntypedTermEvaluationMismatch tyG tmG [("meta U", tmU'), ("prod U", tmU'')])

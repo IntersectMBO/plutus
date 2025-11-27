@@ -4,8 +4,11 @@ module Shared where
 import Criterion.Main (Benchmark, Benchmarkable, bench, bgroup, defaultMainWith)
 
 import PlutusBenchmark.Common (Program, getConfig)
-import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
-                                          semanticsBenchmarks)
+import PlutusBenchmark.Marlowe.BenchUtil
+  ( benchmarkToUPLC
+  , rolePayoutBenchmarks
+  , semanticsBenchmarks
+  )
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Types qualified as M
@@ -17,7 +20,7 @@ mkBenchmarkable
   -> CompiledCode a
   -> M.Benchmark
   -> (String, Benchmarkable)
-mkBenchmarkable benchmarker validator bm@M.Benchmark{..} =
+mkBenchmarkable benchmarker validator bm@M.Benchmark {..} =
   let benchName = show $ txInfoId $ scriptContextTxInfo bScriptContext
    in (benchName, benchmarker $ benchmarkToUPLC validator bm)
 

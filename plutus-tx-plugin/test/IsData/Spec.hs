@@ -1,24 +1,24 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module IsData.Spec where
 
@@ -134,10 +134,11 @@ tests =
       , assertResult
           "tupleInterop"
           ( unsafeApplyCodeN
-              ( plc (Proxy @"tupleInterop")
+              ( plc
+                  (Proxy @"tupleInterop")
                   ( \(d :: P.BuiltinData) ->
                       case IsData.fromBuiltinData d of
-                        Just t  -> t P.== (1 :: Integer, 2 :: Integer)
+                        Just t -> t P.== (1 :: Integer, 2 :: Integer)
                         Nothing -> False
                   )
               )
@@ -146,9 +147,10 @@ tests =
       , assertResult
           "unsafeTupleInterop"
           ( unsafeApplyCodeN
-              ( plc (Proxy @"unsafeTupleInterop")
-                  (\(d :: P.BuiltinData) ->
-                     IsData.unsafeFromBuiltinData d P.== (1 :: Integer, 2 :: Integer)
+              ( plc
+                  (Proxy @"unsafeTupleInterop")
+                  ( \(d :: P.BuiltinData) ->
+                      IsData.unsafeFromBuiltinData d P.== (1 :: Integer, 2 :: Integer)
                   )
               )
               (plc (Proxy @"unsafeTupleInteropArg") (P.toBuiltinData (1 :: Integer, 2 :: Integer)))
@@ -157,11 +159,12 @@ tests =
       , assertResult
           "unitInterop"
           ( unsafeApplyCodeN
-              ( plc (Proxy @"unitInterop")
-                  (\(d :: P.BuiltinData) ->
-                     case IsData.fromBuiltinData d of
-                       Just t  -> t P.== ()
-                       Nothing -> False
+              ( plc
+                  (Proxy @"unitInterop")
+                  ( \(d :: P.BuiltinData) ->
+                      case IsData.fromBuiltinData d of
+                        Just t -> t P.== ()
+                        Nothing -> False
                   )
               )
               (plc (Proxy @"unitInteropArg") (P.toBuiltinData ()))
@@ -170,13 +173,18 @@ tests =
       , assertResult "poly" (plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1 :: Integer) (2 :: Integer))))
       , assertResult "record" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2)))
       , assertResult "recordAsList" (plc (Proxy @"record") (isDataRoundtrip (MyMonoRecordAsList 1 2)))
-      , assertResult "recordAsList is List"
-          (plc (Proxy @"record") (
-              P.toBuiltinData (MyMonoRecordAsList 1 2)
-              P.== (BI.mkList $
-                      BI.mkCons (P.toBuiltinData @Integer 1) $
-                      BI.mkCons (P.toBuiltinData @Integer 2) $
-                      BI.mkNilData BI.unitval)))
+      , assertResult
+          "recordAsList is List"
+          ( plc
+              (Proxy @"record")
+              ( P.toBuiltinData (MyMonoRecordAsList 1 2)
+                  P.== ( BI.mkList $
+                           BI.mkCons (P.toBuiltinData @Integer 1) $
+                             BI.mkCons (P.toBuiltinData @Integer 2) $
+                               BI.mkNilData BI.unitval
+                       )
+              )
+          )
       , assertResult "list" (plc (Proxy @"list") (isDataRoundtrip ([1] :: [Integer])))
       , assertResult "nested" (plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2)))))
       , assertResult
@@ -185,7 +193,8 @@ tests =
       , goldenPirReadable "deconstructData" deconstructData
       , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
       , goldenPirReadable "matchAsData" matchAsData
-      , goldenUEval "matchAsDataE"
+      , goldenUEval
+          "matchAsDataE"
           [ unsafeApplyCodeN
               matchAsData
               (plc (Proxy @"test") (P.unsafeFromBuiltinData $ P.toBuiltinData $ SecondC 3))
@@ -194,7 +203,8 @@ tests =
       , goldenPirReadable "dataToData" dataToData
       , goldenPirReadable "equalityAsData" equalityAsData
       , goldenPirReadable "fieldAccessor" fieldAccessor
-      , goldenPirReadable "MyMonoRecordAsListToData"
+      , goldenPirReadable
+          "MyMonoRecordAsListToData"
           (plc (Proxy @"MyMonoRecordAsListToData") (IsData.toBuiltinData @MyMonoRecordAsList))
       , $(goldenCodeGen "MyMonoRecordAsList" (IsData.makeIsDataAsList ''MyMonoRecord))
       , $(goldenCodeGen "MyMonoRecord" (IsData.unstableMakeIsData ''MyMonoRecord))

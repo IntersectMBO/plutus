@@ -140,116 +140,121 @@
 
  if both @x@ and @y@ are pure and work-free.
 -}
-{-# LANGUAGE LambdaCase    #-}
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE ViewPatterns  #-}
+{-# LANGUAGE ViewPatterns #-}
+
 module UntypedPlutusCore.Transform.ForceDelay
-    ( forceDelay
-    ) where
+  ( forceDelay
+  ) where
 
 import PlutusCore.Builtin (BuiltinSemanticsVariant)
 import PlutusCore.Default (DefaultFun (IfThenElse), DefaultUni)
 import PlutusCore.MkPlc (mkIterApp)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isPure, isWorkFree)
-import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (ForceDelay), SimplifierT,
-                                               recordSimplification)
+import UntypedPlutusCore.Transform.Simplifier
+  ( SimplifierStage (ForceDelay)
+  , SimplifierT
+  , recordSimplification
+  )
 
 import Control.Lens (transformOf)
 import Control.Monad (guard)
 import Data.Foldable as Foldable (foldl')
 
-{- | Traverses the term, for each node applying the optimisation
- detailed above. For implementation details see 'optimisationProcedure'.
--}
+{-| Traverses the term, for each node applying the optimisation
+ detailed above. For implementation details see 'optimisationProcedure'. -}
 forceDelay
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
-    => BuiltinSemanticsVariant fun
-    -> Term name uni fun a
-    -> SimplifierT name uni fun a m (Term name uni fun a)
+  :: (uni ~ DefaultUni, fun ~ DefaultFun, Monad m)
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun a
+  -> SimplifierT name uni fun a m (Term name uni fun a)
 forceDelay semVar term = do
-    let result = transformOf termSubterms (processTerm semVar) term
-    recordSimplification term ForceDelay result
-    return result
+  let result = transformOf termSubterms (processTerm semVar) term
+  recordSimplification term ForceDelay result
+  return result
 
-{- | Checks whether the term is of the right form, and "pushes"
- the 'Force' down into the underlying lambda abstractions.
--}
+{-| Checks whether the term is of the right form, and "pushes"
+ the 'Force' down into the underlying lambda abstractions. -}
 processTerm
-    :: (uni ~ DefaultUni, fun ~ DefaultFun)
-    => BuiltinSemanticsVariant fun -> Term name uni fun a -> Term name uni fun a
+  :: (uni ~ DefaultUni, fun ~ DefaultFun)
+  => BuiltinSemanticsVariant fun -> Term name uni fun a -> Term name uni fun a
 processTerm semVar = \case
-    Force _ (Delay _ t) -> t
-    -- Remove @Delay@s from @ifThenElse@ branches if the latter is @Force@d and the delayed term are
-    -- pure and work-free anyway.
-    Force _ (splitApplication ->
+  Force _ (Delay _ t) -> t
+  -- Remove @Delay@s from @ifThenElse@ branches if the latter is @Force@d and the delayed term are
+  -- pure and work-free anyway.
+  Force
+    _
+    ( splitApplication ->
         ( forceIfThenElse@(Force _ (Builtin _ IfThenElse))
-        , [cond, (trueAnn, (Delay _ trueAlt)), (falseAnn, (Delay _ falseAlt))]
-        )) | all (\alt -> isPure semVar alt && isWorkFree semVar alt) [trueAlt, falseAlt] ->
-            mkIterApp
-                forceIfThenElse
-                [cond, (trueAnn, trueAlt), (falseAnn, falseAlt)]
-    original@(Force _ subTerm) ->
-        case optimisationProcedure subTerm of
-            Just result -> result
-            Nothing     -> original
-    t -> t
+          , [cond, (trueAnn, (Delay _ trueAlt)), (falseAnn, (Delay _ falseAlt))]
+          )
+      )
+      | all (\alt -> isPure semVar alt && isWorkFree semVar alt) [trueAlt, falseAlt] ->
+          mkIterApp
+            forceIfThenElse
+            [cond, (trueAnn, trueAlt), (falseAnn, falseAlt)]
+  original@(Force _ subTerm) ->
+    case optimisationProcedure subTerm of
+      Just result -> result
+      Nothing -> original
+  t -> t
 
-{- | Converts the subterm of a 'Force' into specialised types for representing
+{-| Converts the subterm of a 'Force' into specialised types for representing
  multiple applications on top of multiple abstractions. Checks whether the lambda
  will eventually get "exactly reduced" and applies the optimisation.
- Returns 'Nothing' if the optimisation cannot be applied.
--}
+ Returns 'Nothing' if the optimisation cannot be applied. -}
 optimisationProcedure :: Term name uni fun a -> Maybe (Term name uni fun a)
 optimisationProcedure term = do
-    asMultiApply <- toMultiApply term
-    innerMultiAbs <- toMultiAbs . appHead $ asMultiApply
-    guard $ length (appSpineRev asMultiApply) == length (absVars innerMultiAbs)
-    case absRhs innerMultiAbs of
-        Delay _ subTerm ->
-            let optimisedInnerMultiAbs = innerMultiAbs { absRhs = subTerm}
-                optimisedMultiApply =
-                    asMultiApply { appHead = fromMultiAbs optimisedInnerMultiAbs }
-            in pure . fromMultiApply $ optimisedMultiApply
-        _               -> Nothing
+  asMultiApply <- toMultiApply term
+  innerMultiAbs <- toMultiAbs . appHead $ asMultiApply
+  guard $ length (appSpineRev asMultiApply) == length (absVars innerMultiAbs)
+  case absRhs innerMultiAbs of
+    Delay _ subTerm ->
+      let optimisedInnerMultiAbs = innerMultiAbs {absRhs = subTerm}
+          optimisedMultiApply =
+            asMultiApply {appHead = fromMultiAbs optimisedInnerMultiAbs}
+       in pure . fromMultiApply $ optimisedMultiApply
+    _ -> Nothing
 
 data MultiApply name uni fun a = MultiApply
-    { appHead     :: Term name uni fun a
-    , appSpineRev :: [(a, Term name uni fun a)]
-    }
+  { appHead :: Term name uni fun a
+  , appSpineRev :: [(a, Term name uni fun a)]
+  }
 
 toMultiApply :: Term name uni fun a -> Maybe (MultiApply name uni fun a)
 toMultiApply term =
-    case term of
-        Apply _ _ _ -> run [] term
-        _           -> Nothing
+  case term of
+    Apply _ _ _ -> run [] term
+    _ -> Nothing
   where
     run acc (Apply a t1 t2) =
-        run ((a, t2) : acc) t1
+      run ((a, t2) : acc) t1
     run acc t =
-        pure $ MultiApply t acc
+      pure $ MultiApply t acc
 
 fromMultiApply :: MultiApply name uni fun a -> Term name uni fun a
 fromMultiApply (MultiApply term ts) =
-    Foldable.foldl' (\acc (ann, arg) -> Apply ann acc arg) term ts
+  Foldable.foldl' (\acc (ann, arg) -> Apply ann acc arg) term ts
 
 data MultiAbs name uni fun a = MultiAbs
-    { absVars :: [(a, name)]
-    , absRhs  :: Term name uni fun a
-    }
+  { absVars :: [(a, name)]
+  , absRhs :: Term name uni fun a
+  }
 
 toMultiAbs :: Term name uni fun a -> Maybe (MultiAbs name uni fun a)
 toMultiAbs term =
-    case term of
-        LamAbs _ _ _ -> run [] term
-        _            -> Nothing
+  case term of
+    LamAbs _ _ _ -> run [] term
+    _ -> Nothing
   where
     run acc (LamAbs a name t) =
-        run ((a, name) : acc) t
+      run ((a, name) : acc) t
     run acc t =
-        pure $ MultiAbs acc t
+      pure $ MultiAbs acc t
 
 fromMultiAbs :: MultiAbs name uni fun a -> Term name uni fun a
 fromMultiAbs (MultiAbs vars term) =
-    Foldable.foldl' (\acc (ann, name) -> LamAbs ann name acc) term vars
+  Foldable.foldl' (\acc (ann, name) -> LamAbs ann name acc) term vars

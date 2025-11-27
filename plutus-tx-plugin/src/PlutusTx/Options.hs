@@ -1,12 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE StrictData        #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE StrictData #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 
 module PlutusTx.Options where
 
@@ -40,43 +40,43 @@ import Text.Read (readMaybe)
 import Type.Reflection
 
 data PluginOptions = PluginOptions
-  { _posPlcTargetVersion               :: PLC.Version
-  , _posDoTypecheck                    :: Bool
-  , _posDeferErrors                    :: Bool
-  , _posConservativeOpts               :: Bool
-  , _posContextLevel                   :: Int
-  , _posDumpPir                        :: Bool
-  , _posDumpPlc                        :: Bool
-  , _posDumpUPlc                       :: Bool
-  , _posOptimize                       :: Bool
-  , _posPedantic                       :: Bool
-  , _posVerbosity                      :: Verbosity
-  , _posDatatypes                      :: PIR.DatatypeCompilationOpts
-  , _posMaxSimplifierIterationsPir     :: Int
-  , _posMaxSimplifierIterationsUPlc    :: Int
-  , _posMaxCseIterations               :: Int
-  , _posDoSimplifierUnwrapCancel       :: Bool
-  , _posDoSimplifierBeta               :: Bool
-  , _posDoSimplifierInline             :: Bool
-  , _posDoSimplifierEvaluateBuiltins   :: Bool
-  , _posDoSimplifierStrictifyBindings  :: Bool
+  { _posPlcTargetVersion :: PLC.Version
+  , _posDoTypecheck :: Bool
+  , _posDeferErrors :: Bool
+  , _posConservativeOpts :: Bool
+  , _posContextLevel :: Int
+  , _posDumpPir :: Bool
+  , _posDumpPlc :: Bool
+  , _posDumpUPlc :: Bool
+  , _posOptimize :: Bool
+  , _posPedantic :: Bool
+  , _posVerbosity :: Verbosity
+  , _posDatatypes :: PIR.DatatypeCompilationOpts
+  , _posMaxSimplifierIterationsPir :: Int
+  , _posMaxSimplifierIterationsUPlc :: Int
+  , _posMaxCseIterations :: Int
+  , _posDoSimplifierUnwrapCancel :: Bool
+  , _posDoSimplifierBeta :: Bool
+  , _posDoSimplifierInline :: Bool
+  , _posDoSimplifierEvaluateBuiltins :: Bool
+  , _posDoSimplifierStrictifyBindings :: Bool
   , _posDoSimplifierRemoveDeadBindings :: Bool
-  , _posProfile                        :: ProfileOpts
-  , _posCoverageAll                    :: Bool
-  , _posCoverageLocation               :: Bool
-  , _posCoverageBoolean                :: Bool
-  , _posRelaxedFloatin                 :: Bool
-  , _posCaseOfCaseConservative         :: Bool
-  , _posInlineCallsiteGrowth           :: Int
-  , _posInlineConstants                :: Bool
-  , _posInlineFix                      :: Bool
-  , _posPreserveLogging                :: Bool
+  , _posProfile :: ProfileOpts
+  , _posCoverageAll :: Bool
+  , _posCoverageLocation :: Bool
+  , _posCoverageBoolean :: Bool
+  , _posRelaxedFloatin :: Bool
+  , _posCaseOfCaseConservative :: Bool
+  , _posInlineCallsiteGrowth :: Int
+  , _posInlineConstants :: Bool
+  , _posInlineFix :: Bool
+  , _posPreserveLogging :: Bool
   -- ^ Whether to try and retain the logging behaviour of the program.
   , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
     -- Which effectively ignores the trace text.
-    _posRemoveTrace                    :: Bool
-  , _posDumpCompilationTrace           :: Bool
-  , _posCaseApply                      :: Bool
+    _posRemoveTrace :: Bool
+  , _posDumpCompilationTrace :: Bool
+  , _posCaseApply :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -90,22 +90,20 @@ data Implication a = forall b. Implication (a -> Bool) (Lens' PluginOptions b) b
 -- | A plugin option definition for a `PluginOptions` field of type @a@.
 data PluginOption
   = forall a.
-  (Pretty a) =>
+  Pretty a =>
   PluginOption
-  { poTypeRep      :: TypeRep a
+  { poTypeRep :: TypeRep a
   -- ^ `TypeRep` used for pretty printing the option.
-  , poFun          :: Maybe OptionValue -> Validation ParseError (a -> a)
+  , poFun :: Maybe OptionValue -> Validation ParseError (a -> a)
   -- ^ Consumes an optional value, and either updates the field or reports an error.
-  , poLens         :: Lens' PluginOptions a
-  {- ^ Lens focusing on the field. This is for modifying the field, as well as
-  getting the field value from `defaultPluginOptions` for pretty printing.
-  -}
-  , poDescription  :: Text
+  , poLens :: Lens' PluginOptions a
+  {-^ Lens focusing on the field. This is for modifying the field, as well as
+  getting the field value from `defaultPluginOptions` for pretty printing. -}
+  , poDescription :: Text
   -- ^ A description of the option.
   , poImplications :: [Implication a]
-  {- ^ Implications of this option being set to a particular value.
-  An option should not imply itself.
-  -}
+  {-^ Implications of this option being set to a particular value.
+  An option should not imply itself. -}
   }
 
 data ParseError
@@ -144,7 +142,7 @@ renderParseError = \case
   UnrecognisedOption k suggs ->
     "Unrecognised option: " <> Text.pack (show k) <> "." <> case suggs of
       [] -> ""
-      _  -> "\nDid you mean one of:\n" <> Text.intercalate "\n" suggs
+      _ -> "\nDid you mean one of:\n" <> Text.intercalate "\n" suggs
 
 -- | Definition of plugin options.
 pluginOptions :: Map OptionKey PluginOption
@@ -330,12 +328,12 @@ setTrue = flag (const True)
 plcParserOption :: PLC.Parser a -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 plcParserOption p k = \case
   Just t -> case PLC.runQuoteT $ PLC.parse p "none" t of
-    Right v                            -> Success $ const v
+    Right v -> Success $ const v
     -- TODO: use the error
     Left (_e :: PLC.ParserErrorBundle) -> Failure $ CannotParseValue k t (someTypeRep (Proxy @Int))
   Nothing -> Failure $ MissingValue k
 
-readOption :: (Read a) => OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
+readOption :: Read a => OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
 readOption k = \case
   Just v
     | Just i <- readMaybe (Text.unpack v) -> Success $ const i
@@ -344,7 +342,7 @@ readOption k = \case
 
 -- | Obtain an option value of type @a@ from an `Int`.
 fromReadOption
-  :: (Read a)
+  :: Read a
   => OptionKey
   -> (a -> Validation ParseError b)
   -> Maybe OptionValue
@@ -434,7 +432,6 @@ toKeyValue opt = case List.elemIndex '=' opt of
      in (Text.pack lhs, Just (Text.pack (drop 1 rhs)))
 
 {-| Parses the arguments that were given to ghc at commandline as
- "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val"
--}
+ "-fplugin-opt PlutusTx.Plugin:opt" or "-fplugin-opt PlutusTx.Plugin:opt=val" -}
 parsePluginOptions :: [GHC.CommandLineOption] -> Validation ParseErrors PluginOptions
 parsePluginOptions = fmap (foldl' (flip ($)) defaultPluginOptions) . processAll . fmap toKeyValue

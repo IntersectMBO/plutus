@@ -1,26 +1,26 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module PlutusLedgerApi.Common.SerialisedScript (
-  SerialisedScript,
-  serialiseCompiledCode,
-  serialiseUPLC,
-  uncheckedDeserialiseUPLC,
-  scriptCBORDecoder,
-  ScriptNamedDeBruijn (..),
-  ScriptForEvaluation, -- Do not export data constructor
-  ScriptDecodeError (..),
-  AsScriptDecodeError (..),
-  DeserialiseFailureInfo (..),
-  DeserialiseFailureReason (..),
-  deserialiseScript,
-  serialisedScript,
-  deserialisedScript,
-) where
+module PlutusLedgerApi.Common.SerialisedScript
+  ( SerialisedScript
+  , serialiseCompiledCode
+  , serialiseUPLC
+  , uncheckedDeserialiseUPLC
+  , scriptCBORDecoder
+  , ScriptNamedDeBruijn (..)
+  , ScriptForEvaluation -- Do not export data constructor
+  , ScriptDecodeError (..)
+  , AsScriptDecodeError (..)
+  , DeserialiseFailureInfo (..)
+  , DeserialiseFailureReason (..)
+  , deserialiseScript
+  , serialisedScript
+  , deserialisedScript
+  ) where
 
 import PlutusCore
 import PlutusLedgerApi.Common.Versions
@@ -54,24 +54,24 @@ import Prettyprinter
 data ScriptDecodeError
   = -- | an error from the underlying CBOR/serialise library
     CBORDeserialiseError !CBOR.Extras.DeserialiseFailureInfo
-  | -- | Script was successfully parsed, but more (runaway) bytes encountered
-    -- after script's position
+  | {-| Script was successfully parsed, but more (runaway) bytes encountered
+    after script's position -}
     RemainderError !BSL.ByteString
   | -- | the plutus version of the given script is not enabled yet
     LedgerLanguageNotAvailableError
       { sdeAffectedLang :: !PlutusLedgerLanguage
       -- ^ the script's ledger language
-      , sdeIntroPv      :: !MajorProtocolVersion
+      , sdeIntroPv :: !MajorProtocolVersion
       -- ^ the major protocol version that will first introduce/enable the ledger language
-      , sdeThisPv       :: !MajorProtocolVersion
+      , sdeThisPv :: !MajorProtocolVersion
       -- ^ the current protocol version
       }
   | PlutusCoreLanguageNotAvailableError
       { sdeAffectedVersion :: !UPLC.Version
       -- ^ the Plutus Core language of the script under execution.
-      , sdeThisLang        :: !PlutusLedgerLanguage
+      , sdeThisLang :: !PlutusLedgerLanguage
       -- ^ the Plutus ledger language of the script under execution.
-      , sdeThisPv          :: !MajorProtocolVersion
+      , sdeThisPv :: !MajorProtocolVersion
       -- ^ the current protocol version
       }
   deriving stock (Eq, Show)
@@ -87,21 +87,26 @@ instance Pretty ScriptDecodeError where
       "Script was successfully deserialised, but"
         <+> pretty (BSL.length bs)
         <+> "more bytes were encountered after the script's position."
-    LedgerLanguageNotAvailableError{..} ->
+    LedgerLanguageNotAvailableError {..} ->
       "Your script has a Plutus Ledger Language version of"
-        <+> pretty sdeAffectedLang <> "."
+        <+> pretty sdeAffectedLang
+        <> "."
         <+> "This is not yet supported by the current major protocol version"
-        <+> pretty sdeThisPv <> "."
+        <+> pretty sdeThisPv
+        <> "."
         <+> "The major protocol version that introduces \
             \this Plutus Ledger Language is"
-        <+> pretty sdeIntroPv <> "."
-    PlutusCoreLanguageNotAvailableError{..} ->
+        <+> pretty sdeIntroPv
+        <> "."
+    PlutusCoreLanguageNotAvailableError {..} ->
       "Your script has a Plutus Core version of"
-        <+> pretty sdeAffectedVersion <> "."
+        <+> pretty sdeAffectedVersion
+        <> "."
         <+> "This is not supported in"
         <+> pretty sdeThisLang
         <+> "and major protocol version"
-        <+> pretty sdeThisPv <> "."
+        <+> pretty sdeThisPv
+        <> "."
 
 {- Note [Size checking of constants in PLC programs]
 We impose a 64-byte *on-the-wire* limit on the constants inside PLC programs. This prevents
@@ -130,9 +135,8 @@ data structures that include scripts (for example, transactions) no-longer benef
 from CBOR's ability to self-describe its format.
 -}
 
-{- | Turns a program which was compiled using the \'PlutusTx\' toolchain into
-a binary format that is understood by the network and can be stored on-chain.
--}
+{-| Turns a program which was compiled using the \'PlutusTx\' toolchain into
+a binary format that is understood by the network and can be stored on-chain. -}
 serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
 serialiseCompiledCode =
   -- MAYBE: Instead of this `serialiseUPLC . toNameLess` we could instead
@@ -140,14 +144,13 @@ serialiseCompiledCode =
   -- invariant `fnd.name==fakeName`, would be faster.
   serialiseUPLC . toNameless . getPlcNoAnn
   where
-    toNameless ::
-      UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () ->
-      UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+    toNameless
+      :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+      -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
     toNameless = over UPLC.progTerm $ UPLC.termMapNames UPLC.unNameDeBruijn
 
-{- | Turns a program's AST (most likely manually constructed)
-into a binary format that is understood by the network and can be stored on-chain.
--}
+{-| Turns a program's AST (most likely manually constructed)
+into a binary format that is understood by the network and can be stored on-chain. -}
 serialiseUPLC :: UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> SerialisedScript
 serialiseUPLC =
   -- See Note [Using Flat for serialising/deserialising Script]
@@ -155,12 +158,11 @@ serialiseUPLC =
   -- need to be careful about introducing a working version
   toShort . BSL.toStrict . serialise . SerialiseViaFlat . UPLC.UnrestrictedProgram
 
-{- | Deserialises a 'SerialisedScript' back into an AST. Does *not* do
-ledger-language-version-specific checks like for allowable builtins.
--}
+{-| Deserialises a 'SerialisedScript' back into an AST. Does *not* do
+ledger-language-version-specific checks like for allowable builtins. -}
 uncheckedDeserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
 uncheckedDeserialiseUPLC =
-    UPLC.unUnrestrictedProgram . unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
+  UPLC.unUnrestrictedProgram . unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
 
 -- | A script with named de-bruijn indices.
 newtype ScriptNamedDeBruijn
@@ -185,15 +187,14 @@ serialisedScript (UnsafeScriptForEvaluation s _) = s
 deserialisedScript :: ScriptForEvaluation -> ScriptNamedDeBruijn
 deserialisedScript (UnsafeScriptForEvaluation _ s) = s
 
-{- | This decoder decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
+{-| This decoder decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
 This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no
 names in the serialised form of a `Script`. Rather than traversing the term and inserting
-fake names after deserialising, this lets us do at the same time as deserialising.
--}
-scriptCBORDecoder ::
-  PlutusLedgerLanguage ->
-  MajorProtocolVersion ->
-  CBOR.Decoder s ScriptNamedDeBruijn
+fake names after deserialising, this lets us do at the same time as deserialising. -}
+scriptCBORDecoder
+  :: PlutusLedgerLanguage
+  -> MajorProtocolVersion
+  -> CBOR.Decoder s ScriptNamedDeBruijn
 scriptCBORDecoder ll pv =
   -- See Note [New builtins/language versions and protocol versions]
   let availableBuiltins = builtinsAvailableIn ll pv
@@ -214,20 +215,19 @@ scriptCBORDecoder ll pv =
           decodeViaFlatWith flatDecoder
         pure $ coerce p
 
-{- | The deserialization from a serialised script into a `ScriptForEvaluation`,
+{-| The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.
-Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
--}
-deserialiseScript ::
-  forall m.
-  (MonadError ScriptDecodeError m) =>
-  -- | the Plutus ledger language of the script.
-  PlutusLedgerLanguage ->
-  -- | which major protocol version the script was submitted in.
-  MajorProtocolVersion ->
-  -- | the script to deserialise.
-  SerialisedScript ->
-  m ScriptForEvaluation
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). -}
+deserialiseScript
+  :: forall m
+   . MonadError ScriptDecodeError m
+  => PlutusLedgerLanguage
+  -- ^ the Plutus ledger language of the script.
+  -> MajorProtocolVersion
+  -- ^ which major protocol version the script was submitted in.
+  -> SerialisedScript
+  -- ^ the script to deserialise.
+  -> m ScriptForEvaluation
 deserialiseScript ll pv sScript = do
   -- check that the ledger language version is available
   let llIntroPv = ledgerLanguageIntroducedIn ll
@@ -235,7 +235,7 @@ deserialiseScript ll pv sScript = do
     throwing _ScriptDecodeError $
       LedgerLanguageNotAvailableError ll llIntroPv pv
 
-  (remderBS, dScript@(ScriptNamedDeBruijn (UPLC.Program{}))) <- deserialiseSScript sScript
+  (remderBS, dScript@(ScriptNamedDeBruijn (UPLC.Program {}))) <- deserialiseSScript sScript
   when (ll /= PlutusV1 && ll /= PlutusV2 && remderBS /= mempty) $
     throwing _ScriptDecodeError $
       RemainderError remderBS

@@ -371,7 +371,7 @@ print-status() {
 
   local HADDOCK_URL="https://plutus.cardano.intersectmbo.org/haddock/$VERSION/"
   local CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $HADDOCK_URL)
-  if [[ $CURL_STATE == "404" ]]; then
+  if [[ $CURL_STATE != "200" ]]; then
     echo -e "[7] ❌ Deploy the Haddock site for the new release\n       Haddock site not found at $HADDOCK_URL\n       Follow the workflow at https://github.com/IntersectMBO/plutus/actions/workflows/haddock-site.yml"
   else
     echo -e "[7] ✅ Deploy the Haddock site for the new release\n       Haddock site found at $HADDOCK_URL"
@@ -380,7 +380,7 @@ print-status() {
 
   local METATHEORY_URL="https://plutus.cardano.intersectmbo.org/metatheory/$VERSION/"
   CURL_STATE=$(curl -s -o /dev/null -w "%{http_code}\n" $METATHEORY_URL)
-  if [[ $CURL_STATE == "404" ]]; then
+  if [[ $CURL_STATE != "200" ]]; then
     echo -e "[8] ❌ Deploy the Metatheory site for the new release\n       Metatheory site not found at $METATHEORY_URL\n       Follow the workflow at https://github.com/IntersectMBO/plutus/actions/workflows/metatheory-site.yml"
   else
     echo -e "[8] ✅ Deploy the Metatheory site for the new release\n       Metatheory site found at $METATHEORY_URL"

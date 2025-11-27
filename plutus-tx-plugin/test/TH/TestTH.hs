@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module TH.TestTH where
 

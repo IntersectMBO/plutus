@@ -5,7 +5,7 @@
           (\`$fShowBuiltinByteString_$cshowsPrec` ->
              (\toHex ->
                 (\go ->
-                   (\`$fEnumBool_$cenumFromTo` ->
+                   (\`$dmenumFromTo_$cenumFromTo` ->
                       (\go ->
                          (\go ->
                             (\concatBuiltinStrings ->
@@ -137,10 +137,11 @@
                                                          0)
                                                       ["True", "False"])
                                                    c))
-                                             (force trace
+                                             (force
+                                                trace
                                                 (concatBuiltinStrings
                                                    (go
-                                                      (`$fEnumBool_$cenumFromTo`
+                                                      (`$dmenumFromTo_$cenumFromTo`
                                                          0
                                                          17)
                                                       (constr 0 [])))

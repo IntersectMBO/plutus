@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
+
 module Evaluation.Builtins.Integer.Common
 where
 
@@ -22,16 +23,18 @@ import Test.QuickCheck (Arbitrary, Gen, arbitrary, choose, oneof)
 -}
 arbitraryBigInteger :: Gen Integer
 arbitraryBigInteger =
-  oneof [ unAsArbitraryBuiltin <$> arbitrary
-        , choose (-b, b)
-        ]
-  where b = (2::Integer)^(400::Integer)
+  oneof
+    [ unAsArbitraryBuiltin <$> arbitrary
+    , choose (-b, b)
+    ]
+  where
+    b = (2 :: Integer) ^ (400 :: Integer)
 
 newtype BigInteger = BigInteger Integer
   deriving newtype (Show, Eq, Ord, Num)
 
 instance Arbitrary BigInteger where
-   arbitrary = BigInteger <$> arbitraryBigInteger
+  arbitrary = BigInteger <$> arbitraryBigInteger
 
 biginteger :: BigInteger -> PlcTerm
 biginteger (BigInteger n) = integer n
@@ -82,7 +85,7 @@ ite
 ite b t f =
   let ty = mkTyBuiltin @_ @a ()
       iteInst = tyInst () (builtin () PLC.IfThenElse) ty
-  in mkIterAppNoAnn iteInst [b, t, f]
+   in mkIterAppNoAnn iteInst [b, t, f]
 
 -- Various logical combinations of boolean terms.
 

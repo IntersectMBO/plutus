@@ -1,13 +1,13 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 -- Probably could use a more specific flag but not sure what, need
 -- to stop GHC inserting a clever recursive go function with no unfolding
 {-# OPTIONS_GHC -O0 #-}
@@ -27,8 +27,13 @@ import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
 import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
-import PlutusLedgerApi.V2 qualified as Ledger (Address (..), Credential (..), PubKeyHash (..),
-                                               ScriptHash (..), StakingCredential (..))
+import PlutusLedgerApi.V2 qualified as Ledger
+  ( Address (..)
+  , Credential (..)
+  , PubKeyHash (..)
+  , ScriptHash (..)
+  , StakingCredential (..)
+  )
 import PlutusTx.AsData (asData)
 import PlutusTx.AssocMap (Map)
 import PlutusTx.AssocMap qualified as Map
@@ -81,8 +86,7 @@ type ChoiceName = BuiltinByteString
 type ChosenNum = Integer
 
 {-| The time validity range for a Marlowe transaction,
-inclusive of both endpoints.
--}
+inclusive of both endpoints. -}
 type TimeInterval = (POSIXTime, POSIXTime)
 
 asData
@@ -123,8 +127,7 @@ asData
 type Accounts = Map (AccountId, Token) Integer
 
 {-| Values, as defined using Let ar e identified by name,
-  and can be used by 'UseValue' construct.
--}
+  and can be used by 'UseValue' construct. -}
 newtype ValueId = ValueId BuiltinByteString
   deriving (Haskell.Show) via TokenName
   deriving stock (Haskell.Eq, Haskell.Ord, Generic, Data)
@@ -138,8 +141,7 @@ makeIsDataIndexed ''ValueId [('ValueId, 0)]
   and any choices that have already been made.
 
   Values can also be scaled, and combined using addition, subtraction,
-  and negation.
--}
+  and negation. -}
 data Value a
   = AvailableMoney AccountId Token
   | Constant Integer
@@ -156,34 +158,34 @@ data Value a
   deriving stock (Generic, Data)
   deriving stock (Haskell.Eq, Haskell.Ord, Haskell.Show)
 
-instance (Eq a) => Eq (Value a) where
+instance Eq a => Eq (Value a) where
   {-# INLINEABLE (==) #-}
   AvailableMoney acc1 tok1 == AvailableMoney acc2 tok2 =
     acc1 == acc2 && tok1 == tok2
   AvailableMoney _ _ == _ = False
   Constant i1 == Constant i2 = i1 == i2
-  Constant{} == _ = False
+  Constant {} == _ = False
   NegValue val1 == NegValue val2 = val1 == val2
-  NegValue{} == _ = False
+  NegValue {} == _ = False
   AddValue val1 val2 == AddValue val3 val4 = val1 == val3 && val2 == val4
-  AddValue{} == _ = False
+  AddValue {} == _ = False
   SubValue val1 val2 == SubValue val3 val4 = val1 == val3 && val2 == val4
-  SubValue{} == _ = False
+  SubValue {} == _ = False
   MulValue val1 val2 == MulValue val3 val4 = val1 == val3 && val2 == val4
-  MulValue{} == _ = False
+  MulValue {} == _ = False
   DivValue val1 val2 == DivValue val3 val4 = val1 == val3 && val2 == val4
-  DivValue{} == _ = False
+  DivValue {} == _ = False
   ChoiceValue cid1 == ChoiceValue cid2 = cid1 == cid2
-  ChoiceValue{} == _ = False
+  ChoiceValue {} == _ = False
   TimeIntervalStart == TimeIntervalStart = True
   TimeIntervalStart == _ = False
   TimeIntervalEnd == TimeIntervalEnd = True
   TimeIntervalEnd == _ = False
   UseValue val1 == UseValue val2 = val1 == val2
-  UseValue{} == _ = False
+  UseValue {} == _ = False
   Cond obs1 thn1 els1 == Cond obs2 thn2 els2 =
     obs1 == obs2 && thn1 == thn2 && els1 == els2
-  Cond{} == _ = False
+  Cond {} == _ = False
 
 unstableMakeIsData ''Value
 
@@ -191,8 +193,7 @@ unstableMakeIsData ''Value
   and can be combined using the standard Boolean operators.
 
   It is also possible to observe whether any choice has been made
-  (for a particular identified choice).
--}
+  (for a particular identified choice). -}
 data Observation
   = AndObs Observation Observation
   | OrObs Observation Observation
@@ -210,28 +211,28 @@ data Observation
 
 instance Eq Observation where
   {-# INLINEABLE (==) #-}
-  AndObs o1l o2l == AndObs o1r o2r           = o1l == o1r && o2l == o2r
-  AndObs{} == _                              = False
-  OrObs o1l o2l == OrObs o1r o2r             = o1l == o1r && o2l == o2r
-  OrObs{} == _                               = False
-  NotObs ol == NotObs or                     = ol == or
-  NotObs{} == _                              = False
+  AndObs o1l o2l == AndObs o1r o2r = o1l == o1r && o2l == o2r
+  AndObs {} == _ = False
+  OrObs o1l o2l == OrObs o1r o2r = o1l == o1r && o2l == o2r
+  OrObs {} == _ = False
+  NotObs ol == NotObs or = ol == or
+  NotObs {} == _ = False
   ChoseSomething cid1 == ChoseSomething cid2 = cid1 == cid2
-  ChoseSomething _ == _                      = False
-  ValueGE v1l v2l == ValueGE v1r v2r         = v1l == v1r && v2l == v2r
-  ValueGE{} == _                             = False
-  ValueGT v1l v2l == ValueGT v1r v2r         = v1l == v1r && v2l == v2r
-  ValueGT{} == _                             = False
-  ValueLT v1l v2l == ValueLT v1r v2r         = v1l == v1r && v2l == v2r
-  ValueLT{} == _                             = False
-  ValueLE v1l v2l == ValueLE v1r v2r         = v1l == v1r && v2l == v2r
-  ValueLE{} == _                             = False
-  ValueEQ v1l v2l == ValueEQ v1r v2r         = v1l == v1r && v2l == v2r
-  ValueEQ{} == _                             = False
-  TrueObs == TrueObs                         = True
-  TrueObs == _                               = False
-  FalseObs == FalseObs                       = True
-  FalseObs == _                              = False
+  ChoseSomething _ == _ = False
+  ValueGE v1l v2l == ValueGE v1r v2r = v1l == v1r && v2l == v2r
+  ValueGE {} == _ = False
+  ValueGT v1l v2l == ValueGT v1r v2r = v1l == v1r && v2l == v2r
+  ValueGT {} == _ = False
+  ValueLT v1l v2l == ValueLT v1r v2r = v1l == v1r && v2l == v2r
+  ValueLT {} == _ = False
+  ValueLE v1l v2l == ValueLE v1r v2r = v1l == v1r && v2l == v2r
+  ValueLE {} == _ = False
+  ValueEQ v1l v2l == ValueEQ v1r v2r = v1l == v1r && v2l == v2r
+  ValueEQ {} == _ = False
+  TrueObs == TrueObs = True
+  TrueObs == _ = False
+  FalseObs == FalseObs = True
+  FalseObs == _ = False
 
 unstableMakeIsData ''Observation
 
@@ -327,7 +328,7 @@ asData
 
 -- | Extract the @Action@ from a @Case@.
 getAction :: (ToData a, UnsafeFromData a) => Case a -> Action
-getAction (Case action _)           = action
+getAction (Case action _) = action
 getAction (MerkleizedCase action _) = action
 {-# INLINEABLE getAction #-}
 
@@ -431,7 +432,7 @@ asData
 
 -- | Extract the content of input.
 getInputContent :: Input -> InputContent
-getInputContent (NormalInput inputContent)         = inputContent
+getInputContent (NormalInput inputContent) = inputContent
 getInputContent (MerkleizedInput inputContent _ _) = inputContent
 {-# INLINEABLE getInputContent #-}
 
@@ -440,8 +441,7 @@ getInputContent (MerkleizedInput inputContent _ _) = inputContent
   'IntervalInPastError' means time interval is in the past,
   relative to the contract.
 
-  These errors should never occur, but we are always prepared.
--}
+  These errors should never occur, but we are always prepared. -}
 data IntervalError
   = InvalidInterval TimeInterval
   | IntervalInPastError POSIXTime TimeInterval

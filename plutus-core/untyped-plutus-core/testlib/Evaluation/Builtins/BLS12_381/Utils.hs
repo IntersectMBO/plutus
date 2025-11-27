@@ -1,5 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Evaluation.Builtins.BLS12_381.Utils
 where
@@ -8,7 +8,7 @@ import Data.Bits (complement, xor, (.&.), (.|.))
 import Data.ByteString as BS (ByteString, cons, uncons)
 import Data.Word (Word8)
 
-{- | ByteString utilities.  These are used in tests to check that the format of
+{-| ByteString utilities.  These are used in tests to check that the format of
    compressed points conforms to the specification at
    https://github.com/supranational/blst#serialization-format . -}
 
@@ -31,15 +31,15 @@ signBit = 0x20
 
 unsafeUnconsBS :: ByteString -> (Word8, ByteString)
 unsafeUnconsBS b =
-    case BS.uncons b of
-      Nothing -> error "Tried to uncons empty bytestring"
-      Just p  -> p
+  case BS.uncons b of
+    Nothing -> error "Tried to uncons empty bytestring"
+    Just p -> p
 
 -- | Apply some function to the most significant byte of a bytestring
 modifyMSB :: (Word8 -> Word8) -> ByteString -> ByteString
 modifyMSB f s =
-    let (w,rest) = unsafeUnconsBS s
-    in BS.cons (f w) rest
+  let (w, rest) = unsafeUnconsBS s
+   in BS.cons (f w) rest
 
 -- | Flip a specified set of bits in the most significant byte of a bytestring.
 flipBits :: Word8 -> ByteString -> ByteString
@@ -53,9 +53,9 @@ clearBits mask = modifyMSB ((complement mask) .&.)
 setBits :: Word8 -> ByteString -> ByteString
 setBits mask = modifyMSB (mask .|.)
 
--- | Check that a specified set of bits is set in the most significant byte of a
--- bytestring.
+{-| Check that a specified set of bits is set in the most significant byte of a
+bytestring. -}
 isSet :: Word8 -> ByteString -> Bool
 isSet mask s =
-    let (w,_) = unsafeUnconsBS s
-    in w .&. mask == mask
+  let (w, _) = unsafeUnconsBS s
+   in w .&. mask == mask

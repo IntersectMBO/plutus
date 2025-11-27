@@ -1,24 +1,24 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE BlockArguments        #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 
-module Blueprint.Tests.Lib (
-  module Blueprint.Tests.Lib,
-  module AsData,
-) where
+module Blueprint.Tests.Lib
+  ( module Blueprint.Tests.Lib
+  , module AsData
+  ) where
 
 import Blueprint.Tests.Lib.AsData.Decls as AsData (datum2)
 import Codec.Serialise (serialise)
@@ -33,23 +33,32 @@ import GHC.Generics (Generic)
 import PlutusCore.Flat qualified as Flat
 import PlutusTx.AsData (asData)
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
-import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), Unrolled, definitionIdFromTypeK,
-                                      definitionRef)
+import PlutusTx.Blueprint.Definition
+  ( HasBlueprintDefinition (..)
+  , Unrolled
+  , definitionIdFromTypeK
+  , definitionRef
+  )
 import PlutusTx.Blueprint.Schema (Schema (..), emptyBytesSchema)
-import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
-                                             SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
+import PlutusTx.Blueprint.Schema.Annotation
+  ( SchemaComment (..)
+  , SchemaDescription (..)
+  , SchemaInfo (..)
+  , SchemaTitle (..)
+  , emptySchemaInfo
+  )
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinString, emptyByteString)
 import PlutusTx.Code qualified as PlutusTx
 import PlutusTx.IsData (FromData, ToData (..), UnsafeFromData (..))
 import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.TH qualified as PlutusTx
-import Prelude
 import System.FilePath ((</>))
 import Test.Tasty (TestName)
 import Test.Tasty.Extras (TestNested, embed)
 import Test.Tasty.Golden (goldenVsFile)
 import UntypedPlutusCore qualified as UPLC
+import Prelude
 
 ----------------------------------------------------------------------------------------------------
 -- Validator 1 for testing blueprints --------------------------------------------------------------
@@ -57,11 +66,11 @@ import UntypedPlutusCore qualified as UPLC
 {-# ANN type Params (SchemaTitle "Acme Parameter") #-}
 {-# ANN type Params (SchemaDescription "A parameter that does something awesome") #-}
 data Params = MkParams
-  { myUnit              :: ()
-  , myBool              :: Bool
-  , myInteger           :: Integer
-  , myListOfInts        :: [Integer]
-  , myBuiltinData       :: BuiltinData
+  { myUnit :: ()
+  , myBool :: Bool
+  , myInteger :: Integer
+  , myListOfInts :: [Integer]
+  , myBuiltinData :: BuiltinData
   , myBuiltinByteString :: BuiltinByteString
   }
   deriving stock (Generic)
@@ -85,12 +94,12 @@ unrolledParams = Refl
 newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
 
-instance (HasBlueprintDefinition phantom) => HasBlueprintDefinition (Bytes phantom) where
+instance HasBlueprintDefinition phantom => HasBlueprintDefinition (Bytes phantom) where
   type Unroll (Bytes phantom) = '[Bytes phantom]
   definitionId = definitionIdFromTypeK @(Type -> Type) @Bytes <> definitionId @phantom
 
 instance HasBlueprintSchema (Bytes phantom) ts where
-  schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo {title = Just "SchemaBytes"} emptyBytesSchema
 
 {-# ANN MkDatumPayload (SchemaComment "MkDatumPayload") #-}
 

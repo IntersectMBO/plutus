@@ -1,8 +1,9 @@
 {-# LANGUAGE DerivingVia #-}
+
 module PlutusLedgerApi.V3.ParamName
-    ( ParamName (..)
-    , tagWithParamNames
-    ) where
+  ( ParamName (..)
+  , tagWithParamNames
+  ) where
 
 import Data.Ix
 import GHC.Generics
@@ -12,10 +13,9 @@ import PlutusLedgerApi.Common.ParamName
 
 IMPORTANT: The order of appearance of the data constructors here matters. DO NOT REORDER.
 See Note [Quotation marks in cost model parameter constructors]
-See Note [Cost model parameters from the ledger's point of view]
--}
-data ParamName =
-    AddInteger'cpu'arguments'intercept
+See Note [Cost model parameters from the ledger's point of view] -}
+data ParamName
+  = AddInteger'cpu'arguments'intercept
   | AddInteger'cpu'arguments'slope
   | AddInteger'memory'arguments'intercept
   | AddInteger'memory'arguments'slope
@@ -266,8 +266,8 @@ data ParamName =
   | ByteStringToInteger'cpu'arguments'c2
   | ByteStringToInteger'memory'arguments'intercept
   | ByteStringToInteger'memory'arguments'slope
--- Plomin
-  | AndByteString'cpu'arguments'intercept
+  | -- Plomin
+    AndByteString'cpu'arguments'intercept
   | AndByteString'cpu'arguments'slope1
   | AndByteString'cpu'arguments'slope2
   | AndByteString'memory'arguments'intercept
@@ -313,8 +313,8 @@ data ParamName =
   | Ripemd_160'cpu'arguments'intercept
   | Ripemd_160'cpu'arguments'slope
   | Ripemd_160'memory'arguments
-  -- To be deployed in PV11
-  | ExpModInteger'cpu'arguments'coefficient00
+  | -- To be deployed in PV11
+    ExpModInteger'cpu'arguments'coefficient00
   | ExpModInteger'cpu'arguments'coefficient11
   | ExpModInteger'cpu'arguments'coefficient12
   | ExpModInteger'memory'arguments'intercept
@@ -336,5 +336,16 @@ data ParamName =
   | Bls12_381_G2_multiScalarMul'cpu'arguments'intercept
   | Bls12_381_G2_multiScalarMul'cpu'arguments'slope
   | Bls12_381_G2_multiScalarMul'memory'arguments
-    deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
-    deriving IsParamName via (GenericParamName ParamName)
+  | LookupCoin'cpu'arguments'intercept
+  | LookupCoin'cpu'arguments'slope
+  | LookupCoin'memory'arguments
+  | ValueContains'cpu'arguments'intercept
+  | ValueContains'cpu'arguments'slope
+  | ValueContains'memory'arguments
+  | ValueData'cpu'arguments
+  | ValueData'memory'arguments
+  | UnValueData'cpu'arguments'intercept
+  | UnValueData'cpu'arguments'slope
+  | UnValueData'memory'arguments
+  deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
+  deriving (IsParamName) via (GenericParamName ParamName)

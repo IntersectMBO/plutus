@@ -1,6 +1,6 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Spec.Envelope where
 
@@ -21,12 +21,12 @@ testTrivialEnvelope =
       "A trivial function that computes 2 + 2"
       $$(PlutusTx.compile [||(2 :: Integer) P.+ 2||])
       actual
- where
-  basePath :: FilePath
-  basePath = "test-plugin/golden"
+  where
+    basePath :: FilePath
+    basePath = "test-plugin/golden"
 
-  actual :: FilePath
-  actual = basePath </> "envelope.actual.json"
+    actual :: FilePath
+    actual = basePath </> "envelope.actual.json"
 
-  golden :: FilePath
-  golden = basePath </> "envelope.json"
+    golden :: FilePath
+    golden = basePath </> "envelope.json"

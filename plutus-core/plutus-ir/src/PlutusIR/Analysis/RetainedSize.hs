@@ -1,13 +1,13 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module PlutusIR.Analysis.RetainedSize
-    ( RetainedSize (..)
-    , AstSize (..)
-    , termRetentionMap
-    , annotateWithRetainedSize
-    ) where
+  ( RetainedSize (..)
+  , AstSize (..)
+  , termRetentionMap
+  , annotateWithRetainedSize
+  ) where
 
 import PlutusPrelude
 
@@ -98,13 +98,13 @@ we know there's a bug somewhere and if it doesn't, we don't care about it.
 -}
 
 data RetainedSize
-    = Retains AstSize
-    | NotARetainer
-    deriving stock (Show)
+  = Retains AstSize
+  | NotARetainer
+  deriving stock (Show)
 
 instance Pretty RetainedSize where
-    pretty (Retains size) = "$" <> pretty size <> "$"
-    pretty NotARetainer   = mempty
+  pretty (Retains size) = "$" <> pretty size <> "$"
+  pretty NotARetainer = mempty
 
 -- See Note [Handling the root].
 -- | The 'Int' index of the root.
@@ -114,7 +114,7 @@ rootInt = -1
 -- See Note [Handling the root].
 nodeToInt :: Node -> Int
 nodeToInt (Variable (PLC.Unique i)) = i
-nodeToInt Root                      = rootInt
+nodeToInt Root = rootInt
 
 -- | A mapping from the index of a binding to what it directly retains.
 newtype DirectionRetentionMap = DirectionRetentionMap (IntMap AstSize)
@@ -122,11 +122,13 @@ newtype DirectionRetentionMap = DirectionRetentionMap (IntMap AstSize)
 lookupSize :: Int -> DirectionRetentionMap -> AstSize
 lookupSize i (DirectionRetentionMap ss) = ss IntMap.! i
 
--- | Annotate the dominator tree with the retained size of each entry. The retained size is computed
--- as the size directly retained by the binding plus the size of all its dependencies.
+{-| Annotate the dominator tree with the retained size of each entry. The retained size is computed
+as the size directly retained by the binding plus the size of all its dependencies. -}
 annotateWithSizes :: DirectionRetentionMap -> Tree Int -> Tree (Int, AstSize)
-annotateWithSizes sizeInfo = go where
-    go (Node i ts) = Node (i, sizeI) rs where
+annotateWithSizes sizeInfo = go
+  where
+    go (Node i ts) = Node (i, sizeI) rs
+      where
         rs = map go ts
         sizeI = lookupSize i sizeInfo <> foldMap (snd . rootLabel) rs
 
@@ -140,93 +142,97 @@ depsRetentionMap sizeInfo = IntMap.fromList . flatten . annotateWithSizes sizeIn
 
 -- | Construct a 'UniqueMap' having size information for each individual part of a 'Binding'.
 bindingSize
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Binding tyname name uni fun ann -> PLC.UniqueMap Unique AstSize
+  :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
+  => Binding tyname name uni fun ann -> PLC.UniqueMap Unique AstSize
 bindingSize (TermBind _ _ var term) =
-    UMap.insertByNameIndex var (varDeclAstSize var <> termAstSize term) mempty
+  UMap.insertByNameIndex var (varDeclAstSize var <> termAstSize term) mempty
 bindingSize (TypeBind _ tyVar ty) =
-    UMap.insertByNameIndex tyVar (tyVarDeclAstSize tyVar <> typeAstSize ty) mempty
-bindingSize (DatatypeBind _ (Datatype _ dataDecl params matchName constrs))
-    = UMap.insertByNameIndex dataDecl (tyVarDeclAstSize dataDecl)
+  UMap.insertByNameIndex tyVar (tyVarDeclAstSize tyVar <> typeAstSize ty) mempty
+bindingSize (DatatypeBind _ (Datatype _ dataDecl params matchName constrs)) =
+  UMap.insertByNameIndex dataDecl (tyVarDeclAstSize dataDecl)
     . flip (foldr $ \param -> UMap.insertByNameIndex param $ tyVarDeclAstSize param) params
     . UMap.insertByNameIndex matchName (AstSize 1)
     . flip (foldr $ \constr -> UMap.insertByNameIndex constr $ varDeclAstSize constr) constrs
     $ mempty
 
--- | Construct a 'UniqueMap' having size information for each individual part of every 'Binding'
--- in a term.
+{-| Construct a 'UniqueMap' having size information for each individual part of every 'Binding'
+in a term. -}
 bindingSizes
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Term tyname name uni fun ann -> PLC.UniqueMap Unique AstSize
+  :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
+  => Term tyname name uni fun ann -> PLC.UniqueMap Unique AstSize
 bindingSizes (Let _ _ binds term) = foldMap bindingSize binds <> bindingSizes term
-bindingSizes term                 = term ^. termSubterms . to bindingSizes
+bindingSizes term = term ^. termSubterms . to bindingSizes
 
 -- | Same as 'bindingSizes' but is wrapped in a newtype and has a bogus entry for the root.
 toDirectionRetentionMap
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
-    => Term tyname name uni fun ann -> DirectionRetentionMap
+  :: (HasUnique tyname TypeUnique, HasUnique name TermUnique)
+  => Term tyname name uni fun ann -> DirectionRetentionMap
 toDirectionRetentionMap term =
-    DirectionRetentionMap . IntMap.insert rootInt rootSize . PLC.unUniqueMap $ bindingSizes term where
-        -- See Note [Handling the root].
-        rootSize = AstSize (- 10 ^ (10::Int))
+  DirectionRetentionMap . IntMap.insert rootInt rootSize . PLC.unUniqueMap $ bindingSizes term
+  where
+    -- See Note [Handling the root].
+    rootSize = AstSize (-10 ^ (10 :: Int))
 
 -- | Check if a 'Node' appears in 'DirectionRetentionMap'.
 hasSizeIn :: DirectionRetentionMap -> Node -> Bool
-hasSizeIn _             Root                                   = True
+hasSizeIn _ Root = True
 hasSizeIn (DirectionRetentionMap ss) (Variable (PLC.Unique i)) = i `IntMap.member` ss
 
 -- | Compute the retention map of a term.
 termRetentionMap
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, ToBuiltinMeaning uni fun)
-    => BuiltinsInfo uni fun
-    -> VarsInfo tyname name uni ann
-    -> Term tyname name uni fun ann
-    -> IntMap AstSize
-termRetentionMap binfo vinfo term = depsRetentionMap sizeInfo deps where
+  :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, ToBuiltinMeaning uni fun)
+  => BuiltinsInfo uni fun
+  -> VarsInfo tyname name uni ann
+  -> Term tyname name uni fun ann
+  -> IntMap AstSize
+termRetentionMap binfo vinfo term = depsRetentionMap sizeInfo deps
+  where
     sizeInfo = toDirectionRetentionMap term
     deps = C.induce (hasSizeIn sizeInfo) $ runTermDeps binfo vinfo term
 
 -- | Apply a function to the annotation of each part of every 'Binding' in a term.
 reannotateBindings
-    :: (HasUnique name TermUnique, HasUnique tyname TypeUnique)
-    => (Unique -> ann -> ann)
-    -> Term tyname name uni fun ann
-    -> Term tyname name uni fun ann
-reannotateBindings f = goTerm where
+  :: (HasUnique name TermUnique, HasUnique tyname TypeUnique)
+  => (Unique -> ann -> ann)
+  -> Term tyname name uni fun ann
+  -> Term tyname name uni fun ann
+reannotateBindings f = goTerm
+  where
     -- We don't need these helper functions anywhere else, so we make them into local definitions.
     goVarDecl (VarDecl ann name ty) = VarDecl (f (name ^. theUnique) ann) name ty
     goTyVarDecl (TyVarDecl ann tyname kind) = TyVarDecl (f (tyname ^. theUnique) ann) tyname kind
     goDatatype (Datatype ann dataTyDecl paramTyDecls matchName constrDecls) =
-        Datatype
-            -- We don't have any other suitable place to associate the name of the matcher with an
-            -- annotation, so we do it here. Fortunately, the matcher is the only thing that
-            -- survives erasure, so this even makes some sense.
-            (f (matchName ^. theUnique) ann)
-            (goTyVarDecl dataTyDecl)
-            (goTyVarDecl <$> paramTyDecls)
-            matchName
-            (goVarDecl <$> constrDecls)
+      Datatype
+        -- We don't have any other suitable place to associate the name of the matcher with an
+        -- annotation, so we do it here. Fortunately, the matcher is the only thing that
+        -- survives erasure, so this even makes some sense.
+        (f (matchName ^. theUnique) ann)
+        (goTyVarDecl dataTyDecl)
+        (goTyVarDecl <$> paramTyDecls)
+        matchName
+        (goVarDecl <$> constrDecls)
 
     -- Note that @goBind@ and @goTerm@ are mutually recursive.
     goBind (TermBind ann str var term) = TermBind ann str (goVarDecl var) $ goTerm term
-    goBind (TypeBind ann tyVar ty)     = TypeBind ann (goTyVarDecl tyVar) ty
+    goBind (TypeBind ann tyVar ty) = TypeBind ann (goTyVarDecl tyVar) ty
     goBind (DatatypeBind ann datatype) = DatatypeBind ann $ goDatatype datatype
 
     goTerm (Let ann recy binds term) = Let ann recy (goBind <$> binds) $ goTerm term
-    goTerm term                      = term & termSubterms %~ goTerm
+    goTerm term = term & termSubterms %~ goTerm
 
 -- Ideally we should have a separate step putting uniques into annotations, so that we can reuse it
 -- both here and for scoping analysis.
 -- See Note [Retained size analysis]
 -- | Annotate each part of every 'Binding' in a term with the size that it retains.
 annotateWithRetainedSize
-    :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, ToBuiltinMeaning uni fun)
-    => BuiltinsInfo uni fun
-    -> Term tyname name uni fun ann
-    -> Term tyname name uni fun RetainedSize
+  :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, ToBuiltinMeaning uni fun)
+  => BuiltinsInfo uni fun
+  -> Term tyname name uni fun ann
+  -> Term tyname name uni fun RetainedSize
 -- @reannotateBindings@ only processes annotations "associated with" a unique, so it can't change
 -- the type. Therefore we need to set all the bindings to an appropriate type beforehand.
-annotateWithRetainedSize binfo term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
+annotateWithRetainedSize binfo term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term
+  where
     retentionMap = termRetentionMap binfo vinfo term
     vinfo = termVarInfo term
     -- If a binding is not in the retention map, then it's still a retainer, just retains zero size.

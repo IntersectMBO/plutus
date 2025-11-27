@@ -1,26 +1,26 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Functions for working with scripts on the ledger.
-module PlutusLedgerApi.V1.Scripts (
-  ScriptError (..),
-  Redeemer (..),
-  Datum (..),
-  Context (..),
-  DatumHash (..),
-  RedeemerHash (..),
-  ScriptHash (..),
-) where
+module PlutusLedgerApi.V1.Scripts
+  ( ScriptError (..)
+  , Redeemer (..)
+  , Datum (..)
+  , Context (..)
+  , DatumHash (..)
+  , RedeemerHash (..)
+  , ScriptHash (..)
+  ) where
 
 import PlutusTx.Prelude
 import Prelude qualified as Haskell
@@ -67,7 +67,7 @@ newtype Datum = Datum {getDatum :: BuiltinData}
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance HasBlueprintSchema Datum referencedTypes where
-  schema = SchemaBuiltInData emptySchemaInfo{title = Just "Datum"}
+  schema = SchemaBuiltInData emptySchemaInfo {title = Just "Datum"}
 
 -- See Note [Serialise instances for Datum and Redeemer]
 instance Serialise Datum where
@@ -81,27 +81,26 @@ newtype Redeemer = Redeemer {getRedeemer :: BuiltinData}
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance HasBlueprintSchema Redeemer referencedTypes where
-  schema = SchemaBuiltInData emptySchemaInfo{title = Just "Redeemer"}
+  schema = SchemaBuiltInData emptySchemaInfo {title = Just "Redeemer"}
 
 -- See Note [Serialise instances for Datum and Redeemer]
 instance Serialise Redeemer where
   encode (Redeemer (BuiltinData d)) = encode d
   decode = Redeemer . BuiltinData Haskell.<$> decode
 
-{- | Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
+{-| Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants.
-See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
--}
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -}
 newtype ScriptHash = ScriptHash {getScriptHash :: Builtins.BuiltinByteString}
   deriving
-    ( -- | from hex encoding
-      IsString
-    , -- | using hex encoding
-      Haskell.Show
-    , -- | using hex encoding
-      Pretty
+    ( IsString
+      -- ^ from hex encoding
+    , Haskell.Show
+      -- ^ using hex encoding
+    , Pretty
+      -- ^ using hex encoding
     )
     via LedgerBytes
   deriving stock (Generic)
@@ -109,22 +108,21 @@ newtype ScriptHash = ScriptHash {getScriptHash :: Builtins.BuiltinByteString}
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance HasBlueprintSchema ScriptHash referencedTypes where
-  schema = SchemaBytes emptySchemaInfo{title = Just "ScriptHash"} emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo {title = Just "ScriptHash"} emptyBytesSchema
 
-{- | Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
+{-| Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants.
-See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
--}
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -}
 newtype DatumHash = DatumHash Builtins.BuiltinByteString
   deriving
-    ( -- | from hex encoding
-      IsString
-    , -- | using hex encoding
-      Haskell.Show
-    , -- | using hex encoding
-      Pretty
+    ( IsString
+      -- ^ from hex encoding
+    , Haskell.Show
+      -- ^ using hex encoding
+    , Pretty
+      -- ^ using hex encoding
     )
     via LedgerBytes
   deriving stock (Generic)
@@ -132,22 +130,21 @@ newtype DatumHash = DatumHash Builtins.BuiltinByteString
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance HasBlueprintSchema DatumHash referencedTypes where
-  schema = SchemaBytes emptySchemaInfo{title = Just "DatumHash"} emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo {title = Just "DatumHash"} emptyBytesSchema
 
-{- | Type representing the /BLAKE2b-256/ hash of a redeemer. 32 bytes.
+{-| Type representing the /BLAKE2b-256/ hash of a redeemer. 32 bytes.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants.
-See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
--}
+See the [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf). -}
 newtype RedeemerHash = RedeemerHash Builtins.BuiltinByteString
   deriving
-    ( -- | from hex encoding
-      IsString
-    , -- | using hex encoding
-      Haskell.Show
-    , -- | using hex encoding
-      Pretty
+    ( IsString
+      -- ^ from hex encoding
+    , Haskell.Show
+      -- ^ using hex encoding
+    , Pretty
+      -- ^ using hex encoding
     )
     via LedgerBytes
   deriving stock (Generic)
@@ -155,11 +152,10 @@ newtype RedeemerHash = RedeemerHash Builtins.BuiltinByteString
   deriving anyclass (NFData, HasBlueprintDefinition)
 
 instance HasBlueprintSchema RedeemerHash referencedTypes where
-  schema = SchemaBytes emptySchemaInfo{title = Just "RedeemerHash"} emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo {title = Just "RedeemerHash"} emptyBytesSchema
 
-{- | Information about the state of the blockchain and about the transaction
-  that is currently being validated, represented as a value in 'Data'.
--}
+{-| Information about the state of the blockchain and about the transaction
+  that is currently being validated, represented as a value in 'Data'. -}
 newtype Context = Context BuiltinData
   deriving newtype (Pretty, Haskell.Show)
 

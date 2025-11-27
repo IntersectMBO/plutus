@@ -14,129 +14,141 @@ import Test.Tasty.QuickCheck
 
 infix 4 <=>, </>
 
--- | Ensure that @x@ equals @y@ and vice versa. The latter part is needed to ensure that @(==)@ is
--- symmetric for the specific type.
+{-| Ensure that @x@ equals @y@ and vice versa. The latter part is needed to ensure that @(==)@ is
+symmetric for the specific type. -}
 (<=>) :: (Eq a, Show a) => a -> a -> Property
 x <=> y = x === y .&&. y === x
 
--- | Ensure that @x@ doesn't equal @y@ and vice versa. The latter part is needed to ensure that
--- @(/=)@ is symmetric for the specific type.
+{-| Ensure that @x@ doesn't equal @y@ and vice versa. The latter part is needed to ensure that
+@(/=)@ is symmetric for the specific type. -}
 (</>) :: (Eq a, Show a) => a -> a -> Property
 x </> y = x =/= y .&&. y =/= x
 
 scaleTestsBy :: Testable prop => Int -> prop -> Property
 scaleTestsBy factor = withMaxSuccess (100 * factor) . mapSize (* factor)
 
--- | Apply a function to an arbitrary number of elements of the given list. The elements are chosen
--- at random.
+{-| Apply a function to an arbitrary number of elements of the given list. The elements are chosen
+at random. -}
 mapMany :: (a -> Gen a) -> [a] -> Gen [a]
 mapMany f = traverse $ \x -> do
-    b <- arbitrary
-    if b then f x else pure x
+  b <- arbitrary
+  if b then f x else pure x
 
--- | Apply a function to an arbitrary non-zero number of elements of the given list. The elements
--- are chosen at random.
+{-| Apply a function to an arbitrary non-zero number of elements of the given list. The elements
+are chosen at random. -}
 mapSome :: Eq a => (a -> Gen a) -> [a] -> Gen [a]
 mapSome f xs = do
-    xs' <- mapMany f xs
-    i <- choose (0, length xs - 1)
-    let xi = xs !! i
-    ix i (\x -> if x == xi then f x else pure x) xs'
+  xs' <- mapMany f xs
+  i <- choose (0, length xs - 1)
+  let xi = xs !! i
+  ix i (\x -> if x == xi then f x else pure x) xs'
 
 -- | Generate an 'Integer' that is not equal to the given one.
 updateInteger :: Integer -> Gen Integer
 updateInteger i = arbitrary `suchThat` (/= i)
 
--- | Generate new 'TokenName's such that the resulting list, being sorted, is not equal to the given
--- one, being sorted as well.
+{-| Generate new 'TokenName's such that the resulting list, being sorted, is not equal to the given
+one, being sorted as well. -}
 freshenTokenNames :: [(TokenName, Integer)] -> Gen [(TokenName, Integer)]
 freshenTokenNames tokens =
-    uniqueNames (TokenName . toBuiltin . PLC.unK) (map snd tokens) `suchThat` \tokens' ->
-        sort (filter ((/= 0) . snd) tokens) /= sort (filter ((/= 0) . snd) tokens')
+  uniqueNames (TokenName . toBuiltin . PLC.unK) (map snd tokens) `suchThat` \tokens' ->
+    sort (filter ((/= 0) . snd) tokens) /= sort (filter ((/= 0) . snd) tokens')
 
 onLists
-    :: Value
-    -> ([(CurrencySymbol, [(TokenName, Integer)])] ->
-        Gen [(CurrencySymbol, [(TokenName, Integer)])])
-    -> (Value -> Property)
-    -> Property
+  :: Value
+  -> ( [(CurrencySymbol, [(TokenName, Integer)])]
+       -> Gen [(CurrencySymbol, [(TokenName, Integer)])]
+     )
+  -> (Value -> Property)
+  -> Property
 onLists value f = forAll (fmap listsToValue . f $ valueToLists value)
 
 -- | Test various laws for operations over 'Value'.
 test_laws :: TestTree
-test_laws = testProperty "laws" . scaleTestsBy 5 $ \value1 -> conjoin
+test_laws = testProperty "laws" . scaleTestsBy 5 $ \value1 ->
+  conjoin
     [ value1 <> value1 <=> Numeric.scale 2 value1
     , value1 <> Numeric.negate value1 <=> mempty
     , if isZero value1
-        then conjoin
+        then
+          conjoin
             [ value1 <=> mempty
             , forAll arbitrary $ \value2 -> value1 <> value2 <=> value2
             ]
-        else conjoin
+        else
+          conjoin
             [ value1 </> mempty
             , forAll arbitrary $ \value2 ->
                 if isZero value2
-                    then value1 <> value2 <=> value1
-                    else conjoin
-                        [ value1 <> value2 </> value1
-                        , value1 <> value2 </> value2
-                        , value1 <> value2 <=> value2 <> value1
-                        , forAll arbitrary $ \value3 ->
-                            not (isZero value3) ==>
-                                (value1 <> value2) <> value3 <=> value1 <> (value2 <> value3)
-                        ]
+                  then value1 <> value2 <=> value1
+                  else
+                    conjoin
+                      [ value1 <> value2 </> value1
+                      , value1 <> value2 </> value2
+                      , value1 <> value2 <=> value2 <> value1
+                      , forAll arbitrary $ \value3 ->
+                          not (isZero value3) ==>
+                            (value1 <> value2) <> value3 <=> value1 <> (value2 <> value3)
+                      ]
             ]
     ]
 
--- | Test that changing the values of some of the values of 'TokenName's creates a different
--- 'Value'.
+{-| Test that changing the values of some of the values of 'TokenName's creates a different
+'Value'. -}
 test_updateSomeTokenValues :: TestTree
 test_updateSomeTokenValues = testProperty "updateSomeTokenValues" . scaleTestsBy 15 $ \prevalue ->
-    let lists = filter (not . null . snd) $ valueToLists prevalue
-        value = listsToValue lists
-    in not (null lists) ==>
-        onLists value (mapSome . traverse . mapSome $ traverse updateInteger)
-            (\value' -> value </> value')
+  let lists = filter (not . null . snd) $ valueToLists prevalue
+      value = listsToValue lists
+   in not (null lists) ==>
+        onLists
+          value
+          (mapSome . traverse . mapSome $ traverse updateInteger)
+          (\value' -> value </> value')
 
 -- | Test that changing the values of some of the 'TokenName's creates a different 'Value'.
 test_updateSomeTokenNames :: TestTree
 test_updateSomeTokenNames = testProperty "updateSomeTokenNames" . scaleTestsBy 15 $ \prevalue ->
-    let lists = filter (not . null . snd) . map (fmap . filter $ (/= 0) . snd) $
-            valueToLists prevalue
-        value = listsToValue lists
-    in not (null lists) ==>
-        onLists value (mapSome $ traverse freshenTokenNames)
-            (\value' -> value </> value')
+  let lists =
+        filter (not . null . snd) . map (fmap . filter $ (/= 0) . snd) $
+          valueToLists prevalue
+      value = listsToValue lists
+   in not (null lists) ==>
+        onLists
+          value
+          (mapSome $ traverse freshenTokenNames)
+          (\value' -> value </> value')
 
--- | Test that shuffling 'CurrencySymbol's or 'TokenName's creates a 'Value' that is equal to the
--- original one.
+{-| Test that shuffling 'CurrencySymbol's or 'TokenName's creates a 'Value' that is equal to the
+original one. -}
 test_shuffle :: TestTree
 test_shuffle = testProperty "shuffle" . scaleTestsBy 10 $ \value1 ->
-    conjoin
-        [ onLists value1 shuffle $ \value1' -> value1 <=> value1'
-        , onLists value1 (mapMany $ traverse shuffle) $ \value1' -> value1 <=> value1'
-        ]
+  conjoin
+    [ onLists value1 shuffle $ \value1' -> value1 <=> value1'
+    , onLists value1 (mapMany $ traverse shuffle) $ \value1' -> value1 <=> value1'
+    ]
 
 test_split :: TestTree
 test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
-    let (valueL, valueR) = split value
-    in Numeric.negate valueL <> valueR <=> value
+  let (valueL, valueR) = split value
+   in Numeric.negate valueL <> valueR <=> value
 
 -- | Test that builtin and non-builtin values are encoded identically in Data.
 test_toData :: TestTree
 test_toData = testProperty "toData" . scaleTestsBy 10 $ \v ->
-    PLC.valueData v === toData (valueFromBuiltin v)
+  PLC.valueData v === toData (valueFromBuiltin v)
 
 -- | Test that builtin and non-builtin values are decoded identically from Data.
 test_fromData :: TestTree
 test_fromData = testProperty "fromData" . scaleTestsBy 10 $ \v ->
-    let d = PLC.valueData v
-     in case PLC.unValueData d of
-          BuiltinSuccess v' -> valueFromBuiltin v' === unsafeFromData d
-          _                 -> property False
+  let d = PLC.valueData v
+   in case PLC.unValueData d of
+        BuiltinSuccess v' -> valueFromBuiltin v' === unsafeFromData d
+        _ -> property False
 
 test_Value :: TestTree
-test_Value = testGroup "Value"
+test_Value =
+  testGroup
+    "Value"
     [ test_laws
     , test_updateSomeTokenValues
     , test_updateSomeTokenNames

@@ -1,12 +1,12 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 module Spec.ReturnUnit.V1 where
@@ -40,15 +40,15 @@ evalCtx =
   fst . unsafeFromRight . runWriterT . V1.mkEvaluationContext $
     fmap snd V1.costModelParamsForTesting
 
-expectSuccess ::
-  forall a.
-  TestName ->
-  CompiledCode (BuiltinData -> a) ->
-  -- | Script argument
-  Data ->
-  TestTree
+expectSuccess
+  :: forall a
+   . TestName
+  -> CompiledCode (BuiltinData -> a)
+  -> Data
+  -- ^ Script argument
+  -> TestTree
 expectSuccess name code arg = testCase name $ case res of
-  Left _  -> assertFailure "fails"
+  Left _ -> assertFailure "fails"
   Right _ -> pure ()
   where
     sScript = serialiseCompiledCode code

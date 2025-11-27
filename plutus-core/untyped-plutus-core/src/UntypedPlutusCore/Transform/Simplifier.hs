@@ -1,20 +1,20 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module UntypedPlutusCore.Transform.Simplifier (
-    SimplifierT (..),
-    SimplifierTrace (..),
-    SimplifierStage (..),
-    Simplification (..),
-    runSimplifierT,
-    evalSimplifierT,
-    execSimplifierT,
-    Simplifier,
-    runSimplifier,
-    evalSimplifier,
-    execSimplifier,
-    initSimplifierTrace,
-    recordSimplification,
-) where
+module UntypedPlutusCore.Transform.Simplifier
+  ( SimplifierT (..)
+  , SimplifierTrace (..)
+  , SimplifierStage (..)
+  , Simplification (..)
+  , runSimplifierT
+  , evalSimplifierT
+  , execSimplifierT
+  , Simplifier
+  , runSimplifier
+  , evalSimplifier
+  , execSimplifier
+  , initSimplifierTrace
+  , recordSimplification
+  ) where
 
 import Control.Monad.State (MonadTrans, StateT)
 import Control.Monad.State qualified as State
@@ -23,10 +23,10 @@ import Control.Monad.Identity (Identity, runIdentity)
 import PlutusCore.Quote (MonadQuote)
 import UntypedPlutusCore.Core.Type (Term)
 
-newtype SimplifierT name uni fun ann m a =
-  SimplifierT
-    { getSimplifierT :: StateT (SimplifierTrace name uni fun ann) m a
-    }
+newtype SimplifierT name uni fun ann m a
+  = SimplifierT
+  { getSimplifierT :: StateT (SimplifierTrace name uni fun ann) m a
+  }
   deriving newtype (Functor, Applicative, Monad, MonadTrans)
 
 instance MonadQuote m => MonadQuote (SimplifierT name uni fun ann m)
@@ -65,20 +65,20 @@ data SimplifierStage
   | CSE
   | CaseApply
 
-data Simplification name uni fun a =
-  Simplification
-    { beforeAST :: Term name uni fun a
-    , stage     :: SimplifierStage
-    , afterAST  :: Term name uni fun a
-    }
+data Simplification name uni fun a
+  = Simplification
+  { beforeAST :: Term name uni fun a
+  , stage :: SimplifierStage
+  , afterAST :: Term name uni fun a
+  }
 
 -- TODO2: we probably don't want this in memory so after MVP
 -- we should consider serializing this to disk
-newtype SimplifierTrace name uni fun a =
-  SimplifierTrace
-    { simplifierTrace
+newtype SimplifierTrace name uni fun a
+  = SimplifierTrace
+  { simplifierTrace
       :: [Simplification name uni fun a]
-    }
+  }
 
 initSimplifierTrace :: SimplifierTrace name uni fun a
 initSimplifierTrace = SimplifierTrace []
@@ -90,9 +90,8 @@ recordSimplification
   -> Term name uni fun a
   -> SimplifierT name uni fun a m ()
 recordSimplification beforeAST stage afterAST =
-  let simplification = Simplification { beforeAST, stage, afterAST }
-    in
-      modify $ \st ->
-        st { simplifierTrace = simplification : simplifierTrace st }
+  let simplification = Simplification {beforeAST, stage, afterAST}
+   in modify $ \st ->
+        st {simplifierTrace = simplification : simplifierTrace st}
   where
     modify f = SimplifierT $ State.modify' f

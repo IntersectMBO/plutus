@@ -1,15 +1,15 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module Spec.Data.Budget where
 
@@ -23,15 +23,16 @@ import PlutusLedgerApi.V3.Data.MintValue qualified as MintValue
 import PlutusTx.Code
 import PlutusTx.Data.AssocMap as Map
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 tests :: TestTree
 tests =
   runTestNested ["test-plugin", "Spec", "Data", "Budget"] . pure . testNestedGhc $
-      [ goldenPirReadable "gt" compiledGt
-      , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
-      ] ++ testCases
+    [ goldenPirReadable "gt" compiledGt
+    , goldenPirReadable "currencySymbolValueOf" compiledCurrencySymbolValueOf
+    ]
+      ++ testCases
 
 compiledGt :: CompiledCode (Value -> Value -> Bool)
 compiledGt = $$(compile [||gt||])
@@ -55,8 +56,8 @@ mkMintValue :: [(Integer, [(Integer, Integer)])] -> MintValue.MintValue
 mkMintValue = MintValue.UnsafeMintValue . mkCurrencyMap
 
 mkCurrencyMap :: [(Integer, [(Integer, Integer)])] -> Map CurrencySymbol (Map TokenName Integer)
-mkCurrencyMap
-    = Map.unsafeFromSOPList
+mkCurrencyMap =
+  Map.unsafeFromSOPList
     . fmap (bimap toSymbol (Map.unsafeFromSOPList . fmap (first toToken)))
 
 toSymbol :: Integer -> CurrencySymbol
@@ -98,15 +99,14 @@ value3 =
     , (5, [(500, 501), (502, 503), (504, 505), (506, 507), (508, 509)])
     ]
 
-
 value4 :: MintValue.MintValue
 value4 =
   mkMintValue
     [ (1, [(100, -101)])
-    , (2, [(200, -201), (202,  203)])
+    , (2, [(200, -201), (202, 203)])
     , (3, [(300, -301), (302, -303), (304, -305), (306, -307)])
-    , (4, [(400, -401), (402,  403), (404,  405), (406,  407)])
-    , (5, [(500, -501), (502,  503), (504,  505), (506,  507), (508, -509)])
+    , (4, [(400, -401), (402, 403), (404, 405), (406, 407)])
+    , (5, [(500, -501), (502, 503), (504, 505), (506, 507), (508, -509)])
     ]
 
 testCases :: [TestNested]

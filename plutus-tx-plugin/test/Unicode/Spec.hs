@@ -1,7 +1,7 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Unicode.Spec where
 

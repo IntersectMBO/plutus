@@ -1,11 +1,13 @@
-{-# LANGUAGE BlockArguments   #-}
-{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Spec.CostModelParams where
 
-import PlutusLedgerApi.Common (CostModelApplyWarn (CMTooManyParamsWarn, cmActual, cmExpected),
-                               IsParamName (readParamName, showParamName))
+import PlutusLedgerApi.Common
+  ( CostModelApplyWarn (CMTooManyParamsWarn, cmActual, cmExpected)
+  , IsParamName (readParamName, showParamName)
+  )
 import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
@@ -28,9 +30,9 @@ tests =
     "CostModelParams"
     "costModelParams"
     [ embed $ testCase "length" do
-        301 @=? length v1_ParamNames
-        301 @=? length v2_ParamNames
-        319 @=? length v3_ParamNames
+        312 @=? length v1_ParamNames
+        312 @=? length v2_ParamNames
+        330 @=? length v3_ParamNames
     , embed $ testCase "tripping paramname" do
         for_ v1_ParamNames \p ->
           assertBool "tripping v1 cm params failed" $
@@ -41,14 +43,14 @@ tests =
         for_ v3_ParamNames \p ->
           assertBool "tripping v3 cm params failed" $
             Just p == readParamName (showParamName p)
-      -- The introduction of the new bitwise builtins has
+    , -- The introduction of the new bitwise builtins has
       -- messed this up because defaultCostModelParamsForTesting is the cost
       -- model parameters for model C,
       -- which now includes the new bitwise builtins.
       --  , embed $ testCase "default values costmodelparamsfortesting" do
       --    defaultCostModelParamsForTesting
       --      @=? Just (toCostModelParams V3.costModelParamsForTesting)
-    , embed $ testCase "context length" do
+      embed $ testCase "context length" do
         let costValuesForTesting = fmap snd V3.costModelParamsForTesting
         -- the `costModelParamsForTesting` reflects only the latest
         -- version (V3), so this should succeed because the lengths match
@@ -90,21 +92,21 @@ tests =
         do pure (Text.unlines (map showParamName v3_ParamNames))
         Text.isPrefixOf
     ]
- where
-  hasWarnMoreParams :: Int -> Int -> Either a (b, [CostModelApplyWarn]) -> Bool
-  hasWarnMoreParams
-    testExpected
-    testActual
-    (Right (_, [CMTooManyParamsWarn{..}]))
-      | testExpected == cmExpected && testActual == cmActual = True
-  hasWarnMoreParams _ _ _ = False
+  where
+    hasWarnMoreParams :: Int -> Int -> Either a (b, [CostModelApplyWarn]) -> Bool
+    hasWarnMoreParams
+      testExpected
+      testActual
+      (Right (_, [CMTooManyParamsWarn {..}]))
+        | testExpected == cmExpected && testActual == cmActual = True
+    hasWarnMoreParams _ _ _ = False
 
-  paramSubset pA pB =
-    Set.fromList (showParamName <$> pA)
-      `isSubsetOf` Set.fromList (showParamName <$> pB)
+    paramSubset pA pB =
+      Set.fromList (showParamName <$> pA)
+        `isSubsetOf` Set.fromList (showParamName <$> pB)
 
-  paramEqual pA pB = paramSubset pA pB && paramSubset pB pA
+    paramEqual pA pB = paramSubset pA pB && paramSubset pB pA
 
-  v1_ParamNames = enumerate @V1.ParamName
-  v2_ParamNames = enumerate @V2.ParamName
-  v3_ParamNames = enumerate @V3.ParamName
+    v1_ParamNames = enumerate @V1.ParamName
+    v2_ParamNames = enumerate @V2.ParamName
+    v3_ParamNames = enumerate @V3.ParamName

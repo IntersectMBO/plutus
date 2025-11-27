@@ -1,45 +1,47 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE MultiWayIf            #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
 
-module PlutusTx.Ratio (
-  -- * Type
-  Rational,
+module PlutusTx.Ratio
+  ( -- * Type
+    Rational
 
-  -- * Construction
-  unsafeRatio,
-  fromInteger,
-  ratio,
+    -- * Construction
+  , unsafeRatio
+  , fromInteger
+  , ratio
 
-  -- * Other functionality
-  numerator,
-  denominator,
-  round,
-  truncate,
-  properFraction,
-  recip,
-  abs,
-  negate,
-  half,
-  fromGHC,
-  toGHC,
-  gcd,
-) where
+    -- * Other functionality
+  , numerator
+  , denominator
+  , round
+  , truncate
+  , properFraction
+  , recip
+  , abs
+  , negate
+  , gcd
+
+    -- * Conversion from/to Haskell
+  , fromHaskellRatio
+  , toHaskellRatio
+  ) where
 
 import PlutusTx.Applicative qualified as P
 import PlutusTx.Base qualified as P
 import PlutusTx.Bool qualified as P
+import PlutusTx.Enum
 import PlutusTx.Eq qualified as P
 import PlutusTx.ErrorCodes qualified as P
 import PlutusTx.Integer (Integer)
@@ -50,27 +52,28 @@ import PlutusTx.Numeric qualified as P
 import PlutusTx.Ord qualified as P
 import PlutusTx.Trace qualified as P
 
+import Data.Ratio qualified as HS
 import PlutusTx.Builtins qualified as Builtins
 
 import Control.Monad (guard)
 import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.:))
 import GHC.Generics
-import GHC.Real qualified as Ratio
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), HasSchemaDefinition)
+import Prettyprinter (Pretty (..), (<+>))
 import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
-import Prettyprinter (Pretty (..), (<+>))
 
 {-| Represents an arbitrary-precision ratio.
 
 The following two invariants are maintained:
 
 1. The denominator is greater than zero.
-2. The numerator and denominator are coprime.
--}
+2. The numerator and denominator are coprime. -}
 data Rational = Rational Integer Integer
   deriving stock (Haskell.Eq, Show, Generic)
+
+makeLift ''Rational
 
 instance Pretty Rational where
   pretty (Rational a b) = "Rational:" <+> pretty a <+> pretty b
@@ -149,7 +152,7 @@ instance HasBlueprintDefinition Rational where
   type Unroll Rational = '[Rational, Integer]
 
 instance
-  (HasSchemaDefinition Integer referencedTypes)
+  HasSchemaDefinition Integer referencedTypes
   => HasBlueprintSchema Rational referencedTypes
   where
   schema = schema @(Integer, Integer)
@@ -193,15 +196,14 @@ instance FromJSON Rational where
     d <- obj .: "denominator"
     case ratio n d of
       Haskell.Nothing -> Haskell.fail "Zero denominator is invalid."
-      Haskell.Just r  -> Haskell.pure r
+      Haskell.Just r -> Haskell.pure r
 
 {-| Makes a 'Rational' from a numerator and a denominator.
 
 = Important note
 
 If given a zero denominator, this function will error. If you don't mind a
-size increase, and care about safety, use 'ratio' instead.
--}
+size increase, and care about safety, use 'ratio' instead. -}
 unsafeRatio :: Integer -> Integer -> Rational
 unsafeRatio n d
   | d P.== P.zero = P.traceError P.ratioHasZeroDenominatorError
@@ -214,8 +216,7 @@ unsafeRatio n d
 {-# INLINEABLE unsafeRatio #-}
 
 {-| Safely constructs a 'Rational' from a numerator and a denominator. Returns
-'Nothing' if given a zero denominator.
--}
+'Nothing' if given a zero denominator. -}
 ratio :: Integer -> Integer -> P.Maybe Rational
 ratio n d
   | d P.== P.zero = P.Nothing
@@ -228,20 +229,13 @@ ratio n d
               (d `Builtins.quotientInteger` gcd')
 {-# INLINEABLE ratio #-}
 
-{-| Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value. Does not
-work on-chain.
--}
-toGHC :: Rational -> Ratio.Rational
-toGHC (Rational n d) = n Ratio.% d
-
 {-| Returns the numerator of its argument.
 
 = Note
 
 It is /not/ true in general that @'numerator' '<$>' 'ratio' x y = x@; this
 will only hold if @x@ and @y@ are coprime. This is due to 'Rational'
-normalizing the numerator and denominator.
--}
+normalizing the numerator and denominator. -}
 numerator :: Rational -> Integer
 numerator (Rational n _) = n
 {-# INLINEABLE numerator #-}
@@ -253,33 +247,22 @@ or equal to, 1, although the type does not describe this.
 
 It is /not/ true in general that @'denominator' '<$>' 'ratio' x y = y@; this
 will only hold if @x@ and @y@ are coprime. This is due to 'Rational'
-normalizing the numerator and denominator.
--}
+normalizing the numerator and denominator. -}
 denominator :: Rational -> Integer
 denominator (Rational _ d) = d
 {-# INLINEABLE denominator #-}
-
--- | 0.5
-half :: Rational
-half = Rational 1 2
-{-# INLINEABLE half #-}
 
 -- | Converts an 'Integer' into the equivalent 'Rational'.
 fromInteger :: Integer -> Rational
 fromInteger num = Rational num P.one
 {-# INLINEABLE fromInteger #-}
 
--- | Converts a GHC 'Ratio.Rational', preserving value. Does not work on-chain.
-fromGHC :: Ratio.Rational -> Rational
-fromGHC r = unsafeRatio (Ratio.numerator r) (Ratio.denominator r)
-
 {-| Produces the additive inverse of its argument.
 
 = Note
 
 This is specialized for 'Rational'; use this instead of the generic version
-of this function, as it is significantly smaller on-chain.
--}
+of this function, as it is significantly smaller on-chain. -}
 negate :: Rational -> Rational
 negate (Rational n d) = Rational (P.negate n) d
 {-# INLINEABLE negate #-}
@@ -290,8 +273,7 @@ negate (Rational n d) = Rational (P.negate n) d
 
 This is specialized for 'Rational'; use this instead of the generic version
 in @PlutusTx.Numeric@, as said generic version produces much larger on-chain
-code than the specialized version here.
--}
+code than the specialized version here. -}
 abs :: Rational -> Rational
 abs rat@(Rational n d)
   | n P.< P.zero = Rational (P.negate n) d
@@ -303,8 +285,7 @@ following hold:
 
 * @'fromInteger' n 'P.+' f = r@;
 * @n@ and @f@ both have the same sign as @r@; and
-* @'abs' f 'P.<' 'P.one'@.
--}
+* @'abs' f 'P.<' 'P.one'@. -}
 properFraction :: Rational -> (Integer, Rational)
 properFraction (Rational n d) =
   ( n `Builtins.quotientInteger` d
@@ -318,8 +299,7 @@ properFraction (Rational n d) =
 = Important note
 
 The reciprocal of zero is mathematically undefined; thus, @'recip' 'P.zero'@
-will error. Use with care.
--}
+will error. Use with care. -}
 recip :: Rational -> Rational
 recip (Rational n d)
   | n P.== P.zero = P.traceError P.reciprocalOfZeroError
@@ -329,19 +309,18 @@ recip (Rational n d)
 
 {-| Returns the whole-number part of its argument, dropping any leftover
 fractional part. More precisely, @'truncate' r = n@ where @(n, _) =
-'properFraction' r@, but is much more efficient.
--}
+'properFraction' r@, but is much more efficient. -}
 truncate :: Rational -> Integer
 truncate (Rational n d) = n `Builtins.quotientInteger` d
 {-# INLINEABLE truncate #-}
 
 {-| @'round' r@ returns the nearest 'Integer' value to @r@. If @r@ is
-equidistant between two values, the even value will be given.
--}
+equidistant between two values, the even value will be given. -}
 round :: Rational -> Integer
 round x =
   let (n, r) = properFraction x
       m = if r P.< P.zero then n P.- P.one else n P.+ P.one
+      half = Rational 1 2
       flag = abs r P.- half
    in if
         | flag P.< P.zero -> n
@@ -356,14 +335,13 @@ round x =
 
 {-| @'gcd' x y@ is the non-negative factor of both @x@ and @y@ of which
 every common factor of @x@ and @y@ is also a factor; for example
-@'gcd' 4 2 = 2@, @'gcd' (-4) 6 = 2@, @'gcd' 0 4@ = @4@. @'gcd' 0 0@ = @0@.
--}
+@'gcd' 4 2 = 2@, @'gcd' (-4) 6 = 2@, @'gcd' 0 4@ = @4@. @'gcd' 0 0@ = @0@. -}
 gcd :: Integer -> Integer -> Integer
 gcd a b = gcd' (P.abs a) (P.abs b)
- where
-  gcd' a' b'
-    | b' P.== P.zero = a'
-    | P.True = gcd' b' (a' `Builtins.remainderInteger` b')
+  where
+    gcd' a' b'
+      | b' P.== P.zero = a'
+      | P.True = gcd' b' (a' `Builtins.remainderInteger` b')
 {-# INLINEABLE gcd #-}
 
 -- Helpers
@@ -375,7 +353,51 @@ euclid x y
   | P.True = euclid y (x `Builtins.modInteger` y)
 {-# INLINEABLE euclid #-}
 
-$(makeLift ''Rational)
+instance Enum Rational where
+  {-# INLINEABLE succ #-}
+  succ (Rational n d) = Rational (n P.+ d) d
+  {-# INLINEABLE pred #-}
+  pred (Rational n d) = Rational (n P.- d) d
+  {-# INLINEABLE toEnum #-}
+  toEnum = fromInteger
+  {-# INLINEABLE fromEnum #-}
+  fromEnum = truncate
+  {-# INLINEABLE enumFromTo #-}
+  enumFromTo x lim
+    -- See why adding half is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
+    | x > lim P.+ Rational 1 2 = []
+    | P.True = x : enumFromTo (succ x) lim
+  {-# INLINEABLE enumFromThenTo #-}
+  enumFromThenTo x y lim =
+    if delta >= P.zero
+      then up_list x
+      else dn_list x
+    where
+      delta = y P.- x
+      -- denominator of delta cannot be zero because it is constructed from two well-formed ratios. So it is safe to use unsafeRatio
+      mid = numerator delta `unsafeRatio` (denominator delta P.* 2)
+      up_list x1 =
+        -- See why adding mid is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
+        if x1 > lim P.+ mid
+          then []
+          else x1 : up_list (x1 P.+ delta)
+      dn_list x1 =
+        -- See why adding mid is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
+        if x1 < lim P.+ mid
+          then []
+          else x1 : dn_list (x1 P.+ delta)
+
+{-| Converts a GHC 'Ratio.Rational', preserving value.
+
+Note: Does not work on-chain. -}
+fromHaskellRatio :: HS.Rational -> Rational
+fromHaskellRatio r = unsafeRatio (HS.numerator r) (HS.denominator r)
+
+{-| Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value.
+
+Note: Does not work on-chain. -}
+toHaskellRatio :: Rational -> HS.Rational
+toHaskellRatio (Rational n d) = n HS.% d
 
 {- HLINT ignore -}
 

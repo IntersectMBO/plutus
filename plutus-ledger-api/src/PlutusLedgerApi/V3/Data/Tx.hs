@@ -1,25 +1,25 @@
-{-# LANGUAGE BlockArguments       #-}
-{-# LANGUAGE CPP                  #-}
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE DerivingVia          #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE NamedFieldPuns       #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE PatternSynonyms      #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
-module PlutusLedgerApi.V3.Data.Tx (
-  TxId (..),
-  TxOutRef,
-  pattern TxOutRef,
-  txOutRefId,
-  txOutRefIdx,
-) where
+module PlutusLedgerApi.V3.Data.Tx
+  ( TxId (..)
+  , TxOutRef
+  , pattern TxOutRef
+  , txOutRefId
+  , txOutRefIdx
+  ) where
 
 import Control.DeepSeq (NFData)
 import Data.Function ((&))
@@ -43,8 +43,7 @@ import Prettyprinter (Pretty, pretty)
 {-| A transaction ID, i.e. the hash of a transaction. Hashed with BLAKE2b-256. 32 byte.
 
 This is a simple type without any validation, __use with caution__.
-You may want to add checks for its invariants. See the Shelley ledger specification.
--}
+You may want to add checks for its invariants. See the Shelley ledger specification. -}
 newtype TxId = TxId {getTxId :: PlutusTx.BuiltinByteString}
   deriving stock (Eq, Ord, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
@@ -63,12 +62,11 @@ instance HasBlueprintSchema TxId referencedTypes where
   schema =
     schema @PlutusTx.BuiltinByteString
       & withSchemaInfo \info ->
-        info{title = Just "TxId"}
+        info {title = Just "TxId"}
 
 {-| A reference to a transaction output. This is a
 pair of a transaction ID (`TxId`), and an index indicating which of the outputs
-of that transaction we are referring to.
--}
+of that transaction we are referring to. -}
 PlutusTx.asData
   [d|
     data TxOutRef = TxOutRef
@@ -84,7 +82,7 @@ PlutusTx.asData
     |]
 
 instance Pretty TxOutRef where
-  pretty TxOutRef{txOutRefId = id', txOutRefIdx = idx} = pretty id' <> "!" <> pretty idx
+  pretty TxOutRef {txOutRefId = id', txOutRefIdx = idx} = pretty id' <> "!" <> pretty idx
 
 instance PlutusTx.Eq TxOutRef where
   {-# INLINEABLE (==) #-}

@@ -1,28 +1,58 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module PlutusBenchmark.V3.Data.ScriptContexts where
 
 import PlutusLedgerApi.Data.V1 qualified as PlutusTx
-import PlutusLedgerApi.Data.V3 (PubKeyHash (..), Redeemer (..), ScriptContext, TxId (..), TxInfo,
-                                TxOut, always, emptyMintValue, mintValueMinted,
-                                pattern CertifyingScript, pattern MintingScript,
-                                pattern NoOutputDatum, pattern ProposingScript,
-                                pattern RewardingScript, pattern ScriptContext,
-                                pattern SpendingScript, pattern TxInfo, pattern TxOut,
-                                pattern TxOutRef, pattern VotingScript, txInInfoOutRef,
-                                txInfoCurrentTreasuryAmount, txInfoData, txInfoFee, txInfoId,
-                                txInfoInputs, txInfoMint, txInfoOutputs, txInfoProposalProcedures,
-                                txInfoRedeemers, txInfoReferenceInputs, txInfoSignatories,
-                                txInfoTreasuryDonation, txInfoTxCerts, txInfoValidRange,
-                                txInfoVotes, txInfoWdrl, txOutAddress, txOutDatum,
-                                txOutReferenceScript, txOutValue)
+import PlutusLedgerApi.Data.V3
+  ( PubKeyHash (..)
+  , Redeemer (..)
+  , ScriptContext
+  , TxId (..)
+  , TxInfo
+  , TxOut
+  , always
+  , emptyMintValue
+  , mintValueMinted
+  , txInInfoOutRef
+  , txInfoCurrentTreasuryAmount
+  , txInfoData
+  , txInfoFee
+  , txInfoId
+  , txInfoInputs
+  , txInfoMint
+  , txInfoOutputs
+  , txInfoProposalProcedures
+  , txInfoRedeemers
+  , txInfoReferenceInputs
+  , txInfoSignatories
+  , txInfoTreasuryDonation
+  , txInfoTxCerts
+  , txInfoValidRange
+  , txInfoVotes
+  , txInfoWdrl
+  , txOutAddress
+  , txOutDatum
+  , txOutReferenceScript
+  , txOutValue
+  , pattern CertifyingScript
+  , pattern MintingScript
+  , pattern NoOutputDatum
+  , pattern ProposingScript
+  , pattern RewardingScript
+  , pattern ScriptContext
+  , pattern SpendingScript
+  , pattern TxInfo
+  , pattern TxOut
+  , pattern TxOutRef
+  , pattern VotingScript
+  )
 import PlutusLedgerApi.V1.Data.Address
 import PlutusLedgerApi.V1.Data.Value
 import PlutusLedgerApi.V3.Data.MintValue (MintValue (..))
@@ -34,8 +64,7 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude qualified as PlutusTx
 
 {-| A very crude deterministic generator for 'ScriptContext's with size
-approximately proportional to the input integer.
--}
+approximately proportional to the input integer. -}
 mkScriptContext :: Integer -> ScriptContext
 mkScriptContext i =
   ScriptContext
@@ -105,16 +134,18 @@ mkMintingTxInfo i =
     }
 
 mkMintValue :: Integer -> MintValue
-mkMintValue n = listToMintValue
-  [(CurrencySymbol (toByteString i), [(TokenName (toByteString i), i)])
-    | i <- [0..n]]
+mkMintValue n =
+  listToMintValue
+    [ (CurrencySymbol (toByteString i), [(TokenName (toByteString i), i)])
+    | i <- [0 .. n]
+    ]
 
 toByteString :: Integer -> PlutusTx.BuiltinByteString
 toByteString i =
   foldr
     (\_ -> PlutusTx.consByteString 48)
     PlutusTx.emptyByteString
-    [0..i]
+    [0 .. i]
 
 listToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
 listToValue = Value . Map.unsafeFromSOPList . map (fmap Map.unsafeFromSOPList)

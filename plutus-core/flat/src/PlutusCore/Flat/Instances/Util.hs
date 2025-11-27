@@ -1,22 +1,23 @@
-{-# LANGUAGE BangPatterns              #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TupleSections             #-}
-{-# LANGUAGE ViewPatterns              #-}
 
 module PlutusCore.Flat.Instances.Util
-    ( module F
-    --     sizeList
-    -- , decodeList
-    -- , encodeList
-    , encodeArray
-    )
+  ( module F
+  --     sizeList
+  -- , decodeList
+  -- , encodeList
+  , encodeArray
+  )
 where
 
 import PlutusCore.Flat.Class as F
 import PlutusCore.Flat.Decoder as F
 import PlutusCore.Flat.Encoder as F
 import PlutusCore.Flat.Types as F
+
 -- import           Data.List
 -- import GHC.Exts(IsList)
 

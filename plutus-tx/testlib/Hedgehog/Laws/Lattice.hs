@@ -6,9 +6,9 @@ import Hedgehog (Property, cover, forAll, property)
 import Hedgehog qualified
 import Hedgehog.Laws.Common
 import PlutusTx.Lattice
-import Prelude
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
+import Prelude
 
 joinLatticeLaws :: (Show a, Eq a, JoinSemiLattice a) => Hedgehog.Gen a -> TestTree
 joinLatticeLaws g =

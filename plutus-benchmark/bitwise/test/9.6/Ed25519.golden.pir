@@ -2217,31 +2217,27 @@
                            (appendByteString
                               x
                               (appendByteString x (appendByteString x x))))))))
-      !ds :
-         Tuple2 integer integer
-        = scalarMult
-            (Tuple2
-               {integer}
-               {integer}
-               (modInteger
-                  bx
-                  57896044618658097711785492504343953926634992332820282019728792003956564819949)
-               (modInteger
-                  by
-                  57896044618658097711785492504343953926634992332820282019728792003956564819949))
-            s
-      !ds : Tuple2 integer integer = edwards nt (scalarMult nt h)
     in
     Tuple2_match
       {integer}
       {integer}
-      ds
+      (scalarMult
+         (Tuple2
+            {integer}
+            {integer}
+            (modInteger
+               bx
+               57896044618658097711785492504343953926634992332820282019728792003956564819949)
+            (modInteger
+               by
+               57896044618658097711785492504343953926634992332820282019728792003956564819949))
+         s)
       {bool}
       (\(x : integer) (y : integer) ->
          Tuple2_match
            {integer}
            {integer}
-           ds
+           (edwards nt (scalarMult nt h))
            {bool}
            (\(x : integer) (y : integer) ->
               case

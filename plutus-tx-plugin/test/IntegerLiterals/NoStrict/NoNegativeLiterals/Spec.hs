@@ -1,20 +1,19 @@
-{-# LANGUAGE BangPatterns       #-}
-{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoNegativeLiterals #-}
-{-# LANGUAGE NoStrict           #-}
-{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE NoStrict #-}
 
 {-| This module tests that integer literals are handled correctly when both @Strict@
 and @NegativeLiterals@ are off. These two extensions affect the Core we get.
 
-See Note [Running PIR and UPLC Simplifiers in Integer Literal Tests].
--}
+See Note [Running PIR and UPLC Simplifiers in Integer Literal Tests]. -}
 module IntegerLiterals.NoStrict.NoNegativeLiterals.Spec where
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 import Test.Tasty.Extras
 

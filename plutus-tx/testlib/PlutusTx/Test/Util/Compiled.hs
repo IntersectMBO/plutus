@@ -1,16 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RankNTypes       #-}
+{-# LANGUAGE RankNTypes #-}
 
-module PlutusTx.Test.Util.Compiled (
-  Program,
-  Term,
-  countFlatBytes,
-  toAnonDeBruijnTerm,
-  toAnonDeBruijnProg,
-  toNamedDeBruijnTerm,
-  compiledCodeToTerm,
-  cekResultMatchesHaskellValue,
-)
+module PlutusTx.Test.Util.Compiled
+  ( Program
+  , Term
+  , countFlatBytes
+  , toAnonDeBruijnTerm
+  , toAnonDeBruijnProg
+  , toNamedDeBruijnTerm
+  , compiledCodeToTerm
+  , cekResultMatchesHaskellValue
+  )
 where
 
 import Prelude
@@ -42,8 +42,7 @@ representation as the one produced by 'serialiseCompiledCode' function:
 in uses the 'NamedDeBruijn' representation, which also stores names.
 On the mainnet we don't serialise names, only DeBruijn indices, so this function
 re-serialises the code to get the size in bytes that we would actually
-use on the mainnet.
--}
+use on the mainnet. -}
 countFlatBytes :: CompiledCode ann -> Integer
 countFlatBytes =
   fromIntegral
@@ -57,8 +56,7 @@ countFlatBytes =
 
 {-| Given a DeBruijn-named term, give every variable the name "v".  If we later
    call unDeBruijn, that will rename the variables to things like "v123", where
-   123 is the relevant de Bruijn index.
--}
+   123 is the relevant de Bruijn index. -}
 toNamedDeBruijnTerm
   :: UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
   -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
@@ -75,8 +73,7 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
   UPLC.Program () ver $ toAnonDeBruijnTerm body
 
 {-| Just extract the body of a program wrapped in a 'CompiledCodeIn'.
-We use this a lot.
--}
+We use this a lot. -}
 compiledCodeToTerm :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
 compiledCodeToTerm code = let UPLC.Program _ _ body = Tx.getPlcNoAnn code in body
 
@@ -85,10 +82,9 @@ compiledCodeToTerm code = let UPLC.Program _ _ body = Tx.getPlcNoAnn code in bod
    from).  We evaluate the lifted Haskell value as well, because lifting may
    produce reducible terms. The function is polymorphic in the comparison
    operator so that we can use it with both HUnit Assertions and QuickCheck
-   Properties.
--}
+   Properties. -}
 cekResultMatchesHaskellValue
-  :: (Tx.Lift DefaultUni hask)
+  :: Tx.Lift DefaultUni hask
   => Term
   -> (forall r. (Eq r, Show r) => r -> r -> k)
   -> hask
@@ -97,13 +93,13 @@ cekResultMatchesHaskellValue actual matches expected =
   matches
     (unsafeRunTermCek actual)
     (unsafeRunTermCek (compiledCodeToTerm (Tx.liftCodeDef expected)))
- where
-  unsafeRunTermCek :: Term -> EvaluationResult Term
-  unsafeRunTermCek =
-    unsafeSplitStructuralOperational
-      . Cek.cekResultToEither
-      . _cekReportResult
-      . runCekDeBruijn
-        PLC.defaultCekParametersForTesting
-        Cek.restrictingEnormous
-        Cek.noEmitter
+  where
+    unsafeRunTermCek :: Term -> EvaluationResult Term
+    unsafeRunTermCek =
+      unsafeSplitStructuralOperational
+        . Cek.cekResultToEither
+        . _cekReportResult
+        . runCekDeBruijn
+          PLC.defaultCekParametersForTesting
+          Cek.restrictingEnormous
+          Cek.noEmitter

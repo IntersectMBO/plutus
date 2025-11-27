@@ -1,6 +1,5 @@
--- | Various file paths used in plutus-core, currently all to do with the cost
--- model.
-
+{-| Various file paths used in plutus-core, currently all to do with the cost
+model. -}
 module PlutusCore.DataFilePaths
 where
 
@@ -37,8 +36,7 @@ latestMachineCostsFile = cekMachineCostsFileC
 rModelFile :: FilePath
 rModelFile = costModelDataDir </> "models" <.> "R"
 
--- | The file containing the benchmark results for the built-in functions: only
--- needed for cost-model-test.
+{-| The file containing the benchmark results for the built-in functions: only
+needed for cost-model-test. -}
 benchingResultsFile :: FilePath
 benchingResultsFile = costModelDataDir </> "benching-conway" <.> "csv"
-

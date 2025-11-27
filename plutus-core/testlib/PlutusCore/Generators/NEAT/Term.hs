@@ -1,25 +1,22 @@
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 -- editorconfig-checker-disable-file
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 {-| Description: PLC Syntax, typechecker,semantics property based testing.
 
 This file contains
 1. A duplicate of the Plutus Core Abstract Syntax (types and terms)
 2. A kind checker and a type checker
-3. Reduction semantics for types
--}
-
-{-# OPTIONS_GHC -fno-warn-orphans      #-}
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FlexibleInstances         #-}
-{-# LANGUAGE GADTs                     #-}
-{-# LANGUAGE LambdaCase                #-}
-{-# LANGUAGE MultiParamTypeClasses     #-}
-{-# LANGUAGE PatternSynonyms           #-}
-{-# LANGUAGE RecordWildCards           #-}
-{-# LANGUAGE ScopedTypeVariables       #-}
-{-# LANGUAGE TemplateHaskell           #-}
-{-# LANGUAGE TypeApplications          #-}
-
-
+3. Reduction semantics for types -}
 module PlutusCore.Generators.NEAT.Term
   ( TypeBuiltinG (..)
   , TermConstantG (..)
@@ -83,20 +80,24 @@ NOTE: We don't just want to enumerate arbitrary types but also normal
 -}
 
 instance Enumerable tyname => Enumerable (Normalized (TypeG tyname)) where
-  enumerate = share $ aconcat
-    [       c1 $ \ty -> Normalized (unNeutral ty)
-    , pay . c1 $ \ty -> Normalized (TyLamG (unNormalized ty))
-    , pay . c3 $ \ty1 k ty2 -> Normalized (TyIFixG (unNormalized ty1) k (unNormalized ty2))
-    , pay . c2 $ \k ty      -> Normalized (TyForallG k (unNormalized ty))
-    , pay . c1 $ \tyBuiltin -> Normalized (TyBuiltinG tyBuiltin)
-    , pay . c2 $ \ty1 ty2   -> Normalized (TyFunG (unNormalized ty1) (unNormalized ty2))
-    ]
+  enumerate =
+    share $
+      aconcat
+        [ c1 $ \ty -> Normalized (unNeutral ty)
+        , pay . c1 $ \ty -> Normalized (TyLamG (unNormalized ty))
+        , pay . c3 $ \ty1 k ty2 -> Normalized (TyIFixG (unNormalized ty1) k (unNormalized ty2))
+        , pay . c2 $ \k ty -> Normalized (TyForallG k (unNormalized ty))
+        , pay . c1 $ \tyBuiltin -> Normalized (TyBuiltinG tyBuiltin)
+        , pay . c2 $ \ty1 ty2 -> Normalized (TyFunG (unNormalized ty1) (unNormalized ty2))
+        ]
 
 instance Enumerable tyname => Enumerable (Neutral (TypeG tyname)) where
-  enumerate = share $ aconcat
-    [ pay . c1 $ \i         -> Neutral (TyVarG i)
-    , pay . c3 $ \ty1 ty2 k -> Neutral (TyAppG (unNeutral ty1) (unNormalized ty2) k)
-    ]
+  enumerate =
+    share $
+      aconcat
+        [ pay . c1 $ \i -> Neutral (TyVarG i)
+        , pay . c3 $ \ty1 ty2 k -> Neutral (TyAppG (unNeutral ty1) (unNormalized ty2) k)
+        ]
 
 -- ** Enumerating terms
 
@@ -107,13 +108,14 @@ instance Enumerable ByteString where
 instance (Enumerable Text.Text) where
   enumerate = share $ fmap (decodeUtf8 . pack) access
 
-data TermConstantG = TmIntegerG Integer
-                   | TmByteStringG ByteString
-                   | TmStringG Text.Text
-                   | TmBoolG Bool
-                   | TmUnitG ()
-                   | TmDataG Data
-                   deriving stock (Show, Eq)
+data TermConstantG
+  = TmIntegerG Integer
+  | TmByteStringG ByteString
+  | TmStringG Text.Text
+  | TmBoolG Bool
+  | TmUnitG ()
+  | TmDataG Data
+  deriving stock (Show, Eq)
 
 deriveEnumerable ''Data
 
@@ -122,27 +124,27 @@ deriveEnumerable ''TermConstantG
 deriveEnumerable ''DefaultFun
 
 data TermG tyname name
-    = VarG
+  = VarG
       name
-    | LamAbsG
+  | LamAbsG
       (TermG tyname (S name))
-    | ApplyG
+  | ApplyG
       (TermG tyname name)
       (TermG tyname name)
       (TypeG tyname)
-    | TyAbsG
+  | TyAbsG
       (TermG (S tyname) name)
-    | TyInstG
+  | TyInstG
       (TermG tyname name)
       (TypeG (S tyname))
       (TypeG tyname)
       (Kind ())
-    | ConstantG TermConstantG
-    | BuiltinG DefaultFun
-    | WrapG (TermG tyname name)
-    | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
-    | ErrorG (TypeG tyname)
-    deriving stock (Eq, Functor, Show)
+  | ConstantG TermConstantG
+  | BuiltinG DefaultFun
+  | WrapG (TermG tyname name)
+  | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
+  | ErrorG (TypeG tyname)
+  deriving stock (Eq, Functor, Show)
 
 deriveBifunctor ''TermG
 deriveEnumerable ''TermG
@@ -151,38 +153,40 @@ type ClosedTermG = TermG Z Z
 
 -- * Converting types
 
--- |Convert generated builtin types to Plutus builtin types.
+-- | Convert generated builtin types to Plutus builtin types.
 convertTypeBuiltin :: TypeBuiltinG -> SomeTypeIn DefaultUni
 convertTypeBuiltin TyByteStringG = SomeTypeIn DefaultUniByteString
-convertTypeBuiltin TyIntegerG    = SomeTypeIn DefaultUniInteger
-convertTypeBuiltin TyBoolG       = SomeTypeIn DefaultUniBool
-convertTypeBuiltin TyUnitG       = SomeTypeIn DefaultUniUnit
-convertTypeBuiltin (TyListG a)   =
+convertTypeBuiltin TyIntegerG = SomeTypeIn DefaultUniInteger
+convertTypeBuiltin TyBoolG = SomeTypeIn DefaultUniBool
+convertTypeBuiltin TyUnitG = SomeTypeIn DefaultUniUnit
+convertTypeBuiltin (TyListG a) =
   case convertTypeBuiltin a of
     SomeTypeIn a' -> case decodeKindedUni (encodeUni a') of
       Nothing -> error "encode;decode failed"
       Just (SomeTypeIn (Kinded ka)) -> case checkStar @DefaultUni ka of
-        Nothing   -> error "higher kinded thing in list"
+        Nothing -> error "higher kinded thing in list"
         Just Refl -> SomeTypeIn (DefaultUniList ka)
+convertTypeBuiltin TyStringG = SomeTypeIn DefaultUniString
+convertTypeBuiltin TyDataG = SomeTypeIn DefaultUniData
 
-convertTypeBuiltin TyStringG     = SomeTypeIn DefaultUniString
-convertTypeBuiltin TyDataG       = SomeTypeIn DefaultUniData
+{-| Convert well-kinded generated types to Plutus types.
 
--- |Convert well-kinded generated types to Plutus types.
---
--- NOTE: Passes an explicit `TyNameState`, instead of using a State
---       monad, as the type of the `TyNameState` changes throughout
---       the computation.  Alternatively, this could be written using
---       an indexed State monad.
---
--- NOTE: Roman points out that this is more like reader than state,
---       however it doesn't fit easily into this pattern as the
---       function `extTyNameState` is monadic (`MonadQuote`).
+ NOTE: Passes an explicit `TyNameState`, instead of using a State
+       monad, as the type of the `TyNameState` changes throughout
+       the computation.  Alternatively, this could be written using
+       an indexed State monad.
+
+ NOTE: Roman points out that this is more like reader than state,
+       however it doesn't fit easily into this pattern as the
+       function `extTyNameState` is monadic (`MonadQuote`). -}
 convertType
   :: (Show tyname, MonadQuote m, MonadError GenError m)
-  => TyNameState tyname -- ^ Type name environment with fresh name stream
-  -> Kind ()            -- ^ Kind of type below
-  -> TypeG tyname       -- ^ Type to convert
+  => TyNameState tyname
+  -- ^ Type name environment with fresh name stream
+  -> Kind ()
+  -- ^ Kind of type below
+  -> TypeG tyname
+  -- ^ Type to convert
   -> m (Type TyName DefaultUni ())
 convertType tns _ (TyVarG i) =
   return (TyVar () (tynameOf tns i))
@@ -202,7 +206,7 @@ convertType tns k2 (TyAppG ty1 ty2 k1) =
   TyApp () <$> convertType tns (KindArrow () k1 k2) ty1 <*> convertType tns k1 ty2
 convertType _ k ty = throwError $ BadTypeG k ty
 
--- |Convert generated closed types to Plutus types.
+-- | Convert generated closed types to Plutus types.
 convertClosedType
   :: (MonadQuote m, MonadError GenError m)
   => Stream.Stream Text.Text
@@ -213,33 +217,37 @@ convertClosedType tynames = convertType (emptyTyNameState tynames)
 
 -- ** Converting terms
 
--- |Convert (well-typed) generated terms to Plutus terms.
---
--- NOTE: Passes an explicit `TyNameState` and `NameState`, instead of using a
---       State monad, as the type of the `TyNameState` changes throughout the
---       computation. This could be written using an indexed State monad.
---
---       No checking is performed during conversion. The type is given
---       as it contains information needed to fully annotate a `Term`.
---       `Term`, unlike `TermG`, contains all necessary type
---       information to infer the type of the term. It is expected
---       that this function is only called on a well-typed
---       term. Violating this would point to an error in the
---       generator/checker.
+{-| Convert (well-typed) generated terms to Plutus terms.
+
+ NOTE: Passes an explicit `TyNameState` and `NameState`, instead of using a
+       State monad, as the type of the `TyNameState` changes throughout the
+       computation. This could be written using an indexed State monad.
+
+       No checking is performed during conversion. The type is given
+       as it contains information needed to fully annotate a `Term`.
+       `Term`, unlike `TermG`, contains all necessary type
+       information to infer the type of the term. It is expected
+       that this function is only called on a well-typed
+       term. Violating this would point to an error in the
+       generator/checker. -}
 convertTermConstant :: TermConstantG -> Some (ValueOf DefaultUni)
 convertTermConstant (TmByteStringG b) = Some $ ValueOf DefaultUniByteString b
-convertTermConstant (TmIntegerG i)    = Some $ ValueOf DefaultUniInteger i
-convertTermConstant (TmStringG s)     = Some $ ValueOf DefaultUniString s
-convertTermConstant (TmBoolG b)       = Some $ ValueOf DefaultUniBool b
-convertTermConstant (TmUnitG u)       = Some $ ValueOf DefaultUniUnit u
-convertTermConstant (TmDataG d)       = Some $ ValueOf DefaultUniData d
+convertTermConstant (TmIntegerG i) = Some $ ValueOf DefaultUniInteger i
+convertTermConstant (TmStringG s) = Some $ ValueOf DefaultUniString s
+convertTermConstant (TmBoolG b) = Some $ ValueOf DefaultUniBool b
+convertTermConstant (TmUnitG u) = Some $ ValueOf DefaultUniUnit u
+convertTermConstant (TmDataG d) = Some $ ValueOf DefaultUniData d
 
 convertTerm
   :: (Show tyname, Show name, MonadQuote m, MonadError GenError m)
-  => TyNameState tyname -- ^ Type name environment with fresh name stream
-  -> NameState name     -- ^ Name environment with fresh name stream
-  -> TypeG tyname       -- ^ Type of term below
-  -> TermG tyname name  -- ^ Term to convert
+  => TyNameState tyname
+  -- ^ Type name environment with fresh name stream
+  -> NameState name
+  -- ^ Name environment with fresh name stream
+  -> TypeG tyname
+  -- ^ Type of term below
+  -> TermG tyname name
+  -- ^ Term to convert
   -> m (Term TyName Name DefaultUni DefaultFun ())
 convertTerm _tns ns _ty (VarG i) =
   return (Var () (nameOf ns i))
@@ -257,7 +265,8 @@ convertTerm tns ns _ (TyInstG tm cod ty k) =
 convertTerm _tns _ns _ (ConstantG c) =
   return $ Constant () (convertTermConstant c)
 convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () b
-convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap ()
+convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) =
+  IWrap ()
     <$> convertType tns (toPatFuncKind k) ty1
     <*> convertType tns k ty2
     <*> convertTerm tns ns (normalizeTypeG ty') tm
@@ -268,7 +277,7 @@ convertTerm tns ns _ (UnWrapG ty1 k ty2 tm) = Unwrap () <$> convertTerm tns ns (
 convertTerm tns _ns _ (ErrorG ty) = Error () <$> convertType tns (Type ()) ty
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
 
--- |Convert generated closed terms to Plutus terms.
+-- | Convert generated closed terms to Plutus terms.
 convertClosedTerm
   :: (MonadQuote m, MonadError GenError m)
   => Stream.Stream Text.Text
@@ -278,155 +287,182 @@ convertClosedTerm
   -> m (Term TyName Name DefaultUni DefaultFun ())
 convertClosedTerm tynames names = convertTerm (emptyTyNameState tynames) (emptyNameState names)
 
-
 -- * Checking
 
 class Check t a where
   check :: t -> a -> Cool
 
-
 -- ** Kind checking
 
--- |Kind check builtin types.
---
--- NOTE: If we make |checkTypeBuiltinG| non-strict in its second argument,
---       lazy-search will only ever return one of the various builtin types.
---       Perhaps this is preferable?
---
+{-| Kind check builtin types.
+
+ NOTE: If we make |checkTypeBuiltinG| non-strict in its second argument,
+       lazy-search will only ever return one of the various builtin types.
+       Perhaps this is preferable? -}
 instance Check (Kind ()) TypeBuiltinG where
   check (Type _) TyByteStringG = true
-  check (Type _) TyIntegerG    = true
-  check (Type _) TyBoolG       = true
-  check (Type _) TyUnitG       = true
-  check (Type _) (TyListG _a)  = false -- check (Type ()) a
-  check (Type _) TyStringG     = true
-  check (Type _) TyDataG       = true
-  check _        _             = false
+  check (Type _) TyIntegerG = true
+  check (Type _) TyBoolG = true
+  check (Type _) TyUnitG = true
+  check (Type _) (TyListG _a) = false -- check (Type ()) a
+  check (Type _) TyStringG = true
+  check (Type _) TyDataG = true
+  check _ _ = false
 
--- |Kind check types.
+-- | Kind check types.
 checkKindG :: KCS n -> Kind () -> TypeG n -> Cool
-checkKindG kcs k (TyVarG i)
-  = varKindOk
+checkKindG kcs k (TyVarG i) =
+  varKindOk
   where
     varKindOk = toCool $ k == kindOf kcs i
-
-checkKindG kcs (Type _) (TyFunG ty1 ty2)
-  = ty1KindOk &&& ty2KindOk
+checkKindG kcs (Type _) (TyFunG ty1 ty2) =
+  ty1KindOk &&& ty2KindOk
   where
     ty1KindOk = checkKindG kcs (Type ()) ty1
     ty2KindOk = checkKindG kcs (Type ()) ty2
-
-checkKindG kcs (Type _) (TyIFixG ty1 k ty2)
-  = ty1KindOk &&& ty2KindOk
+checkKindG kcs (Type _) (TyIFixG ty1 k ty2) =
+  ty1KindOk &&& ty2KindOk
   where
-    ty1Kind   = toPatFuncKind k
+    ty1Kind = toPatFuncKind k
     ty1KindOk = checkKindG kcs ty1Kind ty1
     ty2KindOk = checkKindG kcs k ty2
-
-checkKindG kcs (Type _) (TyForallG k body)
-  = tyKindOk
+checkKindG kcs (Type _) (TyForallG k body) =
+  tyKindOk
   where
     tyKindOk = checkKindG (extKCS k kcs) (Type ()) body
-
-checkKindG _ k (TyBuiltinG tyBuiltin)
-  = tyBuiltinKindOk
+checkKindG _ k (TyBuiltinG tyBuiltin) =
+  tyBuiltinKindOk
   where
     tyBuiltinKindOk = check k tyBuiltin
-
-checkKindG kcs (KindArrow () k1 k2) (TyLamG body)
-  = bodyKindOk
+checkKindG kcs (KindArrow () k1 k2) (TyLamG body) =
+  bodyKindOk
   where
     bodyKindOk = checkKindG (extKCS k1 kcs) k2 body
-
-checkKindG kcs k' (TyAppG ty1 ty2 k)
-  = ty1KindOk &&& ty2KindOk
+checkKindG kcs k' (TyAppG ty1 ty2 k) =
+  ty1KindOk &&& ty2KindOk
   where
-    ty1Kind   = KindArrow () k k'
+    ty1Kind = KindArrow () k k'
     ty1KindOk = checkKindG kcs ty1Kind ty1
     ty2KindOk = checkKindG kcs k ty2
-
 checkKindG _ _ _ = false
-
 
 instance Check (Kind ()) ClosedTypeG where
   check = checkKindG emptyKCS
 
-
 instance Check (Kind ()) (Normalized ClosedTypeG) where
   check k ty = check k (unNormalized ty)
 
-
 -- ** Kind checking state
 
-newtype KCS tyname = KCS{ kindOf :: tyname -> Kind () }
+newtype KCS tyname = KCS {kindOf :: tyname -> Kind ()}
 
 emptyKCS :: KCS Z
-emptyKCS = KCS{ kindOf = fromZ }
+emptyKCS = KCS {kindOf = fromZ}
 
 extKCS :: forall tyname. Kind () -> KCS tyname -> KCS (S tyname)
-extKCS k KCS{..} = KCS{ kindOf = kindOf' }
+extKCS k KCS {..} = KCS {kindOf = kindOf'}
   where
     kindOf' :: S tyname -> Kind ()
-    kindOf' FZ     = k
+    kindOf' FZ = k
     kindOf' (FS i) = kindOf i
-
 
 -- ** Type checking
 
 instance Check (TypeG n) TermConstantG where
   check (TyBuiltinG TyByteStringG) (TmByteStringG _) = true
-  check (TyBuiltinG TyIntegerG   ) (TmIntegerG    _) = true
-  check (TyBuiltinG TyBoolG      ) (TmBoolG       _) = true
-  check (TyBuiltinG TyUnitG      ) (TmUnitG       _) = true
-  check (TyBuiltinG TyStringG    ) (TmStringG     _) = true
-  check (TyBuiltinG TyDataG      ) (TmDataG     _)   = true
-  check _                          _                 = false
+  check (TyBuiltinG TyIntegerG) (TmIntegerG _) = true
+  check (TyBuiltinG TyBoolG) (TmBoolG _) = true
+  check (TyBuiltinG TyUnitG) (TmUnitG _) = true
+  check (TyBuiltinG TyStringG) (TmStringG _) = true
+  check (TyBuiltinG TyDataG) (TmDataG _) = true
+  check _ _ = false
 
-
--- | DEPRECATED: No Need to Update for a new Builtin.
--- NEAT tests are useless for builtins, see https://github.com/IntersectMBO/plutus/issues/6075
+{-| DEPRECATED: No Need to Update for a new Builtin.
+NEAT tests are useless for builtins, see https://github.com/IntersectMBO/plutus/issues/6075 -}
 defaultFunTypes :: Ord tyname => Map.Map (TypeG tyname) [DefaultFun]
-defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-                   ,[AddInteger,SubtractInteger,MultiplyInteger,DivideInteger,QuotientInteger,RemainderInteger,ModInteger])
-                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))
-                   ,[LessThanInteger,LessThanEqualsInteger,EqualsInteger])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
-                   ,[AppendByteString])
-                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
-                   ,[ConsByteString])
-                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)))
-                   ,[SliceByteString])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyIntegerG)
-                   ,[LengthOfByteString])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
-                   ,[IndexByteString])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
-                   ,[Sha2_256,Sha3_256,Blake2b_224,Blake2b_256,Keccak_256,Ripemd_160])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
-                   ,[VerifyEd25519Signature])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))
-                   ,[EqualsByteString,LessThanByteString,LessThanEqualsByteString])
-                  ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
-                   ,[IfThenElse])
-                  ,(TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))
-                   ,[AppendString])
-                  ,(TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyBoolG))
-                   ,[EqualsString])
-                  ,(TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyByteStringG)
-                   ,[EncodeUtf8])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyStringG)
-                   ,[DecodeUtf8])
-                  ,(TyForallG (Type ()) (TyFunG (TyBuiltinG TyStringG) (TyFunG (TyVarG FZ) (TyVarG FZ)))
-                   ,[Trace])
-                  ,(TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyDataG)
-                  ,[IData])
-                  ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyDataG)
-                  ,[BData])
-                  ,(TyFunG (TyBuiltinG TyDataG) (TyBuiltinG TyIntegerG)
-                  ,[UnIData])
-                  ,(TyFunG (TyBuiltinG TyDataG) (TyBuiltinG TyByteStringG)
-                  ,[UnBData, SerialiseData])
-                  ]
+defaultFunTypes =
+  Map.fromList
+    [
+      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      , [AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyBoolG))
+      , [LessThanInteger, LessThanEqualsInteger, EqualsInteger]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
+      , [AppendByteString]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG))
+      , [ConsByteString]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)))
+      , [SliceByteString]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyIntegerG)
+      , [LengthOfByteString]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
+      , [IndexByteString]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
+      , [Sha2_256, Sha3_256, Blake2b_224, Blake2b_256, Keccak_256, Ripemd_160]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
+      , [VerifyEd25519Signature]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))
+      , [EqualsByteString, LessThanByteString, LessThanEqualsByteString]
+      )
+    ,
+      ( TyForallG (Type ()) (TyFunG (TyBuiltinG TyBoolG) (TyFunG (TyVarG FZ) (TyFunG (TyVarG FZ) (TyVarG FZ))))
+      , [IfThenElse]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyStringG))
+      , [AppendString]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyStringG) (TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyBoolG))
+      , [EqualsString]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyStringG) (TyBuiltinG TyByteStringG)
+      , [EncodeUtf8]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyStringG)
+      , [DecodeUtf8]
+      )
+    ,
+      ( TyForallG (Type ()) (TyFunG (TyBuiltinG TyStringG) (TyFunG (TyVarG FZ) (TyVarG FZ)))
+      , [Trace]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyDataG)
+      , [IData]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyDataG)
+      , [BData]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyDataG) (TyBuiltinG TyIntegerG)
+      , [UnIData]
+      )
+    ,
+      ( TyFunG (TyBuiltinG TyDataG) (TyBuiltinG TyByteStringG)
+      , [UnBData, SerialiseData]
+      )
+    ]
 
 instance Ord tyname => Check (TypeG tyname) DefaultFun where
   check ty b = case Map.lookup ty defaultFunTypes of
@@ -442,30 +478,26 @@ checkTypeG
   -> TypeG tyname
   -> TermG tyname name
   -> Cool
-checkTypeG _ tcs ty (VarG i)
-  = varTypeOk
+checkTypeG _ tcs ty (VarG i) =
+  varTypeOk
   where
     varTypeOk = toCool $ ty == typeOf tcs i
-
-checkTypeG kcs tcs (TyForallG k ty) (TyAbsG tm)
-  = tmTypeOk
+checkTypeG kcs tcs (TyForallG k ty) (TyAbsG tm) =
+  tmTypeOk
   where
     tmTypeOk = checkTypeG (extKCS k kcs) (firstTCS FS tcs) ty tm
-
-checkTypeG kcs tcs (TyFunG ty1 ty2) (LamAbsG tm)
-  = tyKindOk &&& tmTypeOk
+checkTypeG kcs tcs (TyFunG ty1 ty2) (LamAbsG tm) =
+  tyKindOk &&& tmTypeOk
   where
     tyKindOk = checkKindG kcs (Type ()) ty1
     tmTypeOk = checkTypeG kcs (extTCS ty1 tcs) ty2 tm
-
-checkTypeG kcs tcs ty2 (ApplyG tm1 tm2 ty1)
-  = tm1TypeOk &&& tm2TypeOk
+checkTypeG kcs tcs ty2 (ApplyG tm1 tm2 ty1) =
+  tm1TypeOk &&& tm2TypeOk
   where
     tm1TypeOk = checkTypeG kcs tcs (TyFunG ty1 ty2) tm1
     tm2TypeOk = checkTypeG kcs tcs ty1 tm2
-
-checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
-  = tmTypeOk &&& tyKindOk &&& tyOk
+checkTypeG kcs tcs vTy (TyInstG tm vCod ty k) =
+  tmTypeOk &&& tyKindOk &&& tyOk
   where
     tmTypeOk = checkTypeG kcs tcs (TyForallG k vCod) tm
     tyKindOk = checkKindG kcs k ty
@@ -475,13 +507,13 @@ checkTypeG kcs tcs (TyIFixG ty1 k ty2) (WrapG tm) = ty1Ok &&& ty2Ok &&& tmOk
   where
     ty1Ok = checkKindG kcs (toPatFuncKind k) ty1
     ty2Ok = checkKindG kcs k ty2
-    tmTy  = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
-    tmOk  = checkTypeG kcs tcs (normalizeTypeG tmTy) tm
+    tmTy = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+    tmOk = checkTypeG kcs tcs (normalizeTypeG tmTy) tm
 checkTypeG kcs tcs vTy (UnWrapG ty1 k ty2 tm) = ty1Ok &&& ty2Ok &&& tmOk &&& vTyOk
   where
     ty1Ok = checkKindG kcs (toPatFuncKind k) ty1
     ty2Ok = checkKindG kcs k ty2
-    tmOk  = checkTypeG kcs tcs (TyIFixG ty1 k ty2) tm
+    tmOk = checkTypeG kcs tcs (TyIFixG ty1 k ty2) tm
     vTyOk = vTy == normalizeTypeG (TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k)
 checkTypeG kcs _tcs vTy (ErrorG ty) = tyKindOk &&& tyOk
   where
@@ -493,45 +525,46 @@ checkTypeG _ _ _ _ = false
 instance Check ClosedTypeG ClosedTermG where
   check = checkTypeG emptyKCS emptyTCS
 
-
 -- ** Type checking state
 
-newtype TCS tyname name = TCS{ typeOf :: name -> TypeG tyname }
+newtype TCS tyname name = TCS {typeOf :: name -> TypeG tyname}
 
 emptyTCS :: TCS tyname Z
-emptyTCS = TCS{ typeOf = fromZ }
+emptyTCS = TCS {typeOf = fromZ}
 
 extTCS :: forall tyname name. TypeG tyname -> TCS tyname name -> TCS tyname (S name)
-extTCS ty TCS{..} = TCS{ typeOf = typeOf' }
+extTCS ty TCS {..} = TCS {typeOf = typeOf'}
   where
     typeOf' :: S name -> TypeG tyname
-    typeOf' FZ     = ty
+    typeOf' FZ = ty
     typeOf' (FS i) = typeOf i
 
 firstTCS :: (tyname -> tyname') -> TCS tyname name -> TCS tyname' name
-firstTCS f tcs = TCS{ typeOf = fmap f . typeOf tcs }
-
+firstTCS f tcs = TCS {typeOf = fmap f . typeOf tcs}
 
 -- * Normalisation
 
 weakenTy :: TypeG m -> TypeG (S m)
 weakenTy ty = sub (TyVarG . FS) ty
 
--- |Reduce a generated type by a single step, or fail.
+-- | Reduce a generated type by a single step, or fail.
 stepTypeG :: TypeG n -> Maybe (TypeG n)
-stepTypeG (TyVarG _)                  = empty
-stepTypeG (TyFunG ty1 ty2)            = (TyFunG <$> stepTypeG ty1 <*> pure ty2)
-                                    <|> (TyFunG <$> pure ty1 <*> stepTypeG ty2)
-stepTypeG (TyIFixG ty1 k ty2)         = (TyIFixG <$> stepTypeG ty1 <*> pure k <*> pure ty2)
-                                    <|> (TyIFixG <$> pure ty1 <*> pure k <*> stepTypeG ty2)
-stepTypeG (TyForallG k ty)            = TyForallG <$> pure k <*> stepTypeG ty
-stepTypeG (TyBuiltinG _)              = empty
-stepTypeG (TyLamG ty)                 = TyLamG <$> stepTypeG ty
+stepTypeG (TyVarG _) = empty
+stepTypeG (TyFunG ty1 ty2) =
+  (TyFunG <$> stepTypeG ty1 <*> pure ty2)
+    <|> (TyFunG <$> pure ty1 <*> stepTypeG ty2)
+stepTypeG (TyIFixG ty1 k ty2) =
+  (TyIFixG <$> stepTypeG ty1 <*> pure k <*> pure ty2)
+    <|> (TyIFixG <$> pure ty1 <*> pure k <*> stepTypeG ty2)
+stepTypeG (TyForallG k ty) = TyForallG <$> pure k <*> stepTypeG ty
+stepTypeG (TyBuiltinG _) = empty
+stepTypeG (TyLamG ty) = TyLamG <$> stepTypeG ty
 stepTypeG (TyAppG (TyLamG ty1) ty2 _) = pure (sub (\case FZ -> ty2; FS i -> TyVarG i) ty1)
-stepTypeG (TyAppG ty1 ty2 k)          = (TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k)
-                                    <|> (TyAppG <$> pure ty1 <*> stepTypeG ty2 <*> pure k)
+stepTypeG (TyAppG ty1 ty2 k) =
+  (TyAppG <$> stepTypeG ty1 <*> pure ty2 <*> pure k)
+    <|> (TyAppG <$> pure ty1 <*> stepTypeG ty2 <*> pure k)
 
--- |Normalise a generated type.
+-- | Normalise a generated type.
 normalizeTypeG :: TypeG n -> TypeG n
 normalizeTypeG ty = maybe ty normalizeTypeG (stepTypeG ty)
 

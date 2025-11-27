@@ -1,23 +1,23 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts       #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module PlutusTx.Compiler.Error (
-  CompileError,
-  Error (..),
-  WithContext (..),
-  withContext,
-  withContextM,
-  throwPlain,
-  pruneContext,
-) where
+module PlutusTx.Compiler.Error
+  ( CompileError
+  , Error (..)
+  , WithContext (..)
+  , withContext
+  , withContextM
+  , throwPlain
+  , pruneContext
+  ) where
 
 import PlutusIR.Compiler qualified as PIR
 
@@ -31,22 +31,21 @@ import Data.Text qualified as T
 import Prettyprinter qualified as PP
 
 {-| An error with some (nested) context. The integer argument to 'WithContextC' represents
-the priority of the context when displaying it. Lower numbers are more prioritised.
--}
+the priority of the context when displaying it. Lower numbers are more prioritised. -}
 data WithContext c e = NoContext e | WithContextC Int c (WithContext c e)
-  deriving stock Functor
+  deriving stock (Functor)
 
 type CompileError uni fun ann = WithContext T.Text (Error uni fun ann)
 
-withContext :: (MonadError (WithContext c e) m) => Int -> c -> m a -> m a
+withContext :: MonadError (WithContext c e) m => Int -> c -> m a -> m a
 withContext p c act = catchError act $ \err -> throwError (WithContextC p c err)
 
-withContextM :: (MonadError (WithContext c e) m) => Int -> m c -> m a -> m a
+withContextM :: MonadError (WithContext c e) m => Int -> m c -> m a -> m a
 withContextM p mc act = do
   c <- mc
   catchError act $ \err -> throwError (WithContextC p c err)
 
-throwPlain :: (MonadError (WithContext c e) m) => e -> m a
+throwPlain :: MonadError (WithContext c e) m => e -> m a
 throwPlain = throwError . NoContext
 
 pruneContext :: Int -> WithContext c e -> WithContext c e

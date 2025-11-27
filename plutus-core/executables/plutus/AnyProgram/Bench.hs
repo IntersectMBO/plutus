@@ -1,6 +1,6 @@
 module AnyProgram.Bench
-    ( runBench
-    ) where
+  ( runBench
+  ) where
 
 import Types
 

@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ViewPatterns #-}
 
-{- | Property tests for the `quotientInteger` and `remainderInteger` builtins -}
+-- | Property tests for the `quotientInteger` and `remainderInteger` builtins
 module Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_properties)
 where
 
@@ -34,15 +34,15 @@ prop_rem_0_fails (biginteger -> a) =
 -- This is the crucial property relating `quotientInteger` and `remainderInteger`.
 prop_quot_rem_compatible :: BigInteger -> NonZero BigInteger -> Property
 prop_quot_rem_compatible (biginteger -> a) (NonZero (biginteger -> b)) =
-  let t = addInteger (multiplyInteger b (quotientInteger a b) ) (remainderInteger a b)
-  in evalOkEq t a
+  let t = addInteger (multiplyInteger b (quotientInteger a b)) (remainderInteger a b)
+   in evalOkEq t a
 
 -- (k*b) `quot` b = b and (k*b) `rem` b = 0 for all k
 prop_quot_rem_multiple :: BigInteger -> NonZero BigInteger -> Property
 prop_quot_rem_multiple (biginteger -> k) (NonZero (biginteger -> b)) =
-    let t1 = quotientInteger (multiplyInteger k b) b
-        t2 = remainderInteger (multiplyInteger k b) b
-    in evalOkEq t1 k .&&. evalOkEq t2 zero
+  let t1 = quotientInteger (multiplyInteger k b) b
+      t2 = remainderInteger (multiplyInteger k b) b
+   in evalOkEq t1 k .&&. evalOkEq t2 zero
 
 -- `remainderInteger _ b` is not an additive homomorphism in general (and hence
 -- not periodic) because the sign of `remainderInteger a b` is different for
@@ -58,7 +58,7 @@ prop_rem_additive_pos :: NonNegative BigInteger -> NonNegative BigInteger -> Non
 prop_rem_additive_pos (NonNegative (biginteger -> a)) (NonNegative (biginteger -> a')) (NonZero (biginteger -> b)) =
   let t1 = remainderInteger (addInteger a a') b
       t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
-  in evalOkEq t1 t2
+   in evalOkEq t1 t2
 
 -- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-postive integers
 -- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b
@@ -66,7 +66,7 @@ prop_rem_additive_neg :: NonPositive BigInteger -> NonPositive BigInteger -> Non
 prop_rem_additive_neg (NonPositive (biginteger -> a)) (NonPositive (biginteger -> a')) (NonZero (biginteger -> b)) =
   let t1 = remainderInteger (addInteger a a') b
       t2 = remainderInteger (addInteger (remainderInteger a b) (remainderInteger a' b)) b
-  in evalOkEq t1 t2
+   in evalOkEq t1 t2
 
 -- Somewhat unexpectedly, for fixed b, `remainderInteger _ b` is a
 -- multiplicative homomorphism: : (a*a') `rem` b = ((a `rem` b) * (a' `rem` b))
@@ -75,7 +75,7 @@ prop_rem_multiplicative :: BigInteger -> BigInteger -> NonZero BigInteger -> Pro
 prop_rem_multiplicative (biginteger -> a) (biginteger -> a') (NonZero (biginteger -> b)) =
   let t1 = remainderInteger (multiplyInteger a a') b
       t2 = remainderInteger (multiplyInteger (remainderInteger a b) (remainderInteger a' b)) b
-  in evalOkEq t1 t2
+   in evalOkEq t1 t2
 
 -- For a >= 0 and b > 0, 0 <= |a `rem` b| < |b|
 -- The sign of the remainder is a bit tricky in this case.  We test that the
@@ -86,7 +86,7 @@ prop_rem_size (biginteger -> a) (NonZero (biginteger -> b)) =
   let r = abs (remainderInteger a b)
       t1 = lessThanEqualsInteger zero r
       t2 = lessThanInteger r (abs b)
-  in evalOkTrue t1 .&&. evalOkTrue t2
+   in evalOkTrue t1 .&&. evalOkTrue t2
 
 -- a >= 0 && b > 0  =>  a `quot` b >= 0  and  a `rem` b >= 0
 -- a <= 0 && b > 0  =>  a `quot` b <= 0  and  a `rem` b <= 0
@@ -127,7 +127,8 @@ prop_rem_neg_neg (NonPositive (biginteger -> a)) (Negative (biginteger -> b)) =
 
 test_integer_quot_rem_properties :: TestTree
 test_integer_quot_rem_properties =
-  testGroup "Property tests for quotientInteger and remainderInteger"
+  testGroup
+    "Property tests for quotientInteger and remainderInteger"
     [ testProp "quotientInteger _ 0 always fails" prop_quot_0_fails
     , testProp "remainderInteger _ 0 always fails" prop_rem_0_fails
     , testProp "quotientInteger and remainderInteger are compatible" prop_quot_rem_compatible
@@ -136,10 +137,10 @@ test_integer_quot_rem_properties =
     , testProp "remainderInteger _ b is additive on non-positive inputs" prop_rem_additive_neg
     , testProp "remainderInteger is a multiplicative homomorphism" prop_rem_multiplicative
     , testProp "remainderInteger size correct" prop_rem_size
-    , testProp "quotientInteger (>= 0) (> 0) >= 0"  prop_quot_pos_pos
-    , testProp "quotientInteger (<= 0) (> 0) <= 0"  prop_quot_neg_pos
-    , testProp "quotientInteger (>= 0) (< 0) <= 0"  prop_quot_pos_neg
-    , testProp "quotientInteger (<= 0) (< 0) >= 0"  prop_quot_neg_neg
+    , testProp "quotientInteger (>= 0) (> 0) >= 0" prop_quot_pos_pos
+    , testProp "quotientInteger (<= 0) (> 0) <= 0" prop_quot_neg_pos
+    , testProp "quotientInteger (>= 0) (< 0) <= 0" prop_quot_pos_neg
+    , testProp "quotientInteger (<= 0) (< 0) >= 0" prop_quot_neg_neg
     , testProp "remainderInteger (>= 0) (> 0) >= 0" prop_rem_pos_pos
     , testProp "remainderInteger (<= 0) (> 0) <= 0" prop_rem_neg_pos
     , testProp "remainderInteger (>= 0) (< 0) >= 0" prop_rem_pos_neg

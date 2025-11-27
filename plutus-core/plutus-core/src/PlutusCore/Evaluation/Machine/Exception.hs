@@ -1,34 +1,32 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 -- editorconfig-checker-disable-file
--- | The exceptions that an abstract machine can throw.
-
 -- appears in the generated instances
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
-
+-- | The exceptions that an abstract machine can throw.
 module PlutusCore.Evaluation.Machine.Exception
-    ( UnliftingError (..)
-    , BuiltinError (..)
-    , MachineError (..)
-    , EvaluationError (..)
-    , ErrorWithCause (..)
-    , EvaluationException
-    , notAConstant
-    , throwErrorWithCause
-    , splitStructuralOperational
-    , unsafeSplitStructuralOperational
-    , BuiltinErrorToEvaluationError
-    , builtinErrorToEvaluationError
-    , throwBuiltinErrorWithCause
-    ) where
+  ( UnliftingError (..)
+  , BuiltinError (..)
+  , MachineError (..)
+  , EvaluationError (..)
+  , ErrorWithCause (..)
+  , EvaluationException
+  , notAConstant
+  , throwErrorWithCause
+  , splitStructuralOperational
+  , unsafeSplitStructuralOperational
+  , BuiltinErrorToEvaluationError
+  , builtinErrorToEvaluationError
+  , throwBuiltinErrorWithCause
+  ) where
 
 import PlutusPrelude
 
@@ -44,31 +42,31 @@ import Prettyprinter
 
 -- | Errors which can occur during a run of an abstract machine.
 data MachineError fun
-    = NonPolymorphicInstantiationMachineError
-      -- ^ An attempt to reduce a not immediately reducible type instantiation.
-    | NonWrapUnwrappedMachineError
-      -- ^ An attempt to unwrap a not wrapped term.
-    | NonFunctionalApplicationMachineError
-      -- ^ An attempt to reduce a not immediately reducible application.
-    | OpenTermEvaluatedMachineError
-      -- ^ An attempt to evaluate an open term.
-    | UnliftingMachineError UnliftingError
-      -- ^ An attempt to compute a constant application resulted in 'UnliftingError'.
-    | BuiltinTermArgumentExpectedMachineError
-      -- ^ A builtin expected a term argument, but something else was received.
-    | UnexpectedBuiltinTermArgumentMachineError
-      -- ^ A builtin received a term argument when something else was expected
-    | NonConstrScrutinizedMachineError
-      -- ^ An attempt to scrutinize a non-constr.
-    | MissingCaseBranchMachineError Word64
-      -- ^ An attempt to go into a non-existent case branch.
-    | PanicMachineError String
-      -- ^ A GHC exception was thrown.
-    deriving stock (Show, Eq, Functor, Generic)
-    deriving anyclass (NFData)
+  = -- | An attempt to reduce a not immediately reducible type instantiation.
+    NonPolymorphicInstantiationMachineError
+  | -- | An attempt to unwrap a not wrapped term.
+    NonWrapUnwrappedMachineError
+  | -- | An attempt to reduce a not immediately reducible application.
+    NonFunctionalApplicationMachineError
+  | -- | An attempt to evaluate an open term.
+    OpenTermEvaluatedMachineError
+  | -- | An attempt to compute a constant application resulted in 'UnliftingError'.
+    UnliftingMachineError UnliftingError
+  | -- | A builtin expected a term argument, but something else was received.
+    BuiltinTermArgumentExpectedMachineError
+  | -- | A builtin received a term argument when something else was expected
+    UnexpectedBuiltinTermArgumentMachineError
+  | -- | An attempt to scrutinize a non-constr.
+    NonConstrScrutinizedMachineError
+  | -- | An attempt to go into a non-existent case branch.
+    MissingCaseBranchMachineError Word64
+  | -- | A GHC exception was thrown.
+    PanicMachineError String
+  deriving stock (Show, Eq, Functor, Generic)
+  deriving anyclass (NFData)
 
 type EvaluationException structural operational =
-    ErrorWithCause (EvaluationError structural operational)
+  ErrorWithCause (EvaluationError structural operational)
 
 {- Note [Ignoring context in OperationalError]
 The 'OperationalError' error has a term argument, but 'splitStructuralOperational' just
@@ -83,61 +81,64 @@ context if available.
 
 -- See the Haddock of 'EvaluationError' for what structural and operational errors are.
 -- See Note [Ignoring context in OperationalError].
--- | Preserve the contents of an 'StructuralError' as a 'Left' and turn an
--- 'OperationalError' into a @Right EvaluationFailure@ (thus erasing the content of the
--- error in the latter case).
+{-| Preserve the contents of an 'StructuralError' as a 'Left' and turn an
+'OperationalError' into a @Right EvaluationFailure@ (thus erasing the content of the
+error in the latter case). -}
 splitStructuralOperational
-    :: Either (EvaluationException structural operational term) a
-    -> Either (ErrorWithCause structural term) (EvaluationResult a)
+  :: Either (EvaluationException structural operational term) a
+  -> Either (ErrorWithCause structural term) (EvaluationResult a)
 splitStructuralOperational (Right term) = Right $ EvaluationSuccess term
 splitStructuralOperational (Left (ErrorWithCause evalErr cause)) = case evalErr of
-    StructuralError err -> Left $ ErrorWithCause err cause
-    OperationalError _  -> Right EvaluationFailure
+  StructuralError err -> Left $ ErrorWithCause err cause
+  OperationalError _ -> Right EvaluationFailure
 
--- | Throw on a 'StructuralError' and turn an 'OperationalError' into an
--- 'EvaluationFailure' (thus erasing the content of the error in the latter case).
+{-| Throw on a 'StructuralError' and turn an 'OperationalError' into an
+'EvaluationFailure' (thus erasing the content of the error in the latter case). -}
 unsafeSplitStructuralOperational
-    :: (PrettyPlc structural, PrettyPlc term, Typeable structural, Typeable term)
-    => Either (EvaluationException structural operational term) a
-    -> EvaluationResult a
+  :: (PrettyPlc structural, PrettyPlc term, Typeable structural, Typeable term)
+  => Either (EvaluationException structural operational term) a
+  -> EvaluationResult a
 unsafeSplitStructuralOperational = unsafeFromEither . splitStructuralOperational
 
-instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
-            PrettyBy config (MachineError fun) where
-    prettyBy _      NonPolymorphicInstantiationMachineError =
-        "Attempted to instantiate a non-polymorphic term."
-    prettyBy _      NonWrapUnwrappedMachineError          =
-        "Cannot unwrap a not wrapped term."
-    prettyBy _      NonFunctionalApplicationMachineError   =
-        "Attempted to apply a non-function."
-    prettyBy _      OpenTermEvaluatedMachineError         =
-        "Cannot evaluate an open term"
-    prettyBy _      BuiltinTermArgumentExpectedMachineError =
-        "A builtin expected a term argument, but something else was received"
-    prettyBy _      UnexpectedBuiltinTermArgumentMachineError =
-        "A builtin received a term argument when something else was expected"
-    prettyBy _      (UnliftingMachineError unliftingError)  =
-        pretty unliftingError
-    prettyBy _      NonConstrScrutinizedMachineError =
-        "A non-constructor/non-builtin value was scrutinized in a case expression"
-    prettyBy _      (MissingCaseBranchMachineError i) =
-        "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
-    prettyBy _      (PanicMachineError err) = vcat
-        [ "Panic: a GHC exception was thrown, please report this as a bug."
-        , "The error: " <+> pretty err
-        ]
+instance
+  (HasPrettyDefaults config ~ 'True, Pretty fun)
+  => PrettyBy config (MachineError fun)
+  where
+  prettyBy _ NonPolymorphicInstantiationMachineError =
+    "Attempted to instantiate a non-polymorphic term."
+  prettyBy _ NonWrapUnwrappedMachineError =
+    "Cannot unwrap a not wrapped term."
+  prettyBy _ NonFunctionalApplicationMachineError =
+    "Attempted to apply a non-function."
+  prettyBy _ OpenTermEvaluatedMachineError =
+    "Cannot evaluate an open term"
+  prettyBy _ BuiltinTermArgumentExpectedMachineError =
+    "A builtin expected a term argument, but something else was received"
+  prettyBy _ UnexpectedBuiltinTermArgumentMachineError =
+    "A builtin received a term argument when something else was expected"
+  prettyBy _ (UnliftingMachineError unliftingError) =
+    pretty unliftingError
+  prettyBy _ NonConstrScrutinizedMachineError =
+    "A non-constructor/non-builtin value was scrutinized in a case expression"
+  prettyBy _ (MissingCaseBranchMachineError i) =
+    "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
+  prettyBy _ (PanicMachineError err) =
+    vcat
+      [ "Panic: a GHC exception was thrown, please report this as a bug."
+      , "The error: " <+> pretty err
+      ]
 
 class BuiltinErrorToEvaluationError structural operational where
   builtinErrorToEvaluationError :: BuiltinError -> EvaluationError structural operational
 
--- | Attach a @cause@ to a 'BuiltinError' and throw that.
--- Note that an evaluator might require the cause to be computed lazily for best performance on the
--- happy path, hence this function must not force its first argument.
--- TODO: wrap @cause@ in 'Lazy' once we have it.
+{-| Attach a @cause@ to a 'BuiltinError' and throw that.
+Note that an evaluator might require the cause to be computed lazily for best performance on the
+happy path, hence this function must not force its first argument.
+TODO: wrap @cause@ in 'Lazy' once we have it. -}
 throwBuiltinErrorWithCause
-    :: ( MonadError (EvaluationException structural operational cause) m
-       , BuiltinErrorToEvaluationError structural operational
-       )
-    => cause -> BuiltinError -> m void
+  :: ( MonadError (EvaluationException structural operational cause) m
+     , BuiltinErrorToEvaluationError structural operational
+     )
+  => cause -> BuiltinError -> m void
 throwBuiltinErrorWithCause cause e = throwErrorWithCause (builtinErrorToEvaluationError e) cause
 {-# INLINE throwBuiltinErrorWithCause #-}

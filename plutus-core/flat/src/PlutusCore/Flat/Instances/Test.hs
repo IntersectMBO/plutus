@@ -1,14 +1,14 @@
 -- | doctest utilities
-module PlutusCore.Flat.Instances.Test (
-    tst,
-    tstBits,
-    asList,
-    flatBits,
-    allBits,
-    encBits,
-    prettyShow,
-    module Data.Word,
-) where
+module PlutusCore.Flat.Instances.Test
+  ( tst
+  , tstBits
+  , asList
+  , flatBits
+  , allBits
+  , encBits
+  , prettyShow
+  , module Data.Word
+  ) where
 
 import Control.Monad ((>=>))
 import Data.Word
@@ -38,7 +38,7 @@ flatBits = prettyShow . bits
 allBits :: Flat a => a -> String
 allBits = prettyShow . paddedBits
 
--- |@since 0.5
+-- | @since 0.5
 encBits :: NumBits -> Encoding -> Bits
 encBits maxNumBits e@(Encoding enc) = takeBits (numEncodedBits maxNumBits e) (strictEncoder maxNumBits (Encoding $ enc >=> eFillerF))
 

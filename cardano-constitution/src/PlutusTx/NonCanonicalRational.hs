@@ -1,11 +1,12 @@
--- editorconfig-checker-disable-file
--- | Same representation as Tx.Ratio but uses a different BuiltinData encoding
-{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ViewPatterns #-}
+-- editorconfig-checker-disable-file
+{-# LANGUAGE NoImplicitPrelude #-}
+
+-- | Same representation as Tx.Ratio but uses a different BuiltinData encoding
 module PlutusTx.NonCanonicalRational
-    ( NonCanonicalRational (..)
-    ) where
+  ( NonCanonicalRational (..)
+  ) where
 
 import PlutusTx as Tx
 import PlutusTx.Builtins as B
@@ -19,18 +20,19 @@ import PlutusTx.Trace (traceError)
 newtype NonCanonicalRational = NonCanonicalRational Tx.Rational
 
 instance ToData NonCanonicalRational where
-  {-# INLINABLE toBuiltinData #-}
+  {-# INLINEABLE toBuiltinData #-}
   toBuiltinData (NonCanonicalRational tx) =
     let num = Tx.numerator tx
         den = Tx.denominator tx
-    in toBuiltinData [num,den]
+     in toBuiltinData [num, den]
 
 instance UnsafeFromData NonCanonicalRational where
-  {-# INLINABLE unsafeFromBuiltinData #-}
+  {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData (BI.unsafeDataAsList -> bl) =
-        -- this is the fastest way I found to convert to Rational
-        let bl' = BI.tail bl
-        in BI.ifThenElse (BI.null (BI.tail bl'))
-            (\() -> NonCanonicalRational (Tx.unsafeRatio (B.unsafeDataAsI (BI.head bl)) (B.unsafeDataAsI (BI.head bl'))))
-            (\() -> traceError "A Rational had too many list components")
-           ()
+    -- this is the fastest way I found to convert to Rational
+    let bl' = BI.tail bl
+     in BI.ifThenElse
+          (BI.null (BI.tail bl'))
+          (\() -> NonCanonicalRational (Tx.unsafeRatio (B.unsafeDataAsI (BI.head bl)) (B.unsafeDataAsI (BI.head bl'))))
+          (\() -> traceError "A Rational had too many list components")
+          ()

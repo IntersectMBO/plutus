@@ -1,17 +1,17 @@
-{-# LANGUAGE AllowAmbiguousTypes      #-}
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE DerivingStrategies       #-}
-{-# LANGUAGE FlexibleContexts         #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE GADTs                    #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE PolyKinds                #-}
-{-# LANGUAGE RankNTypes               #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 {-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
 
@@ -40,7 +40,7 @@ deriving stock instance Show (Definitions ts)
 
 -- | Add a schema definition to a registry.
 addDefinition :: Definitions ts -> Definition t ts -> Definitions ts
-addDefinition NoDefinitions d       = AddDefinition d NoDefinitions
+addDefinition NoDefinitions d = AddDefinition d NoDefinitions
 addDefinition (AddDefinition t s) d = AddDefinition d (AddDefinition t s)
 
 definitionsToMap :: Definitions ts -> (forall xs. Schema xs -> v) -> Map DefinitionId v
@@ -50,8 +50,7 @@ definitionsToMap (AddDefinition (MkDefinition defId v) s) k =
 
 {-|
   A constraint that checks if a schema definition is present in a list of schema definitions.
-  Gives a user-friendly error message if the schema definition is not found.
--}
+  Gives a user-friendly error message if the schema definition is not found. -}
 type HasSchemaDefinition t ts = HasSchemaDefinition' t ts ts
 
 type HasSchemaDefinition' :: Type -> [Type] -> [Type] -> Constraint

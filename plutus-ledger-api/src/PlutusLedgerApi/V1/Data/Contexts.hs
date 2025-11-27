@@ -1,69 +1,70 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE DerivingVia       #-}
-{-# LANGUAGE NamedFieldPuns    #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-{-# OPTIONS_GHC -fexpose-all-unfoldings #-} -- needed for asData pattern synonyms
+-- needed for asData pattern synonyms
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
-module PlutusLedgerApi.V1.Data.Contexts (
-  -- * Pending transactions and related types
-  TxInfo,
-  pattern TxInfo,
-  txInfoInputs,
-  txInfoOutputs,
-  txInfoFee,
-  txInfoMint,
-  txInfoDCert,
-  txInfoWdrl,
-  txInfoValidRange,
-  txInfoSignatories,
-  txInfoData,
-  txInfoId,
-  ScriptContext,
-  pattern ScriptContext,
-  scriptContextTxInfo,
-  scriptContextPurpose,
-  ScriptPurpose,
-  pattern Minting,
-  pattern Spending,
-  pattern Rewarding,
-  pattern Certifying,
-  TxId (..),
-  TxOut,
-  pattern TxOut,
-  txOutAddress,
-  txOutValue,
-  txOutDatumHash,
-  TxOutRef,
-  pattern TxOutRef,
-  txOutRefId,
-  txOutRefIdx,
-  TxInInfo,
-  pattern TxInInfo,
-  txInInfoOutRef,
-  txInInfoResolved,
-  findOwnInput,
-  findDatum,
-  findDatumHash,
-  findTxInByTxOutRef,
-  findContinuingOutputs,
-  getContinuingOutputs,
+module PlutusLedgerApi.V1.Data.Contexts
+  ( -- * Pending transactions and related types
+    TxInfo
+  , pattern TxInfo
+  , txInfoInputs
+  , txInfoOutputs
+  , txInfoFee
+  , txInfoMint
+  , txInfoDCert
+  , txInfoWdrl
+  , txInfoValidRange
+  , txInfoSignatories
+  , txInfoData
+  , txInfoId
+  , ScriptContext
+  , pattern ScriptContext
+  , scriptContextTxInfo
+  , scriptContextPurpose
+  , ScriptPurpose
+  , pattern Minting
+  , pattern Spending
+  , pattern Rewarding
+  , pattern Certifying
+  , TxId (..)
+  , TxOut
+  , pattern TxOut
+  , txOutAddress
+  , txOutValue
+  , txOutDatumHash
+  , TxOutRef
+  , pattern TxOutRef
+  , txOutRefId
+  , txOutRefIdx
+  , TxInInfo
+  , pattern TxInInfo
+  , txInInfoOutRef
+  , txInInfoResolved
+  , findOwnInput
+  , findDatum
+  , findDatumHash
+  , findTxInByTxOutRef
+  , findContinuingOutputs
+  , getContinuingOutputs
 
-  -- * Validator functions
-  pubKeyOutputsAt,
-  valuePaidTo,
-  spendsOutput,
-  txSignedBy,
-  valueSpent,
-  valueProduced,
-  ownCurrencySymbol,
-) where
+    -- * Validator functions
+  , pubKeyOutputsAt
+  , valuePaidTo
+  , spendsOutput
+  , txSignedBy
+  , valueSpent
+  , valueProduced
+  , ownCurrencySymbol
+  ) where
 
 import GHC.Generics (Generic)
 import PlutusTx
@@ -79,9 +80,18 @@ import PlutusLedgerApi.V1.Data.Address (pattern Address)
 import PlutusLedgerApi.V1.Data.Credential (StakingCredential, pattern PubKeyCredential)
 import PlutusLedgerApi.V1.Data.DCert (DCert)
 import PlutusLedgerApi.V1.Data.Time (POSIXTimeRange)
-import PlutusLedgerApi.V1.Data.Tx (TxId (..), TxOut, TxOutRef, pattern TxOut, pattern TxOutRef,
-                                   txOutAddress, txOutDatumHash, txOutRefId, txOutRefIdx,
-                                   txOutValue)
+import PlutusLedgerApi.V1.Data.Tx
+  ( TxId (..)
+  , TxOut
+  , TxOutRef
+  , txOutAddress
+  , txOutDatumHash
+  , txOutRefId
+  , txOutRefIdx
+  , txOutValue
+  , pattern TxOut
+  , pattern TxOutRef
+  )
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol (..), Value)
 import PlutusLedgerApi.V1.Scripts
 import Prelude qualified as Haskell
@@ -101,12 +111,12 @@ redeemer and data scripts of all of its inputs and outputs.
 PlutusTx.asData
   [d|
     data TxInInfo = TxInInfo
-      { txInInfoOutRef   :: TxOutRef
+      { txInInfoOutRef :: TxOutRef
       , txInInfoResolved :: TxOut
       }
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 makeLift ''TxInInfo
 
@@ -114,7 +124,7 @@ instance Eq TxInInfo where
   TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
 
 instance Pretty TxInInfo where
-  pretty TxInInfo{txInInfoOutRef, txInInfoResolved} =
+  pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
     pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
 
 -- | Purpose of the script that is currently running
@@ -127,51 +137,51 @@ PlutusTx.asData
       | Certifying DCert
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-      deriving Pretty via (PrettyShow ScriptPurpose)
-  |]
+      deriving (Pretty) via (PrettyShow ScriptPurpose)
+    |]
 
 makeLift ''ScriptPurpose
 
 instance Eq ScriptPurpose where
   {-# INLINEABLE (==) #-}
-  Minting cs == Minting cs'           = cs == cs'
-  Spending ref == Spending ref'       = ref == ref'
-  Rewarding sc == Rewarding sc'       = sc == sc'
+  Minting cs == Minting cs' = cs == cs'
+  Spending ref == Spending ref' = ref == ref'
+  Rewarding sc == Rewarding sc' = sc == sc'
   Certifying cert == Certifying cert' = cert == cert'
-  _ == _                              = False
+  _ == _ = False
 
 {-| A pending transaction. This is the view as seen by validator scripts,
-so some details are stripped out.
--}
+so some details are stripped out. -}
 PlutusTx.asData
   [d|
     data TxInfo = TxInfo
-      { txInfoInputs      :: List TxInInfo
-      -- ^ Transaction inputs; cannot be an empty list
-      , txInfoOutputs     :: List TxOut
-      -- ^ Transaction outputs
-      , txInfoFee         :: Value
-      -- ^ The fee paid by this transaction.
-      , txInfoMint        :: Value
-      -- ^ The 'Value' minted by this transaction.
-      , txInfoDCert       :: List DCert
-      -- ^ Digests of certificates included in this transaction
-      -- TODO: is this a map? is this a list?
-      , txInfoWdrl        :: List (StakingCredential, Integer)
-      -- ^ Withdrawals
-      , txInfoValidRange  :: POSIXTimeRange
-      -- ^ The valid range for the transaction.
-      , txInfoSignatories :: List PubKeyHash
-      -- ^ Signatures provided with the transaction, attested that they all signed the tx
-      -- TODO: is this a map? is this a list?
-      , txInfoData        :: List (DatumHash, Datum)
-      -- ^ The lookup table of datums attached to the transaction
-      , txInfoId          :: TxId
-      -- ^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
+      { txInfoInputs :: List TxInInfo
+      , -- \^ Transaction inputs; cannot be an empty list
+        txInfoOutputs :: List TxOut
+      , -- \^ Transaction outputs
+        txInfoFee :: Value
+      , -- \^ The fee paid by this transaction.
+        txInfoMint :: Value
+      , -- \^ The 'Value' minted by this transaction.
+        txInfoDCert :: List DCert
+      , -- \^ Digests of certificates included in this transaction
+        -- TODO: is this a map? is this a list?
+        txInfoWdrl :: List (StakingCredential, Integer)
+      , -- \^ Withdrawals
+        txInfoValidRange :: POSIXTimeRange
+      , -- \^ The valid range for the transaction.
+        txInfoSignatories :: List PubKeyHash
+      , -- \^ Signatures provided with the transaction, attested that they all signed the tx
+        -- TODO: is this a map? is this a list?
+        txInfoData :: List (DatumHash, Datum)
+      , -- \^ The lookup table of datums attached to the transaction
+        txInfoId :: TxId
       }
+      -- \^ Hash of the pending transaction body (i.e. transaction excluding witnesses)
+
       deriving stock (Generic, Haskell.Show, Haskell.Eq)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 makeLift ''TxInfo
 
@@ -230,14 +240,15 @@ instance Pretty TxInfo where
 PlutusTx.asData
   [d|
     data ScriptContext = ScriptContext
-      { scriptContextTxInfo  :: TxInfo
-      -- ^ information about the transaction the currently-executing script is included in
-      , scriptContextPurpose :: ScriptPurpose
-      -- ^ the purpose of the currently-executing script
+      { scriptContextTxInfo :: TxInfo
+      , -- \^ information about the transaction the currently-executing script is included in
+        scriptContextPurpose :: ScriptPurpose
       }
+      -- \^ the purpose of the currently-executing script
+
       deriving stock (Generic, Haskell.Eq, Haskell.Show)
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
-  |]
+    |]
 
 makeLift ''ScriptContext
 
@@ -246,7 +257,7 @@ instance Eq ScriptContext where
   ScriptContext info purpose == ScriptContext info' purpose' = info == info' && purpose == purpose'
 
 instance Pretty ScriptContext where
-  pretty ScriptContext{scriptContextTxInfo, scriptContextPurpose} =
+  pretty ScriptContext {scriptContextTxInfo, scriptContextPurpose} =
     vsep
       [ "Purpose:" <+> pretty scriptContextPurpose
       , nest 2 $ vsep ["TxInfo:", pretty scriptContextTxInfo]
@@ -256,79 +267,75 @@ instance Pretty ScriptContext where
 findOwnInput :: ScriptContext -> Maybe TxInInfo
 findOwnInput
   ScriptContext
-    { scriptContextTxInfo = TxInfo{txInfoInputs}
+    { scriptContextTxInfo = TxInfo {txInfoInputs}
     , scriptContextPurpose = Spending txOutRef
     } =
     Data.List.find
-      (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == txOutRef)
+      (\TxInInfo {txInInfoOutRef} -> txInInfoOutRef == txOutRef)
       txInfoInputs
 findOwnInput _ = Nothing
 {-# INLINEABLE findOwnInput #-}
 
 -- | Find the data corresponding to a data hash, if there is one
 findDatum :: DatumHash -> TxInfo -> Maybe Datum
-findDatum dsh TxInfo{txInfoData} =
+findDatum dsh TxInfo {txInfoData} =
   snd <$> Data.List.find f txInfoData
- where
-  f (dsh', _) = dsh' == dsh
+  where
+    f (dsh', _) = dsh' == dsh
 {-# INLINEABLE findDatum #-}
 
 {-| Find the hash of a datum, if it is part of the pending transaction's
-  hashes
--}
+  hashes -}
 findDatumHash :: Datum -> TxInfo -> Maybe DatumHash
-findDatumHash ds TxInfo{txInfoData} =
+findDatumHash ds TxInfo {txInfoData} =
   fst <$> Data.List.find f txInfoData
- where
-  f (_, ds') = ds' == ds
+  where
+    f (_, ds') = ds' == ds
 {-# INLINEABLE findDatumHash #-}
 
 {-| Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of
-the transaction's inputs (`TxInInfo`).
--}
+the transaction's inputs (`TxInInfo`). -}
 findTxInByTxOutRef :: TxOutRef -> TxInfo -> Maybe TxInInfo
-findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
+findTxInByTxOutRef outRef TxInfo {txInfoInputs} =
   Data.List.find
-    (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef == outRef)
+    (\TxInInfo {txInInfoOutRef} -> txInInfoOutRef == outRef)
     txInfoInputs
 {-# INLINEABLE findTxInByTxOutRef #-}
 
 {-| Finds all the outputs that pay to the same script address that we are
-currently spending from, if any.
--}
+currently spending from, if any. -}
 findContinuingOutputs :: ScriptContext -> List Integer
 findContinuingOutputs ctx
   | Just
       TxInInfo
-        { txInInfoResolved = TxOut{txOutAddress}
+        { txInInfoResolved = TxOut {txOutAddress}
         } <-
       findOwnInput ctx =
       Data.List.findIndices
         (f txOutAddress)
         (txInfoOutputs $ scriptContextTxInfo ctx)
- where
-  f addr TxOut{txOutAddress = otherAddress} =
-    addr == otherAddress
+  where
+    f addr TxOut {txOutAddress = otherAddress} =
+      addr == otherAddress
 findContinuingOutputs _ =
   traceError "Le" -- "Can't find any continuing outputs"
 {-# INLINEABLE findContinuingOutputs #-}
 
 {-| Get all the outputs that pay to the same script address we are currently
-spending from, if any.
--}
+spending from, if any. -}
 getContinuingOutputs :: ScriptContext -> List TxOut
 getContinuingOutputs ctx
   | Just
       TxInInfo
-        { txInInfoResolved = TxOut{txOutAddress}
+        { txInInfoResolved = TxOut {txOutAddress}
         } <-
       findOwnInput ctx =
       Data.List.filter
         (f txOutAddress)
         (txInfoOutputs $ scriptContextTxInfo ctx)
- where
-  f addr TxOut{txOutAddress = otherAddress} =
-    addr == otherAddress
+  where
+    f addr TxOut {txOutAddress = otherAddress} =
+      addr == otherAddress
 getContinuingOutputs _ =
   traceError "Lf" -- "Can't get any continuing outputs"
 {-# INLINEABLE getContinuingOutputs #-}
@@ -359,9 +366,9 @@ them from the correct types in Haskell, and for comparing them (in
 
 -- | Check if a transaction was signed by the given public key.
 txSignedBy :: TxInfo -> PubKeyHash -> Bool
-txSignedBy TxInfo{txInfoSignatories} k =
+txSignedBy TxInfo {txInfoSignatories} k =
   case Data.List.find ((==) k) txInfoSignatories of
-    Just _  -> True
+    Just _ -> True
     Nothing -> False
 {-# INLINEABLE txSignedBy #-}
 
@@ -394,15 +401,14 @@ valueProduced = Data.List.foldMap txOutValue . txInfoOutputs
 
 -- | The 'CurrencySymbol' of the current validator script.
 ownCurrencySymbol :: ScriptContext -> CurrencySymbol
-ownCurrencySymbol ScriptContext{scriptContextPurpose = Minting cs} = cs
+ownCurrencySymbol ScriptContext {scriptContextPurpose = Minting cs} = cs
 ownCurrencySymbol _ =
   traceError "Lh" -- "Can't get currency symbol of the current validator script"
 {-# INLINEABLE ownCurrencySymbol #-}
 
 {-| Check if the pending transaction spends a specific transaction output
 (identified by the hash of a transaction and an index into that
-transactions' outputs)
--}
+transactions' outputs) -}
 spendsOutput :: TxInfo -> TxId -> Integer -> Bool
 spendsOutput p h i =
   let spendsOutRef inp =

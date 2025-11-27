@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\`$fEnumBool_$cenumFromTo` n ->
+   ((\`$dmenumFromTo_$cenumFromTo` n ->
        (\nt ->
           (\nt ->
              (\lookup ->
@@ -88,7 +88,7 @@
                                  (iData (addInteger n y)))
                               (s s ys)) ])))
             (force mkCons (mkPairData (iData n) (I 0)) [])
-            (`$fEnumBool_$cenumFromTo` 1 10)))
+            (`$dmenumFromTo_$cenumFromTo` 1 10)))
       ((\s -> s s)
          (\s x lim ->
             case
