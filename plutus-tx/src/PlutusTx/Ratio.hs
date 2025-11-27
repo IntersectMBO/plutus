@@ -36,6 +36,8 @@ module PlutusTx.Ratio
     -- * Conversion from/to Haskell
   , fromHaskellRatio
   , toHaskellRatio
+  , fromGHC
+  , toGHC
   ) where
 
 import PlutusTx.Applicative qualified as P
@@ -398,6 +400,13 @@ fromHaskellRatio r = unsafeRatio (HS.numerator r) (HS.denominator r)
 Note: Does not work on-chain. -}
 toHaskellRatio :: Rational -> HS.Rational
 toHaskellRatio (Rational n d) = n HS.% d
+
+{-# DEPRECATED fromGHC "Use fromHaskellRatio instead" #-}
+fromGHC :: HS.Rational -> Rational
+fromGHC = fromHaskellRatio
+{-# DEPRECATED toGHC "Use toHaskellRatio instead" #-}
+toGHC :: Rational -> HS.Rational
+toGHC = toHaskellRatio
 
 {- HLINT ignore -}
 
