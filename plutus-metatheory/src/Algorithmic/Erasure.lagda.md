@@ -3,8 +3,6 @@ title: Algorithmic.Erasure
 layout: page
 ---
 ```
-{-# OPTIONS --injective-type-constructors #-}
-
 module Algorithmic.Erasure where
 ```
 
@@ -125,8 +123,6 @@ lenLemma⋆ (Φ ,⋆ K) = cong suc (lenLemma⋆ Φ)
 -- string of arguments, both contexts, equality proof above, and
 -- before and after versions of all arguments and all recursive calls
 
--- these lemmas (as stated and proved) require injectivity of type
--- constructors
 lemzero : ∀{X X' : ℕ} (p : suc X ≡ suc X') → zero ≡ subst Fin p zero
 lemzero refl = refl
 
