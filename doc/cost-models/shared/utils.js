@@ -381,3 +381,12 @@ async function loadData(csvUrl, jsonUrl) {
     throw error;
   }
 }
+
+/**
+ * Get branch name from URL query parameter
+ * @returns {string|null} Branch name or null if not specified
+ */
+function getBranchFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('branch');
+}

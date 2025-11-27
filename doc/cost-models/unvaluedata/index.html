@@ -30,7 +30,10 @@
       <div class="controls-content">
         <div class="control-group-vertical">
           <label for="branch-name">Branch name:</label>
-          <input type="text" id="branch-name" placeholder="master" style="width: 100%; font-family: monospace;">
+          <div class="branch-input-row">
+            <input type="text" id="branch-name" placeholder="master">
+            <button id="copy-link" title="Copy shareable link">Copy Link</button>
+          </div>
         </div>
         <div class="control-group-vertical">
           <label for="csv-url">CSV file URL:</label>
