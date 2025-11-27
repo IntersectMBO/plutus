@@ -31,6 +31,11 @@ processNestedApp
   :: Term name uni fun a
   -> Term name uni fun a
 processNestedApp (Apply ann body arg) =
+  -- Any nested application with fewer than 3 nested application is cheaper to represent
+  -- using a regular 'Apply' node. This is because the CaseApply optimization introduces
+  -- two AST nodes—'Constr' and 'Case'. Transforming a single application or a two-nested
+  -- application into 'Constr' and 'Case' actually hurts performance.
+  -- See #7410 for more information.
   if length args >= 3
   then
     Case ann
