@@ -1,4 +1,13 @@
 
+<a id='changelog-1.56.0.0'></a>
+# 1.56.0.0 — 2025-11-27
+
+## Changed
+
+- Updated benchmark data and cost model parameters for Value-related builtins (lookupCoin, valueContains, valueData, unValueData) based on fresh benchmark measurements.
+
+- Add support for nothunks == 0.3.*
+
 <a id='changelog-1.55.0.0'></a>
 # 1.55.0.0 — 2025-11-11
 
