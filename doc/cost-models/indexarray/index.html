@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LookupCoin - Plutus Cost Model Visualization</title>
+  <title>IndexArray - Plutus Cost Model Visualization</title>
   <link rel="stylesheet" href="../shared/styles.css">
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -14,18 +14,18 @@
       <li><a href="../valuedata/index.html">ValueData</a></li>
       <li><a href="../unvaluedata/index.html">UnValueData</a></li>
       <li><a href="../valuecontains/index.html">ValueContains</a></li>
-      <li><a href="../lookupcoin/index.html" class="active">LookupCoin</a></li>
+      <li><a href="../lookupcoin/index.html">LookupCoin</a></li>
       <li><a href="../listtoarray/index.html">ListToArray</a></li>
       <li><a href="../lengthofarray/index.html">LengthOfArray</a></li>
-      <li><a href="../indexarray/index.html">IndexArray</a></li>
+      <li><a href="../indexarray/index.html" class="active">IndexArray</a></li>
     </ul>
   </nav>
 
   <div class="container">
-    <h1>LookupCoin Cost Model Visualization</h1>
+    <h1>IndexArray Cost Model Visualization</h1>
     <p>
-      Interactive visualization of benchmark data and fitted cost model for the <code>LookupCoin</code> builtin function.
-      This function looks up a specific coin (currency symbol and token name) in a Plutus <code>Value</code>.
+      Interactive visualization of benchmark data and fitted cost model for the <code>IndexArray</code> builtin function.
+      This function retrieves an element at a given index from a Plutus array in O(1) time.
     </p>
 
     <div class="controls" id="data-source-controls">
@@ -80,13 +80,13 @@
         <div class="info-section">
           <dl>
             <dt>X-axis:</dt>
-            <dd id="info-x-axis">Value Size</dd>
+            <dd id="info-x-axis">Array Size</dd>
 
             <dt>Y-axis:</dt>
             <dd id="info-y-axis">Time (nanoseconds)</dd>
 
             <dt>Description:</dt>
-            <dd id="info-description">Each point represents one benchmark run</dd>
+            <dd id="info-description">Each point represents one benchmark run (constant time regardless of array size or index)</dd>
           </dl>
         </div>
 
@@ -106,7 +106,7 @@
             <dt>Data points:</dt>
             <dd id="info-data-points">-</dd>
 
-            <dt>Value Size range:</dt>
+            <dt>Array Size range:</dt>
             <dd id="info-x-range">-</dd>
 
             <dt>Time range:</dt>
