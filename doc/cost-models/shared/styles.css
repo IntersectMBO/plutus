@@ -273,6 +273,22 @@ nav a.active {
   color: var(--academic-gray);
 }
 
+.branch-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.branch-input-row input {
+  flex: 1;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.branch-input-row button {
+  padding: 6px 12px;
+  font-size: 0.85em;
+}
+
 button {
   background-color: var(--cardano-blue);
   color: white;
