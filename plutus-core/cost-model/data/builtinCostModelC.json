@@ -756,8 +756,8 @@
   "listToArray": {
     "cpu": {
       "arguments": {
-        "intercept": 307802,
-        "slope": 8496
+        "intercept": 1000,
+        "slope": 24619
       },
       "type": "linear_in_x"
     },
