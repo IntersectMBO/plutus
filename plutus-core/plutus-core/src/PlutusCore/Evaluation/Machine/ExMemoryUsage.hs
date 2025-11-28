@@ -203,12 +203,18 @@ instance ExMemoryUsage (a, b) where
  problems, but be sure to check that no costing function involving lists can
  return zero for an empty list (or any other input).
 -}
-{- Calculating the memory usage by processing the entire spine of the list eagerly
- is safe because there's no way to cheaply construct a long list: you either
- make one using repeated mkCons, which is expensive, or return one from a
- builtin, which has to be appropriately expensive too. -}
+{- Calculating the memory usage by processing the spine of the list in batches.
+ This avoids forcing the entire list upfront just to compute the length, instead
+ producing costs incrementally as CostRose children. Each batch of 100 elements
+ produces one cost node, which is more efficient than per-element costing while
+ still avoiding full spine traversal before the builtin executes. -}
 instance ExMemoryUsage [a] where
-  memoryUsage l = singletonRose . fromIntegral $ length l
+  memoryUsage = go
+    where
+      batchSize = 100
+      go xs = case splitAt batchSize xs of
+        (batch, [])   -> singletonRose (fromIntegral (length batch))
+        (_, rest)     -> CostRose (fromIntegral batchSize) [go rest]
   {-# INLINE memoryUsage #-}
 
 {- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
