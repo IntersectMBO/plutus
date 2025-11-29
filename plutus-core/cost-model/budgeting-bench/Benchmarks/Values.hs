@@ -1,9 +1,9 @@
-{-# LANGUAGE BlockArguments      #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NumericUnderscores  #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Benchmarks.Values (makeBenchmarks) where
 
@@ -18,13 +18,17 @@ import Data.ByteString qualified as BS
 import Data.List (find, sort)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
+import PlutusCore (
+  DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData),
+ )
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ValueLogOuterSizeAddLogMaxInnerSize (..),
-                                                    ValueTotalSize (..))
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (
+  ValueLogOuterSizeAddLogMaxInnerSize (..),
+  ValueTotalSize (..),
+ )
 import PlutusCore.Value (K, Quantity (..), Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StateGenM, StatefulGen, StdGen, runStateGen_, uniformRM)
+import System.Random.Stateful (StateGenM, StatefulGen, StdGen, mkStdGen, runStateGen_, uniformRM)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -230,19 +234,20 @@ insertCoinArgs gen = do
   let noOfBenchs = length lookupArgs
   amounts <- genZeroOrMaxAmount gen noOfBenchs
   pure $ reorderArgs <$> zip lookupArgs amounts
-  where
-    reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
+ where
+  reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
 
 ----------------------------------------------------------------------------------------------------
 -- UnionValue --------------------------------------------------------------------------------------
 
 unionValueBenchmark :: StdGen -> Benchmark
-unionValueBenchmark gen =
-  createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueTotalSize, ValueTotalSize)
-    UnionValue
-    []
-    (runBenchGen gen unionValueArgs)
+unionValueBenchmark _ =
+  let gen = mkStdGen 2789347892378904
+   in createTwoTermBuiltinBenchElementwiseWithWrappers
+        (ValueTotalSize, ValueTotalSize)
+        UnionValue
+        []
+        (runBenchGen gen unionValueArgs)
 
 unionValueArgs :: (StatefulGen g m) => g -> m [(Value, Value)]
 unionValueArgs gen = do
@@ -264,7 +269,7 @@ scaleValueBenchmark gen =
 scaleValueArgs :: (StatefulGen g m) => g -> m [(Integer, Value)]
 scaleValueArgs gen = do
   replicateM 100 $ do
-    (i1, i2) <- genBoundedProduct gen
+    (i1, _i2) <- genBoundedProduct gen
     val <- generateValueWithQuantity (mkQuantity $ sqrtMax - 1000) gen
     pure (i1, val)
 
@@ -292,13 +297,13 @@ generateValueWithQuantity qty g = do
   numEntries <- uniformRM (1, maxValueEntries) g
   generateValueMaxEntriesWithQuantity numEntries qty g
 
--- | Maximum number of (policyId, tokenName, quantity) entries for Value generation.
--- This represents the practical limit based on execution budget constraints.
--- Scripts can programmatically generate large Values, so we benchmark based on
--- what's achievable within CPU execution budget, not ledger storage limits.
---
--- Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
--- consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity)
+{-| Maximum number of (policyId, tokenName, quantity) entries for Value generation.
+This represents the practical limit based on execution budget constraints.
+Scripts can programmatically generate large Values, so we benchmark based on
+what's achievable within CPU execution budget, not ledger storage limits.
+
+Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
+consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
 maxValueEntries :: Int
 maxValueEntries = 100_000
 
@@ -343,7 +348,6 @@ generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy qty
   policyIds <- replicateM numPolicies (generateKey g)
   tokenNames <- replicateM tokensPerPolicy (generateKey g)
   let
-
     -- Sort policy IDs to establish BST ordering
     sortedPolicyIds = sort policyIds
 
@@ -403,8 +407,7 @@ Random keys typically differ in the first 1-2 bytes, making comparisons artifici
 
 For accurate worst-case costing, we generate keys with a common prefix (0xFF bytes) that
 differ only in the last 4 bytes. This forces full-length comparisons during Map lookups,
-providing conservative cost estimates for adversarial on-chain scenarios.
--}
+providing conservative cost estimates for adversarial on-chain scenarios. -}
 generateKey :: (StatefulGen g m) => g -> m K
 generateKey g = do
   let prefixLen = Value.maxKeyLen - 4
@@ -413,7 +416,7 @@ generateKey g = do
   suffix <- BS.pack <$> replicateM 4 (uniformRM (0, 255) g)
   case Value.k (prefix <> suffix) of
     Just key -> pure key
-    Nothing  -> error "Internal error: maxKeyLen key should always be valid"
+    Nothing -> error "Internal error: maxKeyLen key should always be valid"
 
 -- | Generate either zero or maximum amount Integer values, the probability of each is 50%
 genZeroOrMaxAmount
@@ -450,7 +453,7 @@ genBoundedProduct gen = do
   pure (i1, i2)
 
 sqrtMax :: Integer
-sqrtMax = floor . sqrt . fromIntegral $ unQuantity (maxBound :: Quantity)
+sqrtMax = (floor @Double) . sqrt . fromIntegral $ unQuantity (maxBound :: Quantity)
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
@@ -461,8 +464,7 @@ This function is intended for use in test and benchmark code where BuiltinResult
 failures indicate bugs in the generator code, not runtime errors.
 
 Errors if BuiltinResult indicates failure (should never happen with valid inputs).
-The call stack will provide context about where the error occurred.
--}
+The call stack will provide context about where the error occurred. -}
 unsafeFromBuiltinResult :: (HasCallStack) => BuiltinResult a -> a
 unsafeFromBuiltinResult = \case
   BuiltinSuccess x -> x
@@ -475,6 +477,5 @@ runBenchGen gen ma = runStateGen_ gen \g -> ma g
 
 mkQuantity :: Integer -> Value.Quantity
 mkQuantity qty = case Value.quantity qty of
-  Just q  -> q
+  Just q -> q
   Nothing -> error "mkQuantity: out of bounds user supplied integer as quantity"
-
