@@ -375,3 +375,39 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 ```
+
+```
+module M (A : Set) where
+
+  f : A → A
+  f x = x 
+
+module MNat = M ℕ
+
+
+-- testM : ℕ
+testM : (A : Set) → A → A
+testM = M.f
+
+record ByteString' : Set₁ where
+  constructor mkBS
+  field
+    W8 : Set
+    BS : Set
+    empty : BS
+    cons : W8 → BS → BS
+    pack : List W8 → BS
+    unpack : BS → List W8
+
+b : ByteString' 
+b = record { W8 = ℕ ; BS = List ℕ ; empty = [] ; cons = _∷_ ; pack = λ z → z ; unpack = λ z → z } 
+
+module AST1 (b' : ByteString') where
+
+  open ByteString' b'
+
+  x : BS
+  x = empty
+
+
+```
