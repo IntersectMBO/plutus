@@ -44,6 +44,10 @@ makeBenchmarks gen =
   , scaleValueBenchmark gen
   ]
 
+-- Big quantity, but not maxBound (to avoid overflow in unionValue)
+largeQuantity :: Quantity
+largeQuantity = mkQuantity ((unQuantity maxBound) `div` 5)
+
 ----------------------------------------------------------------------------------------------------
 -- LookupCoin --------------------------------------------------------------------------------------
 
@@ -334,7 +338,7 @@ generateConstrainedValueWithMaxPolicy
   -> g
   -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
 generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g =
-  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy maxBound g
+  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy largeQuantity g
 
 -- | Generate constrained Value with information about max-size policy and quantity
 generateConstrainedValueWithMaxPolicyAndQuantity
@@ -426,7 +430,7 @@ genZeroOrMaxAmount
   -- ^ Number of amounts to generate
   -> m [Integer]
 genZeroOrMaxAmount gen n =
-  genZeroOrAmount gen n (maxBound :: Quantity)
+  genZeroOrAmount gen n largeQuantity
 
 genZeroOrAmount
   :: (StatefulGen g m)
@@ -453,7 +457,7 @@ genBoundedProduct gen = do
   pure (i1, i2)
 
 sqrtMax :: Integer
-sqrtMax = (floor @Double) . sqrt . fromIntegral $ unQuantity (maxBound :: Quantity)
+sqrtMax = (floor @Double) . sqrt . fromIntegral $ unQuantity largeQuantity
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
