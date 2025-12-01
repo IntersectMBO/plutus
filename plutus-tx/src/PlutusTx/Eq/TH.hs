@@ -10,6 +10,10 @@ import Language.Haskell.TH as TH
 import Language.Haskell.TH.Datatype as TH
 import Data.Deriving.Internal (varTToName)
 
+{- | derive a PlutusTx.Eq instance for a datatype/newtype, similar to Haskell's `deriving stock Eq`.
+
+One shortcoming compared to Haskell's deriving is that you cannot `PlutusTx.deriveEq` for polymorphic phantom types.
+-}
 deriveEq :: TH.Name -> TH.Q [TH.Dec]
 deriveEq name = do
   TH.DatatypeInfo
