@@ -214,7 +214,8 @@ test-suite plutus-tx-plugin-tests
   -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -g -fno-strictness -fno-unbox-strict-fields
-    -fno-unbox-small-strict-fields -fno-full-laziness
+    -fno-unbox-small-strict-fields -fno-full-laziness -fno-specialise
+    -fno-spec-constr
 
 test-suite size
   import:             lang, ghc-version-support, os-support
