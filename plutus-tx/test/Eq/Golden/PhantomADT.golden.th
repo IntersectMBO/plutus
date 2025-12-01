@@ -1,0 +1,4 @@
+instance PlutusTx.Eq.Class.Eq e_0 => PlutusTx.Eq.Class.Eq (Eq.Spec.PhantomADT e_0)
+    where {(PlutusTx.Eq.Class.==) (Eq.Spec.PhantomADT l1l_1) (Eq.Spec.PhantomADT r1r_2) = l1l_1 PlutusTx.Eq.Class.== r1r_2
+           (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}
