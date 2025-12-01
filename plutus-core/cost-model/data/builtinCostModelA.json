@@ -748,7 +748,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 24619
+        "slope": 24838
       },
       "type": "linear_in_x"
     },
