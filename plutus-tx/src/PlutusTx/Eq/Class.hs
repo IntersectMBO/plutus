@@ -1,5 +1,5 @@
 module PlutusTx.Eq.Class
-  ( Eq(..)
+  ( Eq (..)
   , (/=)
   ) where
 
@@ -8,16 +8,15 @@ import PlutusTx.Builtins qualified as Builtins
 
 infix 4 ==
 
-{- | The 'Eq' class defines equality ('==').
+{-| The 'Eq' class defines equality ('==').
 
 (/=) deliberately omitted, to make this a one-method class which has a
-simpler representation
--}
+simpler representation -}
 class Eq a where
   (==) :: a -> a -> Bool
 
 infix 4 /=
-(/=) :: (Eq a) => a -> a -> Bool
+(/=) :: Eq a => a -> a -> Bool
 x /= y = not (x == y)
 {-# INLINEABLE (/=) #-}
 
