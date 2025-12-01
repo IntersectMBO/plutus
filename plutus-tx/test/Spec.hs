@@ -15,11 +15,11 @@ import Data.ByteString qualified as BS
 import Data.Either (isLeft)
 import Data.Word (Word64)
 import Enum.Spec (enumTests)
+import Eq.Spec (eqTests)
 import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import List.Spec (listTests)
-import Eq.Spec (eqTests)
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)

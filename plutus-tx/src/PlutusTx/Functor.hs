@@ -1,5 +1,5 @@
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE LambdaCase #-}
 
 module PlutusTx.Functor (Functor (..), (<$>), (<&>), (<$)) where
 
@@ -24,41 +24,41 @@ class Functor f where
 infixl 4 <$>
 
 -- | Plutus Tx version of '(Data.Functor.<$>)'.
-(<$>) :: (Functor f) => (a -> b) -> f a -> f b
+(<$>) :: Functor f => (a -> b) -> f a -> f b
 (<$>) = fmap
 {-# INLINEABLE (<$>) #-}
 
 infixl 1 <&>
 
 -- | Plutus Tx version of '(Data.Functor.<&>)'.
-(<&>) :: (Functor f) => f a -> (a -> b) -> f b
+(<&>) :: Functor f => f a -> (a -> b) -> f b
 as <&> f = f <$> as
 {-# INLINEABLE (<&>) #-}
 
 infixl 4 <$
 
 -- | Plutus Tx version of '(Data.Functor.<$)'.
-(<$) :: (Functor f) => a -> f b -> f a
+(<$) :: Functor f => a -> f b -> f a
 (<$) a = fmap (const a)
 {-# INLINEABLE (<$) #-}
 
 instance Functor [] where
   {-# INLINEABLE fmap #-}
   fmap f = go
-   where
-    go = \case
-      [] -> []
-      x : xs -> f x : go xs
+    where
+      go = \case
+        [] -> []
+        x : xs -> f x : go xs
 
 instance Functor Maybe where
   {-# INLINEABLE fmap #-}
   fmap f (Just a) = Just (f a)
-  fmap _ Nothing  = Nothing
+  fmap _ Nothing = Nothing
 
 instance Functor (Either c) where
   {-# INLINEABLE fmap #-}
   fmap f (Right a) = Right (f a)
-  fmap _ (Left c)  = Left c
+  fmap _ (Left c) = Left c
 
 instance Functor ((,) c) where
   {-# INLINEABLE fmap #-}

@@ -3,10 +3,10 @@
 
 module PlutusTx.Eq (Eq (..), (/=), deriveEq) where
 
-import PlutusTx.Eq.Class
-import PlutusTx.Eq.TH
 import PlutusTx.Bool
 import PlutusTx.Either (Either (..))
+import PlutusTx.Eq.Class
+import PlutusTx.Eq.TH
 import Prelude (Maybe (..), Ordering (..))
 
 deriveEq ''[]
