@@ -241,6 +241,7 @@ test-suite plutus-tx-test
     , plutus-core                      ^>=1.55
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.55
+    , plutus-tx:plutus-tx-testlib
     , pretty-show
     , serialise
     , tasty
