@@ -23,6 +23,10 @@ data SomeLargeADT a b c d e =
   deriving stock HS.Eq
 deriveEq ''SomeLargeADT
 
+newtype PhantomADT e = PhantomADT ()
+  deriving stock HS.Eq
+deriveEq ''PhantomADT
+
 eqTests :: TestTree
 eqTests =
   let v1 :: SomeLargeADT () BuiltinString () () () = SomeLargeADT1 1 () Tx.True "foobar" () ()
@@ -36,6 +40,8 @@ eqTests =
     [testCase "reflexive1" $ (v1 Tx.== v1) @?= (v1 HS.== v1)
     , testCase "reflexive2" $ (v2 Tx.== v2) @?= (v2 HS.== v2)
     , testCase "reflexive3" $ (v3 Tx.== v3) @?= (v3 HS.== v3)
+    -- currently does not work with polymorphic phantom types, remove the type annotation when support is added
+    , testCase "phantom" $ (PhantomADT @() () Tx.== PhantomADT ()) @?= (PhantomADT () HS.== PhantomADT ())
     , testCase "shortcircuit" $ (v3 Tx.== v3Error1) @?= (v3 Tx.== v3Error1) -- should not throw an error
     , testCase "throws" $ try @SomeException (evaluate $ v3 Tx.== v3Error2) >>= assertBool "did not throw error" . isLeft -- should throw erro
     ]
