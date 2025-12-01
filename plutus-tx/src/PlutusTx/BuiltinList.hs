@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 {-# HLINT ignore "Redundant if" #-}
@@ -291,7 +290,7 @@ reverse xs = revAppend xs empty
 -- | Plutus Tx version of 'Data.List.zip' for 'BuiltinList'.
 zip
   :: forall a b
-   . (MkNil a, MkNil b, MkNil (BuiltinPair a b))
+   . (MkNil a, MkNil b)
   => BuiltinList a
   -> BuiltinList b
   -> BuiltinList (BuiltinPair a b)
