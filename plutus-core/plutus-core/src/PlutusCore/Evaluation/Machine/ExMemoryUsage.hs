@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
@@ -21,6 +22,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Unroll (dropN)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
@@ -207,14 +209,18 @@ instance ExMemoryUsage (a, b) where
  This avoids forcing the entire list upfront just to compute the length, instead
  producing costs incrementally as CostRose children. Each batch of 100 elements
  produces one cost node, which is more efficient than per-element costing while
- still avoiding full spine traversal before the builtin executes. -}
+ still avoiding full spine traversal before the builtin executes.
+
+ We use 'dropN' which is statically unrolled at compile time via type-level
+ programming (see Note [Static loop unrolling] in PlutusCore.Unroll). This
+ avoids the overhead of 'splitAt' which allocates a tuple and a new list for
+ the prefix. The statically unrolled pattern matching is significantly faster. -}
 instance ExMemoryUsage [a] where
   memoryUsage = go
     where
-      batchSize = 100
-      go xs = case splitAt batchSize xs of
-        (batch, [])   -> singletonRose (fromIntegral (length batch))
-        (_, rest)     -> CostRose (fromIntegral batchSize) [go rest]
+      go xs = case dropN @100 xs of
+        Just rest -> CostRose 100 [go rest]
+        Nothing -> singletonRose (fromIntegral (length xs))
   {-# INLINE memoryUsage #-}
 
 {- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
