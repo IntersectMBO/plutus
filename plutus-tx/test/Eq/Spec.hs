@@ -21,6 +21,9 @@ import Test.Tasty.HUnit
 import Prelude hiding (Eq (..), error)
 import Prelude qualified as HS (Eq (..))
 
+data SomeVoid
+deriveEq ''SomeVoid
+
 data SomeLargeADT a b c d e
   = SomeLargeADT1 Integer a Tx.Bool b c d
   | SomeLargeADT2
@@ -39,6 +42,7 @@ unitTests =
       v3 :: SomeLargeADT () () () () Integer = SomeLargeADT3 1 2 3 4 5
       v3Error1 = v3 {f1 = 0, f2 = error ()} -- mismatch comes first, error comes later
       v3Error2 = v3 {f1 = error (), f2 = 0} -- error comes first, mismatch later
+      v4 :: SomeVoid = undefined
    in testGroup
         "PlutusTx.Eq unit tests"
         [ testCase "reflexive1" $ (v1 Tx.== v1) @?= (v1 HS.== v1)
@@ -48,6 +52,7 @@ unitTests =
           testCase "phantom" $ (PhantomADT @() () Tx.== PhantomADT ()) @?= (PhantomADT () HS.== PhantomADT ())
         , testCase "shortcircuit" $ (v3 Tx.== v3Error1) @?= (v3 Tx.== v3Error1) -- should not throw an error
         , testCase "throws" $ try @SomeException (evaluate $ v3 Tx.== v3Error2) >>= assertBool "did not throw error" . isLeft -- should throw erro
+        , testCase "void" $ (v4 Tx.== v4) @?= True
         ]
 
 goldenTests :: TestTree
