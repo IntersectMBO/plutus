@@ -726,7 +726,7 @@
   },
   "indexArray": {
     "cpu": {
-      "arguments": 194922,
+      "arguments": 232010,
       "type": "constant_cost"
     },
     "memory": {
@@ -736,7 +736,7 @@
   },
   "lengthOfArray": {
     "cpu": {
-      "arguments": 198994,
+      "arguments": 231883,
       "type": "constant_cost"
     },
     "memory": {
