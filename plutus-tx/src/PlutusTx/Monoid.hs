@@ -8,6 +8,7 @@ import PlutusTx.Base (id)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.List
 import PlutusTx.Maybe
+import PlutusTx.Ord
 import PlutusTx.Semigroup
 
 {- HLINT ignore -}
@@ -65,6 +66,10 @@ instance Monoid (Endo a) where
 instance Monoid (First a) where
   {-# INLINEABLE mempty #-}
   mempty = First Nothing
+
+instance Monoid Ordering where
+  {-# INLINEABLE mempty #-}
+  mempty = EQ
 
 class Monoid a => Group a where
   inv :: a -> a

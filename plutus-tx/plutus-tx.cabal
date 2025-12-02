@@ -105,6 +105,7 @@ library
     PlutusTx.Optimize.Inline
     PlutusTx.Optimize.SpaceTime
     PlutusTx.Ord
+    PlutusTx.Ord.Class
     PlutusTx.Plugin.Utils
     PlutusTx.Prelude
     PlutusTx.Ratio
@@ -127,6 +128,7 @@ library
     PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
+    PlutusTx.Ord.TH
 
   build-depends:
     , aeson                  >=2.2
@@ -215,6 +217,7 @@ test-suite plutus-tx-test
     Enum.Spec
     Eq.Spec
     List.Spec
+    Ord.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
