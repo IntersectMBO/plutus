@@ -105,6 +105,7 @@ library
     PlutusTx.Optimize.Inline
     PlutusTx.Optimize.SpaceTime
     PlutusTx.Ord
+    PlutusTx.Ord.Class
     PlutusTx.Plugin.Utils
     PlutusTx.Prelude
     PlutusTx.Ratio
