@@ -55,6 +55,7 @@ data PluginOptions = PluginOptions
   , _posMaxSimplifierIterationsPir     :: Int
   , _posMaxSimplifierIterationsUPlc    :: Int
   , _posMaxCseIterations               :: Int
+  , _posCseWithWorkFree                :: Bool
   , _posDoSimplifierUnwrapCancel       :: Bool
   , _posDoSimplifierBeta               :: Bool
   , _posDoSimplifierInline             :: Bool
@@ -361,6 +362,7 @@ defaultPluginOptions =
     , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
     , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
     , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
+    , _posCseWithWorkFree = view UPLC.soCseWithWorkFree UPLC.defaultSimplifyOpts
     , _posDoSimplifierUnwrapCancel = True
     , _posDoSimplifierBeta = True
     , _posDoSimplifierInline = True

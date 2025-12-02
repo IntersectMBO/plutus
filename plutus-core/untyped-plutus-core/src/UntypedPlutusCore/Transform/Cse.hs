@@ -8,9 +8,9 @@ module UntypedPlutusCore.Transform.Cse (cse) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
+import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
-import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Transform.Simplifier (SimplifierStage (CSE), SimplifierT,
                                                recordSimplification)
 
@@ -211,10 +211,12 @@ cse ::
   , Rename (Term Name uni fun ann)
   , ToBuiltinMeaning uni fun
   ) =>
+  Bool ->
+  -- ^ Consider work-free sub-terms?
   BuiltinSemanticsVariant fun ->
   Term Name uni fun ann ->
   SimplifierT Name uni fun ann m (Term Name uni fun ann)
-cse builtinSemanticsVariant t0 = do
+cse withWorkFree builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
       commonSubexprs =
@@ -226,7 +228,7 @@ cse builtinSemanticsVariant t0 = do
           . filter ((> 1) . thd3)
           . join
           . Map.elems
-          $ countOccs builtinSemanticsVariant annotated
+          $ countOccs withWorkFree builtinSemanticsVariant annotated
   result <- mkCseTerm commonSubexprs annotated
   recordSimplification t0 CSE result
   return result
@@ -269,23 +271,21 @@ annotate = flip evalState 0 . flip runReaderT [] . go
 countOccs ::
   forall name uni fun ann.
   (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun) =>
+  Bool ->
   BuiltinSemanticsVariant fun ->
   Term name uni fun (Path, ann) ->
   -- | Here, the value of the inner map not only contains the count, but also contains
   -- the annotated term, corresponding to the term that is the key of the outer map.
   -- The annotated terms need to be recorded since they will be used for substitution.
   HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
-countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
+countOccs withWorkFree builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
   where
     addToMap ::
       Term name uni fun (Path, ann) ->
       HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)] ->
       HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
     addToMap t0
-      -- We don't consider work-free terms for CSE, because doing so may or may not
-      -- have a size benefit, but certainly doesn't have any cost benefit (the cost
-      -- will in fact be slightly higher due to the additional application).
-      | isWorkFree builtinSemanticsVariant t0
+      | (not withWorkFree && isWorkFree builtinSemanticsVariant t0)
         || not (isBuiltinSaturated t0)
         || isForcingBuiltin t0 =
           id
