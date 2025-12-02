@@ -1,0 +1,3 @@
+instance PlutusTx.Ord.Class.Ord (Ord.Spec.PhantomADT e_0)
+    where {PlutusTx.Ord.Class.compare (Ord.Spec.PhantomADT l1l_1) (Ord.Spec.PhantomADT r1r_2) = l1l_1 `PlutusTx.Ord.Class.compare` r1r_2;
+           {-# INLINABLE PlutusTx.Ord.Class.compare #-}}
