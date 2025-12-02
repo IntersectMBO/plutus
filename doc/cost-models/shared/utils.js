@@ -52,8 +52,8 @@ function filterByFunction(parsedData, functionName) {
 function calculateOverhead(parsedData) {
   const overheadMap = {};
 
-  // Match Nop functions: Nop1b, Nop2b, Nop3b, etc.
-  const nopPattern = /^Nop(\d+)b$/;
+  // Match Nop functions: Nop1o, Nop2o, Nop3o, etc. (Opaque args, matching R's models.R)
+  const nopPattern = /^Nop(\d+)o$/;
 
   for (const row of parsedData) {
     const match = row.function.match(nopPattern);
