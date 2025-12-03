@@ -193,6 +193,7 @@ library
     PlutusCore.Subst
     PlutusCore.TypeCheck
     PlutusCore.TypeCheck.Internal
+    PlutusCore.Unroll
     PlutusCore.Value
     PlutusCore.Version
     PlutusPrelude
@@ -331,7 +332,7 @@ library
     , monoidal-containers
     , mtl
     , multiset
-    , nothunks                    >=0.2 && <0.4
+    , nothunks                    >=0.2     && <0.4
     , parser-combinators          >=0.4.0
     , plutus-core:flat
     , prettyprinter               >=1.1.0.1
