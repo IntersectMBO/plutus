@@ -121,6 +121,7 @@ module PlutusLedgerApi.V3
   , V2.strictUpperBound
 
     -- *** Ratio
+  , Ratio.Rational
   , Ratio.ratio
   , Ratio.unsafeRatio
   , Ratio.numerator
