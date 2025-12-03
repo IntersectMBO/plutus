@@ -1222,8 +1222,8 @@
   "valueContains": {
     "cpu": {
       "arguments": {
-        "intercept": 1163050,
-        "slope": 1470
+        "intercept": 2559629,
+        "slope": 22
       },
       "type": "multiplied_sizes"
     },
