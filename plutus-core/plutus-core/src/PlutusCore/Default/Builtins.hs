@@ -1926,7 +1926,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
         listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
           case uniListA of
-            DefaultUniList uniA -> 
+            DefaultUniList uniA ->
               pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromListN (length xs) xs
             _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
         {-# INLINE listToArrayDenotation #-}
@@ -1984,8 +1984,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           unionValueDenotation
           (runCostingFunTwoArguments . unimplementedCostingFun)
   toBuiltinMeaning _semvar ValueContains =
-    let valueContainsDenotation :: ValueLogOuterSizeAddLogMaxInnerSize -> ValueTotalSize -> BuiltinResult Bool
-        valueContainsDenotation (ValueLogOuterSizeAddLogMaxInnerSize v1) (ValueTotalSize v2) =
+    let valueContainsDenotation :: ValueTotalSize -> ValueTotalSize -> BuiltinResult Bool
+        valueContainsDenotation (ValueTotalSize v1) (ValueTotalSize v2) =
           Value.valueContains v1 v2
         {-# INLINE valueContainsDenotation #-}
      in makeBuiltinMeaning

@@ -818,8 +818,8 @@ modelFun <- function(path) {
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
     lookupCoinModel           <- linearInZ ("LookupCoin")    
 
-    # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)
-    # Y wrapped with `ValueTotalSize` (contained value size)
+    # X wrapped with `ValueTotalSize` (container total entry count)
+    # Y wrapped with `ValueTotalSize` (contained total entry count)
     valueContainsModel        <- {
         fname <- "ValueContains"
         filtered <- data %>%

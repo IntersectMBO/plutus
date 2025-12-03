@@ -15,7 +15,7 @@ import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
-import Data.List (find, sort)
+import Data.List (sort)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
@@ -99,30 +99,34 @@ withWorstCaseSearchKeys genValueWithKeys = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueLogOuterSizeAddLogMaxInnerSize, ValueTotalSize)
-    -- Container: sum of log sizes, Contained: totalSize
+    (ValueTotalSize, ValueTotalSize)
+    -- Both args use totalSize (total entry count)
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
     (valueContainsArgs gen) -- the argument combos to generate benchmarks for
 
 valueContainsArgs :: StdGen -> [(Value, Value)]
 valueContainsArgs gen = runStateGen_ gen \g -> do
-  {- ValueContains performs multiple LookupCoin operations (one per entry in contained).
-     Worst case: All lookups succeed at maximum depth with many entries to check.
+  {- ValueContains uses nested Map.isSubmapOfBy with a splitLookup-based
+     divide-and-conquer algorithm.
+
+     Cost model uses totalSize for both arguments:
+     - n₁ = total entry count of container
+     - n₂ = total entry count of contained
+
+     Early exit: If n₂ > n₁, returns False immediately (can't be a submap).
+     This creates a straight line boundary at n₁ = n₂ in the benchmark data.
 
      Strategy:
-     1. Generate container with worst-case BST structure (uniform, power-of-2 sizes)
-     2. Select entries FROM container (maintain subset relationship for no early exit)
-     3. Include deepest entry to force maximum BST traversal
-     4. Test multiple contained sizes to explore iteration count dimension
+     1. Generate container with power-of-2 sizes for systematic coverage
+     2. Use worst-case keys (differ only in last 4 bytes)
+     3. Select subset of container entries as contained (ensures no early exit)
+     4. Test multiple contained sizes to explore the n₁ × n₂ space
 
-     Result: ~1000 systematic worst-case benchmarks vs 100 random cases previously
+     Result: ~1000 systematic worst-case benchmarks
   -}
 
-  -- Use power-of-2 grid (without half-powers) for systematic coverage
-  -- ValueContains does multiple lookups, so we don't need as fine-grained
-  -- size variation as LookupCoin
-  let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]] -- [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+  let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]] -- [2, 4, ..., 1024]
 
   -- Generate test cases for all container size combinations
   concat
@@ -131,25 +135,16 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
           -- Generate container with worst-case BST structure:
           -- - Uniform distribution (all policies have same token count)
           -- - Worst-case keys (long common prefix, differ in last 4 bytes)
-          -- - Returns metadata about the deepest entry
-          (container, maxPolicyId, deepestToken) <-
+          (container, _, _) <-
             generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
 
           -- Extract all entries from container as a flat list
-          -- This maintains the subset relationship: contained ⊆ container
+          -- Selecting from container maintains subset relationship: contained ⊆ container
           let allEntries = Value.toFlatList container
               totalEntries = length allEntries
 
-          -- Find the worst-case entry (deepest in both BSTs)
-          -- This entry forces maximum depth lookup:
-          -- - maxPolicyId: first in outer BST (but all equal size, so any works)
-          -- - deepestToken: last token in sorted order (maximum inner BST depth)
-          let worstCaseEntry =
-                find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
-
           -- Generate test cases for different contained sizes (uniform linear distribution)
           -- Each size tests the same container with different iteration counts
-          -- Use uniform spacing from 1 to min(1000, totalEntries) for better distribution
           let maxContainedSize = min 1000 totalEntries
               numSamples = 10
               containedSizes =
@@ -163,28 +158,7 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
           -- Create one test case per contained size
           pure
             [ let
-                -- Select entries ensuring worst-case is included
-                -- Place worst-case entry at END so it's checked (not early-exit)
-                selectedEntries =
-                  case worstCaseEntry of
-                    Just worst ->
-                      -- Take (containedSize - 1) entries, then add worst-case
-                      -- This ensures: 1) subset relationship maintained
-                      --               2) worst-case depth is hit
-                      --               3) no early exit (all lookups succeed)
-                      -- IMPORTANT: Filter out worst from allEntries first to prevent duplicates
-                      -- (worst might be at a low position for small tokensPerPolicy values)
-                      let allEntriesWithoutWorst = filter (/= worst) allEntries
-                          numOthers = min (containedSize - 1) (totalEntries - 1)
-                          others = take numOthers allEntriesWithoutWorst
-                       in others ++ [worst]
-                    Nothing ->
-                      -- Fallback if worst-case entry somehow not found
-                      -- (shouldn't happen, but defensive programming)
-                      take containedSize allEntries
-
-                -- Build contained Value from selected entries
-                -- This maintains the Value structure while ensuring subset
+                selectedEntries = take containedSize allEntries
                 contained =
                   unsafeFromBuiltinResult $
                     Value.fromList
