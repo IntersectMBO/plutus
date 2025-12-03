@@ -1,0 +1,9 @@
+instance PlutusTx.Ord.Class.Ord Ord.Spec.SomeProduct
+    where {PlutusTx.Ord.Class.compare (Ord.Spec.SomeProduct l1l_0
+                                                            l2l_1
+                                                            l3l_2
+                                                            l4l_3) (Ord.Spec.SomeProduct r1r_4
+                                                                                         r2r_5
+                                                                                         r3r_6
+                                                                                         r4r_7) = (l1l_0 `PlutusTx.Ord.Class.compare` r1r_4) GHC.Base.<> ((l2l_1 `PlutusTx.Ord.Class.compare` r2r_5) GHC.Base.<> ((l3l_2 `PlutusTx.Ord.Class.compare` r3r_6) GHC.Base.<> (l4l_3 `PlutusTx.Ord.Class.compare` r4r_7)));
+           {-# INLINABLE PlutusTx.Ord.Class.compare #-}}

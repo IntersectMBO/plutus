@@ -100,19 +100,20 @@
                                             {StakingCredential}
                                             stakingCred
                                             {all dead. bool}
-                                            (\(a : StakingCredential) ->
+                                            (\(l1l : StakingCredential) ->
                                                /\dead ->
                                                  Maybe_match
                                                    {StakingCredential}
                                                    stakingCred'
                                                    {bool}
-                                                   (\(a : StakingCredential) ->
+                                                   (\(r1r :
+                                                        StakingCredential) ->
                                                       StakingCredential_match
-                                                        a
+                                                        l1l
                                                         {bool}
                                                         (\(l : Credential) ->
                                                            StakingCredential_match
-                                                             a
+                                                             r1r
                                                              {bool}
                                                              (\(r :
                                                                   Credential) ->
@@ -128,7 +129,7 @@
                                                           (b : integer)
                                                           (c : integer) ->
                                                            StakingCredential_match
-                                                             a
+                                                             r1r
                                                              {bool}
                                                              (\(ipv :
                                                                   Credential) ->
@@ -248,21 +249,21 @@
                                                  {StakingCredential}
                                                  stakingCred
                                                  {all dead. bool}
-                                                 (\(a : StakingCredential) ->
+                                                 (\(l1l : StakingCredential) ->
                                                     /\dead ->
                                                       Maybe_match
                                                         {StakingCredential}
                                                         stakingCred'
                                                         {bool}
-                                                        (\(a :
+                                                        (\(r1r :
                                                              StakingCredential) ->
                                                            StakingCredential_match
-                                                             a
+                                                             l1l
                                                              {bool}
                                                              (\(l :
                                                                   Credential) ->
                                                                 StakingCredential_match
-                                                                  a
+                                                                  r1r
                                                                   {bool}
                                                                   (\(r :
                                                                        Credential) ->
@@ -280,7 +281,7 @@
                                                                (b : integer)
                                                                (c : integer) ->
                                                                 StakingCredential_match
-                                                                  a
+                                                                  r1r
                                                                   {bool}
                                                                   (\(ipv :
                                                                        Credential) ->

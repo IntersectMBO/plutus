@@ -84,7 +84,9 @@ library
     PlutusTx.Data.List.TH
     PlutusTx.Either
     PlutusTx.Enum
+    PlutusTx.Enum.Class
     PlutusTx.Eq
+    PlutusTx.Eq.Class
     PlutusTx.ErrorCodes
     PlutusTx.Eval
     PlutusTx.Foldable
@@ -103,6 +105,7 @@ library
     PlutusTx.Optimize.Inline
     PlutusTx.Optimize.SpaceTime
     PlutusTx.Ord
+    PlutusTx.Ord.Class
     PlutusTx.Plugin.Utils
     PlutusTx.Prelude
     PlutusTx.Ratio
@@ -123,6 +126,9 @@ library
     PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
+    PlutusTx.Eq.TH
+    PlutusTx.Ord.TH
+    PlutusTx.Enum.TH
 
   build-depends:
     , aeson                  >=2.2
@@ -209,6 +215,9 @@ test-suite plutus-tx-test
     Blueprint.Spec
     List.Spec
     Bool.Spec
+    Eq.Spec
+    Ord.Spec
+    Enum.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
@@ -238,6 +247,7 @@ test-suite plutus-tx-test
     , plutus-core                      ^>=1.55
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.55
+    , plutus-tx:plutus-tx-testlib
     , pretty-show
     , serialise
     , tasty

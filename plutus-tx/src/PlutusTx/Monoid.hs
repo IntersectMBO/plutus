@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
 module PlutusTx.Monoid (Monoid (..), mappend, mconcat, Group (..), gsub) where
@@ -11,6 +9,7 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.List
 import PlutusTx.Maybe
 import PlutusTx.Semigroup
+import PlutusTx.Ord
 
 {- HLINT ignore -}
 
@@ -67,6 +66,10 @@ instance Monoid (Endo a) where
 instance Monoid (First a) where
   {-# INLINEABLE mempty #-}
   mempty = First Nothing
+
+instance Monoid Ordering where
+  {-# INLINEABLE mempty #-}
+  mempty = EQ
 
 class Monoid a => Group a where
   inv :: a -> a

@@ -1,0 +1,10 @@
+instance PlutusTx.Enum.Class.Enum GHC.Tuple.Prim.()
+    where {PlutusTx.Enum.Class.succ (GHC.Tuple.Prim.()) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.succBadArgumentError;
+           {-# INLINABLE PlutusTx.Enum.Class.succ #-};
+           PlutusTx.Enum.Class.pred (GHC.Tuple.Prim.()) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.predBadArgumentError;
+           {-# INLINABLE PlutusTx.Enum.Class.pred #-};
+           PlutusTx.Enum.Class.toEnum 0 = GHC.Tuple.Prim.()
+           PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.toEnumBadArgumentError;
+           {-# INLINABLE PlutusTx.Enum.Class.toEnum #-};
+           PlutusTx.Enum.Class.fromEnum (GHC.Tuple.Prim.()) = 0;
+           {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}}

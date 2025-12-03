@@ -481,19 +481,19 @@
                    {bool}
                    True
                    (\(ipv : a) (ipv : List a) -> False))
-              (\(x : a) (xs : List a) ->
+              (\(l1l : a) (l2l : List a) ->
                  /\dead ->
                    List_match
                      {a}
                      eta
                      {bool}
                      False
-                     (\(y : a) (ys : List a) ->
+                     (\(r1r : a) (r2r : List a) ->
                         case
                           (all dead. bool)
-                          (`$dEq` x y)
+                          (`$dEq` l1l r1r)
                           [ (/\dead -> False)
-                          , (/\dead -> `$fEqList_$c==` {a} `$dEq` xs ys) ]
+                          , (/\dead -> `$fEqList_$c==` {a} `$dEq` l2l r2r) ]
                           {all dead. dead}))
               {all dead. dead}
   in
