@@ -57,13 +57,6 @@ class Eq a => Ord a where
   min x y = if x <= y then x else y
   {-# MINIMAL compare | (<=) #-}
 
-instance Eq Ordering where
-  {-# INLINEABLE (==) #-}
-  EQ == EQ = True
-  GT == GT = True
-  LT == LT = True
-  _ == _ = False
-
 instance Ord Builtins.Integer where
   {-# INLINEABLE (<) #-}
   (<) = Builtins.lessThanInteger

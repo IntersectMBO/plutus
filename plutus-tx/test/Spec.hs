@@ -49,6 +49,7 @@ tests =
     , boolTests
     , eqTests
     , lawsTests
+    , ordTests
     , Show.Spec.propertyTests
     , Show.Spec.goldenTests
     , Blueprint.Definition.Spec.tests
