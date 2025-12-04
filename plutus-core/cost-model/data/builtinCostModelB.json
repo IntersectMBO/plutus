@@ -1222,10 +1222,17 @@
   "valueContains": {
     "cpu": {
       "arguments": {
-        "intercept": 1163050,
-        "slope": 1470
+        "constant": 278039,
+        "model": {
+          "arguments": {
+            "intercept": 386227,
+            "slope1": 1970,
+            "slope2": 23368
+          },
+          "type": "linear_in_x_and_y"
+        }
       },
-      "type": "multiplied_sizes"
+      "type": "const_above_diagonal"
     },
     "memory": {
       "arguments": 1,
