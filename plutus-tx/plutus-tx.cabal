@@ -120,13 +120,13 @@ library
 
   other-modules:
     PlutusTx.Enum.TH
+    PlutusTx.Eq.TH
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
     PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
-    PlutusTx.Eq.TH
 
   build-depends:
     , aeson                  >=2.2
