@@ -22,7 +22,6 @@ import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Unroll (dropN)
 import PlutusCore.Value (Value)
 import PlutusCore.Value qualified as Value
 
