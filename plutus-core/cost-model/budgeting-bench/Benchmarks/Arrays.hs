@@ -7,7 +7,7 @@ module Benchmarks.Arrays (makeBenchmarks) where
 import Prelude
 
 import Common
-import Control.Monad (replicateM)
+import Control.Monad (forM, replicateM)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.Vector.Strict (Vector)
@@ -44,12 +44,13 @@ benchListToArray _gen =
   createOneTermBuiltinBench ListToArray [tyListOfBS] listOfLists
   where
     gen = mkStdGen 12345
+    lengths = fmap (50 *) [1 .. 100]
     listOfLists :: [[ByteString]] =
-      runStateGen_ gen \g -> replicateM 100 do
-        listSize <- uniformRM (1, 5000) g
-        replicateM listSize do
-          bsSize <- uniformRM (10, 10) g
-          uniformByteStringM bsSize g
+      runStateGen_ gen $ \g ->
+        forM lengths $ \n ->
+          replicateM n do
+            bsSize <- uniformRM (10, 10) g
+            uniformByteStringM bsSize g
 
 benchIndexArray :: StdGen -> Benchmark
 benchIndexArray gen =
