@@ -47,7 +47,7 @@ benchListToArray gen =
       runStateGen_ gen \g -> replicateM 100 do
         listSize <- uniformRM (1, 5000) g
         replicateM listSize do
-          bsSize <- uniformRM (0, 10_000) g
+          bsSize <- uniformRM (10, 10) g
           uniformByteStringM bsSize g
 
 benchIndexArray :: StdGen -> Benchmark
