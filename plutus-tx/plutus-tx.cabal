@@ -118,13 +118,13 @@ library
     PlutusTx.Utils
 
   other-modules:
+    PlutusTx.Enum.TH
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
     PlutusTx.Lift.TestInstances
     PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
-    PlutusTx.Enum.TH
 
   build-depends:
     , aeson                  >=2.2
@@ -209,9 +209,9 @@ test-suite plutus-tx-test
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
     Blueprint.Spec
-    List.Spec
     Bool.Spec
     Enum.Spec
+    List.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
