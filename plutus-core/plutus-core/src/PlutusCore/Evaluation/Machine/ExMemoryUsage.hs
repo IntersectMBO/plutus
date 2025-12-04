@@ -216,11 +216,7 @@ instance ExMemoryUsage (a, b) where
  avoids the overhead of 'splitAt' which allocates a tuple and a new list for
  the prefix. The statically unrolled pattern matching is significantly faster. -}
 instance ExMemoryUsage [a] where
-  memoryUsage = go
-    where
-      go xs = case dropN @100 xs of
-        Just rest -> CostRose 100 [go rest]
-        Nothing -> singletonRose (fromIntegral (length xs))
+  memoryUsage = singletonRose . fromIntegral . length
   {-# INLINE memoryUsage #-}
 
 {- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
