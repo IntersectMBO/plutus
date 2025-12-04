@@ -3,6 +3,7 @@
 
 module Transform.Simplify.Spec where
 
+import Data.HashMap.Strict qualified as HM
 import Data.Text (Text)
 import Data.Vector qualified as V
 import PlutusCore qualified as PLC
@@ -12,6 +13,8 @@ import Test.Tasty (TestTree, testGroup)
 import Transform.Simplify.Lib (goldenVsCse, goldenVsSimplified)
 import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..), UVarDecl (..))
 import UntypedPlutusCore.MkUPlc (mkIterLamAbs)
+import UntypedPlutusCore.Purity
+import UntypedPlutusCore.Transform.Cse
 
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basic = Force () $ Delay () $ mkConstant @Integer () 1
@@ -568,6 +571,28 @@ cseExpensive = plus arg arg'
     arg = mkArg [0 .. 200]
     arg' = mkArg [0 .. 200]
 
+
+-- | Multiple occurences of the polymorphic identity function, which is a work-free sub-expression
+--
+-- \f. f (ΛA. \(x : A). x) (ΛA. \(x : A). x)
+cseWorkFree1 :: Term Name DefaultUni DefaultFun ()
+cseWorkFree1 =
+  runQuote $ do
+    x <- freshName "x"
+    f <- freshName "f"
+    let termId = Delay () (LamAbs () x (Var () x))
+    return
+      (LamAbs () f
+        (Apply ()
+          (Apply ()
+            (Var () f)
+            termId
+          )
+          termId
+        )
+      )
+
+
 testSimplifyInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
 testSimplifyInputs =
   [ ("basic", basic)
@@ -610,9 +635,16 @@ testCseInputs =
   , ("cseExpensive", cseExpensive)
   ]
 
+testCseInputsWorkFree :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testCseInputsWorkFree =
+  [ ("cseWorkFree1", cseWorkFree1),
+    ("cse1WorkFree", cse1)
+  ]
+
 test_simplify :: TestTree
 test_simplify =
   testGroup
     "simplify"
     $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
-    <> fmap (uncurry goldenVsCse) testCseInputs
+    <> fmap (uncurry (goldenVsCse False)) testCseInputs
+    <> fmap (uncurry (goldenVsCse True)) testCseInputsWorkFree

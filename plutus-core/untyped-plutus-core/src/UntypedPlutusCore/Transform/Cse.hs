@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module UntypedPlutusCore.Transform.Cse (cse) where
+module UntypedPlutusCore.Transform.Cse where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
@@ -267,6 +267,31 @@ annotate = flip evalState 0 . flip runReaderT [] . go
                     local (freshId :) (go br)
                 )
 
+-- | The notion of work-free expressions is extended to also include partially
+-- applied/forced built-ins.
+isWorkFree'
+  :: forall name uni fun a
+  . (ToBuiltinMeaning uni fun)
+  => BuiltinSemanticsVariant fun
+  -> Term name uni fun a
+  -> Bool
+isWorkFree' builtinSemanticsVariant term =
+  isWorkFree builtinSemanticsVariant term
+    || not (isBuiltinSaturated term)
+    || isForcingBuiltin term
+  where
+    isBuiltinSaturated =
+      splitApplication >>> \case
+        (Builtin _ fun, args) ->
+          length args >= length (builtinArity (Proxy @uni) builtinSemanticsVariant fun)
+        _term -> True
+
+    isForcingBuiltin = \case
+      Builtin{} -> True
+      Force _ t -> isForcingBuiltin t
+      _ -> False
+
+
 -- | The third pass. See Note [CSE].
 countOccs ::
   forall name uni fun ann.
@@ -285,9 +310,7 @@ countOccs withWorkFree builtinSemanticsVariant = foldrOf termSubtermsDeep addToM
       HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)] ->
       HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
     addToMap t0
-      | (not withWorkFree && isWorkFree builtinSemanticsVariant t0)
-        || not (isBuiltinSaturated t0)
-        || isForcingBuiltin t0 =
+      | not withWorkFree && isWorkFree' builtinSemanticsVariant t0 =
           id
       | otherwise =
           Map.alter
@@ -299,17 +322,6 @@ countOccs withWorkFree builtinSemanticsVariant = foldrOf termSubtermsDeep addToM
       where
         t = void t0
         path = fst (termAnn t0)
-
-    isBuiltinSaturated =
-      splitApplication >>> \case
-        (Builtin _ fun, args) ->
-          length args >= length (builtinArity (Proxy @uni) builtinSemanticsVariant fun)
-        _term -> True
-
-    isForcingBuiltin = \case
-      Builtin{} -> True
-      Force _ t -> isForcingBuiltin t
-      _ -> False
 
 -- | Combine a new path with a number of existing (path, count) pairs.
 combinePaths ::

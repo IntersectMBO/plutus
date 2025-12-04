@@ -331,7 +331,7 @@ library
     , monoidal-containers
     , mtl
     , multiset
-    , nothunks                    >=0.2 && <0.4
+    , nothunks                    >=0.2     && <0.4
     , parser-combinators          >=0.4.0
     , plutus-core:flat
     , prettyprinter               >=1.1.0.1
@@ -427,6 +427,7 @@ test-suite untyped-plutus-core-test
     , base                                     >=4.9 && <5
     , plutus-core:untyped-plutus-core-testlib
     , tasty
+    , unordered-containers
 
 library untyped-plutus-core-testlib
   import:             lang
