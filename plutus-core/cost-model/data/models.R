@@ -820,26 +820,17 @@ modelFun <- function(path) {
 
     # X wrapped with `ValueTotalSize` (container total entry count)
     # Y wrapped with `ValueTotalSize` (contained total entry count)
-    # When x < y, valueContains returns False immediately (constant time).
-    # When x >= y, we fit a linear model in x and y.
-    # NOTE: Benchmarks only generate cases where x >= y (contained is subset of container),
-    # so we use the minimum observed time as the constant for above-diagonal (early exit).
+    # Cost is linear in both x and y sizes.
     valueContainsModel <- {
         fname <- "ValueContains"
 
-        # All data is on/below diagonal (x >= y) - benchmark ensures contained ⊆ container
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead()
 
-        # Use minimum observed time as constant for above-diagonal (early exit case)
-        # This is safe since early exit is cheaper than any real containment check
-        constant <- min(filtered$t)
-
-        # Fit linear model to all data (all on/below diagonal)
         m <- lm(t ~ x_mem + y_mem, filtered)
 
-        mk.result(m, "const_above_diagonal", constant=constant, subtype="linear_in_x_and_y")
+        mk.result(m, "linear_in_x_and_y")
     }         
 
     # Sizes of parameters are used as is (unwrapped):
