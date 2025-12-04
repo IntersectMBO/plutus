@@ -84,6 +84,7 @@ library
     PlutusTx.Data.List.TH
     PlutusTx.Either
     PlutusTx.Enum
+    PlutusTx.Enum.Class
     PlutusTx.Eq
     PlutusTx.ErrorCodes
     PlutusTx.Eval
@@ -117,6 +118,7 @@ library
     PlutusTx.Utils
 
   other-modules:
+    PlutusTx.Enum.TH
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
@@ -207,8 +209,9 @@ test-suite plutus-tx-test
     Blueprint.Definition.Fixture
     Blueprint.Definition.Spec
     Blueprint.Spec
-    List.Spec
     Bool.Spec
+    Enum.Spec
+    List.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
@@ -238,6 +241,7 @@ test-suite plutus-tx-test
     , plutus-core                      ^>=1.55
     , plutus-core:plutus-core-testlib
     , plutus-tx                        ^>=1.55
+    , plutus-tx:plutus-tx-testlib
     , pretty-show
     , serialise
     , tasty
