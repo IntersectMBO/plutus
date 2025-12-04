@@ -44,7 +44,7 @@ benchListToArray _gen =
   createOneTermBuiltinBench ListToArray [tyListOfBS] listOfLists
   where
     gen = mkStdGen 12345
-    lengths = fmap (50 *) [1 .. 100]
+    lengths = fmap (25 *) [1 .. 200]
     listOfLists :: [[ByteString]] =
       runStateGen_ gen $ \g ->
         forM lengths $ \n ->
