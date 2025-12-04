@@ -16,7 +16,7 @@ import PlutusCore.Builtin (mkTyBuiltin)
 import PlutusCore.Core (Type)
 import PlutusCore.Default (DefaultFun (IndexArray, LengthOfArray, ListToArray), DefaultUni)
 import PlutusCore.Name.Unique (TyName)
-import System.Random.Stateful (StdGen, UniformRange (uniformRM), runStateGen_, uniformByteStringM)
+import System.Random.Stateful (StdGen, UniformRange (uniformRM), mkStdGen, runStateGen_, uniformByteStringM)
 
 --------------------------------------------------------------------------------
 -- Benchmarks ------------------------------------------------------------------
@@ -40,9 +40,10 @@ benchLengthOfArray gen =
           uniformByteStringM bsSize g
 
 benchListToArray :: StdGen -> Benchmark
-benchListToArray gen =
+benchListToArray _gen =
   createOneTermBuiltinBench ListToArray [tyListOfBS] listOfLists
   where
+    gen = mkStdGen 12345
     listOfLists :: [[ByteString]] =
       runStateGen_ gen \g -> replicateM 100 do
         listSize <- uniformRM (1, 5000) g
