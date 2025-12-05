@@ -92,6 +92,17 @@ renderTwoVariableQuadraticFunction
       c02
       var2
 
+renderSquareOfTwoVariableSumFunction
+  :: SquareOfTwoVariableSumFunction
+  -> String
+  -> String
+  -> String
+renderSquareOfTwoVariableSumFunction
+  (SquareOfTwoVariableSumFunction c00 c11)
+  var1
+  var2 =
+    undefined
+
 renderExpModCostingFunction
   :: ExpModCostingFunction
   -> String
@@ -132,9 +143,11 @@ renderModel =
     LinearInX f -> [renderLinearFunction f "x"]
     LinearInY f -> [renderLinearFunction f "y"]
     LinearInZ f -> [renderLinearFunction f "z"]
+    LinearInW f -> [renderLinearFunction f "w"]
     QuadraticInY f -> [renderOneVariableQuadraticFunction f "y"]
     QuadraticInZ f -> [renderOneVariableQuadraticFunction f "z"]
     QuadraticInXAndY f -> [renderTwoVariableQuadraticFunction f "x" "y"]
+    SquareOfSum f -> [renderSquareOfTwoVariableSumFunction f "x" "y"]
     ExpModCost f -> [renderExpModCostingFunction f "y" "z"]
     LinearInMaxYZ f -> [renderLinearFunction f "max(y,z)"]
     LinearInYAndZ f -> [renderTwoVariableLinearFunction f "y" "z"]

@@ -436,7 +436,7 @@ readCF2AtType ty e = do
     "const_off_diagonal" -> ModelTwoArgumentsConstOffDiagonal <$> readOneVariableFunConstOr e
     "quadratic_in_y" -> ModelTwoArgumentsQuadraticInY <$> readOneVariableQuadraticFunction "y_mem" e
     "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
-    "square_of_added_sizes" -> ModelTwoArgumentsSquareOfSum <$> readSquareOfTwoVariableSumFunction "x_mem" "y_mem" e
+    "square_of_sum" -> ModelTwoArgumentsSquareOfSum <$> readSquareOfTwoVariableSumFunction "x_mem" "y_mem" e
     _ -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
