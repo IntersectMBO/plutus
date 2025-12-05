@@ -27,11 +27,13 @@
            (\l ->
               (\l ->
                  (\l ->
-                    cont
-                      (unIData (force headList l))
-                      (unIData (force headList l))
-                      (unIData (force headList l))
-                      (unIData (force headList (force tailList l))))
+                    case
+                      (constr 0
+                         [ (unIData (force headList l))
+                         , (unIData (force headList l))
+                         , (unIData (force headList l))
+                         , (unIData (force headList (force tailList l))) ])
+                      [cont])
                    (force tailList l))
                 (force tailList l))
              (case (unConstrData d) [(\l r -> r)]))))

@@ -14,32 +14,38 @@
                               `$mInts`
                                 (force headList l)
                                 (\x y z w ->
-                                   `$mInts`
-                                     (force headList (force tailList l))
-                                     (\x y z w ->
-                                        constrData
-                                          0
-                                          (force mkCons
-                                             (iData (addInteger x x))
-                                             (force mkCons
-                                                (iData (addInteger y y))
-                                                (force mkCons
-                                                   (iData (addInteger z z))
-                                                   (force mkCons
-                                                      (iData (addInteger w w))
-                                                      [])))))
-                                     (\void -> (\cse -> case cse [cse]) error)))
+                                   case
+                                     (constr 0
+                                        [ (force headList (force tailList l))
+                                        , (\x y z w ->
+                                             constrData
+                                               0
+                                               (force mkCons
+                                                  (iData (addInteger x x))
+                                                  (force mkCons
+                                                     (iData (addInteger y y))
+                                                     (force mkCons
+                                                        (iData (addInteger z z))
+                                                        (force mkCons
+                                                           (iData
+                                                              (addInteger w w))
+                                                           [])))))
+                                        , (\void ->
+                                             (\cse -> case cse [cse]) error) ])
+                                     [`$mInts`]))
                              (\scrut cont fail ->
                                 (\l ->
                                    (\l ->
                                       (\l ->
-                                         cont
-                                           (unIData (force headList l))
-                                           (unIData (force headList l))
-                                           (unIData (force headList l))
-                                           (unIData
-                                              (force headList
-                                                 (force tailList l))))
+                                         case
+                                           (constr 0
+                                              [ (unIData (force headList l))
+                                              , (unIData (force headList l))
+                                              , (unIData (force headList l))
+                                              , (unIData
+                                                   (force headList
+                                                      (force tailList l))) ])
+                                           [cont])
                                         (force tailList l))
                                      (force tailList l))
                                   (case (unConstrData scrut) [(\l r -> r)]))

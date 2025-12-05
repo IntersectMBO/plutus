@@ -57,6 +57,7 @@ instance AgdaUnparse SimplifierStage where
   agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
+  agdaUnparse CaseApply = "caseApplyT"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show
