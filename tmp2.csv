@@ -1,0 +1,3 @@
+# Plutus Core cost model benchmark results
+# Started at 2025-12-05 20:35:27.42526671 UTC
+benchmark,t,t.mean.lb,t.mean.ub,t.sd,t.sd.lb,t.sd.ub
