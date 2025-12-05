@@ -235,21 +235,6 @@ insertCoinArgs gen = do
   where
     reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
 
--- | Generate either zero or maximum amount Integer values, the probability of each is 50%
-genZeroOrMaxAmount
-  :: StatefulGen g m
-  => g
-  -> Int
-  -- ^ Number of amounts to generate
-  -> m [Integer]
-genZeroOrMaxAmount gen n =
-  replicateM n $ do
-    coinType <- uniformRM (0 :: Int, 1) gen
-    pure $ case coinType of
-      0 -> 0
-      1 -> unQuantity maxBound
-      _ -> error "genZeroOrMaxAmount: impossible"
-
 ----------------------------------------------------------------------------------------------------
 -- UnionValue --------------------------------------------------------------------------------------
 
@@ -453,32 +438,7 @@ genZeroOrAmount gen n qty =
     pure $ case coinType of
       0 -> 0
       1 -> unQuantity qty
-      _ -> error "genZeroOrMaxAmount: impossible"
-
--- | Generate either zero or maximum amount Integer values, the probability of each is 50%
-genZeroOrMaxAmount
-  :: StatefulGen g m
-  => g
-  -> Int
-  -- ^ Number of amounts to generate
-  -> m [Integer]
-genZeroOrMaxAmount gen n =
-  genZeroOrAmount gen n (maxBound :: Quantity)
-
-genZeroOrAmount
-  :: StatefulGen g m
-  => g
-  -> Int
-  -- ^ Number of amounts to generate
-  -> Quantity
-  -> m [Integer]
-genZeroOrAmount gen n qty =
-  replicateM n $ do
-    coinType <- uniformRM (0 :: Int, 1) gen
-    pure $ case coinType of
-      0 -> 0
-      1 -> unQuantity qty
-      _ -> error "genZeroOrMaxAmount: impossible"
+      _ -> error "genZeroOrAmount: impossible"
 
 genBoundedProduct
   :: StatefulGen g m

@@ -463,13 +463,6 @@ readCF4 e = do
   ty <- getType e
   case ty of
     "constant_cost" -> ModelFourArgumentsConstantCost <$> getConstant e
-    _ -> error $ "Unknown four-variable model type: " ++ ty
-
-readCF4 :: MonadR m => SomeSEXP (Region m) -> m ModelFourArguments
-readCF4 e = do
-  ty <- getType e
-  case ty of
-    "constant_cost" -> ModelFourArgumentsConstantCost <$> getConstant e
     "linear_in_w" -> ModelFourArgumentsLinearInW <$> readOneVariableLinearFunction "w_mem" e
     _ -> error $ "Unknown four-variable model type: " ++ ty
 
