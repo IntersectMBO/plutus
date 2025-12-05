@@ -63,7 +63,6 @@ import GHC.Generics
 import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition (..), HasSchemaDefinition)
 import Prettyprinter (Pretty (..), (<+>))
-import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
 
 {-| Represents an arbitrary-precision ratio.
@@ -73,7 +72,7 @@ The following two invariants are maintained:
 1. The denominator is greater than zero.
 2. The numerator and denominator are coprime. -}
 data Rational = Rational Integer Integer
-  deriving stock (Haskell.Eq, Show, Generic)
+  deriving stock (Haskell.Eq, Haskell.Show, Generic)
 
 makeLift ''Rational
 
@@ -96,12 +95,12 @@ instance P.Ord Rational where
   {-# INLINEABLE (>) #-}
   Rational n d > Rational n' d' = (n P.* d') P.> (n' P.* d)
 
-instance Ord Rational where
-  compare (Rational n d) (Rational n' d') = compare (n * d') (n' * d)
-  Rational n d <= Rational n' d' = (n * d') <= (n' * d)
-  Rational n d >= Rational n' d' = (n * d') >= (n' * d)
-  Rational n d < Rational n' d' = (n * d') < (n' * d)
-  Rational n d > Rational n' d' = (n * d') > (n' * d)
+instance Haskell.Ord Rational where
+  compare (Rational n d) (Rational n' d') = Haskell.compare (n Haskell.* d') (n' Haskell.* d)
+  Rational n d <= Rational n' d' = (n Haskell.* d') Haskell.<= (n' Haskell.* d)
+  Rational n d >= Rational n' d' = (n Haskell.* d') Haskell.>= (n' Haskell.* d)
+  Rational n d < Rational n' d' = (n Haskell.* d') Haskell.< (n' Haskell.* d)
+  Rational n d > Rational n' d' = (n Haskell.* d') Haskell.> (n' Haskell.* d)
 
 instance P.AdditiveSemigroup Rational where
   {-# INLINEABLE (+) #-}
@@ -367,11 +366,11 @@ instance Enum Rational where
   {-# INLINEABLE enumFromTo #-}
   enumFromTo x lim
     -- See why adding half is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
-    | x > lim P.+ Rational 1 2 = []
+    | x P.> lim P.+ Rational 1 2 = []
     | P.True = x : enumFromTo (succ x) lim
   {-# INLINEABLE enumFromThenTo #-}
   enumFromThenTo x y lim =
-    if delta >= P.zero
+    if delta P.>= P.zero
       then up_list x
       else dn_list x
     where
@@ -380,12 +379,12 @@ instance Enum Rational where
       mid = numerator delta `unsafeRatio` (denominator delta P.* 2)
       up_list x1 =
         -- See why adding mid is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
-        if x1 > lim P.+ mid
+        if x1 P.> lim P.+ mid
           then []
           else x1 : up_list (x1 P.+ delta)
       dn_list x1 =
         -- See why adding mid is needed in the Haskell report: https://www.haskell.org/onlinereport/haskell2010/haskellch6.html
-        if x1 < lim P.+ mid
+        if x1 P.< lim P.+ mid
           then []
           else x1 : dn_list (x1 P.+ delta)
 
