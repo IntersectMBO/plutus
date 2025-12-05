@@ -99,7 +99,7 @@ instance CBOR.Serialise K where
 
 -- | A signed 128-bit integer quantity.
 newtype Quantity = UnsafeQuantity {unQuantity :: Integer}
-  deriving newtype (Eq, Ord, Show, NFData, Hashable)
+  deriving newtype (Eq, Ord, Show, NFData, Hashable, Num)
   deriving stock (Generic)
 
 instance CBOR.Serialise Quantity where

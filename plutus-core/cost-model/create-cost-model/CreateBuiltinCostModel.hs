@@ -365,6 +365,12 @@ readTwoVariableLinearFunction var1 var2 e = do
   slopeY <- Slope <$> getCoeff var2 e
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
 
+readSquareOfTwoVariableSumFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m SquareOfTwoVariableSumFunction
+readSquareOfTwoVariableSumFunction var1 var2 e = do
+  c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
+  c11 <- Coefficient11 <$> getCoeff (printf "I((%s + %s)^2)" var1 var2) e
+  pure $ SquareOfTwoVariableSumFunction c00 c11
+
 readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
 readTwoVariableQuadraticFunction var1 var2 e = do
   minVal <- getExtraParam "minimum" e
@@ -430,6 +436,7 @@ readCF2AtType ty e = do
     "const_off_diagonal" -> ModelTwoArgumentsConstOffDiagonal <$> readOneVariableFunConstOr e
     "quadratic_in_y" -> ModelTwoArgumentsQuadraticInY <$> readOneVariableQuadraticFunction "y_mem" e
     "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
+    "square_of_added_sizes" -> ModelTwoArgumentsSquareOfSum <$> readSquareOfTwoVariableSumFunction "x_mem" "y_mem" e
     _ -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
@@ -463,6 +470,7 @@ readCF4 e = do
   ty <- getType e
   case ty of
     "constant_cost" -> ModelFourArgumentsConstantCost <$> getConstant e
+    "linear_in_w" -> ModelFourArgumentsLinearInW <$> readOneVariableLinearFunction "w_mem" e
     _ -> error $ "Unknown four-variable model type: " ++ ty
 
 readCF6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments
