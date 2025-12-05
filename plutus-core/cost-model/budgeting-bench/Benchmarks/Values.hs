@@ -17,6 +17,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.List (find, sort)
 import Data.Word (Word8)
+import Debug.Trace (trace)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
@@ -26,7 +27,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   )
 import PlutusCore.Value (K, Quantity (..), Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StateGenM, StatefulGen, StdGen, runStateGen_, uniformRM)
+import System.Random.Stateful (StateGenM, StatefulGen, StdGen, runStateGen_, uniformListRM, uniformRM)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -248,9 +249,91 @@ unionValueBenchmark gen =
 
 unionValueArgs :: StatefulGen g m => g -> m [(Value, Value)]
 unionValueArgs gen = do
-  vals1 <- replicateM 100 (generateValue gen)
-  vals2 <- replicateM 100 (generateValue gen)
-  pure $ zip vals1 vals2
+  -- case1 <- replicateM 20 (genUnionArgs1 gen)
+  -- let case2 = map (\(a, b) -> (b, a)) case1
+  caseWorst <- replicateM 50 (genUnionArgsWorst gen)
+  -- case2 <- replicateM 20 (genUnionArgs2 gen)
+  -- case3 is definitely not worst-case
+  -- case3 <- replicateM 20 (genUnionArgs3 gen)
+  pure $ caseWorst -- case1 <> case2
+
+-- pure (case2 <> case3)
+
+-- Values where second is contained in the first
+genUnionArgs1 :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgs1 gen = do
+  let maxValue1Entries = maxValueEntries
+  maxTokenNamesValue1 <- uniformRM (1, maxValue1Entries) gen
+  let maxPolicyIdsValue1 = maxValue1Entries `div` maxTokenNamesValue1
+  numPolicyIdsV1 <- uniformRM (1, maxPolicyIdsValue1) gen
+  numTokenNamesV1 <- uniformRM (1, maxTokenNamesValue1) gen
+  policyIdsV1 <- replicateM numPolicyIdsV1 (generateKey gen)
+  tokenNamesV1 <- replicateM numTokenNamesV1 (generateKey gen)
+  let value1 = buildValue policyIdsV1 tokenNamesV1
+  numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV1) gen
+  numTokenIdsToKeep <- uniformRM (1, numTokenNamesV1) gen
+  let policyIdsV2 = take numPolicyIdsToKeep policyIdsV1
+      tokenNamesV2 = take numTokenIdsToKeep tokenNamesV1
+      value2 = buildValue policyIdsV2 tokenNamesV2
+  pure (value1, value2)
+
+-- Worst: second arg is larger, maps are flat
+genUnionArgsWorst :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsWorst gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
+  -- numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
+  let numPolicyIdsToKeep = 1
+  let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
+      value1 = buildValue policyIdsV1 tokenNames
+  pure (value1, value2)
+
+-- Values where first is contained in the second
+genUnionArgs2 :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgs2 gen = do
+  (v1, v2) <- genUnionArgs1 gen
+  pure (v2, v1)
+
+-- Values which are disjoint
+genUnionArgs3 :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgs3 gen = do
+  let maxValue1Entries = maxValueEntries `div` 2
+      maxValue2Entries = maxValueEntries `div` 2
+  maxTokenNamesValue1 <- uniformRM (1, maxValue1Entries) gen
+  let maxPolicyIdsValue1 = maxValue1Entries `div` maxTokenNamesValue1
+  numPolicyIdsV1 <- uniformRM (1, maxPolicyIdsValue1) gen
+  numTokenNamesV1 <- uniformRM (1, maxTokenNamesValue1) gen
+  policyIdsV1 <- replicateM numPolicyIdsV1 (generateKey gen)
+  tokenNamesV1 <- replicateM numTokenNamesV1 (generateKey gen)
+  let value1 = buildValue policyIdsV1 tokenNamesV1
+  maxTokenNamesValue2 <- uniformRM (1, maxValue2Entries) gen
+  let maxPolicyIdsValue2 = maxValue2Entries `div` maxTokenNamesValue2
+  numPolicyIdsV2 <- uniformRM (1, maxPolicyIdsValue2) gen
+  numTokenNamesV2 <- uniformRM (1, maxTokenNamesValue2) gen
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNamesV2 <- replicateM numTokenNamesV2 (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNamesV2
+  pure (value1, value2)
+
+buildValue :: [K] -> [K] -> Value
+buildValue policyIds tokenNames =
+  unsafeFromBuiltinResult $ Value.fromList entries
+  where
+    entries =
+      [ ( pId
+        , [ (tName, amt)
+          | tName <- tokenNames
+          ]
+        )
+      | pId <- policyIds
+      ]
+    amt = mkQuantity 10000000
+
+-- mkQuantity $
+--   unQuantity (maxBound :: Quantity) `div` 2 - 10000
 
 ----------------------------------------------------------------------------------------------------
 -- ScaleValue --------------------------------------------------------------------------------------
@@ -330,8 +413,8 @@ generateConstrainedValueWithMaxPolicy
   -> Int -- Number of tokens per policy
   -> g
   -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
-generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g =
-  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy maxBound g
+generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy =
+  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy maxBound
 
 -- | Generate constrained Value with information about max-size policy and quantity
 generateConstrainedValueWithMaxPolicyAndQuantity
