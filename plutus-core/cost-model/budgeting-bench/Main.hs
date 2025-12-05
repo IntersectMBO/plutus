@@ -61,11 +61,11 @@ main = do
       <> Benchmarks.Strings.makeBenchmarks gen
       <> Benchmarks.Tracing.makeBenchmarks gen
       <> Benchmarks.Unit.makeBenchmarks gen
-      <> Benchmarks.Values.makeBenchmarks gen
-
-  {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
-     get accurate results. -}
-  criterionMainWith
-    Continue
-    (defaultConfig {C.timeLimit = 30})
+      <> Benchmarks.Values.makeBenchmarks
+        gen
+        {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
+           get accurate results. -}
+        criterionMainWith
+        Continue
+        (defaultConfig {C.timeLimit = 30})
     $ Benchmarks.Nops.makeBenchmarks gen

@@ -11,6 +11,7 @@ import Prelude
 
 import Common
 import Control.Monad (replicateM)
+import Control.Monad.State.Strict (State)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
@@ -18,15 +19,15 @@ import Data.Int (Int64)
 import Data.List (find, sort)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
+import PlutusCore (DefaultFun (InsertCoin, LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( ValueLogOuterSizeAddLogMaxInnerSize (..)
   , ValueTotalSize (..)
   )
-import PlutusCore.Value (K, Value)
+import PlutusCore.Value (K, Quantity (..), Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformRM)
+import System.Random.Stateful (StateGenM, StatefulGen, StdGen, runStateGen_, uniformRM)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -37,6 +38,7 @@ makeBenchmarks gen =
   , valueContainsBenchmark gen
   , valueDataBenchmark gen
   , unValueDataBenchmark gen
+  , insertCoinBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -48,10 +50,10 @@ lookupCoinBenchmark gen =
     (id, id, ValueLogOuterSizeAddLogMaxInnerSize) -- Wrap Value argument to report sum of log sizes
     LookupCoin -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
-    (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
+    (runBenchGen gen lookupCoinArgs) -- the argument combos to generate benchmarks for
 
-lookupCoinArgs :: StdGen -> [(ByteString, ByteString, Value)]
-lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
+lookupCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Value)]
+lookupCoinArgs gen = do
   {- Exhaustive power-of-2 combinations for BST worst-case benchmarking.
 
      Tests all combinations of sizes from powers and half-powers of 2.
@@ -82,7 +84,7 @@ lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
 
   sequence
     -- Generate worst-case lookups for each size combination
-    [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g)
+    [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy gen)
     | numPolicies <- sizes
     , tokensPerPolicy <- sizes
     ]
@@ -213,6 +215,41 @@ unValueDataBenchmark gen =
   createOneTermBuiltinBench UnValueData [] (Value.valueData <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
+-- InsertCoin --------------------------------------------------------------------------------------
+
+insertCoinBenchmark :: StdGen -> Benchmark
+insertCoinBenchmark gen =
+  createFourTermBuiltinBenchElementwiseWithWrappers
+    (id, id, id, ValueLogOuterSizeAddLogMaxInnerSize)
+    InsertCoin
+    []
+    (runBenchGen gen insertCoinArgs)
+
+insertCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Integer, Value)]
+insertCoinArgs gen = do
+  lookupArgs <- lookupCoinArgs gen
+  let noOfBenchs = length lookupArgs
+  amounts <- genZeroOrMaxAmount gen noOfBenchs
+  pure $ reorderArgs <$> zip lookupArgs amounts
+  where
+    reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
+
+-- | Generate either zero or maximum amount Integer values, the probability of each is 50%
+genZeroOrMaxAmount
+  :: StatefulGen g m
+  => g
+  -> Int
+  -- ^ Number of amounts to generate
+  -> m [Integer]
+genZeroOrMaxAmount gen n =
+  replicateM n $ do
+    coinType <- uniformRM (0 :: Int, 1) gen
+    pure $ case coinType of
+      0 -> 0
+      1 -> unQuantity maxBound
+      _ -> error "genZeroOrMaxAmount: impossible"
+
+----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
 
 -- | Generate common test values for benchmarking
@@ -341,3 +378,7 @@ unsafeFromBuiltinResult = \case
   BuiltinSuccess x -> x
   BuiltinSuccessWithLogs _ x -> x
   BuiltinFailure _ err -> error $ "BuiltinResult failed: " <> show err
+
+-- | Abstracted runner for computations using stateful random generator 'StdGen'
+runBenchGen :: StdGen -> (StateGenM StdGen -> State StdGen a) -> a
+runBenchGen gen ma = runStateGen_ gen \g -> ma g
