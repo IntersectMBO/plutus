@@ -837,7 +837,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ I((x_mem + y_mem)^2), filtered)
-        mk.result(m, "square_of_added_sizes")
+        mk.result(m, "square_of_sum")
     }
 
     # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)
