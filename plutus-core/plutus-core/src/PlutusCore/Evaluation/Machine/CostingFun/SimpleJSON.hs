@@ -95,6 +95,7 @@ data Model
   | LinearInZ LinearFunction
   | LiteralInYOrLinearInZ LinearFunction
   | LinearInMaxYZ LinearFunction
+  | LinearInXAndY TwoVariableLinearFunction
   | LinearInYAndZ TwoVariableLinearFunction
   | QuadraticInY OneVariableQuadraticFunction
   | QuadraticInZ OneVariableQuadraticFunction
@@ -145,6 +146,7 @@ instance FromJSON Model where
           "exp_mod_cost" -> ExpModCost <$> parseJSON args
           "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
           "linear_in_max_yz" -> LinearInMaxYZ <$> parseJSON args
+          "linear_in_x_and_y" -> LinearInXAndY <$> parseJSON args
           "linear_in_y_and_z" -> LinearInYAndZ <$> parseJSON args
           "subtracted_sizes" -> SubtractedSizes <$> parseJSON args <*> objOf args .: "minimum"
           "const_above_diagonal" -> modelWithConstant ConstAboveDiagonal args
