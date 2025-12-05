@@ -57,7 +57,7 @@ jobs:
 
       - name: Deploy Preview Site 
         if: github.event_name == 'pull_request'
-        uses: rossjrw/pr-preview-action@v1.6.2
+        uses: rossjrw/pr-preview-action@v1.6.3
         with:
           source-dir: doc/docusaurus/build
           umbrella-dir: pr-preview/docs
