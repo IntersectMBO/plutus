@@ -1288,14 +1288,11 @@
   },
   "unionValue": {
     "cpu": {
-      "arguments": {
-        "square_of_sum_coefficient00": 3128363791,
-        "square_of_sum_coefficient11": 5
-      },
-      "type": "square_of_sum"
+    "arguments": 0,
+    "type": "constant_cost"
     },
     "memory": {
-      "arguments": 1,
+      "arguments": 0,
       "type": "constant_cost"
     }
    }
