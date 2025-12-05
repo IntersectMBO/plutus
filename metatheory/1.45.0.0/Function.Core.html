@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Function.Core</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Core definitions for Functions</a>
+<a id="140" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="214" class="Comment">-- The contents of this file should always be accessed from `Function`.</a>
+
+<a id="287" class="Symbol">{-#</a> <a id="291" class="Keyword">OPTIONS</a> <a id="299" class="Pragma">--cubical-compatible</a> <a id="320" class="Pragma">--safe</a> <a id="327" class="Symbol">#-}</a>
+
+<a id="332" class="Keyword">module</a> <a id="339" href="Function.Core.html" class="Module">Function.Core</a> <a id="353" class="Keyword">where</a>
+
+<a id="360" class="Keyword">open</a> <a id="365" class="Keyword">import</a> <a id="372" href="Level.html" class="Module">Level</a> <a id="378" class="Keyword">using</a> <a id="384" class="Symbol">(</a><a id="385" href="Agda.Primitive.html#961" class="Primitive Operator">_⊔_</a><a id="388" class="Symbol">)</a>
+
+<a id="391" class="Comment">------------------------------------------------------------------------</a>
+<a id="464" class="Comment">-- Types</a>
+
+<a id="Fun₁"></a><a id="474" href="Function.Core.html#474" class="Function">Fun₁</a> <a id="479" class="Symbol">:</a> <a id="481" class="Symbol">∀</a> <a id="483" class="Symbol">{</a><a id="484" href="Function.Core.html#484" class="Bound">a</a><a id="485" class="Symbol">}</a> <a id="487" class="Symbol">→</a> <a id="489" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="493" href="Function.Core.html#484" class="Bound">a</a> <a id="495" class="Symbol">→</a> <a id="497" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="501" href="Function.Core.html#484" class="Bound">a</a>
+<a id="503" href="Function.Core.html#474" class="Function">Fun₁</a> <a id="508" href="Function.Core.html#508" class="Bound">A</a> <a id="510" class="Symbol">=</a> <a id="512" href="Function.Core.html#508" class="Bound">A</a> <a id="514" class="Symbol">→</a> <a id="516" href="Function.Core.html#508" class="Bound">A</a>
+
+<a id="Fun₂"></a><a id="519" href="Function.Core.html#519" class="Function">Fun₂</a> <a id="524" class="Symbol">:</a> <a id="526" class="Symbol">∀</a> <a id="528" class="Symbol">{</a><a id="529" href="Function.Core.html#529" class="Bound">a</a><a id="530" class="Symbol">}</a> <a id="532" class="Symbol">→</a> <a id="534" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="538" href="Function.Core.html#529" class="Bound">a</a> <a id="540" class="Symbol">→</a> <a id="542" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="546" href="Function.Core.html#529" class="Bound">a</a>
+<a id="548" href="Function.Core.html#519" class="Function">Fun₂</a> <a id="553" href="Function.Core.html#553" class="Bound">A</a> <a id="555" class="Symbol">=</a> <a id="557" href="Function.Core.html#553" class="Bound">A</a> <a id="559" class="Symbol">→</a> <a id="561" href="Function.Core.html#553" class="Bound">A</a> <a id="563" class="Symbol">→</a> <a id="565" href="Function.Core.html#553" class="Bound">A</a>
+
+<a id="568" class="Comment">------------------------------------------------------------------------</a>
+<a id="641" class="Comment">-- Morphism</a>
+
+<a id="Morphism"></a><a id="654" href="Function.Core.html#654" class="Function">Morphism</a> <a id="663" class="Symbol">:</a> <a id="665" class="Symbol">∀</a> <a id="667" class="Symbol">{</a><a id="668" href="Function.Core.html#668" class="Bound">a</a><a id="669" class="Symbol">}</a> <a id="671" class="Symbol">→</a> <a id="673" class="Symbol">∀</a> <a id="675" class="Symbol">{</a><a id="676" href="Function.Core.html#676" class="Bound">b</a><a id="677" class="Symbol">}</a> <a id="679" class="Symbol">→</a> <a id="681" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="685" href="Function.Core.html#668" class="Bound">a</a> <a id="687" class="Symbol">→</a> <a id="689" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="693" href="Function.Core.html#676" class="Bound">b</a> <a id="695" class="Symbol">→</a> <a id="697" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="701" class="Symbol">(</a><a id="702" href="Function.Core.html#668" class="Bound">a</a> <a id="704" href="Agda.Primitive.html#961" class="Primitive Operator">⊔</a> <a id="706" href="Function.Core.html#676" class="Bound">b</a><a id="707" class="Symbol">)</a>
+<a id="709" href="Function.Core.html#654" class="Function">Morphism</a> <a id="718" href="Function.Core.html#718" class="Bound">A</a> <a id="720" href="Function.Core.html#720" class="Bound">B</a> <a id="722" class="Symbol">=</a> <a id="724" href="Function.Core.html#718" class="Bound">A</a> <a id="726" class="Symbol">→</a> <a id="728" href="Function.Core.html#720" class="Bound">B</a>
+</pre></body></html>

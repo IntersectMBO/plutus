@@ -1,0 +1,1242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.Machine.MachineParameters</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.Machine.MachineParameters</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:CostModel"
+	      >CostModel</a
+	      > machinecosts builtincosts = <a href="#v:CostModel"
+	      >CostModel</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_machineCostModel"
+		  >_machineCostModel</a
+		  > &#8759; machinecosts</li
+		><li
+		><a href="#v:_builtinCostModel"
+		  >_builtinCostModel</a
+		  > &#8759; builtincosts</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:machineCostModel"
+	      >machineCostModel</a
+	      > &#8759; &#8704; machinecosts builtincosts machinecosts. Lens (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > machinecosts builtincosts) (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > machinecosts builtincosts) machinecosts machinecosts</li
+	    ><li class="src short"
+	    ><a href="#v:builtinCostModel"
+	      >builtinCostModel</a
+	      > &#8759; &#8704; machinecosts builtincosts builtincosts. Lens (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > machinecosts builtincosts) (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > machinecosts builtincosts) builtincosts builtincosts</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:MachineVariantParameters"
+	      >MachineVariantParameters</a
+	      > machineCosts fun val = <a href="#v:MachineVariantParameters"
+	      >MachineVariantParameters</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:machineCosts"
+		  >machineCosts</a
+		  > &#8759; machineCosts</li
+		><li
+		><a href="#v:builtinsRuntime"
+		  >builtinsRuntime</a
+		  > &#8759; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinsRuntime</a
+		  > fun val</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:MachineParameters"
+	      >MachineParameters</a
+	      > machineCosts fun val = <a href="#v:MachineParameters"
+	      >MachineParameters</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:machineCaserBuiltin"
+		  >machineCaserBuiltin</a
+		  > &#8759; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		  >CaserBuiltin</a
+		  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > val)</li
+		><li
+		><a href="#v:machineVariantParameters"
+		  >machineVariantParameters</a
+		  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		  >MachineVariantParameters</a
+		  > machineCosts fun val</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:mkMachineVariantParameters"
+	      >mkMachineVariantParameters</a
+	      > &#8759; (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > builtincosts, <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	      >HasMeaningIn</a
+	      > uni val, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > machineCosts builtincosts &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineVariantParameters</a
+	      > machineCosts fun val</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:CostModel" class="def"
+	    >CostModel</a
+	    > machinecosts builtincosts <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel" class="link"
+	    >Source</a
+	    > <a href="#t:CostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >We need to account for the costs of evaluator steps and also built-in function
+   evaluation.  The models for these have different structures and are used in
+   different parts of the code, so inside the valuator we pass separate objects
+   about most of the time .  It's convenient for clients of the evaluator to
+   only have to worry about a single object, so the CostModel type bundles the
+   two together.  We could conceivably have different evaluators with different
+   internal costs, so we keep the machine costs abstract.  The model for Cek
+   machine steps is in UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CostModel" class="def"
+		  >CostModel</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_machineCostModel" class="def"
+			  >_machineCostModel</a
+			  > &#8759; machinecosts</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_builtinCostModel" class="def"
+			  >_builtinCostModel</a
+			  > &#8759; builtincosts</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:CostModel"
+	    >Instances</h4
+	    ><details id="i:CostModel" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModel:Show:1"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > machinecosts, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > builtincosts) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >CostModel</a
+		      > machinecosts builtincosts)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:CostModel" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModel:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >CostModel</a
+			  > machinecosts builtincosts &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >CostModel</a
+			  > machinecosts builtincosts &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >CostModel</a
+			  > machinecosts builtincosts] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:CostModel:Eq:2"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > machinecosts, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > builtincosts) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >CostModel</a
+		      > machinecosts builtincosts)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:CostModel" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:CostModel:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >CostModel</a
+			  > machinecosts builtincosts &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >CostModel</a
+			  > machinecosts builtincosts &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >CostModel</a
+			  > machinecosts builtincosts &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >CostModel</a
+			  > machinecosts builtincosts &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:machineCostModel" class="def"
+	    >machineCostModel</a
+	    > &#8759; &#8704; machinecosts builtincosts machinecosts. Lens (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > machinecosts builtincosts) (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > machinecosts builtincosts) machinecosts machinecosts <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#machineCostModel" class="link"
+	    >Source</a
+	    > <a href="#v:machineCostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinCostModel" class="def"
+	    >builtinCostModel</a
+	    > &#8759; &#8704; machinecosts builtincosts builtincosts. Lens (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > machinecosts builtincosts) (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > machinecosts builtincosts) builtincosts builtincosts <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#builtinCostModel" class="link"
+	    >Source</a
+	    > <a href="#v:builtinCostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:MachineVariantParameters" class="def"
+	    >MachineVariantParameters</a
+	    > machineCosts fun val <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters" class="link"
+	    >Source</a
+	    > <a href="#t:MachineVariantParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The part of <code
+	      ><a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		>MachineParameters</a
+		></code
+	      > that is individual for each semantics variant of <code
+	      >DefaultFun</code
+	      >.</p
+	    ><p
+	    ><code
+	      ><a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		>CaserBuiltin</a
+		></code
+	      > isn't included, because it only explicitly depends on the protocol version and not
+ the language version (even though there's an implicit dependency on the language version: older
+ languages don't support <code
+	      >Case</code
+	      > in general, but it's safe to ignore that, because support for
+ <code
+	      >Case</code
+	      > is controlled by the AST version, which is a separate check during deserialisation).</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MachineVariantParameters" class="def"
+		  >MachineVariantParameters</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:machineCosts" class="def"
+			  >machineCosts</a
+			  > &#8759; machineCosts</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:builtinsRuntime" class="def"
+			  >builtinsRuntime</a
+			  > &#8759; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinsRuntime</a
+			  > fun val</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MachineVariantParameters"
+	    >Instances</h4
+	    ><details id="i:MachineVariantParameters" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineVariantParameters:Generic:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineVariantParameters</a
+		      > machineCosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:MachineVariantParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineVariantParameters:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machineCosts fun val) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machineCosts fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machineCosts fun val) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machineCosts fun val) x &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machineCosts fun val <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineVariantParameters:NFData:2"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > machineCosts, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > fun) &#8658; <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineVariantParameters</a
+		      > machineCosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:MachineVariantParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineVariantParameters:NFData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machineCosts fun val &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineVariantParameters:NoThunks:3"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > machinecosts, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > fun) &#8658; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineVariantParameters</a
+		      > machinecosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-65" class="link"
+		    >Source</a
+		    > <a href="#t:MachineVariantParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineVariantParameters:NoThunks:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machinecosts fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machinecosts fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machinecosts fun val) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineVariantParameters:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineVariantParameters</a
+		      > machineCosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-47" class="link"
+		    >Source</a
+		    > <a href="#t:MachineVariantParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineVariantParameters:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			>MachineVariantParameters</a
+			> machineCosts fun val) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;MachineVariantParameters&quot; &quot;PlutusCore.Evaluation.Machine.MachineParameters&quot; &quot;plutus-core-1.52.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MachineVariantParameters&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;machineCosts&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> machineCosts) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;builtinsRuntime&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+			>BuiltinsRuntime</a
+			> fun val))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:MachineParameters" class="def"
+	    >MachineParameters</a
+	    > machineCosts fun val <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters" class="link"
+	    >Source</a
+	    > <a href="#t:MachineParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >At execution time we need a <code
+	      ><a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+		>BuiltinsRuntime</a
+		></code
+	      > object which includes both the cost model for
+builtins and their denotations. This bundles one of those together with the cost model for evaluator
+steps and a <code
+	      ><a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+		>CaserBuiltin</a
+		></code
+	      > specifying how casing on values of built-in types works.
+The <code
+	      >val</code
+	      > type will be <code
+	      >CekValue</code
+	      > when we're using this with the CEK machine.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:MachineParameters" class="def"
+		  >MachineParameters</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:machineCaserBuiltin" class="def"
+			  >machineCaserBuiltin</a
+			  > &#8759; <a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			  >CaserBuiltin</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > val)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:machineVariantParameters" class="def"
+			  >machineVariantParameters</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineVariantParameters</a
+			  > machineCosts fun val</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MachineParameters"
+	    >Instances</h4
+	    ><details id="i:MachineParameters" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineParameters:Generic:1"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineParameters</a
+		      > machineCosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-60" class="link"
+		    >Source</a
+		    > <a href="#t:MachineParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineParameters:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machineCosts fun val) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machineCosts fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machineCosts fun val) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machineCosts fun val) x &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machineCosts fun val <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineParameters:NFData:2"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > machineCosts, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > fun) &#8658; <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineParameters</a
+		      > machineCosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-61" class="link"
+		    >Source</a
+		    > <a href="#t:MachineParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineParameters:NFData:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machineCosts fun val &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineParameters:NoThunks:3"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > machinecosts, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > fun) &#8658; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineParameters</a
+		      > machinecosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:MachineParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineParameters:NoThunks:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machinecosts fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machinecosts fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			  >MachineParameters</a
+			  > machinecosts fun val) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MachineParameters:Rep:4"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+		      >MachineParameters</a
+		      > machineCosts fun val)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#line-60" class="link"
+		    >Source</a
+		    > <a href="#t:MachineParameters" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MachineParameters:Rep:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-MachineParameters.html"
+			>PlutusCore.Evaluation.Machine.MachineParameters</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			>MachineParameters</a
+			> machineCosts fun val) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;MachineParameters&quot; &quot;PlutusCore.Evaluation.Machine.MachineParameters&quot; &quot;plutus-core-1.52.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MachineParameters&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;machineCaserBuiltin&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusCore-Builtin-Case.html#t:CaserBuiltin" title="PlutusCore.Builtin.Case"
+			>CaserBuiltin</a
+			> (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			>UniOf</a
+			> val))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;machineVariantParameters&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+			>MachineVariantParameters</a
+			> machineCosts fun val))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkMachineVariantParameters" class="def"
+	    >mkMachineVariantParameters</a
+	    > &#8759; (<a href="PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > builtincosts, <a href="PlutusCore-Builtin-Meaning.html#t:HasMeaningIn" title="PlutusCore.Builtin.Meaning"
+	    >HasMeaningIn</a
+	    > uni val, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > machineCosts builtincosts &#8594; <a href="PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineVariantParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineVariantParameters</a
+	    > machineCosts fun val <a href="src/PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineVariantParameters" class="link"
+	    >Source</a
+	    > <a href="#v:mkMachineVariantParameters" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This just uses <code
+	      ><a href="PlutusCore-Builtin-Meaning.html#v:toBuiltinsRuntime" title="PlutusCore.Builtin.Meaning"
+		>toBuiltinsRuntime</a
+		></code
+	      > function to convert a BuiltinCostModel to a BuiltinsRuntime. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

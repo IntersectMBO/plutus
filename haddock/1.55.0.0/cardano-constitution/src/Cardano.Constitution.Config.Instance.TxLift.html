@@ -1,0 +1,423 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Cardano.Constitution.Config.Instance.TxLift</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html"
+	><span class="hs-identifier"
+	  >Cardano.Constitution.Config.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.Class.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-comment"
+      >-- `Tx.makeLift` depends on TH which is sensitive to re-ordering; try to NOT reorder the following.</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-comment"
+      >----------</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="local-6989586621679315683"
+      ><span id="local-6989586621679315685"
+	><span class="hs-identifier"
+	  >Tx.makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >PredKey</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span id="local-6989586621679315974"
+      ><span class="hs-keyword"
+	>deriving</span
+	><span
+	> </span
+	><span id="local-6989586621679315544"
+	><span class="annot"
+	  ><a href="#local-6989586621679315544"
+	    ><span class="hs-keyword hs-type"
+	      >newtype</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>instance</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Lift.Class.html#Typeable"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.Typeable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679315544"
+	  ><span class="hs-identifier hs-type"
+	    >predValue</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679315544"
+	  ><span class="hs-identifier hs-type"
+	    >predValue</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-18"
+	></span
+	><span
+	>                          </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-tx/src/PlutusTx.Lift.Class.html#Lift"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.Lift</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >Tx.DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	  ><span class="hs-identifier hs-type"
+	    >Predicates</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679315544"
+	  ><span class="hs-identifier hs-type"
+	    >predValue</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="local-6989586621679315993"
+      ><span class="hs-identifier"
+	>Tx.makeTypeable</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-identifier"
+	>TH.ConT</span
+	><span
+	> </span
+	><span class="hs-special"
+	>''</span
+	><span class="hs-identifier"
+	>Tx.DefaultUni</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-special"
+	>''</span
+	><span class="hs-identifier"
+	>Predicates</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="local-6989586621679316138"
+      ><span id="local-6989586621679316140"
+	><span class="hs-identifier"
+	  >Tx.makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >ParamValue</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="local-6989586621679316548"
+      ><span id="local-6989586621679316550"
+	><span class="hs-identifier"
+	  >Tx.makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >ConstitutionConfig</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

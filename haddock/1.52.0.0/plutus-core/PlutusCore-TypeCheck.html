@@ -1,0 +1,1292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.TypeCheck</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.TypeCheck.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.TypeCheck</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Configuration.</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Kind<em
+		>type inference</em
+		>checking.</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Kind<em
+	    >type inference</em
+	    >checking.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:ToKind"
+	      >ToKind</a
+	      > (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MonadKindCheck"
+	      >MonadKindCheck</a
+	      > err term uni fun ann m = (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > err m, <a href="PlutusCore-TypeCheck.html#t:ToKind" title="PlutusCore.TypeCheck"
+	      >ToKind</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MonadTypeCheck"
+	      >MonadTypeCheck</a
+	      > err term uni fun ann m = (<a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	      >MonadKindCheck</a
+	      > err term uni fun ann m, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+	      >MonadNormalizeType</a
+	      > uni m, <a href="PlutusCore-Builtin-Case.html#t:AnnotateCaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >AnnotateCaseBuiltin</a
+	      > uni, <a href="Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+	      >Ix</a
+	      > fun)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TypeErrorPlc"
+	      >TypeErrorPlc</a
+	      > uni fun ann = <a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	      >TypeError</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) uni fun ann</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Typecheckable"
+	      >Typecheckable</a
+	      > uni fun = (<a href="PlutusCore-TypeCheck.html#t:ToKind" title="PlutusCore.TypeCheck"
+	      >ToKind</a
+	      > uni, <a href="Universe-Core.html#t:HasUniApply" title="Universe.Core"
+	      >HasUniApply</a
+	      > uni, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun, <a href="PlutusCore-Builtin-Case.html#t:AnnotateCaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >AnnotateCaseBuiltin</a
+	      > uni)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:BuiltinTypes"
+	      >BuiltinTypes</a
+	      > uni fun = <a href="#v:BuiltinTypes"
+	      >BuiltinTypes</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unBuiltinTypes"
+		  >unBuiltinTypes</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array.html#t:Array" title="Data.Array"
+		  >Array</a
+		  > fun (<a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+		  >Dupable</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		  >Normalized</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ())))</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:KindCheckConfig"
+	      >KindCheckConfig</a
+	      > = <a href="#v:KindCheckConfig"
+	      >KindCheckConfig</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_kccHandleNameMismatches"
+		  >_kccHandleNameMismatches</a
+		  > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:HandleNameMismatches" title="PlutusCore.TypeCheck.Internal"
+		  >HandleNameMismatches</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TypeCheckConfig"
+	      >TypeCheckConfig</a
+	      > uni fun = <a href="#v:TypeCheckConfig"
+	      >TypeCheckConfig</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_tccKindCheckConfig"
+		  >_tccKindCheckConfig</a
+		  > &#8759; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+		  >KindCheckConfig</a
+		  ></li
+		><li
+		><a href="#v:_tccBuiltinTypes"
+		  >_tccBuiltinTypes</a
+		  > &#8759; <a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+		  >BuiltinTypes</a
+		  > uni fun</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:tccBuiltinTypes"
+	      >tccBuiltinTypes</a
+	      > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:HasTypeCheckConfig" title="PlutusCore.TypeCheck.Internal"
+	      >HasTypeCheckConfig</a
+	      > cfg uni fun &#8658; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > cfg (<a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+	      >BuiltinTypes</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:defKindCheckConfig"
+	      >defKindCheckConfig</a
+	      > &#8759; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+	      >KindCheckConfig</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinMeaningsToTypes"
+	      >builtinMeaningsToTypes</a
+	      > &#8759; (<a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	      >MonadKindCheck</a
+	      > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	      >TypeError</a
+	      > term uni fun ann) term uni fun ann m, <a href="PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; ann &#8594; m (<a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+	      >BuiltinTypes</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:getDefTypeCheckConfig"
+	      >getDefTypeCheckConfig</a
+	      > &#8759; (<a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	      >MonadKindCheck</a
+	      > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	      >TypeError</a
+	      > term uni fun ann) term uni fun ann m, <a href="PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun) &#8658; ann &#8594; m (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	      >TypeCheckConfig</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:inferKind"
+	      >inferKind</a
+	      > &#8759; <a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	      >MonadKindCheck</a
+	      > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	      >TypeError</a
+	      > term uni fun ann) term uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+	      >KindCheckConfig</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:checkKind"
+	      >checkKind</a
+	      > &#8759; <a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	      >MonadKindCheck</a
+	      > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	      >TypeError</a
+	      > term uni fun ann) term uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+	      >KindCheckConfig</a
+	      > &#8594; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > () &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:inferType"
+	      >inferType</a
+	      > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	      >MonadTypeCheckPlc</a
+	      > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	      >TypeCheckConfig</a
+	      > uni fun &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()))</li
+	    ><li class="src short"
+	    ><a href="#v:checkType"
+	      >checkType</a
+	      > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	      >MonadTypeCheckPlc</a
+	      > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	      >TypeCheckConfig</a
+	      > uni fun &#8594; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:inferTypeOfProgram"
+	      >inferTypeOfProgram</a
+	      > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	      >MonadTypeCheckPlc</a
+	      > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	      >TypeCheckConfig</a
+	      > uni fun &#8594; <a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()))</li
+	    ><li class="src short"
+	    ><a href="#v:checkTypeOfProgram"
+	      >checkTypeOfProgram</a
+	      > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	      >MonadTypeCheckPlc</a
+	      > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	      >TypeCheckConfig</a
+	      > uni fun &#8594; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	      >Normalized</a
+	      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()) &#8594; m ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:ToKind" class="def"
+	    >ToKind</a
+	    > (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) <a href="src/PlutusCore.Builtin.KnownKind.html#ToKind" class="link"
+	    >Source</a
+	    > <a href="#t:ToKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For computing the Plutus kind of a built-in type. See <code
+	      ><a href="PlutusCore-Builtin-KnownKind.html#v:kindOfBuiltinType" title="PlutusCore.Builtin.KnownKind"
+		>kindOfBuiltinType</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusCore-Builtin-KnownKind.html#v:toSingKind" title="PlutusCore.Builtin.KnownKind"
+	      >toSingKind</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ToKind"
+	    >Instances</h4
+	    ><details id="i:ToKind" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToKind:ToKind:1"
+		      ></span
+		      > <a href="PlutusCore-TypeCheck.html#t:ToKind" title="PlutusCore.TypeCheck"
+		      >ToKind</a
+		      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      ></span
+		    > <a href="src/PlutusCore.Default.Universe.html#line-195" class="link"
+		    >Source</a
+		    > <a href="#t:ToKind" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToKind:ToKind:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Default-Universe.html"
+			>PlutusCore.Default.Universe</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toSingKind"
+			  >toSingKind</a
+			  > &#8759; &#8704; k (a &#8759; k). <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+			  >Esc</a
+			  > a) &#8594; <a href="PlutusCore-Builtin-KnownKind.html#t:SingKind" title="PlutusCore.Builtin.KnownKind"
+			  >SingKind</a
+			  > k <a href="src/PlutusCore.Builtin.KnownKind.html#toSingKind" class="link"
+			  >Source</a
+			  > <a href="#v:toSingKind" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MonadKindCheck" class="def"
+	    >MonadKindCheck</a
+	    > err term uni fun ann m = (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > err m, <a href="PlutusCore-TypeCheck.html#t:ToKind" title="PlutusCore.TypeCheck"
+	    >ToKind</a
+	    > uni) <a href="src/PlutusCore.TypeCheck.Internal.html#MonadKindCheck" class="link"
+	    >Source</a
+	    > <a href="#t:MonadKindCheck" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The constraints that are required for kind checking.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MonadTypeCheck" class="def"
+	    >MonadTypeCheck</a
+	    > err term uni fun ann m = (<a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	    >MonadKindCheck</a
+	    > err term uni fun ann m, <a href="PlutusCore-Normalize-Internal.html#t:MonadNormalizeType" title="PlutusCore.Normalize.Internal"
+	    >MonadNormalizeType</a
+	    > uni m, <a href="PlutusCore-Builtin-Case.html#t:AnnotateCaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >AnnotateCaseBuiltin</a
+	    > uni, <a href="Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ix.html#t:Ix" title="Data.Ix"
+	    >Ix</a
+	    > fun) <a href="src/PlutusCore.TypeCheck.Internal.html#MonadTypeCheck" class="link"
+	    >Source</a
+	    > <a href="#t:MonadTypeCheck" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The general constraints that are required for type checking a Plutus AST.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TypeErrorPlc" class="def"
+	    >TypeErrorPlc</a
+	    > uni fun ann = <a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	    >TypeError</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) uni fun ann <a href="src/PlutusCore.TypeCheck.Internal.html#TypeErrorPlc" class="link"
+	    >Source</a
+	    > <a href="#t:TypeErrorPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The PLC type error type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Typecheckable" class="def"
+	    >Typecheckable</a
+	    > uni fun = (<a href="PlutusCore-TypeCheck.html#t:ToKind" title="PlutusCore.TypeCheck"
+	    >ToKind</a
+	    > uni, <a href="Universe-Core.html#t:HasUniApply" title="Universe.Core"
+	    >HasUniApply</a
+	    > uni, <a href="PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun, <a href="PlutusCore-Builtin-Case.html#t:AnnotateCaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >AnnotateCaseBuiltin</a
+	    > uni) <a href="src/PlutusCore.TypeCheck.html#Typecheckable" class="link"
+	    >Source</a
+	    > <a href="#t:Typecheckable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The constraint for built-in types/functions are kind/type-checkable.</p
+	    ><p
+	    >We keep this separate from <code
+	      ><a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+		>MonadKindCheck</a
+		></code
+	      >/<code
+	      ><a href="PlutusCore-TypeCheck.html#t:MonadTypeCheck" title="PlutusCore.TypeCheck"
+		>MonadTypeCheck</a
+		></code
+	      >, because those mainly constrain the
+ monad and <code
+	      ><a href="PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		>Typecheckable</a
+		></code
+	      > constraints only the builtins. In particular useful when the monad gets
+ instantiated and builtins don't. Another reason is that <code
+	      ><a href="PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		>Typecheckable</a
+		></code
+	      > is not required during
+ type checking, since it's only needed for computing <code
+	      ><a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+		>BuiltinTypes</a
+		></code
+	      >, which is passed as a regular
+ argument to the worker of the type checker.</p
+	    ></div
+	  ></div
+	><a href="#g:1" id="g:1"
+	><h1
+	  >Configuration.</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:BuiltinTypes" class="def"
+	    >BuiltinTypes</a
+	    > uni fun <a href="src/PlutusCore.TypeCheck.Internal.html#BuiltinTypes" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinTypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Mapping from <code
+	      ><a href="PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+		>Builtin</a
+		></code
+	      >s to their <code
+	      ><a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		>Normalized</a
+		></code
+	      > <code
+	      ><a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		>Kind</a
+		></code
+	      >s.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinTypes" class="def"
+		  >BuiltinTypes</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unBuiltinTypes" class="def"
+			  >unBuiltinTypes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array.html#t:Array" title="Data.Array"
+			  >Array</a
+			  > fun (<a href="PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+			  >Normalized</a
+			  > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > uni ())))</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:KindCheckConfig" class="def"
+	    >KindCheckConfig</a
+	    > <a href="src/PlutusCore.TypeCheck.Internal.html#KindCheckConfig" class="link"
+	    >Source</a
+	    > <a href="#t:KindCheckConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Configuration of the kind checker.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:KindCheckConfig" class="def"
+		  >KindCheckConfig</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_kccHandleNameMismatches" class="def"
+			  >_kccHandleNameMismatches</a
+			  > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:HandleNameMismatches" title="PlutusCore.TypeCheck.Internal"
+			  >HandleNameMismatches</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:KindCheckConfig"
+	    >Instances</h4
+	    ><details id="i:KindCheckConfig" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:KindCheckConfig:HasKindCheckConfig:1"
+		      ></span
+		      > <a href="PlutusCore-TypeCheck-Internal.html#t:HasKindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+		      >HasKindCheckConfig</a
+		      > <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+		      >KindCheckConfig</a
+		      ></span
+		    > <a href="src/PlutusCore.TypeCheck.Internal.html#line-152" class="link"
+		    >Source</a
+		    > <a href="#t:KindCheckConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:KindCheckConfig:HasKindCheckConfig:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-TypeCheck-Internal.html"
+			>PlutusCore.TypeCheck.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:kindCheckConfig"
+			  >kindCheckConfig</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+			  >KindCheckConfig</a
+			  > <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+			  >KindCheckConfig</a
+			  > <a href="src/PlutusCore.TypeCheck.Internal.html#kindCheckConfig" class="link"
+			  >Source</a
+			  > <a href="#v:kindCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:kccHandleNameMismatches"
+			  >kccHandleNameMismatches</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+			  >KindCheckConfig</a
+			  > <a href="PlutusCore-TypeCheck-Internal.html#t:HandleNameMismatches" title="PlutusCore.TypeCheck.Internal"
+			  >HandleNameMismatches</a
+			  > <a href="src/PlutusCore.TypeCheck.Internal.html#kccHandleNameMismatches" class="link"
+			  >Source</a
+			  > <a href="#v:kccHandleNameMismatches" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TypeCheckConfig" class="def"
+	    >TypeCheckConfig</a
+	    > uni fun <a href="src/PlutusCore.TypeCheck.Internal.html#TypeCheckConfig" class="link"
+	    >Source</a
+	    > <a href="#t:TypeCheckConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Configuration of the type checker.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TypeCheckConfig" class="def"
+		  >TypeCheckConfig</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_tccKindCheckConfig" class="def"
+			  >_tccKindCheckConfig</a
+			  > &#8759; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+			  >KindCheckConfig</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_tccBuiltinTypes" class="def"
+			  >_tccBuiltinTypes</a
+			  > &#8759; <a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+			  >BuiltinTypes</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TypeCheckConfig"
+	    >Instances</h4
+	    ><details id="i:TypeCheckConfig" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeCheckConfig:HasKindCheckConfig:1"
+		      ></span
+		      > <a href="PlutusCore-TypeCheck-Internal.html#t:HasKindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+		      >HasKindCheckConfig</a
+		      > (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+		      >TypeCheckConfig</a
+		      > uni fun)</span
+		    > <a href="src/PlutusCore.TypeCheck.Internal.html#line-174" class="link"
+		    >Source</a
+		    > <a href="#t:TypeCheckConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeCheckConfig:HasKindCheckConfig:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-TypeCheck-Internal.html"
+			>PlutusCore.TypeCheck.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:kindCheckConfig"
+			  >kindCheckConfig</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+			  >TypeCheckConfig</a
+			  > uni fun) <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+			  >KindCheckConfig</a
+			  > <a href="src/PlutusCore.TypeCheck.Internal.html#kindCheckConfig" class="link"
+			  >Source</a
+			  > <a href="#v:kindCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:kccHandleNameMismatches"
+			  >kccHandleNameMismatches</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+			  >TypeCheckConfig</a
+			  > uni fun) <a href="PlutusCore-TypeCheck-Internal.html#t:HandleNameMismatches" title="PlutusCore.TypeCheck.Internal"
+			  >HandleNameMismatches</a
+			  > <a href="src/PlutusCore.TypeCheck.Internal.html#kccHandleNameMismatches" class="link"
+			  >Source</a
+			  > <a href="#v:kccHandleNameMismatches" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeCheckConfig:HasTypeCheckConfig:2"
+		      ></span
+		      > <a href="PlutusCore-TypeCheck-Internal.html#t:HasTypeCheckConfig" title="PlutusCore.TypeCheck.Internal"
+		      >HasTypeCheckConfig</a
+		      > (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+		      >TypeCheckConfig</a
+		      > uni fun) uni fun</span
+		    > <a href="src/PlutusCore.TypeCheck.Internal.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:TypeCheckConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeCheckConfig:HasTypeCheckConfig:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-TypeCheck-Internal.html"
+			>PlutusCore.TypeCheck.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeCheckConfig"
+			  >typeCheckConfig</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+			  >TypeCheckConfig</a
+			  > uni fun) (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+			  >TypeCheckConfig</a
+			  > uni fun) <a href="src/PlutusCore.TypeCheck.Internal.html#typeCheckConfig" class="link"
+			  >Source</a
+			  > <a href="#v:typeCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tccKindCheckConfig"
+			  >tccKindCheckConfig</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+			  >TypeCheckConfig</a
+			  > uni fun) <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+			  >KindCheckConfig</a
+			  > <a href="src/PlutusCore.TypeCheck.Internal.html#tccKindCheckConfig" class="link"
+			  >Source</a
+			  > <a href="#v:tccKindCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tccBuiltinTypes"
+			  >tccBuiltinTypes</a
+			  > &#8759; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+			  >TypeCheckConfig</a
+			  > uni fun) (<a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+			  >BuiltinTypes</a
+			  > uni fun) <a href="src/PlutusCore.TypeCheck.Internal.html#tccBuiltinTypes" class="link"
+			  >Source</a
+			  > <a href="#v:tccBuiltinTypes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tccBuiltinTypes" class="def"
+	    >tccBuiltinTypes</a
+	    > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:HasTypeCheckConfig" title="PlutusCore.TypeCheck.Internal"
+	    >HasTypeCheckConfig</a
+	    > cfg uni fun &#8658; <a href="PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > cfg (<a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+	    >BuiltinTypes</a
+	    > uni fun) <a href="src/PlutusCore.TypeCheck.Internal.html#tccBuiltinTypes" class="link"
+	    >Source</a
+	    > <a href="#v:tccBuiltinTypes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defKindCheckConfig" class="def"
+	    >defKindCheckConfig</a
+	    > &#8759; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+	    >KindCheckConfig</a
+	    > <a href="src/PlutusCore.TypeCheck.html#defKindCheckConfig" class="link"
+	    >Source</a
+	    > <a href="#v:defKindCheckConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The default kind checking config.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinMeaningsToTypes" class="def"
+	    >builtinMeaningsToTypes</a
+	    > &#8759; (<a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	    >MonadKindCheck</a
+	    > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	    >TypeError</a
+	    > term uni fun ann) term uni fun ann m, <a href="PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun) &#8658; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; ann &#8594; m (<a href="PlutusCore-TypeCheck.html#t:BuiltinTypes" title="PlutusCore.TypeCheck"
+	    >BuiltinTypes</a
+	    > uni fun) <a href="src/PlutusCore.TypeCheck.html#builtinMeaningsToTypes" class="link"
+	    >Source</a
+	    > <a href="#v:builtinMeaningsToTypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Extract the <code
+	      ><a href="PlutusCore-Builtin-TypeScheme.html#t:TypeScheme" title="PlutusCore.Builtin.TypeScheme"
+		>TypeScheme</a
+		></code
+	      > from a <code
+	      ><a href="PlutusCore-Builtin-Meaning.html#t:BuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+		>BuiltinMeaning</a
+		></code
+	      > and convert it to the
+ corresponding <code
+	      ><a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		>Kind</a
+		></code
+	      > for each built-in function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getDefTypeCheckConfig" class="def"
+	    >getDefTypeCheckConfig</a
+	    > &#8759; (<a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	    >MonadKindCheck</a
+	    > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	    >TypeError</a
+	    > term uni fun ann) term uni fun ann m, <a href="PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun) &#8658; ann &#8594; m (<a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	    >TypeCheckConfig</a
+	    > uni fun) <a href="src/PlutusCore.TypeCheck.html#getDefTypeCheckConfig" class="link"
+	    >Source</a
+	    > <a href="#v:getDefTypeCheckConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the default type checking config.</p
+	    ></div
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Kind<em
+	    >type inference</em
+	    >checking.</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferKind" class="def"
+	    >inferKind</a
+	    > &#8759; <a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	    >MonadKindCheck</a
+	    > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	    >TypeError</a
+	    > term uni fun ann) term uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+	    >KindCheckConfig</a
+	    > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ()) <a href="src/PlutusCore.TypeCheck.html#inferKind" class="link"
+	    >Source</a
+	    > <a href="#v:inferKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Infer the kind of a type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkKind" class="def"
+	    >checkKind</a
+	    > &#8759; <a href="PlutusCore-TypeCheck.html#t:MonadKindCheck" title="PlutusCore.TypeCheck"
+	    >MonadKindCheck</a
+	    > (<a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+	    >TypeError</a
+	    > term uni fun ann) term uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:KindCheckConfig" title="PlutusCore.TypeCheck"
+	    >KindCheckConfig</a
+	    > &#8594; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ann &#8594; <a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > () &#8594; m () <a href="src/PlutusCore.TypeCheck.html#checkKind" class="link"
+	    >Source</a
+	    > <a href="#v:checkKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check a type against a kind.
+ Infers the kind of the type and checks that it's equal to the given kind
+ throwing a <code
+	      ><a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+		>TypeError</a
+		></code
+	      > (annotated with the value of the <code
+	      >ann</code
+	      > argument) otherwise.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferType" class="def"
+	    >inferType</a
+	    > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	    >MonadTypeCheckPlc</a
+	    > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	    >TypeCheckConfig</a
+	    > uni fun &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	    >Normalized</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ())) <a href="src/PlutusCore.TypeCheck.html#inferType" class="link"
+	    >Source</a
+	    > <a href="#v:inferType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Infer the type of a term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkType" class="def"
+	    >checkType</a
+	    > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	    >MonadTypeCheckPlc</a
+	    > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	    >TypeCheckConfig</a
+	    > uni fun &#8594; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	    >Normalized</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ()) &#8594; m () <a href="src/PlutusCore.TypeCheck.html#checkType" class="link"
+	    >Source</a
+	    > <a href="#v:checkType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check a term against a type.
+ Infers the type of the term and checks that it's equal to the given type
+ throwing a <code
+	      ><a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+		>TypeError</a
+		></code
+	      > (annotated with the value of the <code
+	      >ann</code
+	      > argument) otherwise.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferTypeOfProgram" class="def"
+	    >inferTypeOfProgram</a
+	    > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	    >MonadTypeCheckPlc</a
+	    > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	    >TypeCheckConfig</a
+	    > uni fun &#8594; <a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	    >Normalized</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ())) <a href="src/PlutusCore.TypeCheck.html#inferTypeOfProgram" class="link"
+	    >Source</a
+	    > <a href="#v:inferTypeOfProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Infer the type of a program.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkTypeOfProgram" class="def"
+	    >checkTypeOfProgram</a
+	    > &#8759; <a href="PlutusCore-TypeCheck-Internal.html#t:MonadTypeCheckPlc" title="PlutusCore.TypeCheck.Internal"
+	    >MonadTypeCheckPlc</a
+	    > uni fun ann m &#8658; <a href="PlutusCore-TypeCheck.html#t:TypeCheckConfig" title="PlutusCore.TypeCheck"
+	    >TypeCheckConfig</a
+	    > uni fun &#8594; ann &#8594; <a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ann &#8594; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+	    >Normalized</a
+	    > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni ()) &#8594; m () <a href="src/PlutusCore.TypeCheck.html#checkTypeOfProgram" class="link"
+	    >Source</a
+	    > <a href="#v:checkTypeOfProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check a program against a type.
+ Infers the type of the program and checks that it's equal to the given type
+ throwing a <code
+	      ><a href="PlutusCore-Error.html#t:TypeError" title="PlutusCore.Error"
+		>TypeError</a
+		></code
+	      > (annotated with the value of the <code
+	      >ann</code
+	      > argument) otherwise.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

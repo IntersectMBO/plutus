@@ -1,0 +1,859 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Hedgehog.Laws.Ord</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.html"
+	><span class="hs-identifier"
+	  >Hedgehog</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Hedgehog.Laws.Common.html"
+	><span class="hs-identifier"
+	  >Hedgehog.Laws.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hedgehog-1.4.0.2/docs/src/Test.Tasty.Hedgehog.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.Hedgehog</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-hedgehog-1.4.0.2/docs/src/Test.Tasty.Hedgehog.html#testProperty"
+	><span class="hs-identifier"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >-- There is no typeclass for this, sadly</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span id="local-6989586621679224312"
+      ><span class="annot"
+	><a href="Hedgehog.Laws.Ord.html#partialOrderLaws"
+	  ><span class="hs-identifier hs-type"
+	    >partialOrderLaws</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679224312"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	  ><span class="hs-identifier hs-type"
+	    >Eq</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679224312"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	  ><span class="hs-identifier hs-type"
+	    >Hedgehog.Gen</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679224312"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679224312"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679224312"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	  ><span class="hs-identifier hs-type"
+	    >TestTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span id="partialOrderLaws"
+      ><span class="annot"
+	><span class="annottext"
+	  >partialOrderLaws :: forall a. (Show a, Eq a) =&gt; Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; TestTree
+</span
+	  ><a href="Hedgehog.Laws.Ord.html#partialOrderLaws"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >partialOrderLaws</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679224333"
+      ><span class="annot"
+	><span class="annottext"
+	  >Gen a
+</span
+	  ><a href="#local-6989586621679224333"
+	  ><span class="hs-identifier hs-var"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679224334"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679224334"
+	  ><span class="hs-identifier hs-var"
+	    >op</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;partial ordering laws&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hedgehog-1.4.0.2/docs/src/Test.Tasty.Hedgehog.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;reflexive&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+forall a. Show a =&gt; Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+</span
+	><a href="Hedgehog.Laws.Common.html#prop_reflexive"
+	><span class="hs-identifier hs-var"
+	  >prop_reflexive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a
+</span
+	><a href="#local-6989586621679224333"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+</span
+	><a href="#local-6989586621679224334"
+	><span class="hs-identifier hs-var"
+	  >op</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hedgehog-1.4.0.2/docs/src/Test.Tasty.Hedgehog.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;transitive&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+forall a. (Show a, Eq a) =&gt; Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+</span
+	><a href="Hedgehog.Laws.Common.html#prop_transitive"
+	><span class="hs-identifier hs-var"
+	  >prop_transitive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a
+</span
+	><a href="#local-6989586621679224333"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+</span
+	><a href="#local-6989586621679224334"
+	><span class="hs-identifier hs-var"
+	  >op</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hedgehog-1.4.0.2/docs/src/Test.Tasty.Hedgehog.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;antisymmetric&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+forall a. (Show a, Eq a) =&gt; Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+</span
+	><a href="Hedgehog.Laws.Common.html#prop_antisymmetric"
+	><span class="hs-identifier hs-var"
+	  >prop_antisymmetric</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a
+</span
+	><a href="#local-6989586621679224333"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+</span
+	><a href="#local-6989586621679224334"
+	><span class="hs-identifier hs-var"
+	  >op</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="local-6989586621679224320"
+      ><span class="annot"
+	><a href="Hedgehog.Laws.Ord.html#ordLaws"
+	  ><span class="hs-identifier hs-type"
+	    >ordLaws</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679224320"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+	  ><span class="hs-identifier hs-type"
+	    >Ord</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679224320"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/src/Hedgehog.Internal.Gen.html#Gen"
+	  ><span class="hs-identifier hs-type"
+	    >Hedgehog.Gen</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679224320"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	  ><span class="hs-identifier hs-type"
+	    >TestTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="ordLaws"
+      ><span class="annot"
+	><span class="annottext"
+	  >ordLaws :: forall a. (Show a, Ord a) =&gt; Gen a -&gt; TestTree
+</span
+	  ><a href="Hedgehog.Laws.Ord.html#ordLaws"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ordLaws</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679224349"
+      ><span class="annot"
+	><span class="annottext"
+	  >Gen a
+</span
+	  ><a href="#local-6989586621679224349"
+	  ><span class="hs-identifier hs-var"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;total ordering laws&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; TestTree
+forall a. (Show a, Eq a) =&gt; Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; TestTree
+</span
+	><a href="Hedgehog.Laws.Ord.html#partialOrderLaws"
+	><span class="hs-identifier hs-var"
+	  >partialOrderLaws</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a
+</span
+	><a href="#local-6989586621679224349"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >(&lt;=)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-hedgehog-1.4.0.2/docs/src/Test.Tasty.Hedgehog.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;total&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+forall a. (Show a, Eq a) =&gt; Gen a -&gt; (a -&gt; a -&gt; Bool) -&gt; Property
+</span
+	><a href="Hedgehog.Laws.Common.html#prop_total"
+	><span class="hs-identifier hs-var"
+	  >prop_total</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen a
+</span
+	><a href="#local-6989586621679224349"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >(&lt;=)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,3530 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TupleSections #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Traversable</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#Traversable"
+	><span class="hs-identifier"
+	  >Traversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#sequenceA"
+	><span class="hs-identifier"
+	  >sequenceA</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#mapM"
+	><span class="hs-identifier"
+	  >mapM</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#sequence"
+	><span class="hs-identifier"
+	  >sequence</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#for"
+	><span class="hs-identifier"
+	  >for</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#fmapDefault"
+	><span class="hs-identifier"
+	  >fmapDefault</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#foldMapDefault"
+	><span class="hs-identifier"
+	  >foldMapDefault</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Applicative.html"
+	><span class="hs-identifier"
+	  >Control.Applicative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Const.html#Const"
+	><span class="hs-identifier"
+	  >Const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Coerce.html"
+	><span class="hs-identifier"
+	  >Data.Coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier"
+	  >coerce</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html"
+	><span class="hs-identifier"
+	  >Data.Functor.Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Applicative.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Applicative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Applicative.html#Applicative"
+	><span class="hs-identifier"
+	  >Applicative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Applicative.html#liftA2"
+	><span class="hs-identifier"
+	  >liftA2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Base.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Base</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Either.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Foldable.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Foldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Foldable.html#Foldable"
+	><span class="hs-identifier"
+	  >Foldable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Functor.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Functor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Functor.html#Functor"
+	><span class="hs-identifier"
+	  >Functor</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Functor.html#%3C%24%3E"
+	><span class="hs-operator"
+	  >(&lt;$&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Maybe.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Monoid.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Monoid</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Monoid.html#Monoid"
+	><span class="hs-identifier"
+	  >Monoid</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Traversable.Traversable'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Functor.html#Functor"
+	><span class="hs-identifier hs-type"
+	  >Functor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044319"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Foldable.html#Foldable"
+	><span class="hs-identifier hs-type"
+	  >Foldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044319"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span id="Traversable"
+      ><span class="annot"
+	><a href="PlutusTx.Traversable.html#Traversable"
+	  ><span class="hs-identifier hs-var"
+	    >Traversable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044319"
+      ><span class="annot"
+	><a href="#local-6989586621680044319"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- | Plutus Tx version of 'Data.Traversable.traverse'.</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span id="traverse"
+      ><span class="annot"
+	><a href="PlutusTx.Traversable.html#traverse"
+	  ><span class="hs-identifier hs-type"
+	    >traverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621680044323"
+      ><span id="local-6989586621680044325"
+	><span id="local-6989586621680044326"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Applicative.html#Applicative"
+	      ><span class="hs-identifier hs-type"
+		>Applicative</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044323"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044325"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044323"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044326"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044319"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044325"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044323"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044319"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044326"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- All the other methods are deliberately omitted,</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- to make this a one-method class which has a simpler representation</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#Traversable"
+	><span class="hs-identifier hs-type"
+	  >Traversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-pragma hs-type"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680044437"
+      ><span class="annot"
+	><span class="annottext"
+	  >traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	  ><a href="PlutusTx.Traversable.html#traverse"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >traverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044438"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; f b
+</span
+	  ><a href="#local-6989586621680044438"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; f [b]
+</span
+	><a href="#local-6989586621680044439"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621680044439"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: [a] -&gt; f [b]
+</span
+	  ><a href="#local-6989586621680044439"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[b] -&gt; f [b]
+forall a. a -&gt; f a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="PlutusTx.Applicative.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044439"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680044444"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680044444"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044445"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621680044445"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(b -&gt; [b] -&gt; [b]) -&gt; f b -&gt; f [b] -&gt; f [b]
+forall (f :: * -&gt; *) a b c.
+Applicative f =&gt;
+(a -&gt; b -&gt; c) -&gt; f a -&gt; f b -&gt; f c
+</span
+	><a href="PlutusTx.Applicative.html#liftA2"
+	><span class="hs-identifier hs-var"
+	  >liftA2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><a href="#local-6989586621680044438"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680044444"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a] -&gt; f [b]
+</span
+	><a href="#local-6989586621680044439"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621680044445"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#Traversable"
+	><span class="hs-identifier hs-type"
+	  >Traversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-pragma hs-type"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680044458"
+      ><span class="annot"
+	><span class="annottext"
+	  >traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Maybe a -&gt; f (Maybe b)
+</span
+	  ><a href="PlutusTx.Traversable.html#traverse"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >traverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe b -&gt; f (Maybe b)
+forall a. a -&gt; f a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="PlutusTx.Applicative.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe b
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044459"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; f b
+</span
+	  ><a href="#local-6989586621680044459"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044460"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680044460"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Maybe b
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(b -&gt; Maybe b) -&gt; f b -&gt; f (Maybe b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="PlutusTx.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><a href="#local-6989586621680044459"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680044460"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680044344"
+      ><span class="annot"
+	><a href="PlutusTx.Traversable.html#Traversable"
+	  ><span class="hs-identifier hs-type"
+	    >Traversable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	  ><span class="hs-identifier hs-type"
+	    >Either</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680044344"
+	  ><span class="hs-identifier hs-type"
+	    >c</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-pragma hs-type"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680044473"
+      ><span class="annot"
+	><span class="annottext"
+	  >traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Either c a -&gt; f (Either c b)
+</span
+	  ><a href="PlutusTx.Traversable.html#traverse"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >traverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044474"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621680044474"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either c b -&gt; f (Either c b)
+forall a. a -&gt; f a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="PlutusTx.Applicative.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>c -&gt; Either c b
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621680044474"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044475"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; f b
+</span
+	  ><a href="#local-6989586621680044475"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044476"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680044476"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Either c b
+forall a b. b -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-var"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(b -&gt; Either c b) -&gt; f b -&gt; f (Either c b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="PlutusTx.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><a href="#local-6989586621680044475"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680044476"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680044351"
+      ><span class="annot"
+	><a href="PlutusTx.Traversable.html#Traversable"
+	  ><span class="hs-identifier hs-type"
+	    >Traversable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>,</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680044351"
+	  ><span class="hs-identifier hs-type"
+	    >c</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-pragma hs-type"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680044488"
+      ><span class="annot"
+	><span class="annottext"
+	  >traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; (c, a) -&gt; f (c, b)
+</span
+	  ><a href="PlutusTx.Traversable.html#traverse"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >traverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044489"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; f b
+</span
+	  ><a href="#local-6989586621680044489"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680044490"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621680044490"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680044491"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680044491"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621680044490"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(b -&gt; (c, b)) -&gt; f b -&gt; f (c, b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="PlutusTx.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><a href="#local-6989586621680044489"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680044491"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#Traversable"
+	><span class="hs-identifier hs-type"
+	  >Traversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-type"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-pragma hs-type"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680044503"
+      ><span class="annot"
+	><span class="annottext"
+	  >traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Identity a -&gt; f (Identity b)
+</span
+	  ><a href="PlutusTx.Traversable.html#traverse"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >traverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044504"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; f b
+</span
+	  ><a href="#local-6989586621680044504"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-type"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044506"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680044506"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Identity b
+forall a. a -&gt; Identity a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-var"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(b -&gt; Identity b) -&gt; f b -&gt; f (Identity b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="PlutusTx.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><a href="#local-6989586621680044504"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680044506"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680044362"
+      ><span class="annot"
+	><a href="PlutusTx.Traversable.html#Traversable"
+	  ><span class="hs-identifier hs-type"
+	    >Traversable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Const.html#Const"
+	  ><span class="hs-identifier hs-type"
+	    >Const</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680044362"
+	  ><span class="hs-identifier hs-type"
+	    >c</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-pragma hs-type"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680044517"
+      ><span class="annot"
+	><span class="annottext"
+	  >traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; Const c a -&gt; f (Const c b)
+</span
+	  ><a href="PlutusTx.Traversable.html#traverse"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >traverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; f b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Const.html#Const"
+	><span class="hs-identifier hs-type"
+	  >Const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044519"
+      ><span class="annot"
+	><span class="annottext"
+	  >c
+</span
+	  ><a href="#local-6989586621680044519"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Const c b -&gt; f (Const c b)
+forall a. a -&gt; f a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="PlutusTx.Applicative.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>c -&gt; Const c b
+forall {k} a (b :: k). a -&gt; Const a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Const.html#Const"
+	><span class="hs-identifier hs-var"
+	  >Const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>c
+</span
+	><a href="#local-6989586621680044519"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Traversable.sequenceA'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621680044369"
+      ><span id="local-6989586621680044370"
+	><span id="local-6989586621680044371"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Traversable.html#sequenceA"
+	      ><span class="hs-identifier hs-type"
+		>sequenceA</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Traversable.html#Traversable"
+	      ><span class="hs-identifier hs-type"
+		>Traversable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044369"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Applicative.html#Applicative"
+	      ><span class="hs-identifier hs-type"
+		>Applicative</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044370"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044369"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044370"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044371"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044370"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044369"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044371"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="sequenceA"
+      ><span class="annot"
+	><span class="annottext"
+	  >sequenceA :: forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Traversable t, Applicative f) =&gt;
+t (f a) -&gt; f (t a)
+</span
+	  ><a href="PlutusTx.Traversable.html#sequenceA"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sequenceA</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(f a -&gt; f a) -&gt; t (f a) -&gt; f (t a)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span
+	><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>f a -&gt; f a
+forall a. a -&gt; a
+</span
+	><a href="PlutusTx.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#sequenceA"
+	><span class="hs-pragma hs-type"
+	  >sequenceA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Traversable.sequence'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span id="local-6989586621680044525"
+      ><span id="local-6989586621680044526"
+	><span id="local-6989586621680044527"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Traversable.html#sequence"
+	      ><span class="hs-identifier hs-type"
+		>sequence</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Traversable.html#Traversable"
+	      ><span class="hs-identifier hs-type"
+		>Traversable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044525"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Applicative.html#Applicative"
+	      ><span class="hs-identifier hs-type"
+		>Applicative</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044526"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044525"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044526"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044527"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044526"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044525"
+	      ><span class="hs-identifier hs-type"
+		>t</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680044527"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="sequence"
+      ><span class="annot"
+	><span class="annottext"
+	  >sequence :: forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Traversable t, Applicative f) =&gt;
+t (f a) -&gt; f (t a)
+</span
+	  ><a href="PlutusTx.Traversable.html#sequence"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sequence</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>t (f a) -&gt; f (t a)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a.
+(Traversable t, Applicative f) =&gt;
+t (f a) -&gt; f (t a)
+</span
+	><a href="PlutusTx.Traversable.html#sequenceA"
+	><span class="hs-identifier hs-var"
+	  >sequenceA</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#sequence"
+	><span class="hs-pragma hs-type"
+	  >sequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Traversable.mapM'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="local-6989586621680044379"
+      ><span id="local-6989586621680044380"
+	><span id="local-6989586621680044381"
+	  ><span id="local-6989586621680044382"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Traversable.html#mapM"
+		><span class="hs-identifier hs-type"
+		  >mapM</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Traversable.html#Traversable"
+		><span class="hs-identifier hs-type"
+		  >Traversable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044379"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Applicative.html#Applicative"
+		><span class="hs-identifier hs-type"
+		  >Applicative</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044380"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044381"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044380"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044382"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044379"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044381"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044380"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044379"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044382"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="mapM"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapM :: forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span
+	  ><a href="PlutusTx.Traversable.html#mapM"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapM</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span
+	><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#mapM"
+	><span class="hs-pragma hs-type"
+	  >mapM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Traversable.for'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="local-6989586621680044387"
+      ><span id="local-6989586621680044388"
+	><span id="local-6989586621680044389"
+	  ><span id="local-6989586621680044390"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Traversable.html#for"
+		><span class="hs-identifier hs-type"
+		  >for</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Traversable.html#Traversable"
+		><span class="hs-identifier hs-type"
+		  >Traversable</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044387"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Applicative.html#Applicative"
+		><span class="hs-identifier hs-type"
+		  >Applicative</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044388"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044387"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044389"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044389"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044388"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044390"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044388"
+		><span class="hs-identifier hs-type"
+		  >f</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044387"
+		><span class="hs-identifier hs-type"
+		  >t</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621680044390"
+		><span class="hs-identifier hs-type"
+		  >b</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span id="for"
+      ><span class="annot"
+	><span class="annottext"
+	  >for :: forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f (t b)
+</span
+	  ><a href="PlutusTx.Traversable.html#for"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >for</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((a -&gt; f b) -&gt; t a -&gt; f (t b)) -&gt; t a -&gt; (a -&gt; f b) -&gt; f (t b)
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span
+	><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#for"
+	><span class="hs-pragma hs-type"
+	  >for</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Traversable.fmapDefault'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#fmapDefault"
+	><span class="hs-identifier hs-type"
+	  >fmapDefault</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680044398"
+      ><span class="annot"
+	><a href="#local-6989586621680044398"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044399"
+      ><span class="annot"
+	><a href="#local-6989586621680044399"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044400"
+      ><span class="annot"
+	><a href="#local-6989586621680044400"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#Traversable"
+	><span class="hs-identifier hs-type"
+	  >Traversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044398"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680044399"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044400"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044398"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044399"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044398"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044400"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span id="fmapDefault"
+      ><span class="annot"
+	><span class="annottext"
+	  >fmapDefault :: forall (t :: * -&gt; *) a b. Traversable t =&gt; (a -&gt; b) -&gt; t a -&gt; t b
+</span
+	  ><a href="PlutusTx.Traversable.html#fmapDefault"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fmapDefault</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((a -&gt; Identity b) -&gt; t a -&gt; Identity (t b))
+-&gt; (a -&gt; b) -&gt; t a -&gt; t b
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; Identity b) -&gt; t a -&gt; Identity (t b)
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span
+	><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680044399"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-type"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044400"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044398"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044399"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-type"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680044398"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044400"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#fmapDefault"
+	><span class="hs-pragma hs-type"
+	  >fmapDefault</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Plutus Tx version of 'Data.Traversable.foldMapDefault'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#foldMapDefault"
+	><span class="hs-identifier hs-type"
+	  >foldMapDefault</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680044406"
+      ><span class="annot"
+	><a href="#local-6989586621680044406"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044407"
+      ><span class="annot"
+	><a href="#local-6989586621680044407"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680044409"
+      ><span class="annot"
+	><a href="#local-6989586621680044409"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#Traversable"
+	><span class="hs-identifier hs-type"
+	  >Traversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044406"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Monoid.html#Monoid"
+	><span class="hs-identifier hs-type"
+	  >Monoid</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044407"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680044409"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044407"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044406"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044409"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044407"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="foldMapDefault"
+      ><span class="annot"
+	><span class="annottext"
+	  >foldMapDefault :: forall (t :: * -&gt; *) m a.
+(Traversable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span
+	  ><a href="PlutusTx.Traversable.html#foldMapDefault"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >foldMapDefault</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((a -&gt; Const m ()) -&gt; t a -&gt; Const m (t ()))
+-&gt; (a -&gt; m) -&gt; t a -&gt; m
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; Const m ()) -&gt; t a -&gt; Const m (t ())
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+</span
+	><a href="PlutusTx.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680044409"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Const.html#Const"
+	><span class="hs-identifier hs-type"
+	  >Const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044407"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044406"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044409"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Const.html#Const"
+	><span class="hs-identifier hs-type"
+	  >Const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680044407"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680044406"
+	><span class="hs-identifier hs-type"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Traversable.html#foldMapDefault"
+	><span class="hs-pragma hs-type"
+	  >foldMapDefault</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

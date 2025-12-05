@@ -1,0 +1,676 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Preamble</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Options</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>defaultOptions</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html"
+	><span class="hs-identifier"
+	  >Data.Aeson.Extra</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html#stripPrefix"
+	><span class="hs-identifier"
+	  >stripPrefix</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson.TH</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>deriveToJSON</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.PlutusVersion.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.PlutusVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusVersion"
+	><span class="hs-identifier"
+	  >PlutusVersion</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Meta-information about the contract</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Preamble"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Preamble.html#Preamble"
+	  ><span class="hs-identifier hs-var"
+	    >Preamble</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkPreamble"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Preamble.html#MkPreamble"
+	  ><span class="hs-identifier hs-var"
+	    >MkPreamble</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="preambleTitle"
+      ><span class="annot"
+	><span class="annottext"
+	  >Preamble -&gt; Text
+</span
+	  ><a href="PlutusTx.Blueprint.Preamble.html#preambleTitle"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preambleTitle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A short and descriptive title of the contract application</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="preambleDescription"
+      ><span class="annot"
+	><span class="annottext"
+	  >Preamble -&gt; Maybe Text
+</span
+	  ><a href="PlutusTx.Blueprint.Preamble.html#preambleDescription"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preambleDescription</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A more elaborate description</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="preambleVersion"
+      ><span class="annot"
+	><span class="annottext"
+	  >Preamble -&gt; Text
+</span
+	  ><a href="PlutusTx.Blueprint.Preamble.html#preambleVersion"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preambleVersion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A version number for the project.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="preamblePlutusVersion"
+      ><span class="annot"
+	><span class="annottext"
+	  >Preamble -&gt; PlutusVersion
+</span
+	  ><a href="PlutusTx.Blueprint.Preamble.html#preamblePlutusVersion"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preamblePlutusVersion</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusVersion"
+	><span class="hs-identifier hs-type"
+	  >PlutusVersion</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The Plutus version assumed for all validators</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="preambleLicense"
+      ><span class="annot"
+	><span class="annottext"
+	  >Preamble -&gt; Maybe Text
+</span
+	  ><a href="PlutusTx.Blueprint.Preamble.html#preambleLicense"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preambleLicense</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- ^ A license under which the specification
+  and contract code is distributed
+  -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680023175"
+      ><span id="local-6989586621680023187"
+	><span id="local-6989586621680023191"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Preamble -&gt; ShowS
+[Preamble] -&gt; ShowS
+Preamble -&gt; String
+(Int -&gt; Preamble -&gt; ShowS)
+-&gt; (Preamble -&gt; String) -&gt; ([Preamble] -&gt; ShowS) -&gt; Show Preamble
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Preamble -&gt; ShowS
+showsPrec :: Int -&gt; Preamble -&gt; ShowS
+$cshow :: Preamble -&gt; String
+show :: Preamble -&gt; String
+$cshowList :: [Preamble] -&gt; ShowS
+showList :: [Preamble] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680023195"
+      ><span id="local-6989586621680023197"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. Preamble -&gt; Rep Preamble x)
+-&gt; (forall x. Rep Preamble x -&gt; Preamble) -&gt; Generic Preamble
+forall x. Rep Preamble x -&gt; Preamble
+forall x. Preamble -&gt; Rep Preamble x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. Preamble -&gt; Rep Preamble x
+from :: forall x. Preamble -&gt; Rep Preamble x
+$cto :: forall x. Rep Preamble x -&gt; Preamble
+to :: forall x. Rep Preamble x -&gt; Preamble
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-special"
+      >$</span
+      ><span id="local-6989586621680023201"
+      ><span id="local-6989586621680023231"
+	><span id="local-6989586621680023252"
+	  ><span id="local-6989586621680023256"
+	    ><span id="local-6989586621680023259"
+	      ><span class="hs-special"
+		>(</span
+		><span class="hs-identifier"
+		>deriveToJSON</span
+		><span
+		> </span
+		><span class="hs-identifier"
+		>defaultOptions</span
+		><span class="hs-special"
+		>{</span
+		><span class="hs-identifier"
+		>fieldLabelModifier</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=</span
+		><span
+		> </span
+		><span class="hs-identifier"
+		>stripPrefix</span
+		><span
+		> </span
+		><span class="hs-string"
+		>&quot;preamble&quot;</span
+		><span class="hs-special"
+		>}</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-identifier"
+		>Preamble</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

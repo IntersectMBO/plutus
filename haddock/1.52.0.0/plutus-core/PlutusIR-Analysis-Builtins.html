@@ -1,0 +1,729 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Analysis.Builtins</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Analysis.Builtins.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Analysis.Builtins</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinMatcherLike"
+	      >BuiltinMatcherLike</a
+	      > uni fun = <a href="#v:BuiltinMatcherLike"
+	      >BuiltinMatcherLike</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_bmlSplitMatchContext"
+		  >_bmlSplitMatchContext</a
+		  > &#8759; &#8704; tyname name a. Prism' (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun a) (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+		  >SplitMatchContext</a
+		  > tyname name uni fun a)</li
+		><li
+		><a href="#v:_bmlBranchArities"
+		  >_bmlBranchArities</a
+		  > &#8759; [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+		  >Arity</a
+		  >]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:bmlSplitMatchContext"
+	      >bmlSplitMatchContext</a
+	      > &#8759; &#8704; uni fun p tyname name a f. (<a href="https://hackage.haskell.org/package/profunctors-5.6.3/docs/Data-Profunctor-Choice.html#t:Choice" title="Data.Profunctor.Choice"
+	      >Choice</a
+	      > p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	      >Applicative</a
+	      > f) &#8658; Getter (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinMatcherLike</a
+	      > uni fun) (p (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	      >SplitMatchContext</a
+	      > tyname name uni fun a) (f (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	      >SplitMatchContext</a
+	      > tyname name uni fun a)) &#8594; p (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a) (f (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a)))</li
+	    ><li class="src short"
+	    ><a href="#v:bmlBranchArities"
+	      >bmlBranchArities</a
+	      > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinMatcherLike</a
+	      > uni fun) [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:defaultUniMatcherLike"
+	      >defaultUniMatcherLike</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinMatcherLike</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      >)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinsInfo"
+	      >BuiltinsInfo</a
+	      > (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) fun = <a href="#v:BuiltinsInfo"
+	      >BuiltinsInfo</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_biSemanticsVariant"
+		  >_biSemanticsVariant</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+		  >BuiltinSemanticsVariant</a
+		  > fun</li
+		><li
+		><a href="#v:_biMatcherLike"
+		  >_biMatcherLike</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+		  >Map</a
+		  > fun (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+		  >BuiltinMatcherLike</a
+		  > uni fun)</li
+		><li
+		><a href="#v:_biUnserializableConstants"
+		  >_biUnserializableConstants</a
+		  > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:biSemanticsVariant"
+	      >biSemanticsVariant</a
+	      > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun) (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun)</li
+	    ><li class="src short"
+	    ><a href="#v:biMatcherLike"
+	      >biMatcherLike</a
+	      > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun) (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > fun (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinMatcherLike</a
+	      > uni fun))</li
+	    ><li class="src short"
+	    ><a href="#v:biUnserializableConstants"
+	      >biUnserializableConstants</a
+	      > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun) (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:builtinArityInfo"
+	      >builtinArityInfo</a
+	      > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; fun &#8594; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:constantIsSerializable"
+	      >constantIsSerializable</a
+	      > &#8759; &#8704; uni fun. <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:termIsSerializable"
+	      >termIsSerializable</a
+	      > &#8759; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:asBuiltinDatatypeMatch"
+	      >asBuiltinDatatypeMatch</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (APrism' (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	      >SplitMatchContext</a
+	      > tyname name uni fun a))</li
+	    ><li class="src short"
+	    ><a href="#v:builtinDatatypeMatchBranchArities"
+	      >builtinDatatypeMatchBranchArities</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:defaultUniUnserializableConstants"
+	      >defaultUniUnserializableConstants</a
+	      > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinMatcherLike" class="def"
+	    >BuiltinMatcherLike</a
+	    > uni fun <a href="src/PlutusIR.Analysis.Builtins.html#BuiltinMatcherLike" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinMatcherLike" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The information we need to work with a builtin that is like a datatype matcher.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinMatcherLike" class="def"
+		  >BuiltinMatcherLike</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_bmlSplitMatchContext" class="def"
+			  >_bmlSplitMatchContext</a
+			  > &#8759; &#8704; tyname name a. Prism' (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a) (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+			  >SplitMatchContext</a
+			  > tyname name uni fun a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_bmlBranchArities" class="def"
+			  >_bmlBranchArities</a
+			  > &#8759; [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+			  >Arity</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bmlSplitMatchContext" class="def"
+	    >bmlSplitMatchContext</a
+	    > &#8759; &#8704; uni fun p tyname name a f. (<a href="https://hackage.haskell.org/package/profunctors-5.6.3/docs/Data-Profunctor-Choice.html#t:Choice" title="Data.Profunctor.Choice"
+	    >Choice</a
+	    > p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+	    >Applicative</a
+	    > f) &#8658; Getter (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinMatcherLike</a
+	    > uni fun) (p (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	    >SplitMatchContext</a
+	    > tyname name uni fun a) (f (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	    >SplitMatchContext</a
+	    > tyname name uni fun a)) &#8594; p (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a) (f (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a))) <a href="src/PlutusIR.Analysis.Builtins.html#bmlSplitMatchContext" class="link"
+	    >Source</a
+	    > <a href="#v:bmlSplitMatchContext" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bmlBranchArities" class="def"
+	    >bmlBranchArities</a
+	    > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinMatcherLike</a
+	    > uni fun) [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    >] <a href="src/PlutusIR.Analysis.Builtins.html#bmlBranchArities" class="link"
+	    >Source</a
+	    > <a href="#v:bmlBranchArities" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultUniMatcherLike" class="def"
+	    >defaultUniMatcherLike</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinMatcherLike</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    >) <a href="src/PlutusIR.Analysis.Builtins.html#defaultUniMatcherLike" class="link"
+	    >Source</a
+	    > <a href="#v:defaultUniMatcherLike" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinsInfo" class="def"
+	    >BuiltinsInfo</a
+	    > (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) fun <a href="src/PlutusIR.Analysis.Builtins.html#BuiltinsInfo" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinsInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >All non-static information about builtins that the compiler might want.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinsInfo" class="def"
+		  >BuiltinsInfo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_biSemanticsVariant" class="def"
+			  >_biSemanticsVariant</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+			  >BuiltinSemanticsVariant</a
+			  > fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_biMatcherLike" class="def"
+			  >_biMatcherLike</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+			  >Map</a
+			  > fun (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+			  >BuiltinMatcherLike</a
+			  > uni fun)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_biUnserializableConstants" class="def"
+			  >_biUnserializableConstants</a
+			  > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinsInfo"
+	    >Instances</h4
+	    ><details id="i:BuiltinsInfo" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinsInfo:Default:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		      >BuiltinsInfo</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		      >DefaultFun</a
+		      >)</span
+		    > <a href="src/PlutusIR.Analysis.Builtins.html#line-58" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinsInfo" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinsInfo:Default:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Analysis-Builtins.html"
+			>PlutusIR.Analysis.Builtins</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:def"
+			  >def</a
+			  > &#8759; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+			  >BuiltinsInfo</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > <a href="#v:def" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:biSemanticsVariant" class="def"
+	    >biSemanticsVariant</a
+	    > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun) (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun) <a href="src/PlutusIR.Analysis.Builtins.html#biSemanticsVariant" class="link"
+	    >Source</a
+	    > <a href="#v:biSemanticsVariant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:biMatcherLike" class="def"
+	    >biMatcherLike</a
+	    > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun) (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > fun (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinMatcherLike" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinMatcherLike</a
+	    > uni fun)) <a href="src/PlutusIR.Analysis.Builtins.html#biMatcherLike" class="link"
+	    >Source</a
+	    > <a href="#v:biMatcherLike" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:biUnserializableConstants" class="def"
+	    >biUnserializableConstants</a
+	    > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > (<a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun) (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) <a href="src/PlutusIR.Analysis.Builtins.html#biUnserializableConstants" class="link"
+	    >Source</a
+	    > <a href="#v:biUnserializableConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinArityInfo" class="def"
+	    >builtinArityInfo</a
+	    > &#8759; &#8704; uni fun. <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; fun &#8594; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > <a href="src/PlutusIR.Analysis.Builtins.html#builtinArityInfo" class="link"
+	    >Source</a
+	    > <a href="#v:builtinArityInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the arity of a builtin function from the <code
+	      ><a href="PLC.html#v:BuiltinInfo" title="PLC"
+		>BuiltinInfo</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:constantIsSerializable" class="def"
+	    >constantIsSerializable</a
+	    > &#8759; &#8704; uni fun. <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > uni) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Analysis.Builtins.html#constantIsSerializable" class="link"
+	    >Source</a
+	    > <a href="#v:constantIsSerializable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termIsSerializable" class="def"
+	    >termIsSerializable</a
+	    > &#8759; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Analysis.Builtins.html#termIsSerializable" class="link"
+	    >Source</a
+	    > <a href="#v:termIsSerializable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asBuiltinDatatypeMatch" class="def"
+	    >asBuiltinDatatypeMatch</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (APrism' (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	    >SplitMatchContext</a
+	    > tyname name uni fun a)) <a href="src/PlutusIR.Analysis.Builtins.html#asBuiltinDatatypeMatch" class="link"
+	    >Source</a
+	    > <a href="#v:asBuiltinDatatypeMatch" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a builtin <code
+	      >match</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinDatatypeMatchBranchArities" class="def"
+	    >builtinDatatypeMatchBranchArities</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > fun &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > [<a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    >] <a href="src/PlutusIR.Analysis.Builtins.html#builtinDatatypeMatchBranchArities" class="link"
+	    >Source</a
+	    > <a href="#v:builtinDatatypeMatchBranchArities" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the branch arities for a builtin <code
+	      >match</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultUniUnserializableConstants" class="def"
+	    >defaultUniUnserializableConstants</a
+	    > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusIR.Analysis.Builtins.html#defaultUniUnserializableConstants" class="link"
+	    >Source</a
+	    > <a href="#v:defaultUniUnserializableConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

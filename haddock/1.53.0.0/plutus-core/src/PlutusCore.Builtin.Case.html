@@ -1,0 +1,1717 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Builtin.Case</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownType.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.KnownType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownType.html#HeadSpine"
+	><span class="hs-identifier"
+	  >HeadSpine</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#UniOf"
+	><span class="hs-identifier"
+	  >UniOf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier"
+	  >TyName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#rwhnf"
+	><span class="hs-identifier"
+	  >rwhnf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/src/Data.Default.Class.html"
+	><span class="hs-identifier"
+	  >Data.Default.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Default</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html"
+	><span class="hs-identifier"
+	  >Data.Vector</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html#Vector"
+	><span class="hs-identifier"
+	  >Vector</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.html"
+	><span class="hs-identifier"
+	  >Text.PrettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier"
+	  >display</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Universe.html"
+	><span class="hs-identifier"
+	  >Universe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="AnnotateCaseBuiltin"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#AnnotateCaseBuiltin"
+	  ><span class="hs-identifier hs-var"
+	    >AnnotateCaseBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681911286"
+      ><span class="annot"
+	><a href="#local-6989586621681911286"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- | Given a tag for a built-in type and a list of branches, annotate each of the branches with</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- its expected argument types or fail if casing on values of the built-in type isn't supported.</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Note: you don't need to include the resulting type of the whole case matching in the</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- returning list here.</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span id="annotateCaseBuiltin"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#annotateCaseBuiltin"
+	  ><span class="hs-identifier hs-type"
+	    >annotateCaseBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621681911288"
+      ><span id="local-6989586621681911289"
+	><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#UniOf"
+	    ><span class="hs-identifier hs-type"
+	      >UniOf</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911288"
+	    ><span class="hs-identifier hs-type"
+	      >term</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	    ><span class="hs-operator hs-type"
+	      >~</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911286"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-27"
+	  ></span
+	  ><span
+	  >        </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#Type"
+	    ><span class="hs-identifier hs-type"
+	      >Type</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#TyName"
+	    ><span class="hs-identifier hs-type"
+	      >TyName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911286"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911289"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-28"
+	  ></span
+	  ><span
+	  >        </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911288"
+	    ><span class="hs-identifier hs-type"
+	      >term</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span
+	  >
+</span
+	  ><span id="line-29"
+	  ></span
+	  ><span
+	  >        </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	    ><span class="hs-identifier hs-type"
+	      >Either</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	    ><span class="hs-identifier hs-type"
+	      >Text</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911288"
+	    ><span class="hs-identifier hs-type"
+	      >term</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Core.Type.html#Type"
+	    ><span class="hs-identifier hs-type"
+	      >Type</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Name.Unique.html#TyName"
+	    ><span class="hs-identifier hs-type"
+	      >TyName</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911286"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681911289"
+	    ><span class="hs-identifier hs-type"
+	      >ann</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span class="hs-special"
+	  >]</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >class</span
+      ><span
+      > </span
+      ><span id="CaseBuiltin"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#CaseBuiltin"
+	  ><span class="hs-identifier hs-var"
+	    >CaseBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681911266"
+      ><span class="annot"
+	><a href="#local-6989586621681911266"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- | Given a constant with its type tag and a vector of branches, choose the appropriate branch</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- or fail if the constant doesn't correspond to any of the branches (or casing on constants of</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- this type isn't supported at all).</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span id="caseBuiltin"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#caseBuiltin"
+	  ><span class="hs-identifier hs-type"
+	    >caseBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span id="local-6989586621681911267"
+      ><span class="annot"
+	><a href="PlutusCore.Core.Type.html#UniOf"
+	  ><span class="hs-identifier hs-type"
+	    >UniOf</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911267"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	  ><span class="hs-operator hs-type"
+	    >~</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911266"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-37"
+	></span
+	><span
+	>        </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	  ><span class="hs-identifier hs-type"
+	    >Some</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="Universe.Core.html#ValueOf"
+	  ><span class="hs-identifier hs-type"
+	    >ValueOf</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911266"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-38"
+	></span
+	><span
+	>        </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html#Vector"
+	  ><span class="hs-identifier hs-type"
+	    >Vector</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911267"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-39"
+	></span
+	><span
+	>        </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	  ><span class="hs-identifier hs-type"
+	    >Either</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.KnownType.html#HeadSpine"
+	  ><span class="hs-identifier hs-type"
+	    >HeadSpine</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911267"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	  ><span class="hs-identifier hs-type"
+	    >Some</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="Universe.Core.html#ValueOf"
+	  ><span class="hs-identifier hs-type"
+	    >ValueOf</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911266"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [DO NOT newtype-wrap functions].</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-comment"
+      >-- | A @data@ version of 'CaseBuiltin'. we parameterize the evaluator by a 'CaserBuiltin' so that</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-comment"
+      >-- the caller can choose whether to use the 'caseBuiltin' method or the always failing caser (the</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-comment"
+      >-- latter is required for earlier protocol versions when we didn't support casing on builtins).</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CaserBuiltin"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	  ><span class="hs-identifier hs-var"
+	    >CaserBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681911231"
+      ><span class="annot"
+	><a href="#local-6989586621681911231"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CaserBuiltin"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	  ><span class="hs-identifier hs-var"
+	    >CaserBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unCaserBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *).
+CaserBuiltin uni
+-&gt; forall term.
+   (UniOf term ~ uni) =&gt;
+   Some (ValueOf uni)
+   -&gt; Vector term -&gt; Either Text (HeadSpine term (Some (ValueOf uni)))
+</span
+	  ><a href="PlutusCore.Builtin.Case.html#unCaserBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unCaserBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681911233"
+      ><span class="annot"
+	><a href="#local-6989586621681911233"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#UniOf"
+	><span class="hs-identifier hs-type"
+	  >UniOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681911233"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681911231"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681911231"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html#Vector"
+	><span class="hs-identifier hs-type"
+	  >Vector</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681911233"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownType.html#HeadSpine"
+	><span class="hs-identifier hs-type"
+	  >HeadSpine</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681911233"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.Some.Newtype.html#Some"
+	><span class="hs-identifier hs-type"
+	  >Some</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Universe.Core.html#ValueOf"
+	><span class="hs-identifier hs-type"
+	  >ValueOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681911231"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681911248"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-type"
+	    >NFData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	  ><span class="hs-identifier hs-type"
+	    >CaserBuiltin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911248"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681911302"
+      ><span class="annot"
+	><span class="annottext"
+	  >rnf :: CaserBuiltin uni -&gt; ()
+</span
+	  ><a href="#local-6989586621681911302"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >rnf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CaserBuiltin uni -&gt; ()
+forall a. a -&gt; ()
+</span
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#rwhnf"
+	><span class="hs-identifier hs-var"
+	  >rwhnf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="local-6989586621681911305"
+      ><span id="local-6989586621681911311"
+	><span id="local-6989586621681911316"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621681911259"
+	    ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#OnlyCheckWhnfNamed"
+		><span class="hs-identifier hs-type"
+		  >OnlyCheckWhnfNamed</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-string"
+		>&quot;PlutusCore.Builtin.Case.CaserBuiltin&quot;</span
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+		><span class="hs-identifier hs-type"
+		  >CaserBuiltin</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681911259"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-54"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-type"
+		>NoThunks</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	      ><span class="hs-identifier hs-type"
+		>CaserBuiltin</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681911259"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681911264"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#CaseBuiltin"
+	  ><span class="hs-identifier hs-type"
+	    >CaseBuiltin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911264"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Default</span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	  ><span class="hs-identifier hs-type"
+	    >CaserBuiltin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911264"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681911326"
+      ><span class="annot"
+	><span class="annottext"
+	  >def :: CaserBuiltin uni
+</span
+	  ><a href="#local-6989586621681911326"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >def</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall term.
+ (UniOf term ~ uni) =&gt;
+ Some (ValueOf uni)
+ -&gt; Vector term
+ -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+-&gt; CaserBuiltin uni
+forall (uni :: * -&gt; *).
+(forall term.
+ (UniOf term ~ uni) =&gt;
+ Some (ValueOf uni)
+ -&gt; Vector term
+ -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+-&gt; CaserBuiltin uni
+</span
+	><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	><span class="hs-identifier hs-var"
+	  >CaserBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf uni)
+-&gt; Vector term -&gt; Either Text (HeadSpine term (Some (ValueOf uni)))
+forall term.
+(UniOf term ~ uni) =&gt;
+Some (ValueOf uni)
+-&gt; Vector term -&gt; Either Text (HeadSpine term (Some (ValueOf uni)))
+forall (uni :: * -&gt; *) term.
+(CaseBuiltin uni, UniOf term ~ uni) =&gt;
+Some (ValueOf uni)
+-&gt; Vector term -&gt; Either Text (HeadSpine term (Some (ValueOf uni)))
+</span
+	><a href="PlutusCore.Builtin.Case.html#caseBuiltin"
+	><span class="hs-identifier hs-var"
+	  >caseBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span id="local-6989586621681911268"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#unavailableCaserBuiltin"
+	  ><span class="hs-identifier hs-type"
+	    >unavailableCaserBuiltin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	  ><span class="hs-identifier hs-type"
+	    >Int</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	  ><span class="hs-identifier hs-type"
+	    >CaserBuiltin</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681911268"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="unavailableCaserBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >unavailableCaserBuiltin :: forall (uni :: * -&gt; *). Int -&gt; CaserBuiltin uni
+</span
+	  ><a href="PlutusCore.Builtin.Case.html#unavailableCaserBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unavailableCaserBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681911336"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621681911336"
+	  ><span class="hs-identifier hs-var"
+	    >ver</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(forall term.
+ (UniOf term ~ uni) =&gt;
+ Some (ValueOf uni)
+ -&gt; Vector term
+ -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+-&gt; CaserBuiltin uni
+forall (uni :: * -&gt; *).
+(forall term.
+ (UniOf term ~ uni) =&gt;
+ Some (ValueOf uni)
+ -&gt; Vector term
+ -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+-&gt; CaserBuiltin uni
+</span
+	><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	><span class="hs-identifier hs-var"
+	  >CaserBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((forall term.
+  (UniOf term ~ uni) =&gt;
+  Some (ValueOf uni)
+  -&gt; Vector term
+  -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+ -&gt; CaserBuiltin uni)
+-&gt; (forall term.
+    (UniOf term ~ uni) =&gt;
+    Some (ValueOf uni)
+    -&gt; Vector term
+    -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+-&gt; CaserBuiltin uni
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Some (ValueOf uni)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector term
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Either Text (HeadSpine term (Some (ValueOf uni)))
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Either Text (HeadSpine term (Some (ValueOf uni))))
+-&gt; Text -&gt; Either Text (HeadSpine term (Some (ValueOf uni)))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;'case' on values of built-in types is not supported in protocol version &quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Text
+forall str a. (Pretty a, Render str) =&gt; a -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#display"
+	><span class="hs-identifier hs-var"
+	  >display</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621681911336"
+	><span class="hs-identifier hs-var"
+	  >ver</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

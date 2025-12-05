@@ -1,0 +1,1130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Blueprint.Class</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Blueprint.Class.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Blueprint.Class</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:HasBlueprintSchema"
+	      >HasBlueprintSchema</a
+	      > (t &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) (referencedTypes &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >]) <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:schema"
+		  >schema</a
+		  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+		  >Schema</a
+		  > referencedTypes</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:HasBlueprintSchema" class="def"
+	    >HasBlueprintSchema</a
+	    > (t &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) (referencedTypes &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >]) <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Blueprint.Class.html#HasBlueprintSchema" class="link"
+	    >Source</a
+	    > <a href="#t:HasBlueprintSchema" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A class of types that have a Blueprint schema definition
+  and can reference other schema definitions of other types.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:schema" class="def"
+	      >schema</a
+	      > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+	      >Schema</a
+	      > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+	      >Source</a
+	      > <a href="#v:schema" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:HasBlueprintSchema"
+	    >Instances</h4
+	    ><details id="i:HasBlueprintSchema" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:1"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		      >ByteString</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-52" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:2"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinBool" title="PlutusTx.Builtins.Internal"
+		      >BuiltinBool</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-43" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:3"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinByteString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinByteString</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-49" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:4"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+		      >BuiltinData</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:5"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+		      >BuiltinString</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-46" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:6"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinUnit" title="PlutusTx.Builtins.Internal"
+		      >BuiltinUnit</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-40" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:7"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      > referencedTypes &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Ratio.html#line-152" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:8"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:9"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > () referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:10"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-24" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:11"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:12"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > a referencedTypes &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinList" title="PlutusTx.Builtins.Internal"
+		      >BuiltinList</a
+		      > a) referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:13"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > a, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > a referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+		      >Maybe</a
+		      > a) referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-25" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:14"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > a referencedTypes &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > [a] referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:15"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > a, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > a referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > b, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > b referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-Either.html#t:Either" title="PlutusTx.Either"
+		      >Either</a
+		      > a b) referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-26" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:16"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > k referencedTypes, <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > v referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v) referencedTypes</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-185" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:17"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > a referencedTypes, <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > b referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-Builtins-Internal.html#t:BuiltinPair" title="PlutusTx.Builtins.Internal"
+		      >BuiltinPair</a
+		      > a b) referencedTypes</span
+		    > <a href="src/PlutusTx.Blueprint.Class.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Blueprint-Class.html"
+			>PlutusTx.Blueprint.Class</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:18"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > a, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > a referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > b, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > b referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		      >These</a
+		      > a b) referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:19"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > a, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > a referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > b, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > b referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (a, b) referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-32" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:20"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > a, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > a referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > b, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > b referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > c, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > c referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (a, b, c) referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-33" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasBlueprintSchema:HasBlueprintSchema:21"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > a, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > a referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > b, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > b referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > c, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > c referencedTypes, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > d, <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > d referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (a, b, c, d) referencedTypes</span
+		    > <a href="src/PlutusTx.IsData.Instances.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:HasBlueprintSchema" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasBlueprintSchema:HasBlueprintSchema:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-IsData-Instances.html"
+			>PlutusTx.IsData.Instances</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,232 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Function.Consequences.Propositional where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Data.Irrelevant qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Function.Consequences.Setoid qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
+<span class="lineno">   22 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   23 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   24 </span>                    word64ToNat)
+<span class="lineno">   25 </span>import MAlonzo.RTE qualified
+<span class="lineno">   26 </span>
+<span class="lineno">   27 </span>-- Function.Consequences.Propositional.Setoid.contraInjective
+<span class="lineno">   28 </span>d_contraInjective_16 ::
+<span class="lineno">   29 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   30 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   31 </span>  () -&gt;
+<span class="lineno">   32 </span>  () -&gt;
+<span class="lineno">   33 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   34 </span>  (AgdaAny -&gt;
+<span class="lineno">   35 </span>   AgdaAny -&gt;
+<span class="lineno">   36 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   37 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">   38 </span>  AgdaAny -&gt;
+<span class="lineno">   39 </span>  AgdaAny -&gt;
+<span class="lineno">   40 </span>  (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   41 </span>   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">   42 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   43 </span>  MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+<span class="lineno">   44 </span><span class="decl"><span class="nottickedoff">d_contraInjective_16 = erased</span></span>
+<span class="lineno">   45 </span>-- Function.Consequences.Propositional.Setoid.inverseʳ⇒injective
+<span class="lineno">   46 </span>d_inverse'691''8658'injective_18 ::
+<span class="lineno">   47 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   48 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   49 </span>  () -&gt;
+<span class="lineno">   50 </span>  () -&gt;
+<span class="lineno">   51 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   52 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   53 </span>  (AgdaAny -&gt;
+<span class="lineno">   54 </span>   AgdaAny -&gt;
+<span class="lineno">   55 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   56 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">   57 </span>  AgdaAny -&gt;
+<span class="lineno">   58 </span>  AgdaAny -&gt;
+<span class="lineno">   59 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   60 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">d_inverse'691''8658'injective_18 = erased</span></span>
+<span class="lineno">   62 </span>-- Function.Consequences.Propositional.Setoid.inverseʳ⇒strictlyInverseʳ
+<span class="lineno">   63 </span>d_inverse'691''8658'strictlyInverse'691'_20 ::
+<span class="lineno">   64 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   65 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   66 </span>  () -&gt;
+<span class="lineno">   67 </span>  () -&gt;
+<span class="lineno">   68 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   69 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   70 </span>  (AgdaAny -&gt;
+<span class="lineno">   71 </span>   AgdaAny -&gt;
+<span class="lineno">   72 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   73 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">   74 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   75 </span><span class="decl"><span class="nottickedoff">d_inverse'691''8658'strictlyInverse'691'_20 = erased</span></span>
+<span class="lineno">   76 </span>-- Function.Consequences.Propositional.Setoid.inverseˡ⇒strictlyInverseˡ
+<span class="lineno">   77 </span>d_inverse'737''8658'strictlyInverse'737'_22 ::
+<span class="lineno">   78 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   79 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   80 </span>  () -&gt;
+<span class="lineno">   81 </span>  () -&gt;
+<span class="lineno">   82 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   83 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   84 </span>  (AgdaAny -&gt;
+<span class="lineno">   85 </span>   AgdaAny -&gt;
+<span class="lineno">   86 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">   87 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">   88 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">d_inverse'737''8658'strictlyInverse'737'_22 = erased</span></span>
+<span class="lineno">   90 </span>-- Function.Consequences.Propositional.Setoid.inverseˡ⇒surjective
+<span class="lineno">   91 </span>d_inverse'737''8658'surjective_24 ::
+<span class="lineno">   92 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   93 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   94 </span>  () -&gt;
+<span class="lineno">   95 </span>  () -&gt;
+<span class="lineno">   96 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   97 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   98 </span>  (AgdaAny -&gt;
+<span class="lineno">   99 </span>   AgdaAny -&gt;
+<span class="lineno">  100 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  101 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  102 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">d_inverse'737''8658'surjective_24 ~v0 ~v1 ~v2 ~v3</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">= du_inverse'737''8658'surjective_24</span></span>
+<span class="lineno">  105 </span>du_inverse'737''8658'surjective_24 ::
+<span class="lineno">  106 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  107 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  108 </span>  (AgdaAny -&gt;
+<span class="lineno">  109 </span>   AgdaAny -&gt;
+<span class="lineno">  110 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  111 </span>   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  112 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  113 </span><span class="decl"><span class="nottickedoff">du_inverse'737''8658'surjective_24 v0 v1</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  115 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Consequences.Setoid.du_inverse'737''8658'surjective_72</span>
+<span class="lineno">  116 </span><span class="spaces">      </span><span class="nottickedoff">v1</span></span>
+<span class="lineno">  117 </span>-- Function.Consequences.Propositional.Setoid.inverseᵇ⇒bijective
+<span class="lineno">  118 </span>d_inverse'7495''8658'bijective_26 ::
+<span class="lineno">  119 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  120 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  121 </span>  () -&gt;
+<span class="lineno">  122 </span>  () -&gt;
+<span class="lineno">  123 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  124 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  125 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 -&gt;
+<span class="lineno">  126 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">d_inverse'7495''8658'bijective_26 ~v0 ~v1 ~v2 ~v3</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">= du_inverse'7495''8658'bijective_26</span></span>
+<span class="lineno">  129 </span>du_inverse'7495''8658'bijective_26 ::
+<span class="lineno">  130 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  131 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  132 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 -&gt;
+<span class="lineno">  133 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  134 </span><span class="decl"><span class="nottickedoff">du_inverse'7495''8658'bijective_26</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  136 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Consequences.Setoid.du_inverse'7495''8658'bijective_80</span>
+<span class="lineno">  137 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  138 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  140 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)</span></span>
+<span class="lineno">  141 </span>-- Function.Consequences.Propositional.Setoid.surjective⇒strictlySurjective
+<span class="lineno">  142 </span>d_surjective'8658'strictlySurjective_34 ::
+<span class="lineno">  143 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  144 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  145 </span>  () -&gt;
+<span class="lineno">  146 </span>  () -&gt;
+<span class="lineno">  147 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  148 </span>  (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) -&gt;
+<span class="lineno">  149 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  150 </span><span class="decl"><span class="nottickedoff">d_surjective'8658'strictlySurjective_34 ~v0 ~v1 ~v2 ~v3</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="nottickedoff">= du_surjective'8658'strictlySurjective_34</span></span>
+<span class="lineno">  152 </span>du_surjective'8658'strictlySurjective_34 ::
+<span class="lineno">  153 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  154 </span>  (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) -&gt;
+<span class="lineno">  155 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  156 </span><span class="decl"><span class="nottickedoff">du_surjective'8658'strictlySurjective_34 v0</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  158 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Consequences.Setoid.du_surjective'8658'strictlySurjective_82</span>
+<span class="lineno">  159 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  160 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)</span></span>
+<span class="lineno">  161 </span>-- Function.Consequences.Propositional.strictlySurjective⇒surjective
+<span class="lineno">  162 </span>d_strictlySurjective'8658'surjective_40 ::
+<span class="lineno">  163 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  164 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  165 </span>  () -&gt;
+<span class="lineno">  166 </span>  () -&gt;
+<span class="lineno">  167 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  168 </span>  (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) -&gt;
+<span class="lineno">  169 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  170 </span><span class="decl"><span class="nottickedoff">d_strictlySurjective'8658'surjective_40 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  171 </span><span class="spaces">  </span><span class="nottickedoff">= du_strictlySurjective'8658'surjective_40 v4</span></span>
+<span class="lineno">  172 </span>du_strictlySurjective'8658'surjective_40 ::
+<span class="lineno">  173 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  174 </span>  (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14) -&gt;
+<span class="lineno">  175 </span>  AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">du_strictlySurjective'8658'surjective_40 v0</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  178 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Consequences.Setoid.du_strictlySurjective'8658'surjective_84</span>
+<span class="lineno">  179 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  180 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402)</span>
+<span class="lineno">  181 </span><span class="spaces">      </span><span class="nottickedoff">v0 erased</span></span>
+<span class="lineno">  182 </span>-- Function.Consequences.Propositional.strictlyInverseˡ⇒inverseˡ
+<span class="lineno">  183 </span>d_strictlyInverse'737''8658'inverse'737'_44 ::
+<span class="lineno">  184 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  185 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  186 </span>  () -&gt;
+<span class="lineno">  187 </span>  () -&gt;
+<span class="lineno">  188 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  189 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  190 </span>  (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  191 </span>  AgdaAny -&gt;
+<span class="lineno">  192 </span>  AgdaAny -&gt;
+<span class="lineno">  193 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  194 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  195 </span><span class="decl"><span class="nottickedoff">d_strictlyInverse'737''8658'inverse'737'_44 = erased</span></span>
+<span class="lineno">  196 </span>-- Function.Consequences.Propositional.strictlyInverseʳ⇒inverseʳ
+<span class="lineno">  197 </span>d_strictlyInverse'691''8658'inverse'691'_50 ::
+<span class="lineno">  198 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  199 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  200 </span>  () -&gt;
+<span class="lineno">  201 </span>  () -&gt;
+<span class="lineno">  202 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  203 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  204 </span>  (AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  205 </span>  AgdaAny -&gt;
+<span class="lineno">  206 </span>  AgdaAny -&gt;
+<span class="lineno">  207 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  208 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  209 </span><span class="decl"><span class="nottickedoff">d_strictlyInverse'691''8658'inverse'691'_50 = erased</span></span>
+
+</pre>
+</body>
+</html>

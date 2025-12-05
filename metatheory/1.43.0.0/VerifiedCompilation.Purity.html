@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>VerifiedCompilation.Purity</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>VerifiedCompilation.Purity</h1>
+    <section>
+      <h1 id="definitions-of-purity-for-terms">Definitions of Purity for Terms</h1>
+<pre class="Agda"><a id="95" class="Keyword">module</a> <a id="102" href="VerifiedCompilation.Purity.html" class="Module">VerifiedCompilation.Purity</a> <a id="129" class="Keyword">where</a>
+
+</pre>
+<h2 id="imports">Imports</h2>
+
+<pre class="Agda"><a id="156" class="Keyword">open</a> <a id="161" class="Keyword">import</a> <a id="168" href="Untyped.html" class="Module">Untyped</a> <a id="176" class="Keyword">using</a> <a id="182" class="Symbol">(</a><a id="183" href="Untyped.html#1671" class="Datatype Operator">_⊢</a><a id="185" class="Symbol">;</a> <a id="187" href="Untyped.html#1869" class="InductiveConstructor">case</a><a id="191" class="Symbol">;</a> <a id="193" href="Untyped.html#1917" class="InductiveConstructor">builtin</a><a id="200" class="Symbol">;</a> <a id="202" href="Untyped.html#1738" class="InductiveConstructor Operator">_·_</a><a id="205" class="Symbol">;</a> <a id="207" href="Untyped.html#1762" class="InductiveConstructor">force</a><a id="212" class="Symbol">;</a> <a id="214" href="Untyped.html#1698" class="InductiveConstructor">`</a><a id="215" class="Symbol">;</a> <a id="217" href="Untyped.html#1714" class="InductiveConstructor">ƛ</a><a id="218" class="Symbol">;</a> <a id="220" href="Untyped.html#1782" class="InductiveConstructor">delay</a><a id="225" class="Symbol">;</a> <a id="227" href="Untyped.html#1802" class="InductiveConstructor">con</a><a id="230" class="Symbol">;</a> <a id="232" href="Untyped.html#1822" class="InductiveConstructor">constr</a><a id="238" class="Symbol">;</a> <a id="240" href="Untyped.html#1949" class="InductiveConstructor">error</a><a id="245" class="Symbol">)</a>
+<a id="247" class="Keyword">open</a> <a id="252" class="Keyword">import</a> <a id="259" href="Relation.Nullary.html" class="Module">Relation.Nullary</a> <a id="276" class="Keyword">using</a> <a id="282" class="Symbol">(</a><a id="283" href="Relation.Nullary.Decidable.Core.html#1861" class="Record">Dec</a><a id="286" class="Symbol">;</a> <a id="288" href="Relation.Nullary.Decidable.Core.html#1994" class="InductiveConstructor">yes</a><a id="291" class="Symbol">;</a> <a id="293" href="Relation.Nullary.Decidable.Core.html#2031" class="InductiveConstructor">no</a><a id="295" class="Symbol">;</a> <a id="297" href="Relation.Nullary.Negation.Core.html#658" class="Function Operator">¬_</a><a id="299" class="Symbol">)</a>
+
+</pre>
+<h2 id="untyped-purity">Untyped Purity</h2>
+<pre class="Agda"><a id="328" class="Keyword">data</a> <a id="UPure"></a><a id="333" href="VerifiedCompilation.Purity.html#333" class="Datatype">UPure</a> <a id="339" class="Symbol">(</a><a id="340" href="VerifiedCompilation.Purity.html#340" class="Bound">X</a> <a id="342" class="Symbol">:</a> <a id="344" href="Agda.Primitive.html#388" class="Primitive">Set</a><a id="347" class="Symbol">)</a> <a id="349" class="Symbol">:</a> <a id="351" class="Symbol">(</a><a id="352" href="VerifiedCompilation.Purity.html#340" class="Bound">X</a> <a id="354" href="Untyped.html#1671" class="Datatype Operator">⊢</a><a id="355" class="Symbol">)</a> <a id="357" class="Symbol">→</a> <a id="359" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="363" class="Keyword">where</a>
+  <a id="UPure.FIXME"></a><a id="371" href="VerifiedCompilation.Purity.html#371" class="InductiveConstructor">FIXME</a> <a id="377" class="Symbol">:</a> <a id="379" class="Symbol">(</a><a id="380" href="VerifiedCompilation.Purity.html#380" class="Bound">t</a> <a id="382" class="Symbol">:</a> <a id="384" href="VerifiedCompilation.Purity.html#340" class="Bound">X</a> <a id="386" href="Untyped.html#1671" class="Datatype Operator">⊢</a><a id="387" class="Symbol">)</a> <a id="389" class="Symbol">→</a> <a id="391" href="VerifiedCompilation.Purity.html#333" class="Datatype">UPure</a> <a id="397" href="VerifiedCompilation.Purity.html#340" class="Bound">X</a> <a id="399" href="VerifiedCompilation.Purity.html#380" class="Bound">t</a>
+
+<a id="isUPure?"></a><a id="402" href="VerifiedCompilation.Purity.html#402" class="Function">isUPure?</a> <a id="411" class="Symbol">:</a> <a id="413" class="Symbol">{</a><a id="414" href="VerifiedCompilation.Purity.html#414" class="Bound">X</a> <a id="416" class="Symbol">:</a> <a id="418" href="Agda.Primitive.html#388" class="Primitive">Set</a><a id="421" class="Symbol">}</a> <a id="423" class="Symbol">→</a> <a id="425" class="Symbol">(</a><a id="426" href="VerifiedCompilation.Purity.html#426" class="Bound">t</a> <a id="428" class="Symbol">:</a> <a id="430" href="VerifiedCompilation.Purity.html#414" class="Bound">X</a> <a id="432" href="Untyped.html#1671" class="Datatype Operator">⊢</a><a id="433" class="Symbol">)</a> <a id="435" class="Symbol">→</a> <a id="437" href="Relation.Nullary.Decidable.Core.html#1861" class="Record">Dec</a> <a id="441" class="Symbol">(</a><a id="442" href="VerifiedCompilation.Purity.html#333" class="Datatype">UPure</a> <a id="448" href="VerifiedCompilation.Purity.html#414" class="Bound">X</a> <a id="450" href="VerifiedCompilation.Purity.html#426" class="Bound">t</a><a id="451" class="Symbol">)</a>
+<a id="453" href="VerifiedCompilation.Purity.html#402" class="Function">isUPure?</a> <a id="462" href="VerifiedCompilation.Purity.html#462" class="Bound">t</a> <a id="464" class="Symbol">=</a> <a id="466" href="Relation.Nullary.Decidable.Core.html#1994" class="InductiveConstructor">yes</a> <a id="470" class="Symbol">(</a><a id="471" href="VerifiedCompilation.Purity.html#371" class="InductiveConstructor">FIXME</a> <a id="477" href="VerifiedCompilation.Purity.html#462" class="Bound">t</a><a id="478" class="Symbol">)</a>
+</pre>
+
+    </section>
+  </body>
+</html>

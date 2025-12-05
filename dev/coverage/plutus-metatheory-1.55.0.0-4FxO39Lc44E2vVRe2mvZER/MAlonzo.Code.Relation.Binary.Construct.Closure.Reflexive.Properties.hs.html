@@ -1,0 +1,650 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Bool qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Data.Irrelevant qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Data.Product.Base qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Data.Sum.Base qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Function.Bundles qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive qualified
+<span class="lineno">   25 </span>import MAlonzo.Code.Relation.Binary.Definitions qualified
+<span class="lineno">   26 </span>import MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties qualified
+<span class="lineno">   27 </span>import MAlonzo.Code.Relation.Binary.Structures qualified
+<span class="lineno">   28 </span>import MAlonzo.Code.Relation.Nullary.Decidable qualified
+<span class="lineno">   29 </span>import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
+<span class="lineno">   30 </span>import MAlonzo.Code.Relation.Nullary.Negation.Core qualified
+<span class="lineno">   31 </span>import MAlonzo.Code.Relation.Nullary.Reflects qualified
+<span class="lineno">   32 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   33 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   34 </span>                    word64ToNat)
+<span class="lineno">   35 </span>import MAlonzo.RTE qualified
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.=[]⇒
+<span class="lineno">   38 </span>d_'61''91''93''8658'_44 ::
+<span class="lineno">   39 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   40 </span>  () -&gt;
+<span class="lineno">   41 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   42 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   43 </span>  () -&gt;
+<span class="lineno">   44 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   45 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   46 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   47 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   48 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   49 </span>  AgdaAny -&gt;
+<span class="lineno">   50 </span>  AgdaAny -&gt;
+<span class="lineno">   51 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">   52 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">d_'61''91''93''8658'_44 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 ~v8 v9 v10</span>
+<span class="lineno">   54 </span><span class="spaces">                        </span><span class="nottickedoff">v11 v12</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">= du_'61''91''93''8658'_44 v9 v10 v11 v12</span></span>
+<span class="lineno">   56 </span>du_'61''91''93''8658'_44 ::
+<span class="lineno">   57 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   58 </span>  AgdaAny -&gt;
+<span class="lineno">   59 </span>  AgdaAny -&gt;
+<span class="lineno">   60 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">   61 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">   62 </span><span class="decl"><span class="nottickedoff">du_'61''91''93''8658'_44 v0 v1 v2 v3</span>
+<span class="lineno">   63 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v3 of</span>
+<span class="lineno">   64 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">   65 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   66 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">   67 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v6</span>
+<span class="lineno">   68 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   69 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">   70 </span><span class="spaces">             </span><span class="nottickedoff">(coe v0 v1 v2 v6)</span>
+<span class="lineno">   71 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   72 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._._~ᵒ_
+<span class="lineno">   73 </span>d__'126''7506'__62 ::
+<span class="lineno">   74 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   75 </span>  () -&gt;
+<span class="lineno">   76 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   77 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   78 </span><span class="decl"><span class="nottickedoff">d__'126''7506'__62 = erased</span></span>
+<span class="lineno">   79 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.fromSum
+<span class="lineno">   80 </span>d_fromSum_68 ::
+<span class="lineno">   81 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   82 </span>  () -&gt;
+<span class="lineno">   83 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   84 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   85 </span>  AgdaAny -&gt;
+<span class="lineno">   86 </span>  AgdaAny -&gt;
+<span class="lineno">   87 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt;
+<span class="lineno">   88 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">d_fromSum_68 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_fromSum_68 v6</span></span>
+<span class="lineno">   90 </span>du_fromSum_68 ::
+<span class="lineno">   91 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30 -&gt;
+<span class="lineno">   92 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">du_fromSum_68 v0</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 v1</span>
+<span class="lineno">   96 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">   97 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 v1</span>
+<span class="lineno">   99 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  100 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  101 </span><span class="spaces">             </span><span class="nottickedoff">v1</span>
+<span class="lineno">  102 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  103 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.toSum
+<span class="lineno">  104 </span>d_toSum_76 ::
+<span class="lineno">  105 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  106 </span>  () -&gt;
+<span class="lineno">  107 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  108 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  109 </span>  AgdaAny -&gt;
+<span class="lineno">  110 </span>  AgdaAny -&gt;
+<span class="lineno">  111 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  112 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  113 </span><span class="decl"><span class="nottickedoff">d_toSum_76 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 = du_toSum_76 v6</span></span>
+<span class="lineno">  114 </span>du_toSum_76 ::
+<span class="lineno">  115 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  116 </span>  MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">du_toSum_76 v0</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  120 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38 erased</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v3</span>
+<span class="lineno">  122 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42 (coe v3)</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  124 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.⊎⇔Refl
+<span class="lineno">  125 </span>d_'8846''8660'Refl_84 ::
+<span class="lineno">  126 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  127 </span>  () -&gt;
+<span class="lineno">  128 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  129 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  130 </span>  AgdaAny -&gt;
+<span class="lineno">  131 </span>  AgdaAny -&gt; MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">d_'8846''8660'Refl_84 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5</span>
+<span class="lineno">  133 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8846''8660'Refl_84</span></span>
+<span class="lineno">  134 </span>du_'8846''8660'Refl_84 ::
+<span class="lineno">  135 </span>  MAlonzo.Code.Function.Bundles.T_Equivalence_1714
+<span class="lineno">  136 </span><span class="decl"><span class="nottickedoff">du_'8846''8660'Refl_84</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  138 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Bundles.du_mk'8660'_2298 (coe du_fromSum_68)</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_toSum_76)</span></span>
+<span class="lineno">  140 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.sym
+<span class="lineno">  141 </span>d_sym_86 ::
+<span class="lineno">  142 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  143 </span>  () -&gt;
+<span class="lineno">  144 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  145 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  146 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  147 </span>  AgdaAny -&gt;
+<span class="lineno">  148 </span>  AgdaAny -&gt;
+<span class="lineno">  149 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  150 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">  151 </span><span class="decl"><span class="nottickedoff">d_sym_86 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7 = du_sym_86 v4 v5 v6 v7</span></span>
+<span class="lineno">  152 </span>du_sym_86 ::
+<span class="lineno">  153 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  154 </span>  AgdaAny -&gt;
+<span class="lineno">  155 </span>  AgdaAny -&gt;
+<span class="lineno">  156 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  157 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">du_sym_86 v0 v1 v2 v3</span>
+<span class="lineno">  159 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v3 of</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  161 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  162 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  163 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v6</span>
+<span class="lineno">  164 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  165 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  166 </span><span class="spaces">             </span><span class="nottickedoff">(coe v0 v1 v2 v6)</span>
+<span class="lineno">  167 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  168 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.trans
+<span class="lineno">  169 </span>d_trans_94 ::
+<span class="lineno">  170 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  171 </span>  () -&gt;
+<span class="lineno">  172 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  173 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  174 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  175 </span>  AgdaAny -&gt;
+<span class="lineno">  176 </span>  AgdaAny -&gt;
+<span class="lineno">  177 </span>  AgdaAny -&gt;
+<span class="lineno">  178 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  179 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  180 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">  181 </span><span class="decl"><span class="nottickedoff">d_trans_94 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7 v8 v9</span>
+<span class="lineno">  182 </span><span class="spaces">  </span><span class="nottickedoff">= du_trans_94 v4 v5 v6 v7 v8 v9</span></span>
+<span class="lineno">  183 </span>du_trans_94 ::
+<span class="lineno">  184 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  185 </span>  AgdaAny -&gt;
+<span class="lineno">  186 </span>  AgdaAny -&gt;
+<span class="lineno">  187 </span>  AgdaAny -&gt;
+<span class="lineno">  188 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  189 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  190 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">  191 </span><span class="decl"><span class="nottickedoff">du_trans_94 v0 v1 v2 v3 v4 v5</span>
+<span class="lineno">  192 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v4 of</span>
+<span class="lineno">  193 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  194 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v5 of</span>
+<span class="lineno">  195 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  196 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  197 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  198 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v9</span>
+<span class="lineno">  199 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  200 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  201 </span><span class="spaces">                    </span><span class="nottickedoff">v9</span>
+<span class="lineno">  202 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  203 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v8</span>
+<span class="lineno">  204 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v5 of</span>
+<span class="lineno">  205 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  206 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  207 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  208 </span><span class="spaces">                    </span><span class="nottickedoff">v8</span>
+<span class="lineno">  209 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v11</span>
+<span class="lineno">  210 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  211 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  212 </span><span class="spaces">                    </span><span class="nottickedoff">(coe v0 v1 v2 v3 v8 v11)</span>
+<span class="lineno">  213 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  214 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  215 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.antisym
+<span class="lineno">  216 </span>d_antisym_114 ::
+<span class="lineno">  217 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  218 </span>  () -&gt;
+<span class="lineno">  219 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  220 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  221 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  222 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  223 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  224 </span>  (AgdaAny -&gt;
+<span class="lineno">  225 </span>   AgdaAny -&gt;
+<span class="lineno">  226 </span>   AgdaAny -&gt;
+<span class="lineno">  227 </span>   AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  228 </span>  AgdaAny -&gt;
+<span class="lineno">  229 </span>  AgdaAny -&gt;
+<span class="lineno">  230 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  231 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  232 </span>  AgdaAny
+<span class="lineno">  233 </span><span class="decl"><span class="nottickedoff">d_antisym_114 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 ~v7 v8 ~v9 v10 v11</span>
+<span class="lineno">  234 </span><span class="spaces">  </span><span class="nottickedoff">= du_antisym_114 v6 v8 v10 v11</span></span>
+<span class="lineno">  235 </span>du_antisym_114 ::
+<span class="lineno">  236 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  237 </span>  AgdaAny -&gt;
+<span class="lineno">  238 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  239 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  240 </span>  AgdaAny
+<span class="lineno">  241 </span><span class="decl"><span class="nottickedoff">du_antisym_114 v0 v1 v2 v3</span>
+<span class="lineno">  242 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v2 of</span>
+<span class="lineno">  243 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  244 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe v0 v1</span>
+<span class="lineno">  245 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v6</span>
+<span class="lineno">  246 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">  247 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  248 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe v0 v1</span>
+<span class="lineno">  249 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v9</span>
+<span class="lineno">  250 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  251 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Negation.Core.du_contradiction_44</span>
+<span class="lineno">  252 </span><span class="spaces">                    </span><span class="nottickedoff">erased</span>
+<span class="lineno">  253 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  254 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  255 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.total
+<span class="lineno">  256 </span>d_total_140 ::
+<span class="lineno">  257 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  258 </span>  () -&gt;
+<span class="lineno">  259 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  260 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  261 </span>  (AgdaAny -&gt;
+<span class="lineno">  262 </span>   AgdaAny -&gt; MAlonzo.Code.Relation.Binary.Definitions.T_Tri_158) -&gt;
+<span class="lineno">  263 </span>  AgdaAny -&gt; AgdaAny -&gt; MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  264 </span><span class="decl"><span class="nottickedoff">d_total_140 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 = du_total_140 v4 v5 v6</span></span>
+<span class="lineno">  265 </span>du_total_140 ::
+<span class="lineno">  266 </span>  (AgdaAny -&gt;
+<span class="lineno">  267 </span>   AgdaAny -&gt; MAlonzo.Code.Relation.Binary.Definitions.T_Tri_158) -&gt;
+<span class="lineno">  268 </span>  AgdaAny -&gt; AgdaAny -&gt; MAlonzo.Code.Data.Sum.Base.T__'8846'__30
+<span class="lineno">  269 </span><span class="decl"><span class="nottickedoff">du_total_140 v0 v1 v2</span>
+<span class="lineno">  270 </span><span class="spaces">  </span><span class="nottickedoff">= let v3 = coe v0 v1 v2 in</span>
+<span class="lineno">  271 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  272 </span><span class="spaces">      </span><span class="nottickedoff">(case coe v3 of</span>
+<span class="lineno">  273 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Definitions.C_tri'60'_172 v4</span>
+<span class="lineno">  274 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  275 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38</span>
+<span class="lineno">  276 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  277 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  278 </span><span class="spaces">                   </span><span class="nottickedoff">v4)</span>
+<span class="lineno">  279 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Definitions.C_tri'8776'_180 v5</span>
+<span class="lineno">  280 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  281 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8321'_38</span>
+<span class="lineno">  282 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  283 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36)</span>
+<span class="lineno">  284 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Definitions.C_tri'62'_188 v6</span>
+<span class="lineno">  285 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  286 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Data.Sum.Base.C_inj'8322'_42</span>
+<span class="lineno">  287 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  288 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  289 </span><span class="spaces">                   </span><span class="nottickedoff">v6)</span>
+<span class="lineno">  290 </span><span class="spaces">         </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError)</span></span>
+<span class="lineno">  291 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.dec
+<span class="lineno">  292 </span>d_dec_174 ::
+<span class="lineno">  293 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  294 </span>  () -&gt;
+<span class="lineno">  295 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  296 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  297 </span>  (AgdaAny -&gt;
+<span class="lineno">  298 </span>   AgdaAny -&gt;
+<span class="lineno">  299 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">  300 </span>  (AgdaAny -&gt;
+<span class="lineno">  301 </span>   AgdaAny -&gt;
+<span class="lineno">  302 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">  303 </span>  AgdaAny -&gt;
+<span class="lineno">  304 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  305 </span><span class="decl"><span class="nottickedoff">d_dec_174 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7 = du_dec_174 v4 v5 v6 v7</span></span>
+<span class="lineno">  306 </span>du_dec_174 ::
+<span class="lineno">  307 </span>  (AgdaAny -&gt;
+<span class="lineno">  308 </span>   AgdaAny -&gt;
+<span class="lineno">  309 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">  310 </span>  (AgdaAny -&gt;
+<span class="lineno">  311 </span>   AgdaAny -&gt;
+<span class="lineno">  312 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">  313 </span>  AgdaAny -&gt;
+<span class="lineno">  314 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  315 </span><span class="decl"><span class="nottickedoff">du_dec_174 v0 v1 v2 v3</span>
+<span class="lineno">  316 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  317 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.du_map_18</span>
+<span class="lineno">  318 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8846''8660'Refl_84)</span>
+<span class="lineno">  319 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  320 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.du__'8846''45'dec__86</span>
+<span class="lineno">  321 </span><span class="spaces">         </span><span class="nottickedoff">(coe v0 v2 v3) (coe v1 v2 v3))</span></span>
+<span class="lineno">  322 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.decidable
+<span class="lineno">  323 </span>d_decidable_184 ::
+<span class="lineno">  324 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  325 </span>  () -&gt;
+<span class="lineno">  326 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  327 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  328 </span>  (AgdaAny -&gt;
+<span class="lineno">  329 </span>   AgdaAny -&gt; MAlonzo.Code.Relation.Binary.Definitions.T_Tri_158) -&gt;
+<span class="lineno">  330 </span>  AgdaAny -&gt;
+<span class="lineno">  331 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  332 </span><span class="decl"><span class="nottickedoff">d_decidable_184 ~v0 ~v1 ~v2 ~v3 v4 v5 v6</span>
+<span class="lineno">  333 </span><span class="spaces">  </span><span class="nottickedoff">= du_decidable_184 v4 v5 v6</span></span>
+<span class="lineno">  334 </span>du_decidable_184 ::
+<span class="lineno">  335 </span>  (AgdaAny -&gt;
+<span class="lineno">  336 </span>   AgdaAny -&gt; MAlonzo.Code.Relation.Binary.Definitions.T_Tri_158) -&gt;
+<span class="lineno">  337 </span>  AgdaAny -&gt;
+<span class="lineno">  338 </span>  AgdaAny -&gt; MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  339 </span><span class="decl"><span class="nottickedoff">du_decidable_184 v0 v1 v2</span>
+<span class="lineno">  340 </span><span class="spaces">  </span><span class="nottickedoff">= let v3 = coe v0 v1 v2 in</span>
+<span class="lineno">  341 </span><span class="spaces">    </span><span class="nottickedoff">coe</span>
+<span class="lineno">  342 </span><span class="spaces">      </span><span class="nottickedoff">(case coe v3 of</span>
+<span class="lineno">  343 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Definitions.C_tri'60'_172 v4</span>
+<span class="lineno">  344 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  345 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  346 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)</span>
+<span class="lineno">  347 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  348 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22</span>
+<span class="lineno">  349 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  350 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44</span>
+<span class="lineno">  351 </span><span class="spaces">                      </span><span class="nottickedoff">v4))</span>
+<span class="lineno">  352 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Definitions.C_tri'8776'_180 v5</span>
+<span class="lineno">  353 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  354 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  355 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)</span>
+<span class="lineno">  356 </span><span class="spaces">                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  357 </span><span class="spaces">                   </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22</span>
+<span class="lineno">  358 </span><span class="spaces">                   </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  359 </span><span class="spaces">                      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36))</span>
+<span class="lineno">  360 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Definitions.C_tri'62'_188 v6</span>
+<span class="lineno">  361 </span><span class="spaces">           </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  362 </span><span class="spaces">                </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  363 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span>
+<span class="lineno">  364 </span><span class="spaces">                </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)</span>
+<span class="lineno">  365 </span><span class="spaces">         </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError)</span></span>
+<span class="lineno">  366 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._..extendedlambda0
+<span class="lineno">  367 </span>d_'46'extendedlambda0_220 ::
+<span class="lineno">  368 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  369 </span>  () -&gt;
+<span class="lineno">  370 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  371 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  372 </span>  (AgdaAny -&gt;
+<span class="lineno">  373 </span>   AgdaAny -&gt; MAlonzo.Code.Relation.Binary.Definitions.T_Tri_158) -&gt;
+<span class="lineno">  374 </span>  AgdaAny -&gt;
+<span class="lineno">  375 </span>  AgdaAny -&gt;
+<span class="lineno">  376 </span>  (AgdaAny -&gt; MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  377 </span>  (MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  378 </span>   MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) -&gt;
+<span class="lineno">  379 </span>  AgdaAny -&gt;
+<span class="lineno">  380 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  381 </span>  MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
+<span class="lineno">  382 </span><span class="decl"><span class="nottickedoff">d_'46'extendedlambda0_220 = erased</span></span>
+<span class="lineno">  383 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.respˡ
+<span class="lineno">  384 </span>d_resp'737'_226 ::
+<span class="lineno">  385 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  386 </span>  () -&gt;
+<span class="lineno">  387 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  388 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  389 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  390 </span>  () -&gt;
+<span class="lineno">  391 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  392 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  393 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  394 </span>  AgdaAny -&gt;
+<span class="lineno">  395 </span>  AgdaAny -&gt;
+<span class="lineno">  396 </span>  AgdaAny -&gt;
+<span class="lineno">  397 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  398 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  399 </span><span class="decl"><span class="nottickedoff">d_resp'737'_226 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 v8 v9 v10 v11 v12</span>
+<span class="lineno">  400 </span><span class="spaces">  </span><span class="nottickedoff">= du_resp'737'_226 v8 v9 v10 v11 v12</span></span>
+<span class="lineno">  401 </span>du_resp'737'_226 ::
+<span class="lineno">  402 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  403 </span>  AgdaAny -&gt;
+<span class="lineno">  404 </span>  AgdaAny -&gt;
+<span class="lineno">  405 </span>  AgdaAny -&gt;
+<span class="lineno">  406 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  407 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  408 </span><span class="decl"><span class="nottickedoff">du_resp'737'_226 v0 v1 v2 v3 v4</span>
+<span class="lineno">  409 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v4 of</span>
+<span class="lineno">  410 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  411 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (\ v6 -&gt; v6)</span>
+<span class="lineno">  412 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v7</span>
+<span class="lineno">  413 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe v0 v1 v2 v3 v7</span>
+<span class="lineno">  414 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  415 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.respʳ
+<span class="lineno">  416 </span>d_resp'691'_234 ::
+<span class="lineno">  417 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  418 </span>  () -&gt;
+<span class="lineno">  419 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  420 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  421 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  422 </span>  () -&gt;
+<span class="lineno">  423 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  424 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  425 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  426 </span>  AgdaAny -&gt;
+<span class="lineno">  427 </span>  AgdaAny -&gt;
+<span class="lineno">  428 </span>  AgdaAny -&gt;
+<span class="lineno">  429 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  430 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  431 </span><span class="decl"><span class="nottickedoff">d_resp'691'_234 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7 = du_resp'691'_234</span></span>
+<span class="lineno">  432 </span>du_resp'691'_234 ::
+<span class="lineno">  433 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  434 </span>  AgdaAny -&gt;
+<span class="lineno">  435 </span>  AgdaAny -&gt;
+<span class="lineno">  436 </span>  AgdaAny -&gt;
+<span class="lineno">  437 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  438 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  439 </span><span class="decl"><span class="nottickedoff">du_resp'691'_234 = coe du_resp'737'_226</span></span>
+<span class="lineno">  440 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.resp
+<span class="lineno">  441 </span>d_resp_250 ::
+<span class="lineno">  442 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  443 </span>  () -&gt;
+<span class="lineno">  444 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  445 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  446 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  447 </span>  (AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  448 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  449 </span>  AgdaAny -&gt;
+<span class="lineno">  450 </span>  AgdaAny -&gt;
+<span class="lineno">  451 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  452 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  453 </span><span class="decl"><span class="nottickedoff">d_resp_250 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6 v7 v8 v9</span>
+<span class="lineno">  454 </span><span class="spaces">  </span><span class="nottickedoff">= du_resp_250 v6 v7 v8 v9</span></span>
+<span class="lineno">  455 </span>du_resp_250 ::
+<span class="lineno">  456 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  457 </span>  AgdaAny -&gt;
+<span class="lineno">  458 </span>  AgdaAny -&gt;
+<span class="lineno">  459 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30 -&gt;
+<span class="lineno">  460 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  461 </span><span class="decl"><span class="nottickedoff">du_resp_250 v0 v1 v2 v3</span>
+<span class="lineno">  462 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v3 of</span>
+<span class="lineno">  463 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span>
+<span class="lineno">  464 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe (\ v5 -&gt; v5)</span>
+<span class="lineno">  465 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_'91'_'93'_44 v6</span>
+<span class="lineno">  466 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe v0 v1 v2 v6</span>
+<span class="lineno">  467 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  468 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.resp₂
+<span class="lineno">  469 </span>d_resp'8322'_270 ::
+<span class="lineno">  470 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  471 </span>  () -&gt;
+<span class="lineno">  472 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  473 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  474 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  475 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  476 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 -&gt;
+<span class="lineno">  477 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  478 </span><span class="decl"><span class="nottickedoff">d_resp'8322'_270 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 = du_resp'8322'_270</span></span>
+<span class="lineno">  479 </span>du_resp'8322'_270 ::
+<span class="lineno">  480 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14 -&gt;
+<span class="lineno">  481 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  482 </span><span class="decl"><span class="nottickedoff">du_resp'8322'_270</span>
+<span class="lineno">  483 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  484 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.Product.Base.du_map_128 (coe du_resp'737'_226)</span>
+<span class="lineno">  485 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 -&gt; coe du_resp'691'_234))</span></span>
+<span class="lineno">  486 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._._~ᵒ_
+<span class="lineno">  487 </span>d__'126''7506'__282 ::
+<span class="lineno">  488 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  489 </span>  () -&gt;
+<span class="lineno">  490 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  491 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  492 </span><span class="decl"><span class="nottickedoff">d__'126''7506'__282 = erased</span></span>
+<span class="lineno">  493 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.isPreorder
+<span class="lineno">  494 </span>d_isPreorder_284 ::
+<span class="lineno">  495 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  496 </span>  () -&gt;
+<span class="lineno">  497 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  498 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  499 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  500 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+<span class="lineno">  501 </span><span class="decl"><span class="nottickedoff">d_isPreorder_284 ~v0 ~v1 ~v2 ~v3 v4 = du_isPreorder_284 v4</span></span>
+<span class="lineno">  502 </span>du_isPreorder_284 ::
+<span class="lineno">  503 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  504 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPreorder_70
+<span class="lineno">  505 </span><span class="decl"><span class="nottickedoff">du_isPreorder_284 v0</span>
+<span class="lineno">  506 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  507 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsPreorder'46'constructor_4003</span>
+<span class="lineno">  508 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  509 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_isEquivalence_396)</span>
+<span class="lineno">  510 </span><span class="spaces">      </span><span class="nottickedoff">(\ v1 v2 v3 -&gt; coe du_'46'extendedlambda0_288)</span>
+<span class="lineno">  511 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_trans_94 (coe v0))</span></span>
+<span class="lineno">  512 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._..extendedlambda0
+<span class="lineno">  513 </span>d_'46'extendedlambda0_288 ::
+<span class="lineno">  514 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  515 </span>  () -&gt;
+<span class="lineno">  516 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  517 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  518 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  519 </span>  AgdaAny -&gt;
+<span class="lineno">  520 </span>  AgdaAny -&gt;
+<span class="lineno">  521 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 -&gt;
+<span class="lineno">  522 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">  523 </span><span class="decl"><span class="nottickedoff">d_'46'extendedlambda0_288 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 ~v6 ~v7</span>
+<span class="lineno">  524 </span><span class="spaces">  </span><span class="nottickedoff">= du_'46'extendedlambda0_288</span></span>
+<span class="lineno">  525 </span>du_'46'extendedlambda0_288 ::
+<span class="lineno">  526 </span>  MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.T_ReflClosure_30
+<span class="lineno">  527 </span><span class="decl"><span class="nottickedoff">du_'46'extendedlambda0_288</span>
+<span class="lineno">  528 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  529 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.C_refl_36</span></span>
+<span class="lineno">  530 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.isPartialOrder
+<span class="lineno">  531 </span>d_isPartialOrder_290 ::
+<span class="lineno">  532 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  533 </span>  () -&gt;
+<span class="lineno">  534 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  535 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  536 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsStrictPartialOrder_290 -&gt;
+<span class="lineno">  537 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPartialOrder_174
+<span class="lineno">  538 </span><span class="decl"><span class="nottickedoff">d_isPartialOrder_290 ~v0 ~v1 ~v2 ~v3 v4 = du_isPartialOrder_290 v4</span></span>
+<span class="lineno">  539 </span>du_isPartialOrder_290 ::
+<span class="lineno">  540 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsStrictPartialOrder_290 -&gt;
+<span class="lineno">  541 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsPartialOrder_174
+<span class="lineno">  542 </span><span class="decl"><span class="nottickedoff">du_isPartialOrder_290 v0</span>
+<span class="lineno">  543 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  544 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsPartialOrder'46'constructor_9853</span>
+<span class="lineno">  545 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  546 </span><span class="spaces">         </span><span class="nottickedoff">du_isPreorder_284</span>
+<span class="lineno">  547 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Binary.Structures.d_trans_306 (coe v0)))</span>
+<span class="lineno">  548 </span><span class="spaces">      </span><span class="nottickedoff">(\ v1 v2 v3 v4 -&gt; coe du_antisym_114 erased v1 v3 v4)</span></span>
+<span class="lineno">  549 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.isDecPartialOrder
+<span class="lineno">  550 </span>d_isDecPartialOrder_326 ::
+<span class="lineno">  551 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  552 </span>  () -&gt;
+<span class="lineno">  553 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  554 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  555 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecStrictPartialOrder_336 -&gt;
+<span class="lineno">  556 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecPartialOrder_224
+<span class="lineno">  557 </span><span class="decl"><span class="nottickedoff">d_isDecPartialOrder_326 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  558 </span><span class="spaces">  </span><span class="nottickedoff">= du_isDecPartialOrder_326 v4</span></span>
+<span class="lineno">  559 </span>du_isDecPartialOrder_326 ::
+<span class="lineno">  560 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecStrictPartialOrder_336 -&gt;
+<span class="lineno">  561 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecPartialOrder_224
+<span class="lineno">  562 </span><span class="decl"><span class="nottickedoff">du_isDecPartialOrder_326 v0</span>
+<span class="lineno">  563 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  564 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsDecPartialOrder'46'constructor_11683</span>
+<span class="lineno">  565 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  566 </span><span class="spaces">         </span><span class="nottickedoff">du_isPartialOrder_290</span>
+<span class="lineno">  567 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  568 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_isStrictPartialOrder_346</span>
+<span class="lineno">  569 </span><span class="spaces">            </span><span class="nottickedoff">(coe v0)))</span>
+<span class="lineno">  570 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  571 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d__'8799'__348 (coe v0))</span>
+<span class="lineno">  572 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  573 </span><span class="spaces">         </span><span class="nottickedoff">du_dec_174</span>
+<span class="lineno">  574 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  575 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d__'8799'__348 (coe v0))</span>
+<span class="lineno">  576 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  577 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d__'60''63'__350 (coe v0)))</span></span>
+<span class="lineno">  578 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.isTotalOrder
+<span class="lineno">  579 </span>d_isTotalOrder_374 ::
+<span class="lineno">  580 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  581 </span>  () -&gt;
+<span class="lineno">  582 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  583 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  584 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsStrictTotalOrder_534 -&gt;
+<span class="lineno">  585 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsTotalOrder_404
+<span class="lineno">  586 </span><span class="decl"><span class="nottickedoff">d_isTotalOrder_374 ~v0 ~v1 ~v2 ~v3 v4 = du_isTotalOrder_374 v4</span></span>
+<span class="lineno">  587 </span>du_isTotalOrder_374 ::
+<span class="lineno">  588 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsStrictTotalOrder_534 -&gt;
+<span class="lineno">  589 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsTotalOrder_404
+<span class="lineno">  590 </span><span class="decl"><span class="nottickedoff">du_isTotalOrder_374 v0</span>
+<span class="lineno">  591 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  592 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsTotalOrder'46'constructor_20555</span>
+<span class="lineno">  593 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  594 </span><span class="spaces">         </span><span class="nottickedoff">du_isPartialOrder_290</span>
+<span class="lineno">  595 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  596 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_isStrictPartialOrder_542</span>
+<span class="lineno">  597 </span><span class="spaces">            </span><span class="nottickedoff">(coe v0)))</span>
+<span class="lineno">  598 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  599 </span><span class="spaces">         </span><span class="nottickedoff">du_total_140</span>
+<span class="lineno">  600 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  601 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_compare_544 (coe v0)))</span></span>
+<span class="lineno">  602 </span>-- Relation.Binary.Construct.Closure.Reflexive.Properties._.isDecTotalOrder
+<span class="lineno">  603 </span>d_isDecTotalOrder_428 ::
+<span class="lineno">  604 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  605 </span>  () -&gt;
+<span class="lineno">  606 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  607 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  608 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsStrictTotalOrder_534 -&gt;
+<span class="lineno">  609 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecTotalOrder_460
+<span class="lineno">  610 </span><span class="decl"><span class="nottickedoff">d_isDecTotalOrder_428 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  611 </span><span class="spaces">  </span><span class="nottickedoff">= du_isDecTotalOrder_428 v4</span></span>
+<span class="lineno">  612 </span>du_isDecTotalOrder_428 ::
+<span class="lineno">  613 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsStrictTotalOrder_534 -&gt;
+<span class="lineno">  614 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecTotalOrder_460
+<span class="lineno">  615 </span><span class="decl"><span class="nottickedoff">du_isDecTotalOrder_428 v0</span>
+<span class="lineno">  616 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  617 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsDecTotalOrder'46'constructor_22695</span>
+<span class="lineno">  618 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_isTotalOrder_374 (coe v0))</span>
+<span class="lineno">  619 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  620 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.du__'8799'__562 (coe v0))</span>
+<span class="lineno">  621 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  622 </span><span class="spaces">         </span><span class="nottickedoff">du_dec_174</span>
+<span class="lineno">  623 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  624 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.du__'8799'__562 (coe v0))</span>
+<span class="lineno">  625 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  626 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.du__'60''63'__564</span>
+<span class="lineno">  627 </span><span class="spaces">            </span><span class="nottickedoff">(coe v0)))</span></span>
+
+</pre>
+</body>
+</html>

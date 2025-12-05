@@ -1,0 +1,4445 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Test</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Test.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Test</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Tasty extras</a
+	      ></li
+	    ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:mapTestLimit"
+	      >mapTestLimit</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	      >TestLimit</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	      >TestLimit</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withAtLeastTests"
+	      >withAtLeastTests</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	      >TestLimit</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mapTestLimitAtLeast"
+	      >mapTestLimitAtLeast</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	      >TestLimit</a
+	      > &#8594; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	      >TestLimit</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	      >TestLimit</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkFails"
+	      >checkFails</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:isSerialisable"
+	      >isSerialisable</a
+	      > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:ToTPlc"
+	      >ToTPlc</a
+	      > a uni fun | a &#8594; uni fun <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:toTPlc"
+		  >toTPlc</a
+		  > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		  >ExceptT</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+		  >SomeException</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		  >IO</a
+		  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+		  >Program</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:ToUPlc"
+	      >ToUPlc</a
+	      > a uni fun | a &#8594; uni fun <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:toUPlc"
+		  >toUPlc</a
+		  > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		  >ExceptT</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+		  >SomeException</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		  >IO</a
+		  > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		  >Program</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pureTry"
+	      >pureTry</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+	      >Exception</a
+	      > e &#8658; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > e a</li
+	    ><li class="src short"
+	    ><a href="#v:catchAll"
+	      >catchAll</a
+	      > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:rethrow"
+	      >rethrow</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:runTPlc"
+	      >runTPlc</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	      >ToTPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	      >EvaluationResult</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()))</li
+	    ><li class="src short"
+	    ><a href="#v:runUPlc"
+	      >runUPlc</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:runUPlcBudget"
+	      >runUPlcBudget</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:runUPlcFull"
+	      >runUPlcFull</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > (), <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      >, [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      >])</li
+	    ><li class="src short"
+	    ><a href="#v:runUPlcLogs"
+	      >runUPlcLogs</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:ppCatch"
+	      >ppCatch</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:ppCatchReadable"
+	      >ppCatchReadable</a
+	      > &#8759; &#8704; a ann. <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	      >PrettyBy</a
+	      > (<a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+	      >PrettyConfigReadable</a
+	      > <a href="../plutus-core/PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	      >PrettyConfigName</a
+	      >) a &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann)</li
+	    ><li class="src short"
+	    ><a href="#v:goldenTPlc"
+	      >goldenTPlc</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	      >ToTPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenTPlcReadable"
+	      >goldenTPlcReadable</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	      >ToTPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUPlc"
+	      >goldenUPlc</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUPlcReadable"
+	      >goldenUPlcReadable</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenTEval"
+	      >goldenTEval</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	      >ToTPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUEval"
+	      >goldenUEval</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUEvalLogs"
+	      >goldenUEvalLogs</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUEvalProfile"
+	      >goldenUEvalProfile</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUEvalProfile-39-"
+	      >goldenUEvalProfile'</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUEvalBudget"
+	      >goldenUEvalBudget</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenAstSize"
+	      >goldenAstSize</a
+	      > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:initialSrcSpan"
+	      >initialSrcSpan</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	      >FilePath</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:topSrcSpan"
+	      >topSrcSpan</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:NoMarkRenameT"
+	      >NoMarkRenameT</a
+	      > ren m a = <a href="#v:NoMarkRenameT"
+	      >NoMarkRenameT</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unNoMarkRenameT"
+		  >unNoMarkRenameT</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+		  >RenameT</a
+		  > ren m a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:noMarkRename"
+	      >noMarkRename</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > ren &#8658; (t &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+	      >NoMarkRenameT</a
+	      > ren m t) &#8594; t &#8594; m t</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:NoRenameT"
+	      >NoRenameT</a
+	      > (ren &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) m a = <a href="#v:NoRenameT"
+	      >NoRenameT</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unNoRenameT"
+		  >unNoRenameT</a
+		  > &#8759; m a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:noRename"
+	      >noRename</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; (t &#8594; m ()) &#8594; (t &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+	      >NoRenameT</a
+	      > ren m t) &#8594; t &#8594; m t</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:BrokenRenameT"
+	      >BrokenRenameT</a
+	      > ren m a = <a href="#v:BrokenRenameT"
+	      >BrokenRenameT</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unBrokenRenameT"
+		  >unBrokenRenameT</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+		  >StateT</a
+		  > ren m a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:runBrokenRenameT"
+	      >runBrokenRenameT</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > ren) &#8658; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+	      >BrokenRenameT</a
+	      > ren m a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:brokenRename"
+	      >brokenRename</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > ren) &#8658; (t &#8594; m ()) &#8594; (t &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+	      >BrokenRenameT</a
+	      > ren m t) &#8594; t &#8594; m t</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Prerename"
+	      >Prerename</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:PrerenameYes"
+		  >PrerenameYes</a
+		  ></li
+		><li
+		>| <a href="#v:PrerenameNo"
+		  >PrerenameNo</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BindingRemoval"
+	      >BindingRemoval</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:BindingRemovalOk"
+		  >BindingRemovalOk</a
+		  ></li
+		><li
+		>| <a href="#v:BindingRemovalNotOk"
+		  >BindingRemovalNotOk</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:prop_scopingFor"
+	      >prop_scopingFor</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+	      >Scoping</a
+	      > t) &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (t ann) &#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+	      >BindingRemoval</a
+	      > &#8594; <a href="PlutusCore-Test.html#t:Prerename" title="PlutusCore.Test"
+	      >Prerename</a
+	      > &#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scopingGood"
+	      >test_scopingGood</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+	      >Scoping</a
+	      > t) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (t ann) &#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+	      >BindingRemoval</a
+	      > &#8594; <a href="PlutusCore-Test.html#t:Prerename" title="PlutusCore.Test"
+	      >Prerename</a
+	      > &#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scopingBad"
+	      >test_scopingBad</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+	      >Scoping</a
+	      > t) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (t ann) &#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+	      >BindingRemoval</a
+	      > &#8594; <a href="PlutusCore-Test.html#t:Prerename" title="PlutusCore.Test"
+	      >Prerename</a
+	      > &#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_scopingSpoilRenamer"
+	      >test_scopingSpoilRenamer</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+	      >Scoping</a
+	      > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	      >Monoid</a
+	      > ren) &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (t ann) &#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > ()) &#8594; (&#8704; m. (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	      >MonadReader</a
+	      > ren m) &#8658; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      > &#8594; m (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    >module <a href="Test-Tasty-Extras.html"
+	      >Test.Tasty.Extras</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapTestLimit" class="def"
+	    >mapTestLimit</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	    >TestLimit</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	    >TestLimit</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/PlutusCore.Test.html#mapTestLimit" class="link"
+	    >Source</a
+	    > <a href="#v:mapTestLimit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map the <code
+	      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+		>TestLimit</a
+		></code
+	      > of a <code
+	      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+		>Property</a
+		></code
+	      > with a given function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withAtLeastTests" class="def"
+	    >withAtLeastTests</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	    >TestLimit</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/PlutusCore.Test.html#withAtLeastTests" class="link"
+	    >Source</a
+	    > <a href="#v:withAtLeastTests" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the number of times a property should be executed before it is considered successful,
+unless it's already higher than that.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapTestLimitAtLeast" class="def"
+	    >mapTestLimitAtLeast</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	    >TestLimit</a
+	    > &#8594; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	    >TestLimit</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:TestLimit" title="Hedgehog"
+	    >TestLimit</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/PlutusCore.Test.html#mapTestLimitAtLeast" class="link"
+	    >Source</a
+	    > <a href="#v:mapTestLimitAtLeast" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the number of times a property should be executed before it is considered successful,
+unless the given function scales it higher than that.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkFails" class="def"
+	    >checkFails</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Test.html#checkFails" class="link"
+	    >Source</a
+	    > <a href="#v:checkFails" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check that the given <code
+	      ><a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+		>Property</a
+		></code
+	      > fails.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isSerialisable" class="def"
+	    >isSerialisable</a
+	    > &#8759; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusCore.Test.html#isSerialisable" class="link"
+	    >Source</a
+	    > <a href="#v:isSerialisable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check whether the given constant can be serialised. Useful for tests of the
+ parser/deserializer where we need to filter out unprintable/unserialisable terms. Technically,
+ G1, G2 elements etc can be printed but not serialised, but here for simplicity we just assume
+ that all unserialisable terms are unprintable too.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:ToTPlc" class="def"
+	    >ToTPlc</a
+	    > a uni fun | a &#8594; uni fun <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Test.html#ToTPlc" class="link"
+	    >Source</a
+	    > <a href="#t:ToTPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Class for ad-hoc overloading of things which can be turned into a PLC program. Any errors
+from the process should be caught.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:toTPlc" class="def"
+	      >toTPlc</a
+	      > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) <a href="src/PlutusCore.Test.html#toTPlc" class="link"
+	      >Source</a
+	      > <a href="#v:toTPlc" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ToTPlc"
+	    >Instances</h4
+	    ><details id="i:ToTPlc" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToTPlc:ToTPlc:1"
+		      ></span
+		      > <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+		      >ToTPlc</a
+		      > a uni fun &#8658; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+		      >ToTPlc</a
+		      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		      >ExceptT</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+		      >SomeException</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		      >IO</a
+		      > a) uni fun</span
+		    > <a href="src/PlutusCore.Test.html#line-178" class="link"
+		    >Source</a
+		    > <a href="#t:ToTPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToTPlc:ToTPlc:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toTPlc"
+			  >toTPlc</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toTPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toTPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToTPlc:ToTPlc:2"
+		      ></span
+		      > <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+		      >ToTPlc</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun ()) uni fun</span
+		    > <a href="src/PlutusCore.Test.html#line-181" class="link"
+		    >Source</a
+		    > <a href="#t:ToTPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToTPlc:ToTPlc:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toTPlc"
+			  >toTPlc</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun () &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toTPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toTPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToTPlc:ToTPlc:3"
+		      ></span
+		      > (<a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		      >GEq</a
+		      > uni, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		      >Typecheckable</a
+		      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaseBuiltin</a
+		      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		      >AnnInline</a
+		      > a, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		      >CostingPart</a
+		      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		      >BuiltinsInfo</a
+		      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+		      >RewriteRules</a
+		      > uni fun)) &#8658; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+		      >ToTPlc</a
+		      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun a) uni fun</span
+		    > <a href="src/PlutusIR.Test.html#line-55" class="link"
+		    >Source</a
+		    > <a href="#t:ToTPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToTPlc:ToTPlc:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Test.html"
+			>PlutusIR.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toTPlc"
+			  >toTPlc</a
+			  > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/PlutusCore-Core-Type.html#v:Program0" title="PlutusCore.Core.Type"
+			  >Program0</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toTPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toTPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:ToUPlc" class="def"
+	    >ToUPlc</a
+	    > a uni fun | a &#8594; uni fun <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Test.html#ToUPlc" class="link"
+	    >Source</a
+	    > <a href="#t:ToUPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:toUPlc" class="def"
+	      >toUPlc</a
+	      > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	      >ExceptT</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	      >SomeException</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) <a href="src/PlutusCore.Test.html#toUPlc" class="link"
+	      >Source</a
+	      > <a href="#v:toUPlc" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ToUPlc"
+	    >Instances</h4
+	    ><details id="i:ToUPlc" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToUPlc:ToUPlc:1"
+		      ></span
+		      > <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+		      >ToUPlc</a
+		      > a uni fun &#8658; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+		      >ToUPlc</a
+		      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		      >ExceptT</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+		      >SomeException</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		      >IO</a
+		      > a) uni fun</span
+		    > <a href="src/PlutusCore.Test.html#line-187" class="link"
+		    >Source</a
+		    > <a href="#t:ToUPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToUPlc:ToUPlc:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toUPlc"
+			  >toUPlc</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toUPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toUPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToUPlc:ToUPlc:2"
+		      ></span
+		      > <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+		      >ToUPlc</a
+		      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		      >NamedDeBruijn</a
+		      > uni fun ()) uni fun</span
+		    > <a href="src/PlutusCore.Test.html#line-206" class="link"
+		    >Source</a
+		    > <a href="#t:ToUPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToUPlc:ToUPlc:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toUPlc"
+			  >toUPlc</a
+			  > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > uni fun () &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toUPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toUPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToUPlc:ToUPlc:3"
+		      ></span
+		      > <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+		      >ToUPlc</a
+		      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun ()) uni fun</span
+		    > <a href="src/PlutusCore.Test.html#line-190" class="link"
+		    >Source</a
+		    > <a href="#t:ToUPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToUPlc:ToUPlc:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toUPlc"
+			  >toUPlc</a
+			  > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun () &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toUPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toUPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToUPlc:ToUPlc:4"
+		      ></span
+		      > (<a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		      >Typecheckable</a
+		      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaseBuiltin</a
+		      > uni, <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		      >Hashable</a
+		      > fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		      >GEq</a
+		      > uni, <a href="../plutus-core/Universe-Core.html#t:Closed" title="Universe.Core"
+		      >Closed</a
+		      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      >) &#8658; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+		      >ToUPlc</a
+		      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun ()) uni fun</span
+		    > <a href="src/PlutusCore.Test.html#line-194" class="link"
+		    >Source</a
+		    > <a href="#t:ToUPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToUPlc:ToUPlc:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toUPlc"
+			  >toUPlc</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun () &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#v:Program0" title="UntypedPlutusCore.Core.Type"
+			  >Program0</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toUPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toUPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:ToUPlc:ToUPlc:5"
+		      ></span
+		      > (<a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+		      >GEq</a
+		      > uni, <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+		      >Everywhere</a
+		      > uni <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      >, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+		      >Typecheckable</a
+		      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+		      >CaseBuiltin</a
+		      > uni, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > fun, <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		      >Hashable</a
+		      > fun, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+		      >Typeable</a
+		      > a, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a, <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		      >AnnInline</a
+		      > a, <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+		      >CostingPart</a
+		      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="../plutus-core/PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+		      >BuiltinsInfo</a
+		      > uni fun), <a href="https://hackage.haskell.org/package/data-default-class-0.2.0.0/docs/Data-Default-Class.html#t:Default" title="Data.Default.Class"
+		      >Default</a
+		      > (<a href="../plutus-core/PlutusIR-Transform-RewriteRules-Internal.html#t:RewriteRules" title="PlutusIR.Transform.RewriteRules.Internal"
+		      >RewriteRules</a
+		      > uni fun)) &#8658; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+		      >ToUPlc</a
+		      > (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun a) uni fun</span
+		    > <a href="src/PlutusIR.Test.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:ToUPlc" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:ToUPlc:ToUPlc:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Test.html"
+			>PlutusIR.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toUPlc"
+			  >toUPlc</a
+			  > &#8759; <a href="../plutus-core/PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+			  >Program</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#v:Program0" title="UntypedPlutusCore.Core.Type"
+			  >Program0</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()) <a href="src/PlutusCore.Test.html#toUPlc" class="link"
+			  >Source</a
+			  > <a href="#v:toUPlc" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pureTry" class="def"
+	    >pureTry</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+	    >Exception</a
+	    > e &#8658; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > e a <a href="src/PlutusCore.Test.html#pureTry" class="link"
+	    >Source</a
+	    > <a href="#v:pureTry" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:catchAll" class="def"
+	    >catchAll</a
+	    > &#8759; a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a <a href="src/PlutusCore.Test.html#catchAll" class="link"
+	    >Source</a
+	    > <a href="#v:catchAll" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rethrow" class="def"
+	    >rethrow</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a <a href="src/PlutusCore.Test.html#rethrow" class="link"
+	    >Source</a
+	    > <a href="#v:rethrow" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTPlc" class="def"
+	    >runTPlc</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	    >ToTPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	    >EvaluationResult</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ())) <a href="src/PlutusCore.Test.html#runTPlc" class="link"
+	    >Source</a
+	    > <a href="#v:runTPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runUPlc" class="def"
+	    >runUPlc</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ()) <a href="src/PlutusCore.Test.html#runUPlc" class="link"
+	    >Source</a
+	    > <a href="#v:runUPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runUPlcBudget" class="def"
+	    >runUPlcBudget</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > <a href="src/PlutusCore.Test.html#runUPlcBudget" class="link"
+	    >Source</a
+	    > <a href="#v:runUPlcBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runUPlcFull" class="def"
+	    >runUPlcFull</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > (), <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    >, [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    >]) <a href="src/PlutusCore.Test.html#runUPlcFull" class="link"
+	    >Source</a
+	    > <a href="#v:runUPlcFull" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runUPlcLogs" class="def"
+	    >runUPlcLogs</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; [a] &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    >] <a href="src/PlutusCore.Test.html#runUPlcLogs" class="link"
+	    >Source</a
+	    > <a href="#v:runUPlcLogs" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ppCatch" class="def"
+	    >ppCatch</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann) <a href="src/PlutusCore.Test.html#ppCatch" class="link"
+	    >Source</a
+	    > <a href="#v:ppCatch" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ppCatchReadable" class="def"
+	    >ppCatchReadable</a
+	    > &#8759; &#8704; a ann. <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	    >PrettyBy</a
+	    > (<a href="../plutus-core/PlutusCore-Pretty-Readable.html#t:PrettyConfigReadable" title="PlutusCore.Pretty.Readable"
+	    >PrettyConfigReadable</a
+	    > <a href="../plutus-core/PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	    >PrettyConfigName</a
+	    >) a &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+	    >ExceptT</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+	    >SomeException</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (<a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann) <a href="src/PlutusCore.Test.html#ppCatchReadable" class="link"
+	    >Source</a
+	    > <a href="#v:ppCatchReadable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenTPlc" class="def"
+	    >goldenTPlc</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	    >ToTPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenTPlc" class="link"
+	    >Source</a
+	    > <a href="#v:goldenTPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenTPlcReadable" class="def"
+	    >goldenTPlcReadable</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	    >ToTPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenTPlcReadable" class="link"
+	    >Source</a
+	    > <a href="#v:goldenTPlcReadable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUPlc" class="def"
+	    >goldenUPlc</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenUPlc" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUPlcReadable" class="def"
+	    >goldenUPlcReadable</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenUPlcReadable" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUPlcReadable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenTEval" class="def"
+	    >goldenTEval</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	    >ToTPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenTEval" class="link"
+	    >Source</a
+	    > <a href="#v:goldenTEval" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUEval" class="def"
+	    >goldenUEval</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenUEval" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUEval" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUEvalLogs" class="def"
+	    >goldenUEvalLogs</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenUEvalLogs" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUEvalLogs" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUEvalProfile" class="def"
+	    >goldenUEvalProfile</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenUEvalProfile" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUEvalProfile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This is mostly useful for profiling a test that is normally
+ tested with one of the other functions, as it's a drop-in
+ replacement and you can then pass the output into <code
+	      >traceToStacks</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUEvalProfile-39-" class="def"
+	    >goldenUEvalProfile'</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenUEvalProfile%27" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUEvalProfile-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This is mostly useful for profiling a test that is normally
+ tested with one of the other functions, as it's a drop-in
+ replacement and you can then pass the output into <code
+	      >traceToStacks</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUEvalBudget" class="def"
+	    >goldenUEvalBudget</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; [a] &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenUEvalBudget" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUEvalBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenAstSize" class="def"
+	    >goldenAstSize</a
+	    > &#8759; <a href="PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusCore.Test.html#goldenAstSize" class="link"
+	    >Source</a
+	    > <a href="#v:goldenAstSize" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:initialSrcSpan" class="def"
+	    >initialSrcSpan</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:FilePath" title="System.IO"
+	    >FilePath</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/PlutusCore.Test.html#initialSrcSpan" class="link"
+	    >Source</a
+	    > <a href="#v:initialSrcSpan" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A made-up <code
+	      ><a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		>SrcSpan</a
+		></code
+	      > for testing.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:topSrcSpan" class="def"
+	    >topSrcSpan</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/PlutusCore.Test.html#topSrcSpan" class="link"
+	    >Source</a
+	    > <a href="#v:topSrcSpan" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:NoMarkRenameT" class="def"
+	    >NoMarkRenameT</a
+	    > ren m a <a href="src/PlutusCore.Test.html#NoMarkRenameT" class="link"
+	    >Source</a
+	    > <a href="#t:NoMarkRenameT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A version of <code
+	      >RenameT</code
+	      > that fails to take free variables into account.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NoMarkRenameT" class="def"
+		  >NoMarkRenameT</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unNoMarkRenameT" class="def"
+			  >unNoMarkRenameT</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Rename-Monad.html#t:RenameT" title="PlutusCore.Rename.Monad"
+			  >RenameT</a
+			  > ren m a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:NoMarkRenameT"
+	    >Instances</h4
+	    ><details id="i:NoMarkRenameT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoMarkRenameT:MonadReader:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > ren (<a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+		      >NoMarkRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-480" class="link"
+		    >Source</a
+		    > <a href="#t:NoMarkRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoMarkRenameT:MonadReader:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m ren <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; (ren &#8594; ren) &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; (ren &#8594; a) &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoMarkRenameT:Alternative:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Alternative" title="Control.Applicative"
+		      >Alternative</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Alternative" title="Control.Applicative"
+		      >Alternative</a
+		      > (<a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+		      >NoMarkRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-478" class="link"
+		    >Source</a
+		    > <a href="#t:NoMarkRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoMarkRenameT:Alternative:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:empty"
+			  >empty</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:empty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--124--62-"
+			  >(&lt;|&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--124--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:some"
+			  >some</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:some" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:many"
+			  >many</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:many" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoMarkRenameT:Applicative:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+		      >NoMarkRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-477" class="link"
+		    >Source</a
+		    > <a href="#t:NoMarkRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoMarkRenameT:Applicative:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m (a &#8594; b) &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoMarkRenameT:Functor:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+		      >NoMarkRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-476" class="link"
+		    >Source</a
+		    > <a href="#t:NoMarkRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoMarkRenameT:Functor:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoMarkRenameT:Monad:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+		      >NoMarkRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-479" class="link"
+		    >Source</a
+		    > <a href="#t:NoMarkRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoMarkRenameT:Monad:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; (a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b) &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoMarkRenameT:MonadQuote:6"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+		      >NoMarkRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-481" class="link"
+		    >Source</a
+		    > <a href="#t:NoMarkRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoMarkRenameT:MonadQuote:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+			  >NoMarkRenameT</a
+			  > ren m a <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:noMarkRename" class="def"
+	    >noMarkRename</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > ren &#8658; (t &#8594; <a href="PlutusCore-Test.html#t:NoMarkRenameT" title="PlutusCore.Test"
+	    >NoMarkRenameT</a
+	    > ren m t) &#8594; t &#8594; m t <a href="src/PlutusCore.Test.html#noMarkRename" class="link"
+	    >Source</a
+	    > <a href="#v:noMarkRename" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:NoRenameT" class="def"
+	    >NoRenameT</a
+	    > (ren &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) m a <a href="src/PlutusCore.Test.html#NoRenameT" class="link"
+	    >Source</a
+	    > <a href="#t:NoRenameT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A version of <code
+	      >RenameT</code
+	      > that does not perform any renaming at all.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NoRenameT" class="def"
+		  >NoRenameT</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unNoRenameT" class="def"
+			  >unNoRenameT</a
+			  > &#8759; m a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:NoRenameT"
+	    >Instances</h4
+	    ><details id="i:NoRenameT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoRenameT:MonadReader:1"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > ren) &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > ren (<a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+		      >NoRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-503" class="link"
+		    >Source</a
+		    > <a href="#t:NoRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoRenameT:MonadReader:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m ren <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; (ren &#8594; ren) &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; (ren &#8594; a) &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoRenameT:Alternative:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Alternative" title="Control.Applicative"
+		      >Alternative</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Alternative" title="Control.Applicative"
+		      >Alternative</a
+		      > (<a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+		      >NoRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-498" class="link"
+		    >Source</a
+		    > <a href="#t:NoRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoRenameT:Alternative:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:empty"
+			  >empty</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:empty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--124--62-"
+			  >(&lt;|&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--124--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:some"
+			  >some</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:some" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:many"
+			  >many</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:many" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoRenameT:Applicative:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+		      >NoRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-497" class="link"
+		    >Source</a
+		    > <a href="#t:NoRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoRenameT:Applicative:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m (a &#8594; b) &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoRenameT:Functor:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+		      >NoRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-496" class="link"
+		    >Source</a
+		    > <a href="#t:NoRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoRenameT:Functor:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoRenameT:Monad:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+		      >NoRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-499" class="link"
+		    >Source</a
+		    > <a href="#t:NoRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoRenameT:Monad:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; (a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b) &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:NoRenameT:MonadQuote:6"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+		      >NoRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-500" class="link"
+		    >Source</a
+		    > <a href="#t:NoRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:NoRenameT:MonadQuote:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+			  >NoRenameT</a
+			  > ren m a <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:noRename" class="def"
+	    >noRename</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; (t &#8594; m ()) &#8594; (t &#8594; <a href="PlutusCore-Test.html#t:NoRenameT" title="PlutusCore.Test"
+	    >NoRenameT</a
+	    > ren m t) &#8594; t &#8594; m t <a href="src/PlutusCore.Test.html#noRename" class="link"
+	    >Source</a
+	    > <a href="#v:noRename" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:BrokenRenameT" class="def"
+	    >BrokenRenameT</a
+	    > ren m a <a href="src/PlutusCore.Test.html#BrokenRenameT" class="link"
+	    >Source</a
+	    > <a href="#t:BrokenRenameT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A broken version of <code
+	      >RenameT</code
+	      > whose <code
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#v:local" title="Control.Monad.Reader.Class"
+		>local</a
+		></code
+	      > updates the scope globally
+(as opposed to locally).</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BrokenRenameT" class="def"
+		  >BrokenRenameT</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unBrokenRenameT" class="def"
+			  >unBrokenRenameT</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+			  >StateT</a
+			  > ren m a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BrokenRenameT"
+	    >Instances</h4
+	    ><details id="i:BrokenRenameT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BrokenRenameT:MonadReader:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > ren (<a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+		      >BrokenRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-530" class="link"
+		    >Source</a
+		    > <a href="#t:BrokenRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BrokenRenameT:MonadReader:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m ren <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; (ren &#8594; ren) &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; (ren &#8594; a) &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BrokenRenameT:MonadState:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+		      >MonadState</a
+		      > ren (<a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+		      >BrokenRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-526" class="link"
+		    >Source</a
+		    > <a href="#t:BrokenRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BrokenRenameT:MonadState:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:get"
+			  >get</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m ren <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:get" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:put"
+			  >put</a
+			  > &#8759; ren &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m () <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:put" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:state"
+			  >state</a
+			  > &#8759; (ren &#8594; (a, ren)) &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:state" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BrokenRenameT:Alternative:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+		      >MonadPlus</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Alternative" title="Control.Applicative"
+		      >Alternative</a
+		      > (<a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+		      >BrokenRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-524" class="link"
+		    >Source</a
+		    > <a href="#t:BrokenRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BrokenRenameT:Alternative:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:empty"
+			  >empty</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:empty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--124--62-"
+			  >(&lt;|&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--124--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:some"
+			  >some</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:some" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:many"
+			  >many</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:many" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BrokenRenameT:Applicative:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+		      >BrokenRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-523" class="link"
+		    >Source</a
+		    > <a href="#t:BrokenRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BrokenRenameT:Applicative:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m (a &#8594; b) &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BrokenRenameT:Functor:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+		      >BrokenRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-522" class="link"
+		    >Source</a
+		    > <a href="#t:BrokenRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BrokenRenameT:Functor:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BrokenRenameT:Monad:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+		      >BrokenRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-525" class="link"
+		    >Source</a
+		    > <a href="#t:BrokenRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BrokenRenameT:Monad:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; (a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b) &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BrokenRenameT:MonadQuote:7"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+		      >BrokenRenameT</a
+		      > ren m)</span
+		    > <a href="src/PlutusCore.Test.html#line-527" class="link"
+		    >Source</a
+		    > <a href="#t:BrokenRenameT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BrokenRenameT:MonadQuote:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Test.html"
+			>PlutusCore.Test</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+			  >BrokenRenameT</a
+			  > ren m a <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runBrokenRenameT" class="def"
+	    >runBrokenRenameT</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > ren) &#8658; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+	    >BrokenRenameT</a
+	    > ren m a &#8594; m a <a href="src/PlutusCore.Test.html#runBrokenRenameT" class="link"
+	    >Source</a
+	    > <a href="#v:runBrokenRenameT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:brokenRename" class="def"
+	    >brokenRename</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > ren) &#8658; (t &#8594; m ()) &#8594; (t &#8594; <a href="PlutusCore-Test.html#t:BrokenRenameT" title="PlutusCore.Test"
+	    >BrokenRenameT</a
+	    > ren m t) &#8594; t &#8594; m t <a href="src/PlutusCore.Test.html#brokenRename" class="link"
+	    >Source</a
+	    > <a href="#v:brokenRename" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Prerename" class="def"
+	    >Prerename</a
+	    > <a href="src/PlutusCore.Test.html#Prerename" class="link"
+	    >Source</a
+	    > <a href="#t:Prerename" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Determines whether to perform renaming before running the scoping tests. Needed for passes that
+ don't perform renaming themselves.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PrerenameYes" class="def"
+		  >PrerenameYes</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PrerenameNo" class="def"
+		  >PrerenameNo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BindingRemoval" class="def"
+	    >BindingRemoval</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:BindingRemoval" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Whether it's OK if the pass removes bindings. A renamer isn't supposed to do that, but for
+ example an inliner may do it, since it's basically the entire point of an inliner.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BindingRemovalOk" class="def"
+		  >BindingRemovalOk</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BindingRemovalNotOk" class="def"
+		  >BindingRemovalNotOk</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BindingRemoval"
+	    >Instances</h4
+	    ><details id="i:BindingRemoval" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BindingRemoval:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+		      >BindingRemoval</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BindingRemoval:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Check-Scoping.html"
+			>PlutusCore.Check.Scoping</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+			  >BindingRemoval</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+			  >BindingRemoval</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+			  >BindingRemoval</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BindingRemoval:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+		      >BindingRemoval</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BindingRemoval:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/PlutusCore-Check-Scoping.html"
+			>PlutusCore.Check.Scoping</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+			  >BindingRemoval</a
+			  > &#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+			  >BindingRemoval</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+			  >BindingRemoval</a
+			  > &#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+			  >BindingRemoval</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prop_scopingFor" class="def"
+	    >prop_scopingFor</a
+	    > <a href="src/PlutusCore.Test.html#prop_scopingFor" class="link"
+	    >Source</a
+	    > <a href="#v:prop_scopingFor" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		  >PrettyPlc</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+		  >Rename</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+		  >Scoping</a
+		  > t)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+		  >AstGen</a
+		  > (t ann)</td
+		><td class="doc"
+		><p
+		  >A generator of types/terms/programs.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+		  >BindingRemoval</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether binding removal is expected for the pass.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Test.html#t:Prerename" title="PlutusCore.Test"
+		  >Prerename</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether renaming is required before running the scoping tests. Note that the scoping tests
+ rely on global uniqueness themselves, hence for any pass that doesn't perform renaming
+ internally this needs to be <code
+		    ><a href="PlutusCore-Test.html#v:PrerenameYes" title="PlutusCore.Test"
+		      >PrerenameYes</a
+		      ></code
+		    >.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+		  >Quote</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >))</td
+		><td class="doc"
+		><p
+		  >The runner of the pass.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+		  >Property</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Test scoping for a renamer.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scopingGood" class="def"
+	    >test_scopingGood</a
+	    > <a href="src/PlutusCore.Test.html#test_scopingGood" class="link"
+	    >Source</a
+	    > <a href="#v:test_scopingGood" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		  >PrettyPlc</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+		  >Rename</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+		  >Scoping</a
+		  > t)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The name of the pass we're about to test.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+		  >AstGen</a
+		  > (t ann)</td
+		><td class="doc"
+		><p
+		  >A generator of types/terms/programs.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+		  >BindingRemoval</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether binding removal is expected for the pass.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Test.html#t:Prerename" title="PlutusCore.Test"
+		  >Prerename</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether renaming is required before running the scoping tests. Note that the scoping tests
+ rely on global uniqueness themselves, hence for any pass that doesn't perform renaming
+ internally this needs to be <code
+		    ><a href="PlutusCore-Test.html#v:PrerenameYes" title="PlutusCore.Test"
+		      >PrerenameYes</a
+		      ></code
+		    >.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+		  >Quote</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >))</td
+		><td class="doc"
+		><p
+		  >The runner of the pass.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		  >TestTree</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Test that a pass does not break global uniqueness.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scopingBad" class="def"
+	    >test_scopingBad</a
+	    > <a href="src/PlutusCore.Test.html#test_scopingBad" class="link"
+	    >Source</a
+	    > <a href="#v:test_scopingBad" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		  >PrettyPlc</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+		  >Rename</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+		  >Scoping</a
+		  > t)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The name of the pass we're about to test.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+		  >AstGen</a
+		  > (t ann)</td
+		><td class="doc"
+		><p
+		  >A generator of types/terms/programs.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Test.html#t:BindingRemoval" title="PlutusCore.Test"
+		  >BindingRemoval</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether binding removal is expected for the pass.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Test.html#t:Prerename" title="PlutusCore.Test"
+		  >Prerename</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Whether renaming is required before running the scoping tests. Note that the scoping tests
+ rely on global uniqueness themselves, hence for any pass that doesn't perform renaming
+ internally this needs to be <code
+		    ><a href="PlutusCore-Test.html#v:PrerenameYes" title="PlutusCore.Test"
+		      >PrerenameYes</a
+		      ></code
+		    >.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+		  >Quote</a
+		  > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		  >NameAnn</a
+		  >))</td
+		><td class="doc"
+		><p
+		  >The runner of the pass.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+		  >TestTree</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Test that a pass breaks global uniqueness.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_scopingSpoilRenamer" class="def"
+	    >test_scopingSpoilRenamer</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >), <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	    >Rename</a
+	    > (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >), <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Scoping" title="PlutusCore.Check.Scoping"
+	    >Scoping</a
+	    > t, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+	    >Monoid</a
+	    > ren) &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (t ann) &#8594; (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > ()) &#8594; (&#8704; m. (<a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+	    >MonadReader</a
+	    > ren m) &#8658; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    > &#8594; m (t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >)) &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/PlutusCore.Test.html#test_scopingSpoilRenamer" class="link"
+	    >Source</a
+	    > <a href="#v:test_scopingSpoilRenamer" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that the scoping machinery fails when the given renamer is spoiled in some way
+ (e.g. marking is removed) to ensure that the machinery does catch bugs.</p
+	    ></div
+	  ></div
+	><a href="#g:1" id="g:1"
+	><h1
+	  >Tasty extras</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  >module <a href="Test-Tasty-Extras.html"
+	    >Test.Tasty.Extras</a
+	    ></p
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Monoid:Monoid:1"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		  >Monoid</a
+		  > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		  >SrcSpan</a
+		  ></span
+		> <a href="src/PlutusCore.Test.html#line-466" class="link"
+		>Source</a
+		> <a href="#v:-36-fMonoidSrcSpan" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Monoid:Monoid:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:mempty"
+		      >mempty</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:mempty" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:mappend"
+		      >mappend</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:mappend" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:mconcat"
+		      >mconcat</a
+		      > &#8759; [<a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      >] &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:mconcat" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Semigroup:Semigroup:2"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		  >Semigroup</a
+		  > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		  >SrcSpan</a
+		  ></span
+		> <a href="src/PlutusCore.Test.html#line-463" class="link"
+		>Source</a
+		> <a href="#v:-36-fSemigroupSrcSpan" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Semigroup:Semigroup:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:-60--62-"
+		      >(&lt;&gt;)</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:-60--62-" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:sconcat"
+		      >sconcat</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+		      >NonEmpty</a
+		      > <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:sconcat" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:stimes"
+		      >stimes</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+		      >Integral</a
+		      > b &#8658; b &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		      >SrcSpan</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:stimes" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

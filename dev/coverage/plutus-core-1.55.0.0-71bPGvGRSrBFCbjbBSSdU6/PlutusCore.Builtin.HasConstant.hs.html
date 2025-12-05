@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    2 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>module PlutusCore.Builtin.HasConstant
+<span class="lineno">    7 </span>  ( BuiltinError (..)
+<span class="lineno">    8 </span>  , notAConstant
+<span class="lineno">    9 </span>  , HasConstant (..)
+<span class="lineno">   10 </span>  , HasConstantIn
+<span class="lineno">   11 </span>  , fromValueOf
+<span class="lineno">   12 </span>  , fromValue
+<span class="lineno">   13 </span>  ) where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import PlutusCore.Builtin.Result
+<span class="lineno">   16 </span>import PlutusCore.Core
+<span class="lineno">   17 </span>import PlutusCore.Name.Unique
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>import Universe
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>import Control.Monad.Except
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>{- Note [Existence of HasConstant]
+<span class="lineno">   24 </span>We don't really need 'HasConstant' and could get away with only having 'HasConstantIn', however
+<span class="lineno">   25 </span>defining the latter directly as a @class@ instead of a type synonym in terms of the former is
+<span class="lineno">   26 </span>detrimental to performance, see the comments in https://github.com/IntersectMBO/plutus/pull/4417
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>This is likely due to the same reason as in 'mkMachineParameters',
+<span class="lineno">   29 </span>see Note [The CostingPart constraint in mkMachineParameters].
+<span class="lineno">   30 </span>-}
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>-- See Note [Existence of HasConstant].
+<span class="lineno">   33 </span>-- We name it @term@ rather than @val@, because various @Term@ (UPLC/TPLC/PIR) data types have
+<span class="lineno">   34 </span>-- 'Constant'-like constructors too and we lift to / unlift from those in tests.
+<span class="lineno">   35 </span>-- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
+<span class="lineno">   36 </span>class HasConstant term where
+<span class="lineno">   37 </span>  -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
+<span class="lineno">   38 </span>  {-| Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
+<span class="lineno">   39 </span>  @term@ is not a wrapped Haskell value. -}
+<span class="lineno">   40 </span>  asConstant :: term -&gt; Either BuiltinError (Some (ValueOf (UniOf term)))
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>  -- | Wrap a Haskell value as a @term@.
+<span class="lineno">   43 </span>  fromConstant :: Some (ValueOf (UniOf term)) -&gt; term
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>{-| Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
+<span class="lineno">   46 </span>and connects @term@ and its @uni@. -}
+<span class="lineno">   47 </span>type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>-- | Wrap a Haskell value (given its explicit type tag) as a @term@.
+<span class="lineno">   50 </span>fromValueOf :: forall a term. HasConstant term =&gt; UniOf term (Esc a) -&gt; a -&gt; term
+<span class="lineno">   51 </span><span class="decl"><span class="istickedoff">fromValueOf uni = fromConstant . someValueOf uni</span></span>
+<span class="lineno">   52 </span>{-# INLINE fromValueOf #-}
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>-- | Wrap a Haskell value (provided its type is in the universe) as a @term@.
+<span class="lineno">   55 </span>fromValue :: forall a term. (HasConstant term, UniOf term `HasTermLevel` a) =&gt; a -&gt; term
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">fromValue = fromValueOf knownUni</span></span>
+<span class="lineno">   57 </span>{-# INLINE fromValue #-}
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>instance HasConstant (Term TyName Name uni fun ()) where
+<span class="lineno">   60 </span>  <span class="decl"><span class="istickedoff">asConstant (Constant _ val) = pure val</span>
+<span class="lineno">   61 </span><span class="spaces">  </span><span class="istickedoff">asConstant _ = throwError notAConstant</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>  <span class="decl"><span class="istickedoff">fromConstant = Constant ()</span></span>
+
+</pre>
+</body>
+</html>

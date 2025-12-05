@@ -1,0 +1,2340 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Ratio</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Ratio.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Ratio</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Type</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Construction</a
+	      ></li
+	    ><li
+	    ><a href="#g:3"
+	      >Other functionality</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Rational"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unsafeRatio"
+	      >unsafeRatio</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromInteger"
+	      >fromInteger</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ratio"
+	      >ratio</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:numerator"
+	      >numerator</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:denominator"
+	      >denominator</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:round"
+	      >round</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:truncate"
+	      >truncate</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:properFraction"
+	      >properFraction</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; (<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      >, <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:recip"
+	      >recip</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:abs"
+	      >abs</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:negate"
+	      >negate</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:half"
+	      >half</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromGHC"
+	      >fromGHC</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toGHC"
+	      >toGHC</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+	      >Rational</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:gcd"
+	      >gcd</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >Type</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Rational" class="def"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#Rational" class="link"
+	    >Source</a
+	    > <a href="#t:Rational" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Represents an arbitrary-precision ratio.</p
+	    ><p
+	    >The following two invariants are maintained:</p
+	    ><ol
+	    ><li value="1"
+	      >The denominator is greater than zero.</li
+	      ><li value="2"
+	      >The numerator and denominator are coprime.</li
+	      ></ol
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Rational"
+	    >Instances</h4
+	    ><details id="i:Rational" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:FromJSON:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:FromJSON" title="Deriving.Aeson"
+		      >FromJSON</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-190" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >This mimics the behaviour of Aeson's instance for <code
+		      ><a href="GHC.html#v:Rational" title="GHC"
+			>Rational</a
+			></code
+		      >.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:FromJSON:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:parseJSON"
+			  >parseJSON</a
+			  > &#8759; Value &#8594; Parser <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  ></p
+			><p class="src"
+			><a href="#v:parseJSONList"
+			  >parseJSONList</a
+			  > &#8759; Value &#8594; Parser [<a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  >]</p
+			><p class="src"
+			><a href="#v:omittedField"
+			  >omittedField</a
+			  > &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:ToJSON:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/Deriving-Aeson.html#t:ToJSON" title="Deriving.Aeson"
+		      >ToJSON</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-182" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >This mimics the behaviour of Aeson's instance for <code
+		      ><a href="GHC.html#v:Rational" title="GHC"
+			>Rational</a
+			></code
+		      >.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:ToJSON:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toJSON"
+			  >toJSON</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncoding"
+			  >toEncoding</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:toJSONList"
+			  >toJSONList</a
+			  > &#8759; [<a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  >] &#8594; Value</p
+			><p class="src"
+			><a href="#v:toEncodingList"
+			  >toEncodingList</a
+			  > &#8759; [<a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  >] &#8594; Encoding</p
+			><p class="src"
+			><a href="#v:omitField"
+			  >omitField</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Generic:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Generic:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > x &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Show:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Show:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Eq:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Eq:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Ord:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Ord:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:HasBlueprintDefinition:7"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-148" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:HasBlueprintDefinition:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			  >Unroll</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >] <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Unroll" class="link"
+			  >Source</a
+			  > <a href="#t:Unroll" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:definitionId"
+			  >definitionId</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#definitionId" class="link"
+			  >Source</a
+			  > <a href="#v:definitionId" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Eq:8"
+		      ></span
+		      > <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Eq:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Eq.html#%3D%3D" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:FromData:9"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-170" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:FromData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:ToData:10"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-157" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:ToData:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:UnsafeFromData:11"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-177" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:UnsafeFromData:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:AdditiveGroup:12"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		      >AdditiveGroup</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:AdditiveGroup:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#-" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:AdditiveMonoid:13"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:AdditiveMonoid:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:AdditiveSemigroup:14"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:AdditiveSemigroup:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#%2B" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:MultiplicativeMonoid:15"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+		      >MultiplicativeMonoid</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-135" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:MultiplicativeMonoid:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:one"
+			  >one</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#one" class="link"
+			  >Source</a
+			  > <a href="#v:one" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:MultiplicativeSemigroup:16"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		      >MultiplicativeSemigroup</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-125" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:MultiplicativeSemigroup:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#%2A" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Ord:17"
+		      ></span
+		      > <a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+		      >Ord</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Ord:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="src/PlutusTx.Ord.html#compare" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Ord.html#%3C" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Ord.html#%3C%3D" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Ord.html#%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Ord.html#%3E%3D" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Ord.html#max" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Ord.html#min" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Pretty:18"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Pretty:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:HasBlueprintSchema:19"
+		      ></span
+		      > <a href="PlutusTx-Blueprint-Definition-Internal.html#t:HasSchemaDefinition" title="PlutusTx.Blueprint.Definition.Internal"
+		      >HasSchemaDefinition</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      > referencedTypes &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      > referencedTypes</span
+		    > <a href="src/PlutusTx.Ratio.html#line-152" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:HasBlueprintSchema:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Lift:20"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-378" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Lift:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Module:21"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:Module" title="PlutusTx.Numeric"
+		      >Module</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-139" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Module:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:scale"
+			  >scale</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#scale" class="link"
+			  >Source</a
+			  > <a href="#v:scale" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Typeable:22"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-378" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Typeable:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Rep:23"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-73" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Rep:23"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			>Rational</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;Rational&quot; &quot;PlutusTx.Ratio&quot; &quot;plutus-tx-1.51.0.0-inplace&quot; '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Rational&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:False" title="PlutusTx.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+			>Nothing</a
+			> &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			>Integer</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Nothing" title="PlutusTx.Maybe"
+			>Nothing</a
+			> &#8759; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			>Integer</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Rational:Unroll:24"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unroll</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-149" class="link"
+		    >Source</a
+		    > <a href="#t:Rational" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Rational:Unroll:24"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			>Unroll</a
+			> <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			>Rational</a
+			> = '[<a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			>Rational</a
+			>, <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			>Integer</a
+			>]</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Construction</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeRatio" class="def"
+	    >unsafeRatio</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#unsafeRatio" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeRatio" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Makes a <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      > from a numerator and a denominator.</p
+	    ><h1
+	    >Important note</h1
+	    ><p
+	    >If given a zero denominator, this function will error. If you don't mind a
+size increase, and care about safety, use <code
+	      ><a href="PlutusTx-Ratio.html#v:ratio" title="PlutusTx.Ratio"
+		>ratio</a
+		></code
+	      > instead.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromInteger" class="def"
+	    >fromInteger</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#fromInteger" class="link"
+	    >Source</a
+	    > <a href="#v:fromInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Converts an <code
+	      ><a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		>Integer</a
+		></code
+	      > into the equivalent <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ratio" class="def"
+	    >ratio</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#ratio" class="link"
+	    >Source</a
+	    > <a href="#v:ratio" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Safely constructs a <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      > from a numerator and a denominator. Returns
+<code
+	      >Nothing</code
+	      > if given a zero denominator.</p
+	    ></div
+	  ></div
+	><a href="#g:3" id="g:3"
+	><h1
+	  >Other functionality</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:numerator" class="def"
+	    >numerator</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Ratio.html#numerator" class="link"
+	    >Source</a
+	    > <a href="#v:numerator" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the numerator of its argument.</p
+	    ><h1
+	    >Note</h1
+	    ><p
+	    >It is <em
+	      >not</em
+	      > true in general that <code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:numerator" title="PlutusTx.Ratio"
+		  >numerator</a
+		  ></code
+		> <code
+		>&lt;$&gt;</code
+		> <code
+		><a href="PlutusTx-Ratio.html#v:ratio" title="PlutusTx.Ratio"
+		  >ratio</a
+		  ></code
+		> x y = x</code
+	      >; this
+will only hold if <code
+	      >x</code
+	      > and <code
+	      >y</code
+	      > are coprime. This is due to <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      >
+normalizing the numerator and denominator.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:denominator" class="def"
+	    >denominator</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Ratio.html#denominator" class="link"
+	    >Source</a
+	    > <a href="#v:denominator" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the denominator of its argument. This will always be greater than,
+or equal to, 1, although the type does not describe this.</p
+	    ><h1
+	    >Note</h1
+	    ><p
+	    >It is <em
+	      >not</em
+	      > true in general that <code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:denominator" title="PlutusTx.Ratio"
+		  >denominator</a
+		  ></code
+		> <code
+		>&lt;$&gt;</code
+		> <code
+		><a href="PlutusTx-Ratio.html#v:ratio" title="PlutusTx.Ratio"
+		  >ratio</a
+		  ></code
+		> x y = y</code
+	      >; this
+will only hold if <code
+	      >x</code
+	      > and <code
+	      >y</code
+	      > are coprime. This is due to <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      >
+normalizing the numerator and denominator.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:round" class="def"
+	    >round</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Ratio.html#round" class="link"
+	    >Source</a
+	    > <a href="#v:round" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:round" title="PlutusTx.Ratio"
+		  >round</a
+		  ></code
+		> r</code
+	      > returns the nearest <code
+	      ><a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		>Integer</a
+		></code
+	      > value to <code
+	      >r</code
+	      >. If <code
+	      >r</code
+	      > is
+equidistant between two values, the even value will be given.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:truncate" class="def"
+	    >truncate</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Ratio.html#truncate" class="link"
+	    >Source</a
+	    > <a href="#v:truncate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the whole-number part of its argument, dropping any leftover
+fractional part. More precisely, <code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:truncate" title="PlutusTx.Ratio"
+		  >truncate</a
+		  ></code
+		> r = n</code
+	      > where <code
+	      >(n, _) =
+<code
+		><a href="PlutusTx-Ratio.html#v:properFraction" title="PlutusTx.Ratio"
+		  >properFraction</a
+		  ></code
+		> r</code
+	      >, but is much more efficient.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:properFraction" class="def"
+	    >properFraction</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; (<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    >, <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    >) <a href="src/PlutusTx.Ratio.html#properFraction" class="link"
+	    >Source</a
+	    > <a href="#v:properFraction" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:properFraction" title="PlutusTx.Ratio"
+		  >properFraction</a
+		  ></code
+		> r</code
+	      > returns the pair <code
+	      >(n, f)</code
+	      >, such that all of the
+following hold:</p
+	    ><ul
+	    ><li
+	      ><code
+		><code
+		  ><a href="PlutusTx-Ratio.html#v:fromInteger" title="PlutusTx.Ratio"
+		    >fromInteger</a
+		    ></code
+		  > n <code
+		  ><a href="PlutusTx-Numeric.html#v:-43-" title="PlutusTx.Numeric"
+		    >+</a
+		    ></code
+		  > f = r</code
+		>;</li
+	      ><li
+	      ><code
+		>n</code
+		> and <code
+		>f</code
+		> both have the same sign as <code
+		>r</code
+		>; and</li
+	      ><li
+	      ><code
+		><code
+		  ><a href="PlutusTx-Ratio.html#v:abs" title="PlutusTx.Ratio"
+		    >abs</a
+		    ></code
+		  > f <code
+		  ><a href="PlutusTx-Ord.html#v:-60-" title="PlutusTx.Ord"
+		    >&lt;</a
+		    ></code
+		  > <code
+		  ><a href="PlutusTx-Numeric.html#v:one" title="PlutusTx.Numeric"
+		    >one</a
+		    ></code
+		  ></code
+		>.</li
+	      ></ul
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:recip" class="def"
+	    >recip</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#recip" class="link"
+	    >Source</a
+	    > <a href="#v:recip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Gives the reciprocal of the argument; specifically, for <code
+	      >r <code
+		><a href="PlutusTx-Eq.html#v:-47--61-" title="PlutusTx.Eq"
+		  >/=</a
+		  ></code
+		>
+<code
+		><a href="PlutusTx-Numeric.html#v:zero" title="PlutusTx.Numeric"
+		  >zero</a
+		  ></code
+		></code
+	      >, <code
+	      >r <code
+		><a href="PlutusTx-Numeric.html#v:-42-" title="PlutusTx.Numeric"
+		  >*</a
+		  ></code
+		> <code
+		><a href="PlutusTx-Ratio.html#v:recip" title="PlutusTx.Ratio"
+		  >recip</a
+		  ></code
+		> r = <code
+		><a href="PlutusTx-Numeric.html#v:one" title="PlutusTx.Numeric"
+		  >one</a
+		  ></code
+		></code
+	      >.</p
+	    ><h1
+	    >Important note</h1
+	    ><p
+	    >The reciprocal of zero is mathematically undefined; thus, <code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:recip" title="PlutusTx.Ratio"
+		  >recip</a
+		  ></code
+		> <code
+		><a href="PlutusTx-Numeric.html#v:zero" title="PlutusTx.Numeric"
+		  >zero</a
+		  ></code
+		></code
+	      >
+will error. Use with care.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:abs" class="def"
+	    >abs</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#abs" class="link"
+	    >Source</a
+	    > <a href="#v:abs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Returns the absolute value of its argument.</p
+	    ><h1
+	    >Note</h1
+	    ><p
+	    >This is specialized for <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      >; use this instead of the generic version
+in <code
+	      >PlutusTx.Numeric</code
+	      >, as said generic version produces much larger on-chain
+code than the specialized version here.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:negate" class="def"
+	    >negate</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#negate" class="link"
+	    >Source</a
+	    > <a href="#v:negate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Produces the additive inverse of its argument.</p
+	    ><h1
+	    >Note</h1
+	    ><p
+	    >This is specialized for <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      >; use this instead of the generic version
+of this function, as it is significantly smaller on-chain.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:half" class="def"
+	    >half</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#half" class="link"
+	    >Source</a
+	    > <a href="#v:half" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><ol
+	    ><li value="0"
+	      >5</li
+	      ></ol
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromGHC" class="def"
+	    >fromGHC</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#fromGHC" class="link"
+	    >Source</a
+	    > <a href="#v:fromGHC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Converts a GHC <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+		>Rational</a
+		></code
+	      >, preserving value. Does not work on-chain.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toGHC" class="def"
+	    >toGHC</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+	    >Rational</a
+	    > <a href="src/PlutusTx.Ratio.html#toGHC" class="link"
+	    >Source</a
+	    > <a href="#v:toGHC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Converts a <code
+	      ><a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		>Rational</a
+		></code
+	      > to a GHC <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Rational" title="Prelude"
+		>Rational</a
+		></code
+	      >, preserving value. Does not
+work on-chain.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:gcd" class="def"
+	    >gcd</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > <a href="src/PlutusTx.Ratio.html#gcd" class="link"
+	    >Source</a
+	    > <a href="#v:gcd" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:gcd" title="PlutusTx.Ratio"
+		  >gcd</a
+		  ></code
+		> x y</code
+	      > is the non-negative factor of both <code
+	      >x</code
+	      > and <code
+	      >y</code
+	      > of which
+every common factor of <code
+	      >x</code
+	      > and <code
+	      >y</code
+	      > is also a factor; for example
+<code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:gcd" title="PlutusTx.Ratio"
+		  >gcd</a
+		  ></code
+		> 4 2 = 2</code
+	      >, <code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:gcd" title="PlutusTx.Ratio"
+		  >gcd</a
+		  ></code
+		> (-4) 6 = 2</code
+	      >, <code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:gcd" title="PlutusTx.Ratio"
+		  >gcd</a
+		  ></code
+		> 0 4</code
+	      > = <code
+	      >4</code
+	      >. <code
+	      ><code
+		><a href="PlutusTx-Ratio.html#v:gcd" title="PlutusTx.Ratio"
+		  >gcd</a
+		  ></code
+		> 0 0</code
+	      > = <code
+	      >0</code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,1090 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Arity</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html"
+	><span class="hs-identifier"
+	  >Data.Proxy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Is the next argument a term or a type?</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Param"
+      ><span class="annot"
+	><a href="PlutusCore.Arity.html#Param"
+	  ><span class="hs-identifier hs-var"
+	    >Param</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span id="TermParam"
+      ><span class="annot"
+	><a href="PlutusCore.Arity.html#TermParam"
+	  ><span class="hs-identifier hs-var"
+	    >TermParam</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TypeParam"
+      ><span class="annot"
+	><a href="PlutusCore.Arity.html#TypeParam"
+	  ><span class="hs-identifier hs-var"
+	    >TypeParam</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681944064"
+      ><span id="local-6989586621681944066"
+	><span id="local-6989586621681944070"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Param -&gt; ShowS
+[Param] -&gt; ShowS
+Param -&gt; String
+(Int -&gt; Param -&gt; ShowS)
+-&gt; (Param -&gt; String) -&gt; ([Param] -&gt; ShowS) -&gt; Show Param
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Param -&gt; ShowS
+showsPrec :: Int -&gt; Param -&gt; ShowS
+$cshow :: Param -&gt; String
+show :: Param -&gt; String
+$cshowList :: [Param] -&gt; ShowS
+showList :: [Param] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681944074"
+      ><span id="local-6989586621681944076"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Param -&gt; Param -&gt; Bool
+(Param -&gt; Param -&gt; Bool) -&gt; (Param -&gt; Param -&gt; Bool) -&gt; Eq Param
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Param -&gt; Param -&gt; Bool
+== :: Param -&gt; Param -&gt; Bool
+$c/= :: Param -&gt; Param -&gt; Bool
+/= :: Param -&gt; Param -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681944082"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Arity.html#Param"
+	  ><span class="hs-identifier hs-type"
+	    >Param</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681944087"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. Param -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681944087"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Param -&gt; Doc ann
+forall a ann. Show a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#viaShow"
+	><span class="hs-identifier hs-var"
+	  >viaShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+The (syntactic) arity of a term. That is, a record of the arguments that the
+term expects before it may do some work. Since we have both type and lambda
+abstractions, this is not a simple argument count, but rather a list of values
+indicating whether the next argument should be a term or a type.
+
+Note that this is the syntactic arity, i.e. it just corresponds to the number of
+syntactic lambda and type abstractions on the outside of the term. It is thus
+an under-approximation of how many arguments the term may need.
+e.g. consider the term @let id = \x -&gt; x in id@: the variable @id@ has syntactic
+arity @[]@, but does in fact need an argument before it does any work.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Arity"
+      ><span class="annot"
+	><a href="PlutusCore.Arity.html#Arity"
+	  ><span class="hs-identifier hs-var"
+	    >Arity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusCore.Arity.html#Param"
+	><span class="hs-identifier hs-type"
+	  >Param</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the 'Arity' from a 'TypeScheme'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="local-6989586621681944010"
+      ><span id="local-6989586621681944011"
+	><span id="local-6989586621681944012"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Arity.html#typeSchemeArity"
+	      ><span class="hs-identifier hs-type"
+		>typeSchemeArity</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Builtin.TypeScheme.html#TypeScheme"
+	      ><span class="hs-identifier hs-type"
+		>TypeScheme</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681944010"
+	      ><span class="hs-identifier hs-type"
+		>val</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681944011"
+	      ><span class="hs-identifier hs-type"
+		>args</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681944012"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Arity.html#Arity"
+	      ><span class="hs-identifier hs-type"
+		>Arity</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="typeSchemeArity"
+      ><span class="annot"
+	><span class="annottext"
+	  >typeSchemeArity :: forall val (args :: [*]) res. TypeScheme val args res -&gt; [Param]
+</span
+	  ><a href="PlutusCore.Arity.html#typeSchemeArity"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typeSchemeArity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html#TypeSchemeResult"
+	><span class="hs-identifier hs-type"
+	  >TypeSchemeResult</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Arity.html#typeSchemeArity"
+	><span class="hs-identifier hs-var"
+	  >typeSchemeArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html#TypeSchemeArrow"
+	><span class="hs-identifier hs-type"
+	  >TypeSchemeArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681944103"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeScheme val args1 res
+</span
+	  ><a href="#local-6989586621681944103"
+	  ><span class="hs-identifier hs-var"
+	    >sch</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Param
+</span
+	><a href="PlutusCore.Arity.html#TermParam"
+	><span class="hs-identifier hs-var"
+	  >TermParam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Param -&gt; [Param] -&gt; [Param]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args1 res -&gt; [Param]
+forall val (args :: [*]) res. TypeScheme val args res -&gt; [Param]
+</span
+	><a href="PlutusCore.Arity.html#typeSchemeArity"
+	><span class="hs-identifier hs-var"
+	  >typeSchemeArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args1 res
+</span
+	><a href="#local-6989586621681944103"
+	><span class="hs-identifier hs-var"
+	  >sch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Arity.html#typeSchemeArity"
+	><span class="hs-identifier hs-var"
+	  >typeSchemeArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.TypeScheme.html#TypeSchemeAll"
+	><span class="hs-identifier hs-type"
+	  >TypeSchemeAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy '(text, uniq, kind)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681944108"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeScheme val args res
+</span
+	  ><a href="#local-6989586621681944108"
+	  ><span class="hs-identifier hs-var"
+	    >sch</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Param
+</span
+	><a href="PlutusCore.Arity.html#TypeParam"
+	><span class="hs-identifier hs-var"
+	  >TypeParam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Param -&gt; [Param] -&gt; [Param]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res -&gt; [Param]
+forall val (args :: [*]) res. TypeScheme val args res -&gt; [Param]
+</span
+	><a href="PlutusCore.Arity.html#typeSchemeArity"
+	><span class="hs-identifier hs-var"
+	  >typeSchemeArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme val args res
+</span
+	><a href="#local-6989586621681944108"
+	><span class="hs-identifier hs-var"
+	  >sch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the arity of a builtin function from the 'PLC.BuiltinSemanticsVariant'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Arity.html#builtinArity"
+	><span class="hs-identifier hs-type"
+	  >builtinArity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621681944031"
+      ><span class="annot"
+	><a href="#local-6989586621681944031"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681944032"
+      ><span class="annot"
+	><a href="#local-6989586621681944032"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >ToBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681944031"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681944032"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Proxy.html#Proxy"
+	><span class="hs-identifier hs-type"
+	  >Proxy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681944031"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSemanticsVariant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681944032"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681944032"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Arity.html#Arity"
+	><span class="hs-identifier hs-type"
+	  >Arity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span id="builtinArity"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinArity :: forall (uni :: * -&gt; *) fun.
+ToBuiltinMeaning uni fun =&gt;
+Proxy uni -&gt; BuiltinSemanticsVariant fun -&gt; fun -&gt; [Param]
+</span
+	  ><a href="PlutusCore.Arity.html#builtinArity"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinArity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy uni
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681944133"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621681944133"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681944134"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621681944134"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall (uni :: * -&gt; *) fun val.
+(ToBuiltinMeaning uni fun, HasMeaningIn uni val) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart uni fun)
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toBuiltinMeaning"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681944031"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="#local-6989586621681944032"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681944031"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681944032"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621681944133"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621681944134"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681944137"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeScheme (Term TyName Name uni fun ()) args res
+</span
+	  ><a href="#local-6989586621681944137"
+	  ><span class="hs-identifier hs-var"
+	    >sch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FoldArgs args res
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingPart uni fun -&gt; BuiltinRuntime (Term TyName Name uni fun ())
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme (Term TyName Name uni fun ()) args res -&gt; [Param]
+forall val (args :: [*]) res. TypeScheme val args res -&gt; [Param]
+</span
+	><a href="PlutusCore.Arity.html#typeSchemeArity"
+	><span class="hs-identifier hs-var"
+	  >typeSchemeArity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme (Term TyName Name uni fun ()) args res
+</span
+	><a href="#local-6989586621681944137"
+	><span class="hs-identifier hs-var"
+	  >sch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

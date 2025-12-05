@@ -1,0 +1,192 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Data.DifferenceList where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.List qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Data.List.Base qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Function.Base qualified
+<span class="lineno">   20 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   21 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   22 </span>                    word64ToNat)
+<span class="lineno">   23 </span>import MAlonzo.RTE qualified
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>-- Data.DifferenceList.DiffList
+<span class="lineno">   26 </span>d_DiffList_12 :: MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt; () -&gt; ()
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">d_DiffList_12 = erased</span></span>
+<span class="lineno">   28 </span>-- Data.DifferenceList.lift
+<span class="lineno">   29 </span>d_lift_16 ::
+<span class="lineno">   30 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   31 </span>  () -&gt;
+<span class="lineno">   32 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt;
+<span class="lineno">   33 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   34 </span><span class="decl"><span class="nottickedoff">d_lift_16 ~v0 ~v1 v2 v3 v4 = du_lift_16 v2 v3 v4</span></span>
+<span class="lineno">   35 </span>du_lift_16 ::
+<span class="lineno">   36 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt;
+<span class="lineno">   37 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   38 </span><span class="decl"><span class="nottickedoff">du_lift_16 v0 v1 v2 = coe v0 (coe v1 v2)</span></span>
+<span class="lineno">   39 </span>-- Data.DifferenceList.[]
+<span class="lineno">   40 </span>d_'91''93'_24 ::
+<span class="lineno">   41 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   42 </span>  () -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">d_'91''93'_24 ~v0 ~v1 v2 = du_'91''93'_24 v2</span></span>
+<span class="lineno">   44 </span>du_'91''93'_24 :: [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">du_'91''93'_24 v0 = coe v0</span></span>
+<span class="lineno">   46 </span>-- Data.DifferenceList._∷_
+<span class="lineno">   47 </span>d__'8759'__28 ::
+<span class="lineno">   48 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   49 </span>  () -&gt; AgdaAny -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">d__'8759'__28 ~v0 ~v1 v2 = du__'8759'__28 v2</span></span>
+<span class="lineno">   51 </span>du__'8759'__28 ::
+<span class="lineno">   52 </span>  AgdaAny -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">du__'8759'__28 v0</span>
+<span class="lineno">   54 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   55 </span><span class="spaces">      </span><span class="nottickedoff">du_lift_16</span>
+<span class="lineno">   56 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v0))</span></span>
+<span class="lineno">   57 </span>-- Data.DifferenceList.[_]
+<span class="lineno">   58 </span>d_'91'_'93'_34 ::
+<span class="lineno">   59 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   60 </span>  () -&gt; AgdaAny -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">d_'91'_'93'_34 ~v0 ~v1 v2 = du_'91'_'93'_34 v2</span></span>
+<span class="lineno">   62 </span>du_'91'_'93'_34 :: AgdaAny -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">du_'91'_'93'_34 v0 = coe du__'8759'__28 v0 (\ v1 -&gt; v1)</span></span>
+<span class="lineno">   64 </span>-- Data.DifferenceList._++_
+<span class="lineno">   65 </span>d__'43''43'__38 ::
+<span class="lineno">   66 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   67 </span>  () -&gt;
+<span class="lineno">   68 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt;
+<span class="lineno">   69 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">d__'43''43'__38 ~v0 ~v1 v2 v3 v4 = du__'43''43'__38 v2 v3 v4</span></span>
+<span class="lineno">   71 </span>du__'43''43'__38 ::
+<span class="lineno">   72 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt;
+<span class="lineno">   73 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">du__'43''43'__38 v0 v1 v2 = coe v0 (coe v1 v2)</span></span>
+<span class="lineno">   75 </span>-- Data.DifferenceList._∷ʳ_
+<span class="lineno">   76 </span>d__'8759''691'__46 ::
+<span class="lineno">   77 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   78 </span>  () -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; AgdaAny -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   79 </span><span class="decl"><span class="nottickedoff">d__'8759''691'__46 ~v0 ~v1 v2 v3 v4 = du__'8759''691'__46 v2 v3 v4</span></span>
+<span class="lineno">   80 </span>du__'8759''691'__46 ::
+<span class="lineno">   81 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt; AgdaAny -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">du__'8759''691'__46 v0 v1 v2</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="nottickedoff">v0</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">   86 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe v1) (coe v2))</span></span>
+<span class="lineno">   87 </span>-- Data.DifferenceList.toList
+<span class="lineno">   88 </span>d_toList_54 ::
+<span class="lineno">   89 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   90 </span>  () -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny]
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">d_toList_54 ~v0 ~v1 v2 = du_toList_54 v2</span></span>
+<span class="lineno">   92 </span>du_toList_54 :: ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny]
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">du_toList_54 v0</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="nottickedoff">= coe v0 (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)</span></span>
+<span class="lineno">   95 </span>-- Data.DifferenceList.fromList
+<span class="lineno">   96 </span>d_fromList_58 ::
+<span class="lineno">   97 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   98 </span>  () -&gt; [AgdaAny] -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">   99 </span><span class="decl"><span class="nottickedoff">d_fromList_58 ~v0 ~v1 v2 = du_fromList_58 v2</span></span>
+<span class="lineno">  100 </span>du_fromList_58 :: [AgdaAny] -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  101 </span><span class="decl"><span class="nottickedoff">du_fromList_58 v0</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  103 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'10216'_'10217'__240 (coe v0)</span>
+<span class="lineno">  104 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.List.Base.du__'43''43'__32)</span></span>
+<span class="lineno">  105 </span>-- Data.DifferenceList.map
+<span class="lineno">  106 </span>d_map_64 ::
+<span class="lineno">  107 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  108 </span>  () -&gt;
+<span class="lineno">  109 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  110 </span>  () -&gt;
+<span class="lineno">  111 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  112 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  113 </span><span class="decl"><span class="nottickedoff">d_map_64 ~v0 ~v1 ~v2 ~v3 v4 v5 = du_map_64 v4 v5</span></span>
+<span class="lineno">  114 </span>du_map_64 ::
+<span class="lineno">  115 </span>  (AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  116 </span>  ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">du_map_64 v0 v1</span>
+<span class="lineno">  118 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'10216'_'10217'__240</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  121 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_map_22 (coe v0)</span>
+<span class="lineno">  122 </span><span class="spaces">         </span><span class="nottickedoff">(coe du_toList_54 (coe v1)))</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Data.List.Base.du__'43''43'__32)</span></span>
+<span class="lineno">  124 </span>-- Data.DifferenceList.concat
+<span class="lineno">  125 </span>d_concat_72 ::
+<span class="lineno">  126 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  127 </span>  () -&gt;
+<span class="lineno">  128 </span>  ([[AgdaAny] -&gt; [AgdaAny]] -&gt; [[AgdaAny] -&gt; [AgdaAny]]) -&gt;
+<span class="lineno">  129 </span>  [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  130 </span><span class="decl"><span class="nottickedoff">d_concat_72 ~v0 ~v1 v2 = du_concat_72 v2</span></span>
+<span class="lineno">  131 </span>du_concat_72 ::
+<span class="lineno">  132 </span>  ([[AgdaAny] -&gt; [AgdaAny]] -&gt; [[AgdaAny] -&gt; [AgdaAny]]) -&gt;
+<span class="lineno">  133 </span>  [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  134 </span><span class="decl"><span class="nottickedoff">du_concat_72 v0</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="nottickedoff">= coe du_concat'8242'_80 (coe du_toList_54 (coe v0))</span></span>
+<span class="lineno">  136 </span>-- Data.DifferenceList._.concat′
+<span class="lineno">  137 </span>d_concat'8242'_80 ::
+<span class="lineno">  138 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  139 </span>  () -&gt;
+<span class="lineno">  140 </span>  ([[AgdaAny] -&gt; [AgdaAny]] -&gt; [[AgdaAny] -&gt; [AgdaAny]]) -&gt;
+<span class="lineno">  141 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  142 </span>  () -&gt; [[AgdaAny] -&gt; [AgdaAny]] -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  143 </span><span class="decl"><span class="nottickedoff">d_concat'8242'_80 ~v0 ~v1 ~v2 ~v3 ~v4 = du_concat'8242'_80</span></span>
+<span class="lineno">  144 </span>du_concat'8242'_80 ::
+<span class="lineno">  145 </span>  [[AgdaAny] -&gt; [AgdaAny]] -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  146 </span><span class="decl"><span class="nottickedoff">du_concat'8242'_80</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Data.List.Base.du_foldr_216 (coe du__'43''43'__38)</span>
+<span class="lineno">  149 </span><span class="spaces">      </span><span class="nottickedoff">(coe (\ v0 -&gt; v0))</span></span>
+<span class="lineno">  150 </span>-- Data.DifferenceList.take
+<span class="lineno">  151 </span>d_take_82 ::
+<span class="lineno">  152 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  153 </span>  () -&gt; Integer -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  154 </span><span class="decl"><span class="nottickedoff">d_take_82 ~v0 ~v1 v2 = du_take_82 v2</span></span>
+<span class="lineno">  155 </span>du_take_82 ::
+<span class="lineno">  156 </span>  Integer -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">du_take_82 v0</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  159 </span><span class="spaces">      </span><span class="nottickedoff">du_lift_16 (coe MAlonzo.Code.Data.List.Base.du_take_546 (coe v0))</span></span>
+<span class="lineno">  160 </span>-- Data.DifferenceList.drop
+<span class="lineno">  161 </span>d_drop_86 ::
+<span class="lineno">  162 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  163 </span>  () -&gt; Integer -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff">d_drop_86 ~v0 ~v1 v2 = du_drop_86 v2</span></span>
+<span class="lineno">  165 </span>du_drop_86 ::
+<span class="lineno">  166 </span>  Integer -&gt; ([AgdaAny] -&gt; [AgdaAny]) -&gt; [AgdaAny] -&gt; [AgdaAny]
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">du_drop_86 v0</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  169 </span><span class="spaces">      </span><span class="nottickedoff">du_lift_16 (coe MAlonzo.Code.Data.List.Base.du_drop_558 (coe v0))</span></span>
+
+</pre>
+</body>
+</html>

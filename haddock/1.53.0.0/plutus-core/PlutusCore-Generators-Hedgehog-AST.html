@@ -1,0 +1,670 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.Hedgehog.AST</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.Hedgehog.AST.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.Hedgehog.AST</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:simpleRecursive"
+	      >simpleRecursive</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; [m a] &#8594; [m a] &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:regenConstantUntil"
+	      >regenConstantUntil</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >) &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >)))</li
+	    ><li class="src short"
+	    ><a href="#v:regenConstantsUntil"
+	      >regenConstantsUntil</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > fun ann &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > fun ann)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:AstGen"
+	      >AstGen</a
+	      > = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	      >GenT</a
+	      > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:Reader" title="Control.Monad.Reader"
+	      >Reader</a
+	      > [<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      >])</li
+	    ><li class="src short"
+	    ><a href="#v:runAstGen"
+	      >runAstGen</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:genVersion"
+	      >genVersion</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; m <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genNames"
+	      >genNames</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; m [<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:genName"
+	      >genName</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genTyName"
+	      >genTyName</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genKind"
+	      >genKind</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	      >Kind</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genBuiltin"
+	      >genBuiltin</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > fun) &#8658; m fun</li
+	    ><li class="src short"
+	    ><a href="#v:genConstant"
+	      >genConstant</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	      >MonadGen</a
+	      > m &#8658; m (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:genType"
+	      >genType</a
+	      > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:genTerm"
+	      >genTerm</a
+	      > &#8759; &#8704; fun. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > fun) &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:genProgram"
+	      >genProgram</a
+	      > &#8759; &#8704; fun. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	      >Bounded</a
+	      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	      >Enum</a
+	      > fun) &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:genNameMangler"
+	      >genNameMangler</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      >)))</li
+	    ><li class="src short"
+	    ><a href="#v:mangleNames"
+	      >mangleNames</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	      >AstGen</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()))</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:simpleRecursive" class="def"
+	    >simpleRecursive</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; [m a] &#8594; [m a] &#8594; m a <a href="src/PlutusCore.Generators.Hedgehog.AST.html#simpleRecursive" class="link"
+	    >Source</a
+	    > <a href="#v:simpleRecursive" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:regenConstantUntil" class="def"
+	    >regenConstantUntil</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >))) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#regenConstantUntil" class="link"
+	    >Source</a
+	    > <a href="#v:regenConstantUntil" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:regenConstantsUntil" class="def"
+	    >regenConstantsUntil</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > fun ann &#8594; m (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > tyname name <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > fun ann) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#regenConstantsUntil" class="link"
+	    >Source</a
+	    > <a href="#v:regenConstantsUntil" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Replace all constants in a program failing the given predicate with newly generated ones that
+ are guaranteed to satisfy the predicate (if such constants cannot be generated, this generator
+ will fail).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:AstGen" class="def"
+	    >AstGen</a
+	    > = <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:GenT" title="Hedgehog"
+	    >GenT</a
+	    > (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:Reader" title="Control.Monad.Reader"
+	    >Reader</a
+	    > [<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    >]) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#AstGen" class="link"
+	    >Source</a
+	    > <a href="#t:AstGen" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The monad that generators run in. The environment is a list of names to choose from for
+ generation of variables and binders.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runAstGen" class="def"
+	    >runAstGen</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > a &#8594; m a <a href="src/PlutusCore.Generators.Hedgehog.AST.html#runAstGen" class="link"
+	    >Source</a
+	    > <a href="#v:runAstGen" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genVersion" class="def"
+	    >genVersion</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; m <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genVersion" class="link"
+	    >Source</a
+	    > <a href="#v:genVersion" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genNames" class="def"
+	    >genNames</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; m [<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    >] <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genNames" class="link"
+	    >Source</a
+	    > <a href="#v:genNames" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a fixed set of names which we will use, of only up to a short size to make it
+ likely that we get reuse.
+ We do not attempt not to generate reserved words such as <code
+	      >all</code
+	      > or <code
+	      >abs</code
+	      > as the classic syntax
+ parsers (both PLC and PIR ones) can handle names of variables clashing with reserved words.
+ In the readable syntax that would be troubling, though, but we don't have a parser for that anyway.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genName" class="def"
+	    >genName</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genName" class="link"
+	    >Source</a
+	    > <a href="#v:genName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTyName" class="def"
+	    >genTyName</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genTyName" class="link"
+	    >Source</a
+	    > <a href="#v:genTyName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genKind" class="def"
+	    >genKind</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+	    >Kind</a
+	    > ()) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genKind" class="link"
+	    >Source</a
+	    > <a href="#v:genKind" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genBuiltin" class="def"
+	    >genBuiltin</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > fun) &#8658; m fun <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:genBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genConstant" class="def"
+	    >genConstant</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:MonadGen" title="Hedgehog"
+	    >MonadGen</a
+	    > m &#8658; m (<a href="../plutus-core/Universe-Core.html#t:Some" title="Universe.Core"
+	    >Some</a
+	    > (<a href="../plutus-core/Universe-Core.html#t:ValueOf" title="Universe.Core"
+	    >ValueOf</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    >)) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genConstant" class="link"
+	    >Source</a
+	    > <a href="#v:genConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genType" class="def"
+	    >genType</a
+	    > &#8759; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genType" class="link"
+	    >Source</a
+	    > <a href="#v:genType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genTerm" class="def"
+	    >genTerm</a
+	    > &#8759; &#8704; fun. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > fun) &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > fun ()) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genTerm" class="link"
+	    >Source</a
+	    > <a href="#v:genTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genProgram" class="def"
+	    >genProgram</a
+	    > &#8759; &#8704; fun. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+	    >Bounded</a
+	    > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+	    >Enum</a
+	    > fun) &#8658; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > fun ()) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genProgram" class="link"
+	    >Source</a
+	    > <a href="#v:genProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genNameMangler" class="def"
+	    >genNameMangler</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    >))) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#genNameMangler" class="link"
+	    >Source</a
+	    > <a href="#v:genNameMangler" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mangleNames" class="def"
+	    >mangleNames</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="PlutusCore-Generators-Hedgehog-AST.html#t:AstGen" title="PlutusCore.Generators.Hedgehog.AST"
+	    >AstGen</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ())) <a href="src/PlutusCore.Generators.Hedgehog.AST.html#mangleNames" class="link"
+	    >Source</a
+	    > <a href="#v:mangleNames" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

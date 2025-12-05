@@ -1,0 +1,841 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO: Extend this to handle the different variants of the cost model</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A program to parse a JSON representation of costing functions for Plutus Core
+   builtins and and produce a simple cost model which can be used from Agda and other
+   executables -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostMap"
+	><span class="hs-identifier"
+	  >BuiltinCostMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostKeyMap"
+	><span class="hs-identifier"
+	  >BuiltinCostKeyMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#toSimpleBuiltinCostModel"
+	><span class="hs-identifier"
+	  >toSimpleBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#defaultSimpleBuiltinCostModel"
+	><span class="hs-identifier"
+	  >defaultSimpleBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson.Key</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Key</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>toText</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson.KeyMap</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>KeyMap</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.THReader.html"
+	><span class="hs-identifier"
+	  >Data.Aeson.THReader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.Aeson.THReader.html#readJSONFromFile"
+	><span class="hs-identifier"
+	  >readJSONFromFile</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html"
+	><span class="hs-identifier"
+	  >Data.Bifunctor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#replace"
+	><span class="hs-identifier"
+	  >replace</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html"
+	><span class="hs-identifier"
+	  >PlutusCore.DataFilePaths</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>DFP</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="BuiltinCostMap"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostMap"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinCostMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#CpuAndMemoryModel"
+	><span class="hs-identifier hs-type"
+	  >CpuAndMemoryModel</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="BuiltinCostKeyMap"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostKeyMap"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinCostKeyMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>KeyMap.KeyMap</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON.html#CpuAndMemoryModel"
+	><span class="hs-identifier hs-type"
+	  >CpuAndMemoryModel</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| The default builtin cost map.
+TODO: maybe we should take account of the semantic variant here. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#defaultBuiltinCostKeyMap"
+	><span class="hs-identifier hs-type"
+	  >defaultBuiltinCostKeyMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostKeyMap"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostKeyMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="defaultBuiltinCostKeyMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultBuiltinCostKeyMap :: BuiltinCostKeyMap
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#defaultBuiltinCostKeyMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultBuiltinCostKeyMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >$$</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.Aeson.THReader.html#readJSONFromFile"
+	><span class="hs-identifier hs-type"
+	  >readJSONFromFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.DataFilePaths.html#latestBuiltinCostModelFile"
+	><span class="hs-identifier hs-type"
+	  >DFP.latestBuiltinCostModelFile</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >-- replace underscores _ by dashes -</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#builtinName"
+	><span class="hs-identifier hs-type"
+	  >builtinName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span id="builtinName"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinName :: Text -&gt; Text
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#builtinName"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HasCallStack =&gt; Text -&gt; Text -&gt; Text -&gt; Text
+Text -&gt; Text -&gt; Text -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#replace"
+	><span class="hs-identifier hs-var"
+	  >replace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;_&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#toSimpleBuiltinCostModel"
+	><span class="hs-identifier hs-type"
+	  >toSimpleBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostKeyMap"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostKeyMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostMap"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="toSimpleBuiltinCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >toSimpleBuiltinCostModel :: BuiltinCostKeyMap -&gt; BuiltinCostMap
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#toSimpleBuiltinCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toSimpleBuiltinCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681947395"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinCostKeyMap
+</span
+	  ><a href="#local-6989586621681947395"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Key, CpuAndMemoryModel) -&gt; (Text, CpuAndMemoryModel))
+-&gt; [(Key, CpuAndMemoryModel)] -&gt; BuiltinCostMap
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Key -&gt; Text)
+-&gt; (Key, CpuAndMemoryModel) -&gt; (Text, CpuAndMemoryModel)
+forall a b c. (a -&gt; b) -&gt; (a, c) -&gt; (b, c)
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#first"
+	><span class="hs-identifier hs-var"
+	  >first</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text
+</span
+	><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#builtinName"
+	><span class="hs-identifier hs-var"
+	  >builtinName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Text) -&gt; (Key -&gt; Text) -&gt; Key -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Text
+</span
+	><span class="hs-identifier hs-var"
+	>toText</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinCostKeyMap -&gt; [(Key, CpuAndMemoryModel)]
+forall v. KeyMap v -&gt; [(Key, v)]
+</span
+	><span class="hs-identifier hs-var"
+	>KeyMap.toList</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinCostKeyMap
+</span
+	><a href="#local-6989586621681947395"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#defaultSimpleBuiltinCostModel"
+	><span class="hs-identifier hs-type"
+	  >defaultSimpleBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#BuiltinCostMap"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="defaultSimpleBuiltinCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >defaultSimpleBuiltinCostModel :: BuiltinCostMap
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#defaultSimpleBuiltinCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >defaultSimpleBuiltinCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinCostKeyMap -&gt; BuiltinCostMap
+</span
+	><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#toSimpleBuiltinCostModel"
+	><span class="hs-identifier hs-var"
+	  >toSimpleBuiltinCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinCostKeyMap
+</span
+	><a href="PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel.html#defaultBuiltinCostKeyMap"
+	><span class="hs-identifier hs-var"
+	  >defaultBuiltinCostKeyMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,6147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns              #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyCase                 #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyDataDecls            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ExistentialQuantification #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes                #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >MAlonzo.Code.Data.String.Properties</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Equality.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.Equality</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Primitive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.Char.Properties.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Data.Char.Properties</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Function.Base.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Function.Base</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Bundles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Construct.On.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Construct.On</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Structures</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#add64"
+	><span class="hs-identifier"
+	  >add64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#addInt"
+	><span class="hs-identifier"
+	  >addInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier"
+	  >coe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eq64"
+	><span class="hs-identifier"
+	  >eq64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eqInt"
+	><span class="hs-identifier"
+	  >eqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier"
+	  >erased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#geqInt"
+	><span class="hs-identifier"
+	  >geqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#lt64"
+	><span class="hs-identifier"
+	  >lt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#ltInt"
+	><span class="hs-identifier"
+	  >ltInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mul64"
+	><span class="hs-identifier"
+	  >mul64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mulInt"
+	><span class="hs-identifier"
+	  >mulInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quot64"
+	><span class="hs-identifier"
+	  >quot64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quotInt"
+	><span class="hs-identifier"
+	  >quotInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#rem64"
+	><span class="hs-identifier"
+	  >rem64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#remInt"
+	><span class="hs-identifier"
+	  >remInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#sub64"
+	><span class="hs-identifier"
+	  >sub64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#subInt"
+	><span class="hs-identifier"
+	  >subInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64FromNat"
+	><span class="hs-identifier"
+	  >word64FromNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64ToNat"
+	><span class="hs-identifier"
+	  >word64ToNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;&#8658;&#8801;</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%278658%27%278801%27_6"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''8658''8801'_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Equality.html#T__%278801%27__12"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="d_%278776%27%278658%27%278801%27_6"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''8658''8801'_6 :: T_String_6 -&gt; T_String_6 -&gt; T_Pointwise_48 -&gt; T__'8801'__12
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%278658%27%278801%27_6"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''8658''8801'_6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_String_6 -&gt; T_Pointwise_48 -&gt; T__'8801'__12
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-reflexive</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27reflexive_8"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'reflexive_8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Equality.html#T__%278801%27__12"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span id="d_%278776%27%2745%27reflexive_8"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'reflexive_8 :: T_String_6 -&gt; T_String_6 -&gt; T__'8801'__12 -&gt; T_Pointwise_48
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27reflexive_8"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'reflexive_8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567151"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567151"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682567152"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567152"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682567153"
+      ><span class="annot"
+	><span class="annottext"
+	  >T__'8801'__12
+</span
+	  ><a href="#local-6989586621682567153"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27reflexive_8"
+	><span class="hs-identifier hs-var"
+	  >du_'8776''45'reflexive_8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567151"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27reflexive_8"
+	><span class="hs-identifier hs-type"
+	  >du_'8776''45'reflexive_8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span id="du_%278776%27%2745%27reflexive_8"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'8776''45'reflexive_8 :: T_String_6 -&gt; T_Pointwise_48
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27reflexive_8"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'8776''45'reflexive_8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567155"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567155"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Any] -&gt; T_Pointwise_48) -&gt; Any -&gt; T_Pointwise_48
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Any] -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.html#du_%278801%27%278658%27Pointwise%2745%27%278801%27_590"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.du_'8801''8658'Pointwise'45''8801'_590</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567155"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-refl</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27refl_10"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'refl_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="d_%278776%27%2745%27refl_10"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'refl_10 :: T_String_6 -&gt; T_Pointwise_48
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27refl_10"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'refl_10</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567159"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567159"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_Pointwise_48) -&gt; Any -&gt; T_Pointwise_48
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27reflexive_8"
+	><span class="hs-identifier hs-var"
+	  >du_'8776''45'reflexive_8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567159"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-sym</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27sym_14"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'sym_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="d_%278776%27%2745%27sym_14"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'sym_14 :: T_String_6 -&gt; T_String_6 -&gt; T_Pointwise_48 -&gt; T_Pointwise_48
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27sym_14"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'sym_14</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567161"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567161"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567162"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567162"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; [Any] -&gt; [Any] -&gt; T_Pointwise_48 -&gt; T_Pointwise_48)
+-&gt; Any -&gt; Any -&gt; Any -&gt; T_Pointwise_48 -&gt; T_Pointwise_48
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; [Any] -&gt; [Any] -&gt; T_Pointwise_48 -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.html#du_symmetric_40"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.du_symmetric_40</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any) -&gt; (Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (T_String_6 -&gt; String)
+-&gt; (Any -&gt; Any -&gt; Any)
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; (Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Base.html#du__%2745%27%2710216%27_%278739%27_292"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Base.du__'45''10216'_'8739'_292</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682567165"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567165"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567166"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567166"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682567165"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567161"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567162"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any)
+-&gt; (T_String_6 -&gt; String)
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Base.html#du_%278739%27_%2710217%27%2745%27__298"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Base.du_'8739'_'10217''45'__298</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682567168"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567168"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567169"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567169"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682567169"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567161"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567162"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-trans</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27trans_16"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'trans_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="d_%278776%27%2745%27trans_16"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'trans_16 :: T_String_6
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27trans_16"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'trans_16</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567171"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567171"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567172"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567172"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567173"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567173"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; [Any]
+ -&gt; [Any]
+ -&gt; [Any]
+ -&gt; T_Pointwise_48
+ -&gt; T_Pointwise_48
+ -&gt; T_Pointwise_48)
+-&gt; Any
+-&gt; Any
+-&gt; Any
+-&gt; Any
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; [Any]
+-&gt; [Any]
+-&gt; [Any]
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.html#du_transitive_50"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.du_transitive_50</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any) -&gt; (Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (T_String_6 -&gt; String)
+-&gt; (Any -&gt; Any -&gt; Any)
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; (Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Base.html#du__%2745%27%2710216%27_%278739%27_292"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Base.du__'45''10216'_'8739'_292</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682567175"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567175"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567176"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567176"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682567175"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567171"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567172"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any)
+-&gt; (T_String_6 -&gt; String)
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Base.html#du_%278739%27_%2710217%27%2745%27__298"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Base.du_'8739'_'10217''45'__298</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682567177"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567177"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567178"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567178"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682567178"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567171"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567172"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any)
+-&gt; (T_String_6 -&gt; String)
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Function.Base.html#du_%278739%27_%2710217%27%2745%27__298"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Function.Base.du_'8739'_'10217''45'__298</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682567179"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567179"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567180"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567180"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682567180"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567172"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567173"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-subst</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27subst_20"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'subst_20</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#T_Pointwise_48"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.T_Pointwise_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span id="d_%278776%27%2745%27subst_20"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'subst_20 :: T_Level_18
+-&gt; (T_String_6 -&gt; T_Level_18)
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; T_Pointwise_48
+-&gt; Any
+-&gt; Any
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27subst_20"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'subst_20</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682567182"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682567182"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682567183"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6 -&gt; T_Level_18
+</span
+	  ><a href="#local-6989586621682567183"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682567184"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567184"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682567185"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567185"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682567186"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Pointwise_48
+</span
+	  ><a href="#local-6989586621682567186"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567187"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567187"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27subst_20"
+	><span class="hs-identifier hs-var"
+	  >du_'8776''45'subst_20</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682567187"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27subst_20"
+	><span class="hs-identifier hs-type"
+	  >du_'8776''45'subst_20</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span id="du_%278776%27%2745%27subst_20"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'8776''45'subst_20 :: Any -&gt; Any
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27subst_20"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'8776''45'subst_20</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567189"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567189"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+</span
+	><a href="#local-6989586621682567189"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties._&#8776;?_</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d__%278776%27%2763%27__28"
+	><span class="hs-identifier hs-type"
+	  >d__'8776''63'__28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span id="d__%278776%27%2763%27__28"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'8776''63'__28 :: T_String_6 -&gt; T_String_6 -&gt; T_Dec_20
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d__%278776%27%2763%27__28"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'8776''63'__28</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567191"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567191"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567192"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567192"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; T_Dec_20) -&gt; [Any] -&gt; [Any] -&gt; T_Dec_20)
+-&gt; Any -&gt; Any -&gt; Any -&gt; T_Dec_20
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; T_Dec_20) -&gt; [Any] -&gt; [Any] -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.html#du_decidable_112"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Properties.du_decidable_112</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Char_6 -&gt; T_Char_6 -&gt; T_Dec_20) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Char_6 -&gt; T_Char_6 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d__%278799%27__14"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d__'8799'__14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567191"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567192"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-isEquivalence</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27isEquivalence_34"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'isEquivalence_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsEquivalence_26"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span id="d_%278776%27%2745%27isEquivalence_34"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'isEquivalence_34 :: T_IsEquivalence_26
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27isEquivalence_34"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'isEquivalence_34</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; (Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+ -&gt; T_IsEquivalence_26)
+-&gt; Any -&gt; Any -&gt; Any -&gt; T_IsEquivalence_26
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; (Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any -&gt; Any)
+-&gt; T_IsEquivalence_26
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Structures.html#C_IsEquivalence%2746%27constructor_745"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Structures.C_IsEquivalence'46'constructor_745</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_Pointwise_48) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27refl_10"
+	><span class="hs-identifier hs-var"
+	  >d_'8776''45'refl_10</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_String_6 -&gt; T_Pointwise_48 -&gt; T_Pointwise_48)
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_String_6 -&gt; T_Pointwise_48 -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27sym_14"
+	><span class="hs-identifier hs-var"
+	  >d_'8776''45'sym_14</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6
+ -&gt; T_String_6
+ -&gt; T_String_6
+ -&gt; T_Pointwise_48
+ -&gt; T_Pointwise_48
+ -&gt; T_Pointwise_48)
+-&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+-&gt; T_String_6
+-&gt; T_String_6
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+-&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27trans_16"
+	><span class="hs-identifier hs-var"
+	  >d_'8776''45'trans_16</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-setoid</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27setoid_48"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'setoid_48</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span id="d_%278776%27%2745%27setoid_48"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'setoid_48 :: T_Setoid_44
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27setoid_48"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'setoid_48</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsEquivalence_26 -&gt; T_Setoid_44)
+-&gt; T_IsEquivalence_26 -&gt; T_Setoid_44
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26 -&gt; T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Bundles.html#C_Setoid%2746%27constructor_733"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Bundles.C_Setoid'46'constructor_733</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27isEquivalence_34"
+	><span class="hs-identifier hs-var"
+	  >d_'8776''45'isEquivalence_34</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-isDecEquivalence</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27isDecEquivalence_50"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'isDecEquivalence_50</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsDecEquivalence_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span id="d_%278776%27%2745%27isDecEquivalence_50"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'isDecEquivalence_50 :: T_IsDecEquivalence_44
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27isDecEquivalence_50"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'isDecEquivalence_50</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsEquivalence_26
+ -&gt; (Any -&gt; Any -&gt; T_Dec_20) -&gt; T_IsDecEquivalence_44)
+-&gt; Any -&gt; Any -&gt; T_IsDecEquivalence_44
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26
+-&gt; (Any -&gt; Any -&gt; T_Dec_20) -&gt; T_IsDecEquivalence_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Structures.html#C_IsDecEquivalence%2746%27constructor_3083"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Structures.C_IsDecEquivalence'46'constructor_3083</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsEquivalence_26
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27isEquivalence_34"
+	><span class="hs-identifier hs-var"
+	  >d_'8776''45'isEquivalence_34</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_String_6 -&gt; T_Dec_20) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_String_6 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d__%278776%27%2763%27__28"
+	><span class="hs-identifier hs-var"
+	  >d__'8776''63'__28</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8776;-decSetoid</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27decSetoid_52"
+	><span class="hs-identifier hs-type"
+	  >d_'8776''45'decSetoid_52</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_DecSetoid_84"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_DecSetoid_84</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span id="d_%278776%27%2745%27decSetoid_52"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8776''45'decSetoid_52 :: T_DecSetoid_84
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27decSetoid_52"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8776''45'decSetoid_52</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsDecEquivalence_44 -&gt; T_DecSetoid_84)
+-&gt; T_IsDecEquivalence_44 -&gt; T_DecSetoid_84
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsDecEquivalence_44 -&gt; T_DecSetoid_84
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Bundles.html#C_DecSetoid%2746%27constructor_1389"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Bundles.C_DecSetoid'46'constructor_1389</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsDecEquivalence_44
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d_%278776%27%2745%27isDecEquivalence_50"
+	><span class="hs-identifier hs-var"
+	  >d_'8776''45'isDecEquivalence_50</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties._&#8799;_</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d__%278799%27__54"
+	><span class="hs-identifier hs-type"
+	  >d__'8799'__54</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span id="d__%278799%27__54"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'8799'__54 :: T_String_6 -&gt; T_String_6 -&gt; T_Dec_20
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d__%278799%27__54"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'8799'__54</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567204"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567204"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567205"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567205"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; T_Dec_20 -&gt; T_Dec_20)
+-&gt; Any -&gt; (Any -&gt; Any) -&gt; Any -&gt; T_Dec_20
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; (Any -&gt; Any) -&gt; T_Dec_20 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#du_map%278242%27_168"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Any
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682567207"
+      ><span class="annot"
+	><span class="annottext"
+	  >Any
+</span
+	  ><a href="#local-6989586621682567207"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_Pointwise_48) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#du_%278776%27%2745%27reflexive_8"
+	><span class="hs-identifier hs-var"
+	  >du_'8776''45'reflexive_8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567204"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_String_6 -&gt; T_Dec_20) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_String_6 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d__%278776%27%2763%27__28"
+	><span class="hs-identifier hs-var"
+	  >d__'8776''63'__28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567204"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567205"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8801;-setoid</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278801%27%2745%27setoid_60"
+	><span class="hs-identifier hs-type"
+	  >d_'8801''45'setoid_60</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Setoid_44"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Setoid_44</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span id="d_%278801%27%2745%27setoid_60"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8801''45'setoid_60 :: T_Setoid_44
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278801%27%2745%27setoid_60"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8801''45'setoid_60</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44 -&gt; T_Setoid_44
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Setoid_44
+</span
+	><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html#du_setoid_402"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_setoid_402</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8801;-decSetoid</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278801%27%2745%27decSetoid_62"
+	><span class="hs-identifier hs-type"
+	  >d_'8801''45'decSetoid_62</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_DecSetoid_84"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_DecSetoid_84</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span id="d_%278801%27%2745%27decSetoid_62"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8801''45'decSetoid_62 :: T_DecSetoid_84
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278801%27%2745%27decSetoid_62"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8801''45'decSetoid_62</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; T_Dec_20) -&gt; T_DecSetoid_84)
+-&gt; Any -&gt; T_DecSetoid_84
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; T_Dec_20) -&gt; T_DecSetoid_84
+</span
+	><a href="MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.html#du_decSetoid_406"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.PropositionalEquality.Properties.du_decSetoid_406</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_String_6 -&gt; T_Dec_20) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_String_6 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d__%278799%27__54"
+	><span class="hs-identifier hs-var"
+	  >d__'8799'__54</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties._&lt;?_</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d__%2760%27%2763%27__64"
+	><span class="hs-identifier hs-type"
+	  >d__'60''63'__64</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span id="d__%2760%27%2763%27__64"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'60''63'__64 :: T_String_6 -&gt; T_String_6 -&gt; T_Dec_20
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d__%2760%27%2763%27__64"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'60''63'__64</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567213"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567213"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567214"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567214"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; T_Dec_20)
+ -&gt; (Any -&gt; Any -&gt; T_Dec_20) -&gt; [Any] -&gt; [Any] -&gt; T_Dec_20)
+-&gt; (T_Char_6 -&gt; T_Char_6 -&gt; T_Dec_20)
+-&gt; (T_Char_6 -&gt; T_Char_6 -&gt; T_Dec_20)
+-&gt; Any
+-&gt; Any
+-&gt; T_Dec_20
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; T_Dec_20)
+-&gt; (Any -&gt; Any -&gt; T_Dec_20) -&gt; [Any] -&gt; [Any] -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%2760%27%2745%27decidable_274"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'60''45'decidable_274</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Char_6 -&gt; T_Char_6 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d__%278799%27__14"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d__'8799'__14</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Char_6 -&gt; T_Char_6 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d__%2760%27%2763%27__44"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d__'60''63'__44</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567213"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567214"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&lt;-isStrictPartialOrder-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27isStrictPartialOrder%2745%27%278776%27_70"
+	><span class="hs-identifier hs-type"
+	  >d_'60''45'isStrictPartialOrder'45''8776'_70</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsStrictPartialOrder_290"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsStrictPartialOrder_290</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span id="d_%2760%27%2745%27isStrictPartialOrder%2745%27%278776%27_70"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'60''45'isStrictPartialOrder'45''8776'_70 :: T_IsStrictPartialOrder_290
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27isStrictPartialOrder%2745%27%278776%27_70"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'60''45'isStrictPartialOrder'45''8776'_70</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; T_IsStrictPartialOrder_290 -&gt; T_IsStrictPartialOrder_290)
+-&gt; Any -&gt; Any -&gt; T_IsStrictPartialOrder_290
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any)
+-&gt; T_IsStrictPartialOrder_290 -&gt; T_IsStrictPartialOrder_290
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_isStrictPartialOrder_372"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_isStrictPartialOrder_372</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsStrictPartialOrder_290 -&gt; T_IsStrictPartialOrder_290)
+-&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictPartialOrder_290 -&gt; T_IsStrictPartialOrder_290
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%2760%27%2745%27isStrictPartialOrder_278"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'60''45'isStrictPartialOrder_278</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictPartialOrder_290 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictPartialOrder_290
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27isStrictPartialOrder_102"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'isStrictPartialOrder_102</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&lt;-isStrictTotalOrder-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27isStrictTotalOrder%2745%27%278776%27_72"
+	><span class="hs-identifier hs-type"
+	  >d_'60''45'isStrictTotalOrder'45''8776'_72</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsStrictTotalOrder_534"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsStrictTotalOrder_534</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span id="d_%2760%27%2745%27isStrictTotalOrder%2745%27%278776%27_72"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'60''45'isStrictTotalOrder'45''8776'_72 :: T_IsStrictTotalOrder_534
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27isStrictTotalOrder%2745%27%278776%27_72"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'60''45'isStrictTotalOrder'45''8776'_72</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; T_IsStrictTotalOrder_534 -&gt; T_IsStrictTotalOrder_534)
+-&gt; Any -&gt; Any -&gt; T_IsStrictTotalOrder_534
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any)
+-&gt; T_IsStrictTotalOrder_534 -&gt; T_IsStrictTotalOrder_534
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_isStrictTotalOrder_526"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_isStrictTotalOrder_526</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsStrictTotalOrder_534 -&gt; T_IsStrictTotalOrder_534)
+-&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534 -&gt; T_IsStrictTotalOrder_534
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%2760%27%2745%27isStrictTotalOrder_314"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'60''45'isStrictTotalOrder_314</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27isStrictTotalOrder_118"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'isStrictTotalOrder_118</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&lt;-strictPartialOrder-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27strictPartialOrder%2745%27%278776%27_74"
+	><span class="hs-identifier hs-type"
+	  >d_'60''45'strictPartialOrder'45''8776'_74</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_StrictPartialOrder_556"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_StrictPartialOrder_556</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span id="d_%2760%27%2745%27strictPartialOrder%2745%27%278776%27_74"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'60''45'strictPartialOrder'45''8776'_74 :: T_StrictPartialOrder_556
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27strictPartialOrder%2745%27%278776%27_74"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'60''45'strictPartialOrder'45''8776'_74</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_StrictPartialOrder_556
+ -&gt; (Any -&gt; Any) -&gt; T_StrictPartialOrder_556)
+-&gt; Any -&gt; Any -&gt; T_StrictPartialOrder_556
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictPartialOrder_556
+-&gt; (Any -&gt; Any) -&gt; T_StrictPartialOrder_556
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_strictPartialOrder_622"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_strictPartialOrder_622</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_StrictPartialOrder_556 -&gt; T_StrictPartialOrder_556)
+-&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictPartialOrder_556 -&gt; T_StrictPartialOrder_556
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%2760%27%2745%27strictPartialOrder_374"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'60''45'strictPartialOrder_374</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictPartialOrder_556 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictPartialOrder_556
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27strictPartialOrder_120"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'strictPartialOrder_120</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&lt;-strictTotalOrder-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27strictTotalOrder%2745%27%278776%27_76"
+	><span class="hs-identifier hs-type"
+	  >d_'60''45'strictTotalOrder'45''8776'_76</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_StrictTotalOrder_1036"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_StrictTotalOrder_1036</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span id="d_%2760%27%2745%27strictTotalOrder%2745%27%278776%27_76"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'60''45'strictTotalOrder'45''8776'_76 :: T_StrictTotalOrder_1036
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%2760%27%2745%27strictTotalOrder%2745%27%278776%27_76"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'60''45'strictTotalOrder'45''8776'_76</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_StrictTotalOrder_1036
+ -&gt; (Any -&gt; Any) -&gt; T_StrictTotalOrder_1036)
+-&gt; Any -&gt; Any -&gt; T_StrictTotalOrder_1036
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036 -&gt; (Any -&gt; Any) -&gt; T_StrictTotalOrder_1036
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_strictTotalOrder_646"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_strictTotalOrder_646</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_StrictTotalOrder_1036 -&gt; T_StrictTotalOrder_1036) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036 -&gt; T_StrictTotalOrder_1036
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%2760%27%2745%27strictTotalOrder_442"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'60''45'strictTotalOrder_442</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27strictTotalOrder_122"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'strictTotalOrder_122</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8804;-isDecPartialOrder-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27isDecPartialOrder%2745%27%278776%27_78"
+	><span class="hs-identifier hs-type"
+	  >d_'8804''45'isDecPartialOrder'45''8776'_78</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsDecPartialOrder_224"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsDecPartialOrder_224</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span id="d_%278804%27%2745%27isDecPartialOrder%2745%27%278776%27_78"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8804''45'isDecPartialOrder'45''8776'_78 :: T_IsDecPartialOrder_224
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27isDecPartialOrder%2745%27%278776%27_78"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8804''45'isDecPartialOrder'45''8776'_78</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any)
+ -&gt; T_IsDecPartialOrder_224 -&gt; T_IsDecPartialOrder_224)
+-&gt; Any -&gt; Any -&gt; T_IsDecPartialOrder_224
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; T_IsDecPartialOrder_224 -&gt; T_IsDecPartialOrder_224
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_isDecPartialOrder_314"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_isDecPartialOrder_314</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsStrictTotalOrder_534 -&gt; T_IsDecPartialOrder_224) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534 -&gt; T_IsDecPartialOrder_224
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%278804%27%2745%27isDecPartialOrder_726"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'8804''45'isDecPartialOrder_726</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27isStrictTotalOrder_118"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'isStrictTotalOrder_118</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8804;-isDecTotalOrder-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27isDecTotalOrder%2745%27%278776%27_80"
+	><span class="hs-identifier hs-type"
+	  >d_'8804''45'isDecTotalOrder'45''8776'_80</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Structures.html#T_IsDecTotalOrder_460"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Structures.T_IsDecTotalOrder_460</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span id="d_%278804%27%2745%27isDecTotalOrder%2745%27%278776%27_80"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8804''45'isDecTotalOrder'45''8776'_80 :: T_IsDecTotalOrder_460
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27isDecTotalOrder%2745%27%278776%27_80"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8804''45'isDecTotalOrder'45''8776'_80</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any) -&gt; T_IsDecTotalOrder_460 -&gt; T_IsDecTotalOrder_460)
+-&gt; Any -&gt; Any -&gt; T_IsDecTotalOrder_460
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any) -&gt; T_IsDecTotalOrder_460 -&gt; T_IsDecTotalOrder_460
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_isDecTotalOrder_460"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_isDecTotalOrder_460</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsStrictTotalOrder_534 -&gt; T_IsDecTotalOrder_460) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534 -&gt; T_IsDecTotalOrder_460
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%278804%27%2745%27isDecTotalOrder_834"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'8804''45'isDecTotalOrder_834</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsStrictTotalOrder_534
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27isStrictTotalOrder_118"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'isStrictTotalOrder_118</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8804;-decTotalOrder-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27decTotalOrder%2745%27%278776%27_82"
+	><span class="hs-identifier hs-type"
+	  >d_'8804''45'decTotalOrder'45''8776'_82</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_DecTotalOrder_866"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_DecTotalOrder_866</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ><span id="d_%278804%27%2745%27decTotalOrder%2745%27%278776%27_82"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8804''45'decTotalOrder'45''8776'_82 :: T_DecTotalOrder_866
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27decTotalOrder%2745%27%278776%27_82"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8804''45'decTotalOrder'45''8776'_82</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_DecTotalOrder_866 -&gt; (Any -&gt; Any) -&gt; T_DecTotalOrder_866)
+-&gt; Any -&gt; Any -&gt; T_DecTotalOrder_866
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_DecTotalOrder_866 -&gt; (Any -&gt; Any) -&gt; T_DecTotalOrder_866
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_decTotalOrder_638"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_decTotalOrder_638</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_StrictTotalOrder_1036 -&gt; T_DecTotalOrder_866) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-263"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036 -&gt; T_DecTotalOrder_866
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%278804%27%2745%27decTotalOrder_1130"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'8804''45'decTotalOrder_1130</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-264"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-265"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27strictTotalOrder_122"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'strictTotalOrder_122</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-266"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-267"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties.&#8804;-decPoset-&#8776;</span
+      ><span
+      >
+</span
+      ><span id="line-268"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27decPoset%2745%27%278776%27_84"
+	><span class="hs-identifier hs-type"
+	  >d_'8804''45'decPoset'45''8776'_84</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-269"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_DecPoset_406"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_DecPoset_406</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-270"
+      ></span
+      ><span id="d_%278804%27%2745%27decPoset%2745%27%278776%27_84"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8804''45'decPoset'45''8776'_84 :: T_DecPoset_406
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d_%278804%27%2745%27decPoset%2745%27%278776%27_84"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8804''45'decPoset'45''8776'_84</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-271"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_DecPoset_406 -&gt; (Any -&gt; Any) -&gt; T_DecPoset_406)
+-&gt; Any -&gt; Any -&gt; T_DecPoset_406
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-272"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_DecPoset_406 -&gt; (Any -&gt; Any) -&gt; T_DecPoset_406
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.On.html#du_decPoset_614"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.On.du_decPoset_614</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-273"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_StrictTotalOrder_1036 -&gt; T_DecPoset_406) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-274"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036 -&gt; T_DecPoset_406
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.html#du_%278804%27%2745%27decPoset_1038"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Lex.Strict.du_'8804''45'decPoset_1038</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-275"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-276"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_StrictTotalOrder_1036
+</span
+	><a href="MAlonzo.Code.Data.Char.Properties.html#d_%2760%27%2745%27strictTotalOrder_122"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.Char.Properties.d_'60''45'strictTotalOrder_122</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-277"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; String) -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; String
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.String.html#d_primStringToList_12"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.String.d_primStringToList_12</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-278"
+      ></span
+      ><span class="hs-comment"
+      >-- Data.String.Properties._==_</span
+      ><span
+      >
+</span
+      ><span id="line-279"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.String.Properties.html#d__%2761%27%2761%27__86"
+	><span class="hs-identifier hs-type"
+	  >d__'61''61'__86</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-280"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-281"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.String.html#T_String_6"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Builtin.String.T_String_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-282"
+      ></span
+      ><span id="d__%2761%27%2761%27__86"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'61''61'__86 :: T_String_6 -&gt; T_String_6 -&gt; Bool
+</span
+	  ><a href="MAlonzo.Code.Data.String.Properties.html#d__%2761%27%2761%27__86"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'61''61'__86</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567246"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567246"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682567247"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_String_6
+</span
+	  ><a href="#local-6989586621682567247"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-283"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Dec_20 -&gt; Bool) -&gt; Any -&gt; Bool
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-284"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_20 -&gt; Bool
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#du_isYes_122"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.du_isYes_122</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-285"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_String_6 -&gt; T_String_6 -&gt; T_Dec_20) -&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; T_String_6 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Data.String.Properties.html#d__%278799%27__54"
+	><span class="hs-identifier hs-var"
+	  >d__'8799'__54</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567246"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_String_6
+</span
+	><a href="#local-6989586621682567247"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-286"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,1265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Evaluation.ErrorWithCause</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Evaluation.ErrorWithCause.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Evaluation.ErrorWithCause</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ErrorWithCause"
+	      >ErrorWithCause</a
+	      > err cause = <a href="#v:ErrorWithCause"
+	      >ErrorWithCause</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_ewcError"
+		  >_ewcError</a
+		  > &#8759; !err</li
+		><li
+		><a href="#v:_ewcCause"
+		  >_ewcCause</a
+		  > &#8759; !(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > cause)</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:throwErrorWithCause"
+	      >throwErrorWithCause</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+	      >ErrorWithCause</a
+	      > e cause) m &#8658; e &#8594; cause &#8594; m x</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ErrorWithCause" class="def"
+	    >ErrorWithCause</a
+	    > err cause <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause" class="link"
+	    >Source</a
+	    > <a href="#t:ErrorWithCause" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An error and (optionally) what caused it.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ErrorWithCause" class="def"
+		  >ErrorWithCause</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_ewcError" class="def"
+			  >_ewcError</a
+			  > &#8759; !err</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_ewcCause" class="def"
+			  >_ewcCause</a
+			  > &#8759; !(<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > cause)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ErrorWithCause"
+	    >Instances</h4
+	    ><details id="i:ErrorWithCause" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Bifunctor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bifunctor.html#t:Bifunctor" title="Data.Bifunctor"
+		      >Bifunctor</a
+		      > <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      ></span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-30" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Bifunctor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:bimap"
+			  >bimap</a
+			  > &#8759; (a &#8594; b) &#8594; (c &#8594; d) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > a c &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > b d <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:bimap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:first"
+			  >first</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > a c &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > b c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:first" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:second"
+			  >second</a
+			  > &#8759; (b &#8594; c) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > a b &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > a c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:second" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:PrettyBy:2"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config cause, <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config err) &#8658; <a href="PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > config (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:PrettyBy:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; config &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; config &#8594; [<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Foldable:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+		      >Foldable</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Foldable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fold"
+			  >fold</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err m &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap"
+			  >foldMap</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap-39-"
+			  >foldMap'</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr-39-"
+			  >foldr'</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl"
+			  >foldl</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl-39-"
+			  >foldl'</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr1"
+			  >foldr1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl1"
+			  >foldl1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toList"
+			  >toList</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:null"
+			  >null</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:null" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:length"
+			  >length</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:length" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:elem"
+			  >elem</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+			  >Eq</a
+			  > a &#8658; a &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:elem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maximum"
+			  >maximum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maximum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:minimum"
+			  >minimum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minimum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sum"
+			  >sum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:product"
+			  >product</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:product" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Traversable:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Traversable.html#t:Traversable" title="Data.Traversable"
+		      >Traversable</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Traversable:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:traverse"
+			  >traverse</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+			  >Applicative</a
+			  > f &#8658; (a &#8594; f b) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; f (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err b) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:traverse" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sequenceA"
+			  >sequenceA</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+			  >Applicative</a
+			  > f &#8658; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err (f a) &#8594; f (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sequenceA" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mapM"
+			  >mapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (a &#8594; m b) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; m (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err b) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sequence"
+			  >sequence</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err (m a) &#8594; m (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sequence" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Functor:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Functor:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err b &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Exception:6"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyPlc</a
+		      > cause, <a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyPlc</a
+		      > err, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+		      >Typeable</a
+		      > cause, <a href="PlutusPrelude.html#t:Typeable" title="PlutusPrelude"
+		      >Typeable</a
+		      > err) &#8658; <a href="PlutusPrelude.html#t:Exception" title="PlutusPrelude"
+		      >Exception</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-52" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Exception:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Generic:7"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Generic" title="PlutusPrelude"
+		      >Generic</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Generic:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause) x &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Show:8"
+		      ></span
+		      > (<a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyPlc</a
+		      > cause, <a href="PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyPlc</a
+		      > err) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-48" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Show:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:NFData:9"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > err, <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > cause) &#8658; <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-28" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:NFData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Eq:10"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > err, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > cause) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Eq:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Pretty:11"
+		      ></span
+		      > (<a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > err, <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > cause) &#8658; <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Pretty:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			  >ErrorWithCause</a
+			  > err cause] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:MonadError:12"
+		      ></span
+		      > <a href="PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+		      >ThrowableBuiltins</a
+		      > uni fun &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekEvaluationException</a
+		      > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		      >NamedDeBruijn</a
+		      > uni fun) (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekM</a
+		      > uni fun s)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-479" class="link"
+		    >Source</a
+		    > <a href="#t:MonadError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:MonadError:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekEvaluationException</a
+			  > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > uni fun &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a &#8594; (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekEvaluationException</a
+			  > <a href="PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			  >NamedDeBruijn</a
+			  > uni fun &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekM" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekM</a
+			  > uni fun s a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ErrorWithCause:Rep:13"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+		      >ErrorWithCause</a
+		      > err cause)</span
+		    > <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#line-27" class="link"
+		    >Source</a
+		    > <a href="#t:ErrorWithCause" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ErrorWithCause:Rep:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-ErrorWithCause.html"
+			>PlutusCore.Evaluation.ErrorWithCause</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+			>ErrorWithCause</a
+			> err cause) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ErrorWithCause&quot; &quot;PlutusCore.Evaluation.ErrorWithCause&quot; &quot;plutus-core-1.51.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ErrorWithCause&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_ewcError&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> err) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;_ewcCause&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> cause))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:throwErrorWithCause" class="def"
+	    >throwErrorWithCause</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusCore-Evaluation-ErrorWithCause.html#t:ErrorWithCause" title="PlutusCore.Evaluation.ErrorWithCause"
+	    >ErrorWithCause</a
+	    > e cause) m &#8658; e &#8594; cause &#8594; m x <a href="src/PlutusCore.Evaluation.ErrorWithCause.html#throwErrorWithCause" class="link"
+	    >Source</a
+	    > <a href="#v:throwErrorWithCause" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

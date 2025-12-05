@@ -1,0 +1,1367 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Common</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Common.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Common</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:unsafeSplitStructuralOperational"
+	      >unsafeSplitStructuralOperational</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > structural, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > term, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	      >Typeable</a
+	      > structural, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	      >Typeable</a
+	      > term) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/PlutusCore-Evaluation-Machine-Exception.html#t:EvaluationException" title="PlutusCore.Evaluation.Machine.Exception"
+	      >EvaluationException</a
+	      > structural operational term) a &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	      >EvaluationResult</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:evaluateCek"
+	      >evaluateCek</a
+	      > &#8759; &#8704; (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) fun ann. <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun &#8658; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:EmitterMode" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >EmitterMode</a
+	      > uni fun &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > uni fun ann) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ann &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekEvaluationException</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()), [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      >])</li
+	    ><li class="src short"
+	    ><a href="#v:evaluateCekNoEmit"
+	      >evaluateCekNoEmit</a
+	      > &#8759; &#8704; (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) fun ann. <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun &#8658; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > uni fun ann) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekEvaluationException</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ())</li
+	    ><li class="src short"
+	    ><a href="#v:readKnownCek"
+	      >readKnownCek</a
+	      > &#8759; &#8704; (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) fun a ann. (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	      >ThrowableBuiltins</a
+	      > uni fun, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:ReadKnown" title="PlutusCore.Builtin.KnownType"
+	      >ReadKnown</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) a) &#8658; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > uni fun ann) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekEvaluationException</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun) a</li
+	    ><li class="src short"
+	    ><a href="#v:typecheckAnd"
+	      >typecheckAnd</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	      >TypeErrorPlc</a
+	      > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/Universe-Core.html#t:Closed" title="Universe.Core"
+	      >Closed</a
+	      > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >ExMemoryUsage</a
+	      >) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; (<a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >MachineParameters</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekValue</a
+	      > uni fun ()) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; a) &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:typecheckEvaluateCek"
+	      >typecheckEvaluateCek</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	      >TypeErrorPlc</a
+	      > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >ExMemoryUsage</a
+	      >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; m (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	      >EvaluationResult</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()), [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      >])</li
+	    ><li class="src short"
+	    ><a href="#v:typecheckEvaluateCekNoEmit"
+	      >typecheckEvaluateCekNoEmit</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	      >TypeErrorPlc</a
+	      > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >ExMemoryUsage</a
+	      >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; m (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	      >EvaluationResult</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()))</li
+	    ><li class="src short"
+	    ><a href="#v:typecheckReadKnownCek"
+	      >typecheckReadKnownCek</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	      >TypeErrorPlc</a
+	      > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	      >GEq</a
+	      > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >ExMemoryUsage</a
+	      >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	      >CaseBuiltin</a
+	      > uni, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:ReadKnown" title="PlutusCore.Builtin.KnownType"
+	      >ReadKnown</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()) a) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > fun &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	      >CostingPart</a
+	      > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	      >CekEvaluationException</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun) a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcType"
+	      >PlcType</a
+	      > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcTerm"
+	      >PlcTerm</a
+	      > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:UplcTerm"
+	      >UplcTerm</a
+	      > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TypeErrorOrCekResult"
+	      >TypeErrorOrCekResult</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:TypeCheckError"
+		  >TypeCheckError</a
+		  > PlcError</li
+		><li
+		>| <a href="#v:CekError"
+		  >CekError</a
+		  ></li
+		><li
+		>| <a href="#v:CekSuccess"
+		  >CekSuccess</a
+		  > <a href="Evaluation-Builtins-Common.html#t:UplcTerm" title="Evaluation.Builtins.Common"
+		  >UplcTerm</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evalTerm"
+	      >evalTerm</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	      >TypeErrorOrCekResult</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkApp1"
+	      >mkApp1</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mkApp2"
+	      >mkApp2</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ok"
+	      >ok</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fails"
+	      >fails</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evalOkEq"
+	      >evalOkEq</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:evalOkTrue"
+	      >evalOkTrue</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:integer"
+	      >integer</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:bytestring"
+	      >bytestring</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:zero"
+	      >zero</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:one"
+	      >one</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:true"
+	      >true</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:false"
+	      >false</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	      >PlcTerm</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cekSuccessFalse"
+	      >cekSuccessFalse</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	      >TypeErrorOrCekResult</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:cekSuccessTrue"
+	      >cekSuccessTrue</a
+	      > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	      >TypeErrorOrCekResult</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeSplitStructuralOperational" class="def"
+	    >unsafeSplitStructuralOperational</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > structural, <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > term, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	    >Typeable</a
+	    > structural, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+	    >Typeable</a
+	    > term) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/PlutusCore-Evaluation-Machine-Exception.html#t:EvaluationException" title="PlutusCore.Evaluation.Machine.Exception"
+	    >EvaluationException</a
+	    > structural operational term) a &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	    >EvaluationResult</a
+	    > a <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeSplitStructuralOperational" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Throw on a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Error.html#v:StructuralError" title="PlutusCore.Evaluation.Error"
+		>StructuralError</a
+		></code
+	      > and turn an <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Error.html#v:OperationalError" title="PlutusCore.Evaluation.Error"
+		>OperationalError</a
+		></code
+	      > into an
+ <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Result.html#v:EvaluationFailure" title="PlutusCore.Evaluation.Result"
+		>EvaluationFailure</a
+		></code
+	      > (thus erasing the content of the error in the latter case).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateCek" class="def"
+	    >evaluateCek</a
+	    > &#8759; &#8704; (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) fun ann. <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun &#8658; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:EmitterMode" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >EmitterMode</a
+	    > uni fun &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > uni fun ann) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ann &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekEvaluationException</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()), [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    >]) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateCek" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Evaluate a term using the CEK machine with logging enabled.
+ *THIS FUNCTION IS PARTIAL if the input term contains free variables*</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evaluateCekNoEmit" class="def"
+	    >evaluateCekNoEmit</a
+	    > &#8759; &#8704; (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) fun ann. <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun &#8658; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > uni fun ann) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekEvaluationException</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun) (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:evaluateCekNoEmit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Evaluate a term using the CEK machine with logging disabled.
+ *THIS FUNCTION IS PARTIAL if the input term contains free variables*</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:readKnownCek" class="def"
+	    >readKnownCek</a
+	    > &#8759; &#8704; (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) fun a ann. (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:ThrowableBuiltins" title="PlutusCore.Pretty.PrettyConst"
+	    >ThrowableBuiltins</a
+	    > uni fun, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:ReadKnown" title="PlutusCore.Builtin.KnownType"
+	    >ReadKnown</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) a) &#8658; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > uni fun ann) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekEvaluationException</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun) a <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:readKnownCek" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unlift a value using the CEK machine.
+ *THIS FUNCTION IS PARTIAL if the input term contains free variables*</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typecheckAnd" class="def"
+	    >typecheckAnd</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	    >TypeErrorPlc</a
+	    > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/Universe-Core.html#t:Closed" title="Universe.Core"
+	    >Closed</a
+	    > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >ExMemoryUsage</a
+	    >) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; (<a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:MachineParameters" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >MachineParameters</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > fun (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekValue</a
+	    > uni fun ()) &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; a) &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; m a <a href="src/Evaluation.Builtins.Common.html#typecheckAnd" class="link"
+	    >Source</a
+	    > <a href="#v:typecheckAnd" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type check and evaluate a term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typecheckEvaluateCek" class="def"
+	    >typecheckEvaluateCek</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	    >TypeErrorPlc</a
+	    > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >ExMemoryUsage</a
+	    >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; m (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	    >EvaluationResult</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()), [<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    >]) <a href="src/Evaluation.Builtins.Common.html#typecheckEvaluateCek" class="link"
+	    >Source</a
+	    > <a href="#v:typecheckEvaluateCek" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type check and evaluate a term, logging enabled.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typecheckEvaluateCekNoEmit" class="def"
+	    >typecheckEvaluateCekNoEmit</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	    >TypeErrorPlc</a
+	    > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >ExMemoryUsage</a
+	    >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; m (<a href="../plutus-core/PlutusCore-Evaluation-Result.html#t:EvaluationResult" title="PlutusCore.Evaluation.Result"
+	    >EvaluationResult</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ())) <a href="src/Evaluation.Builtins.Common.html#typecheckEvaluateCekNoEmit" class="link"
+	    >Source</a
+	    > <a href="#v:typecheckEvaluateCekNoEmit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type check and evaluate a term, logging disabled.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typecheckReadKnownCek" class="def"
+	    >typecheckReadKnownCek</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:TypeErrorPlc" title="PlutusCore.TypeCheck.Internal"
+	    >TypeErrorPlc</a
+	    > uni fun ()) m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun, <a href="../plutus-core/Universe-Core.html#t:GEq" title="Universe.Core"
+	    >GEq</a
+	    > uni, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:ExMemoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >ExMemoryUsage</a
+	    >, <a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, <a href="../plutus-core/PlutusCore-Builtin-Case.html#t:CaseBuiltin" title="PlutusCore.Builtin.Case"
+	    >CaseBuiltin</a
+	    > uni, <a href="../plutus-core/PlutusCore-Builtin-KnownType.html#t:ReadKnown" title="PlutusCore.Builtin.KnownType"
+	    >ReadKnown</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun ()) a) &#8658; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:CostingPart" title="PlutusCore.Builtin.Meaning"
+	    >CostingPart</a
+	    > uni fun &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekEvaluationException" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+	    >CekEvaluationException</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun) a) <a href="src/Evaluation.Builtins.Common.html#typecheckReadKnownCek" class="link"
+	    >Source</a
+	    > <a href="#v:typecheckReadKnownCek" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Type check and convert a Plutus Core term to a Haskell value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcType" class="def"
+	    >PlcType</a
+	    > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/Evaluation.Builtins.Common.html#PlcType" class="link"
+	    >Source</a
+	    > <a href="#t:PlcType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcTerm" class="def"
+	    >PlcTerm</a
+	    > = <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Evaluation.Builtins.Common.html#PlcTerm" class="link"
+	    >Source</a
+	    > <a href="#t:PlcTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:UplcTerm" class="def"
+	    >UplcTerm</a
+	    > = <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/Evaluation.Builtins.Common.html#UplcTerm" class="link"
+	    >Source</a
+	    > <a href="#t:UplcTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TypeErrorOrCekResult" class="def"
+	    >TypeErrorOrCekResult</a
+	    > <a href="src/Evaluation.Builtins.Common.html#TypeErrorOrCekResult" class="link"
+	    >Source</a
+	    > <a href="#t:TypeErrorOrCekResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TypeCheckError" class="def"
+		  >TypeCheckError</a
+		  > PlcError</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CekError" class="def"
+		  >CekError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CekSuccess" class="def"
+		  >CekSuccess</a
+		  > <a href="Evaluation-Builtins-Common.html#t:UplcTerm" title="Evaluation.Builtins.Common"
+		  >UplcTerm</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:TypeErrorOrCekResult"
+	    >Instances</h4
+	    ><details id="i:TypeErrorOrCekResult" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeErrorOrCekResult:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		      >TypeErrorOrCekResult</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Common.html#line-135" class="link"
+		    >Source</a
+		    > <a href="#t:TypeErrorOrCekResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeErrorOrCekResult:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Common.html"
+			>Evaluation.Builtins.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+			  >TypeErrorOrCekResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+			  >TypeErrorOrCekResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+			  >TypeErrorOrCekResult</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:TypeErrorOrCekResult:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+		      >TypeErrorOrCekResult</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Common.html#line-135" class="link"
+		    >Source</a
+		    > <a href="#t:TypeErrorOrCekResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:TypeErrorOrCekResult:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Common.html"
+			>Evaluation.Builtins.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+			  >TypeErrorOrCekResult</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+			  >TypeErrorOrCekResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+			  >TypeErrorOrCekResult</a
+			  > &#8594; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+			  >TypeErrorOrCekResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalTerm" class="def"
+	    >evalTerm</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	    >TypeErrorOrCekResult</a
+	    > <a href="src/Evaluation.Builtins.Common.html#evalTerm" class="link"
+	    >Source</a
+	    > <a href="#v:evalTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkApp1" class="def"
+	    >mkApp1</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#mkApp1" class="link"
+	    >Source</a
+	    > <a href="#v:mkApp1" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkApp2" class="def"
+	    >mkApp2</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#mkApp2" class="link"
+	    >Source</a
+	    > <a href="#v:mkApp2" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ok" class="def"
+	    >ok</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Common.html#ok" class="link"
+	    >Source</a
+	    > <a href="#v:ok" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Term evaluates successfully</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fails" class="def"
+	    >fails</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Common.html#fails" class="link"
+	    >Source</a
+	    > <a href="#v:fails" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Term fails to evaluate successfully</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalOkEq" class="def"
+	    >evalOkEq</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Common.html#evalOkEq" class="link"
+	    >Source</a
+	    > <a href="#v:evalOkEq" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:evalOkTrue" class="def"
+	    >evalOkTrue</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Common.html#evalOkTrue" class="link"
+	    >Source</a
+	    > <a href="#v:evalOkTrue" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:integer" class="def"
+	    >integer</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#integer" class="link"
+	    >Source</a
+	    > <a href="#v:integer" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bytestring" class="def"
+	    >bytestring</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#bytestring" class="link"
+	    >Source</a
+	    > <a href="#v:bytestring" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:zero" class="def"
+	    >zero</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#zero" class="link"
+	    >Source</a
+	    > <a href="#v:zero" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:one" class="def"
+	    >one</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#one" class="link"
+	    >Source</a
+	    > <a href="#v:one" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:true" class="def"
+	    >true</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#true" class="link"
+	    >Source</a
+	    > <a href="#v:true" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:false" class="def"
+	    >false</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Common.html#false" class="link"
+	    >Source</a
+	    > <a href="#v:false" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cekSuccessFalse" class="def"
+	    >cekSuccessFalse</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	    >TypeErrorOrCekResult</a
+	    > <a href="src/Evaluation.Builtins.Common.html#cekSuccessFalse" class="link"
+	    >Source</a
+	    > <a href="#v:cekSuccessFalse" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cekSuccessTrue" class="def"
+	    >cekSuccessTrue</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:TypeErrorOrCekResult" title="Evaluation.Builtins.Common"
+	    >TypeErrorOrCekResult</a
+	    > <a href="src/Evaluation.Builtins.Common.html#cekSuccessTrue" class="link"
+	    >Source</a
+	    > <a href="#v:cekSuccessTrue" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

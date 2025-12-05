@@ -1,0 +1,2524 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StrictData           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	><span class="hs-identifier"
+	  >CekMachineCostsBase</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekMachineCostsPrefix"
+	><span class="hs-identifier"
+	  >cekMachineCostsPrefix</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#unitCekMachineCosts"
+	><span class="hs-identifier"
+	  >unitCekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Barbies</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html"
+	><span class="hs-identifier"
+	  >Data.Functor.Identity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html"
+	><span class="hs-identifier"
+	  >Deriving.Aeson</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	><span class="hs-identifier"
+	  >Lift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >-- | The prefix of the field names in the CekMachineCosts type, used for</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- extracting the CekMachineCosts component of the ledger's cost model</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >-- parameters. See Note [Cost model parameters] in CostModelInterface.</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekMachineCostsPrefix"
+	><span class="hs-identifier hs-type"
+	  >cekMachineCostsPrefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="cekMachineCostsPrefix"
+      ><span class="annot"
+	><span class="annottext"
+	  >cekMachineCostsPrefix :: Text
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekMachineCostsPrefix"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekMachineCostsPrefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;cek&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Costs for evaluating AST nodes.  Times should be specified in picoseconds, memory sizes in bytes.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CekMachineCosts"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	  ><span class="hs-identifier hs-var"
+	    >CekMachineCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCostsBase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-type"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CekMachineCostsBase"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	  ><span class="hs-identifier hs-var"
+	    >CekMachineCostsBase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949347"
+      ><span class="annot"
+	><a href="#local-6989586621681949347"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span id="CekMachineCostsBase"
+      ><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	  ><span class="hs-identifier hs-var"
+	    >CekMachineCostsBase</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >      </span
+      ><span id="cekStartupCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekStartupCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekStartupCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- General overhead</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekVarCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekVarCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekVarCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekConstCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekConstCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekConstCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekLamCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekLamCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekLamCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekDelayCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekDelayCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekDelayCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekForceCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekForceCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekForceCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekApplyCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekApplyCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekApplyCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekBuiltinCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekBuiltinCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekBuiltinCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- ^ Just the cost of evaluating a Builtin node, not the builtin itself.</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- There's no entry for Error since we'll be exiting anyway; also, what would</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- happen if calling 'Error' caused the budget to be exceeded?</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekConstrCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekConstrCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekConstrCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cekCaseCost"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (f :: * -&gt; *). CekMachineCostsBase f -&gt; f ExBudget
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekCaseCost"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cekCaseCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949347"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-type"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681949826"
+      ><span id="local-6989586621681949828"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. CekMachineCostsBase f -&gt; Rep (CekMachineCostsBase f) x)
+-&gt; (forall x.
+    Rep (CekMachineCostsBase f) x -&gt; CekMachineCostsBase f)
+-&gt; Generic (CekMachineCostsBase f)
+forall x. Rep (CekMachineCostsBase f) x -&gt; CekMachineCostsBase f
+forall x. CekMachineCostsBase f -&gt; Rep (CekMachineCostsBase f) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall (f :: * -&gt; *) x.
+Rep (CekMachineCostsBase f) x -&gt; CekMachineCostsBase f
+forall (f :: * -&gt; *) x.
+CekMachineCostsBase f -&gt; Rep (CekMachineCostsBase f) x
+$cfrom :: forall (f :: * -&gt; *) x.
+CekMachineCostsBase f -&gt; Rep (CekMachineCostsBase f) x
+from :: forall x. CekMachineCostsBase f -&gt; Rep (CekMachineCostsBase f) x
+$cto :: forall (f :: * -&gt; *) x.
+Rep (CekMachineCostsBase f) x -&gt; CekMachineCostsBase f
+to :: forall x. Rep (CekMachineCostsBase f) x -&gt; CekMachineCostsBase f
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681949832"
+      ><span class="annot"
+	><span class="annottext"
+	  >(forall (f :: * -&gt; *) (g :: * -&gt; *).
+ (forall a. f a -&gt; g a)
+ -&gt; CekMachineCostsBase f -&gt; CekMachineCostsBase g)
+-&gt; FunctorB CekMachineCostsBase
+forall k (b :: (k -&gt; *) -&gt; *).
+(forall (f :: k -&gt; *) (g :: k -&gt; *).
+ (forall (a :: k). f a -&gt; g a) -&gt; b f -&gt; b g)
+-&gt; FunctorB b
+forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; CekMachineCostsBase f -&gt; CekMachineCostsBase g
+$cbmap :: forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; CekMachineCostsBase f -&gt; CekMachineCostsBase g
+bmap :: forall (f :: * -&gt; *) (g :: * -&gt; *).
+(forall a. f a -&gt; g a)
+-&gt; CekMachineCostsBase f -&gt; CekMachineCostsBase g
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >FunctorB</span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681949875"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunctorB CekMachineCostsBase
+FunctorB CekMachineCostsBase =&gt;
+(forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+ Applicative e =&gt;
+ (forall a. f a -&gt; e (g a))
+ -&gt; CekMachineCostsBase f -&gt; e (CekMachineCostsBase g))
+-&gt; TraversableB CekMachineCostsBase
+forall k (b :: (k -&gt; *) -&gt; *).
+FunctorB b =&gt;
+(forall (e :: * -&gt; *) (f :: k -&gt; *) (g :: k -&gt; *).
+ Applicative e =&gt;
+ (forall (a :: k). f a -&gt; e (g a)) -&gt; b f -&gt; e (b g))
+-&gt; TraversableB b
+forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+Applicative e =&gt;
+(forall a. f a -&gt; e (g a))
+-&gt; CekMachineCostsBase f -&gt; e (CekMachineCostsBase g)
+$cbtraverse :: forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+Applicative e =&gt;
+(forall a. f a -&gt; e (g a))
+-&gt; CekMachineCostsBase f -&gt; e (CekMachineCostsBase g)
+btraverse :: forall (e :: * -&gt; *) (f :: * -&gt; *) (g :: * -&gt; *).
+Applicative e =&gt;
+(forall a. f a -&gt; e (g a))
+-&gt; CekMachineCostsBase f -&gt; e (CekMachineCostsBase g)
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	  >TraversableB</span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681949919"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunctorB CekMachineCostsBase
+FunctorB CekMachineCostsBase =&gt;
+(forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+ AllB c CekMachineCostsBase =&gt;
+ CekMachineCostsBase f -&gt; CekMachineCostsBase (Product (Dict c) f))
+-&gt; ConstraintsB CekMachineCostsBase
+forall k (b :: (k -&gt; *) -&gt; *).
+FunctorB b =&gt;
+(forall (c :: k -&gt; Constraint) (f :: k -&gt; *).
+ AllB c b =&gt;
+ b f -&gt; b (Product (Dict c) f))
+-&gt; ConstraintsB b
+forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+AllB c CekMachineCostsBase =&gt;
+CekMachineCostsBase f -&gt; CekMachineCostsBase (Product (Dict c) f)
+$cbaddDicts :: forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+AllB c CekMachineCostsBase =&gt;
+CekMachineCostsBase f -&gt; CekMachineCostsBase (Product (Dict c) f)
+baddDicts :: forall (c :: * -&gt; Constraint) (f :: * -&gt; *).
+AllB c CekMachineCostsBase =&gt;
+CekMachineCostsBase f -&gt; CekMachineCostsBase (Product (Dict c) f)
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var"
+	  >ConstraintsB</span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="local-6989586621681949964"
+      ><span id="local-6989586621681949973"
+	><span id="local-6989586621681949981"
+	  ><span id="local-6989586621681949989"
+	    ><span id="local-6989586621681949997"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+		  ><span class="hs-identifier hs-type"
+		    >CustomJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#FieldLabelModifier"
+		  ><span class="hs-identifier hs-type"
+		    >FieldLabelModifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.ExBudget.html#LowerInitialCharacter"
+		  ><span class="hs-identifier hs-type"
+		    >LowerInitialCharacter</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>]</span
+		><span
+		>
+</span
+		><span id="line-57"
+		></span
+		><span
+		>             </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+		  ><span class="hs-identifier hs-type"
+		    >CekMachineCostsBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+		  ><span class="hs-identifier hs-type"
+		    >Identity</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+		  ><span class="hs-identifier hs-type"
+		    >CekMachineCostsBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+		  ><span class="hs-identifier hs-type"
+		    >Identity</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="local-6989586621681951412"
+      ><span id="local-6989586621681951420"
+	><span id="local-6989586621681951427"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >via</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+	      ><span class="hs-identifier hs-type"
+		>CustomJSON</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#FieldLabelModifier"
+	      ><span class="hs-identifier hs-type"
+		>FieldLabelModifier</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.ExBudget.html#LowerInitialCharacter"
+	      ><span class="hs-identifier hs-type"
+		>LowerInitialCharacter</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >]</span
+	    ><span
+	    >
+</span
+	    ><span id="line-59"
+	    ></span
+	    ><span
+	    >             </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	      ><span class="hs-identifier hs-type"
+		>CekMachineCostsBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	      ><span class="hs-identifier hs-type"
+		>Identity</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	      ><span class="hs-identifier hs-type"
+		>CekMachineCostsBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	      ><span class="hs-identifier hs-type"
+		>Identity</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- This instance will omit the generation of JSON for Nothing fields,</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- (any functors which have Maybe functor at the outer layer)</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="local-6989586621681951806"
+      ><span id="local-6989586621681951814"
+	><span id="local-6989586621681951822"
+	  ><span id="local-6989586621681951830"
+	    ><span id="local-6989586621681951838"
+	      ><span class="hs-keyword"
+		>deriving</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>via</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#CustomJSON"
+		  ><span class="hs-identifier hs-type"
+		    >CustomJSON</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-special"
+		>[</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#OmitNothingFields"
+		  ><span class="hs-identifier hs-type"
+		    >OmitNothingFields</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/deriving-aeson-0.2.10/docs/src/Deriving.Aeson.html#FieldLabelModifier"
+		  ><span class="hs-identifier hs-type"
+		    >FieldLabelModifier</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.ExBudget.html#LowerInitialCharacter"
+		  ><span class="hs-identifier hs-type"
+		    >LowerInitialCharacter</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>]</span
+		><span
+		>
+</span
+		><span id="line-64"
+		></span
+		><span
+		>             </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+		  ><span class="hs-identifier hs-type"
+		    >CekMachineCostsBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+		  ><span class="hs-identifier hs-type"
+		    >Maybe</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-keyword"
+		>instance</span
+		><span
+		> </span
+		><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+		  ><span class="hs-identifier hs-type"
+		    >CekMachineCostsBase</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+		  ><span class="hs-identifier hs-type"
+		    >Maybe</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="local-6989586621681953210"
+      ><span id="local-6989586621681953225"
+	><span id="local-6989586621681953230"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621681949743"
+	    ><span class="annot"
+	      ><a href="#local-6989586621681949743"
+		><span class="hs-keyword hs-type"
+		  >stock</span
+		  ></a
+		></span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >AllBF</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-type"
+		>Show</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681949743"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	      ><span class="hs-identifier hs-type"
+		>CekMachineCostsBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-type"
+		>Show</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	      ><span class="hs-identifier hs-type"
+		>CekMachineCostsBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681949743"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="local-6989586621681953241"
+      ><span id="local-6989586621681953254"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621681949746"
+	  ><span class="annot"
+	    ><a href="#local-6989586621681949746"
+	      ><span class="hs-keyword hs-type"
+		>stock</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >AllBF</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681949746"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	    ><span class="hs-identifier hs-type"
+	      >CekMachineCostsBase</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	    ><span class="hs-identifier hs-type"
+	      >CekMachineCostsBase</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681949746"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="local-6989586621681953265"
+      ><span id="local-6989586621681953290"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span id="local-6989586621681949754"
+	  ><span class="annot"
+	    ><a href="#local-6989586621681949754"
+	      ><span class="hs-keyword hs-type"
+		>stock</span
+		></a
+	      ></span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >AllBF</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-type"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681949754"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	    ><span class="hs-identifier hs-type"
+	      >CekMachineCostsBase</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Lift"
+	    ><span class="hs-identifier hs-type"
+	      >Lift</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	    ><span class="hs-identifier hs-type"
+	      >CekMachineCostsBase</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681949754"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="local-6989586621681953321"
+      ><span class="hs-keyword"
+	>deriving</span
+	><span
+	> </span
+	><span id="local-6989586621681949770"
+	><span class="annot"
+	  ><a href="#local-6989586621681949770"
+	    ><span class="hs-keyword hs-type"
+	      >anyclass</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-keyword"
+	>instance</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >AllBF</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-type"
+	    >NFData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681949770"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	  ><span class="hs-identifier hs-type"
+	    >CekMachineCostsBase</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-type"
+	    >NFData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	  ><span class="hs-identifier hs-type"
+	    >CekMachineCostsBase</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681949770"
+	  ><span class="hs-identifier hs-type"
+	    >f</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span id="local-6989586621681953360"
+      ><span id="local-6989586621681953365"
+	><span id="local-6989586621681953372"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621681949802"
+	    ><span class="annot"
+	      ><a href="#local-6989586621681949802"
+		><span class="hs-keyword hs-type"
+		  >anyclass</span
+		  ></a
+		></span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >AllBF</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-type"
+		>NoThunks</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681949802"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	      ><span class="hs-identifier hs-type"
+		>CekMachineCostsBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-type"
+		>NoThunks</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	      ><span class="hs-identifier hs-type"
+		>CekMachineCostsBase</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681949802"
+	      ><span class="hs-identifier hs-type"
+		>f</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >-- Charge a unit CPU cost for AST nodes: this allows us to count the number of</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- times each node type is evaluated.  For actual prediction/costing we use</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="hs-comment"
+      >-- a different version of CekMachineCosts: see ExBudgetingDefaults.defaultCekMachineCosts.</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#unitCekMachineCosts"
+	><span class="hs-identifier hs-type"
+	  >unitCekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="unitCekMachineCosts"
+      ><span class="annot"
+	><span class="annottext"
+	  >unitCekMachineCosts :: CekMachineCostsBase Identity
+</span
+	  ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#unitCekMachineCosts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unitCekMachineCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCostsBase"
+	><span class="hs-identifier hs-type"
+	  >CekMachineCostsBase</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekStartupCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekStartupCost"
+	><span class="hs-identifier hs-var"
+	  >cekStartupCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953438"
+	><span class="hs-identifier hs-var"
+	  >zeroCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekVarCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekVarCost"
+	><span class="hs-identifier hs-var"
+	  >cekVarCost</span
+	  ></a
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekConstCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekConstCost"
+	><span class="hs-identifier hs-var"
+	  >cekConstCost</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekLamCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekLamCost"
+	><span class="hs-identifier hs-var"
+	  >cekLamCost</span
+	  ></a
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekDelayCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekDelayCost"
+	><span class="hs-identifier hs-var"
+	  >cekDelayCost</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekForceCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekForceCost"
+	><span class="hs-identifier hs-var"
+	  >cekForceCost</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekApplyCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekApplyCost"
+	><span class="hs-identifier hs-var"
+	  >cekApplyCost</span
+	  ></a
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekBuiltinCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekBuiltinCost"
+	><span class="hs-identifier hs-var"
+	  >cekBuiltinCost</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekConstrCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekConstrCost"
+	><span class="hs-identifier hs-var"
+	  >cekConstrCost</span
+	  ></a
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cekCaseCost :: Identity ExBudget
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekCaseCost"
+	><span class="hs-identifier hs-var"
+	  >cekCaseCost</span
+	  ></a
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Identity ExBudget
+</span
+	><a href="#local-6989586621681953439"
+	><span class="hs-identifier hs-var"
+	  >unitCost</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681953438"
+      ><span class="annot"
+	><span class="annottext"
+	  >zeroCost :: Identity ExBudget
+</span
+	  ><a href="#local-6989586621681953438"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >zeroCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; Identity ExBudget
+forall a. a -&gt; Identity a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-var"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudget -&gt; Identity ExBudget) -&gt; ExBudget -&gt; Identity ExBudget
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU -&gt; ExMemory -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-var"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681953439"
+      ><span class="annot"
+	><span class="annottext"
+	  >unitCost :: Identity ExBudget
+</span
+	  ><a href="#local-6989586621681953439"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unitCost</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; Identity ExBudget
+forall a. a -&gt; Identity a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Identity.html#Identity"
+	><span class="hs-identifier hs-var"
+	  >Identity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExBudget -&gt; Identity ExBudget) -&gt; ExBudget -&gt; Identity ExBudget
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU -&gt; ExMemory -&gt; ExBudget
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudget.html#ExBudget"
+	><span class="hs-identifier hs-var"
+	  >ExBudget</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExCPU
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExMemory
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

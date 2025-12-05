@@ -1,0 +1,173 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>{-| The Float Delay optimization floats `Delay` from arguments into function bodies,
+<span class="lineno">    4 </span>if possible. It turns @(\n -&gt; ...Force n...Force n...) (Delay arg)@ into
+<span class="lineno">    5 </span>@(\n -&gt; ...Force (Delay n)...Force (Delay n)...) arg@.
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>The above transformation is performed if:
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>    * All occurrences of @arg@ are under @Force@.
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>    * @arg@ is essentially work-free.
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>This achieves a similar effect to Plutonomy's &quot;Split Delay&quot; optimization. The difference
+<span class="lineno">   14 </span>is that Split Delay simply splits the @Delay@ argument into multiple arguments, turning the
+<span class="lineno">   15 </span>above example into @(\m -&gt; (\n -&gt; ...Force n...Force n...) (Delay m)) arg@, and then relies
+<span class="lineno">   16 </span>on other optimizations to simplify it further. Specifically, once the inliner inlines
+<span class="lineno">   17 </span>@Delay m@, it will be identical to the result of Float Delay.
+<span class="lineno">   18 </span>
+<span class="lineno">   19 </span>The advantages of Float Delay are:
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>    * It doesn't rely on the inliner. In this example, Split Delay relies on the inliner to
+<span class="lineno">   22 </span>      inline @Delay m@, but there's no guarantee that the inliner will do so, because inlining
+<span class="lineno">   23 </span>      it may increase the program size.
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>      We can potentially modify the inliner such that it is aware of Float Delay and
+<span class="lineno">   26 </span>      Force-Delay Cancel, and makes inlining decisions with these other optimizations in mind.
+<span class="lineno">   27 </span>      The problem is that, not only does this makes the inlining heuristics much more
+<span class="lineno">   28 </span>      complex, but it could easily lead to code duplication. Other optimizations often
+<span class="lineno">   29 </span>      need to do some calculation in order to make certain optimization decisions (e.g., in
+<span class="lineno">   30 </span>      this case, we want to check whether all occurrences of @arg@ are under @Force@), and
+<span class="lineno">   31 </span>      if we rely on the inliner to inline the @Delay@, then the same check would need to be
+<span class="lineno">   32 </span>      performed by the inliner.
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>    * Because Force Delay requires that all occurrences of @arg@ are under @Force@, it
+<span class="lineno">   35 </span>      guarantees to not increase the size or the cost of the program. This is not the case
+<span class="lineno">   36 </span>      with Split Delay: in this example, if the occurrences of @n@ are not under @Force@,
+<span class="lineno">   37 </span>      then Split Delay may increase the size of the program, regardless of whether or not
+<span class="lineno">   38 </span>      @Delay m@ is inlined. If @Delay m@ is not inlined, then it will also increase the
+<span class="lineno">   39 </span>      cost of the program, due to the additional application.
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>The alternative approach that always floats the @Delay@ regardless of whether or not all
+<span class="lineno">   42 </span>occurences of @arg@ are under @Force@ was implemented and tested, and it is strictly worse than
+<span class="lineno">   43 </span>Float Delay on our current test suite (specifically, Split Delay causes one test case
+<span class="lineno">   44 </span>to have a slightly bigger program, and everything else is equal).
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>Why is this optimization performed on UPLC, not PIR?
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>    1. Not only are the types and let-bindings in PIR not useful for this optimization,
+<span class="lineno">   49 </span>       they can also get in the way. For example, we cannot transform
+<span class="lineno">   50 </span>       @let f = /\a. ...a... in ...{f t1}...{f t2}...@ into
+<span class="lineno">   51 </span>       @ket f = ...a... in ...f...f...@.
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>    2. This optimization mainly interacts with ForceDelayCancel and the inliner, and
+<span class="lineno">   54 </span>       both are part of the UPLC simplifier. -}
+<span class="lineno">   55 </span>module UntypedPlutusCore.Transform.FloatDelay (floatDelay) where
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>import PlutusCore qualified as PLC
+<span class="lineno">   58 </span>import PlutusCore.Name.Unique qualified as PLC
+<span class="lineno">   59 </span>import PlutusCore.Name.UniqueMap qualified as UMap
+<span class="lineno">   60 </span>import PlutusCore.Name.UniqueSet qualified as USet
+<span class="lineno">   61 </span>import UntypedPlutusCore.Core.Plated (termSubterms)
+<span class="lineno">   62 </span>import UntypedPlutusCore.Core.Type (Term (..))
+<span class="lineno">   63 </span>import UntypedPlutusCore.Transform.Simplifier
+<span class="lineno">   64 </span>  ( SimplifierStage (FloatDelay)
+<span class="lineno">   65 </span>  , SimplifierT
+<span class="lineno">   66 </span>  , recordSimplification
+<span class="lineno">   67 </span>  )
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>import Control.Lens (forOf, forOf_, transformOf)
+<span class="lineno">   70 </span>import Control.Monad.Trans.Writer.CPS (Writer, execWriter, runWriter, tell)
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>floatDelay
+<span class="lineno">   73 </span>  :: ( PLC.MonadQuote m
+<span class="lineno">   74 </span>     , PLC.Rename (Term name uni fun a)
+<span class="lineno">   75 </span>     , PLC.HasUnique name PLC.TermUnique
+<span class="lineno">   76 </span>     )
+<span class="lineno">   77 </span>  =&gt; Term name uni fun a
+<span class="lineno">   78 </span>  -&gt; SimplifierT name uni fun a m (Term name uni fun a)
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">floatDelay term = do</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">result &lt;-</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="istickedoff">PLC.rename term &gt;&gt;= \t -&gt;</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="istickedoff">pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="istickedoff">recordSimplification term FloatDelay result</span>
+<span class="lineno">   84 </span><span class="spaces">  </span><span class="istickedoff">return result</span></span>
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>{-| First pass. Returns the names of all variables, at least one occurrence
+<span class="lineno">   87 </span>of which is not under `Force`. -}
+<span class="lineno">   88 </span>unforcedVars
+<span class="lineno">   89 </span>  :: forall name uni fun a
+<span class="lineno">   90 </span>   . PLC.HasUnique name PLC.TermUnique
+<span class="lineno">   91 </span>  =&gt; Term name uni fun a
+<span class="lineno">   92 </span>  -&gt; PLC.UniqueSet PLC.TermUnique
+<span class="lineno">   93 </span><span class="decl"><span class="istickedoff">unforcedVars = execWriter . go</span>
+<span class="lineno">   94 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   95 </span><span class="spaces">    </span><span class="istickedoff">go :: Term name uni fun a -&gt; Writer (PLC.UniqueSet PLC.TermUnique) ()</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="istickedoff">Var _ n -&gt; tell (USet.singletonName n)</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff">Force _ Var {} -&gt; pure <span class="nottickedoff">()</span></span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff">t -&gt; forOf_ termSubterms t go</span></span>
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>{-| Second pass. Removes `Delay` from eligible arguments, and returns
+<span class="lineno">  102 </span>the names of variables whose corresponding arguments are modified. -}
+<span class="lineno">  103 </span>simplifyArgs
+<span class="lineno">  104 </span>  :: forall name uni fun a
+<span class="lineno">  105 </span>   . PLC.HasUnique name PLC.TermUnique
+<span class="lineno">  106 </span>  =&gt; PLC.UniqueSet PLC.TermUnique
+<span class="lineno">  107 </span>  -- ^ The set of variables returned by `unforcedVars`.
+<span class="lineno">  108 </span>  -&gt; Term name uni fun a
+<span class="lineno">  109 </span>  -&gt; (Term name uni fun a, PLC.UniqueMap PLC.TermUnique a)
+<span class="lineno">  110 </span><span class="decl"><span class="istickedoff">simplifyArgs blacklist = runWriter . go</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  112 </span><span class="spaces">    </span><span class="istickedoff">go :: Term name uni fun ann -&gt; Writer (PLC.UniqueMap PLC.TermUnique ann) (Term name uni fun ann)</span>
+<span class="lineno">  113 </span><span class="spaces">    </span><span class="istickedoff">go = \case</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="istickedoff">Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)</span>
+<span class="lineno">  115 </span><span class="spaces">        </span><span class="istickedoff">| isEssentiallyWorkFree arg</span>
+<span class="lineno">  116 </span><span class="spaces">        </span><span class="istickedoff">, n `USet.notMemberByName` blacklist -&gt; do</span>
+<span class="lineno">  117 </span><span class="spaces">            </span><span class="istickedoff">tell (UMap.singletonByName n delayAnn)</span>
+<span class="lineno">  118 </span><span class="spaces">            </span><span class="istickedoff">(Apply appAnn . LamAbs lamAnn n &lt;$&gt; go lamBody) &lt;*&gt; go arg</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="istickedoff">t -&gt; forOf termSubterms t go</span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>-- | Third pass. Turns @Force n@ into @Force (Delay n)@ for all eligibile @n@.
+<span class="lineno">  122 </span>simplifyBodies
+<span class="lineno">  123 </span>  :: PLC.HasUnique name PLC.TermUnique
+<span class="lineno">  124 </span>  =&gt; PLC.UniqueMap PLC.TermUnique a
+<span class="lineno">  125 </span>  -&gt; Term name uni fun a
+<span class="lineno">  126 </span>  -&gt; Term name uni fun a
+<span class="lineno">  127 </span><span class="decl"><span class="istickedoff">simplifyBodies whitelist = transformOf termSubterms $ \case</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="istickedoff">var@(Var _ n)</span>
+<span class="lineno">  129 </span><span class="spaces">    </span><span class="istickedoff">| Just ann &lt;- UMap.lookupName n whitelist -&gt; Delay ann var</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="istickedoff">t -&gt; t</span></span>
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>{-| Whether evaluating the given `Term` is pure and essentially work-free
+<span class="lineno">  133 </span>(barring the CEK machine overhead). -}
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>--- This should be the erased version of 'PlutusIR.Transform.LetFloat.isEssentiallyWorkFree'.
+<span class="lineno">  136 </span>isEssentiallyWorkFree :: Term name uni fun a -&gt; Bool
+<span class="lineno">  137 </span><span class="decl"><span class="istickedoff">isEssentiallyWorkFree = \case</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="istickedoff">LamAbs {} -&gt; True</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="istickedoff">Constant {} -&gt; True</span>
+<span class="lineno">  140 </span><span class="spaces">  </span><span class="istickedoff">Delay {} -&gt; True</span>
+<span class="lineno">  141 </span><span class="spaces">  </span><span class="istickedoff">Constr {} -&gt; <span class="nottickedoff">True</span></span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="istickedoff">Builtin {} -&gt; <span class="nottickedoff">True</span></span>
+<span class="lineno">  143 </span><span class="spaces">  </span><span class="istickedoff">Var {} -&gt; <span class="nottickedoff">False</span></span>
+<span class="lineno">  144 </span><span class="spaces">  </span><span class="istickedoff">Force {} -&gt; <span class="nottickedoff">False</span></span>
+<span class="lineno">  145 </span><span class="spaces">  </span><span class="istickedoff">-- Unsaturated builtin applications should also be essentially work-free,</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="istickedoff">-- but this is currently not implemented for UPLC.</span>
+<span class="lineno">  147 </span><span class="spaces">  </span><span class="istickedoff">-- `UntypedPlutusCore.Transform.Inline.isPure` has the same problem.</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="istickedoff">Apply {} -&gt; False</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="istickedoff">Case {} -&gt; <span class="nottickedoff">False</span></span>
+<span class="lineno">  150 </span><span class="spaces">  </span><span class="istickedoff">Error {} -&gt; <span class="nottickedoff">False</span></span></span>
+
+</pre>
+</body>
+</html>

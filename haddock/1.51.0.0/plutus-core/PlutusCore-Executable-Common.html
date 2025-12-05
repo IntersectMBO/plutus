@@ -1,0 +1,1044 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Executable.Common</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Executable.Common.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Executable.Common</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    >module <a href="PlutusCore-Executable-Types.html"
+	      >PlutusCore.Executable.Types</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:PrintBudgetState"
+	      >PrintBudgetState</a
+	      > cost</li
+	    ><li class="src short"
+	    ><a href="#v:getInput"
+	      >getInput</a
+	      > &#8759; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getInteresting"
+	      >getInteresting</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	      >ExampleName</a
+	      >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())]</li
+	    ><li class="src short"
+	    ><a href="#v:getPlcExamples"
+	      >getPlcExamples</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	      >ExampleName</a
+	      >, SomeExample)]</li
+	    ><li class="src short"
+	    ><a href="#v:prettyPrintByMode"
+	      >prettyPrintByMode</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyPlc</a
+	      > a &#8658; <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	      >PrintMode</a
+	      > &#8594; a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:getUplcExamples"
+	      >getUplcExamples</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	      >ExampleName</a
+	      >, SomeExample)]</li
+	    ><li class="src short"
+	    ><a href="#v:helpText"
+	      >helpText</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:loadASTfromFlat"
+	      >loadASTfromFlat</a
+	      > &#8759; (ProgramLike p, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	      >Flat</a
+	      > ann) &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (p ann)</li
+	    ><li class="src short"
+	    ><a href="#v:parseInput"
+	      >parseInput</a
+	      > &#8759; (ProgramLike p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)) &#8658; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      >, p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:parseNamedProgram"
+	      >parseNamedProgram</a
+	      > &#8759; ProgramLike p &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="../plutus-core/PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	      >ParserErrorBundle</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:printBudgetState"
+	      >printBudgetState</a
+	      > &#8759; <a href="PlutusCore-Executable-Common.html#t:PrintBudgetState" title="PlutusCore.Executable.Common"
+	      >PrintBudgetState</a
+	      > cost &#8658; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; <a href="PlutusCore-Executable-Types.html#t:CekModel" title="PlutusCore.Executable.Types"
+	      >CekModel</a
+	      > &#8594; cost &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:readProgram"
+	      >readProgram</a
+	      > &#8759; &#8704; p. (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	      >Functor</a
+	      > p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)) &#8658; <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	      >Format</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	      >Input</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:runConvert"
+	      >runConvert</a
+	      > &#8759; &#8704; (p &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >). (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	      >Functor</a
+	      > p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >), <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	      >PrettyBy</a
+	      > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyConfigPlc</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)) &#8658; <a href="PlutusCore-Executable-Types.html#t:ConvertOptions" title="PlutusCore.Executable.Types"
+	      >ConvertOptions</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:runDumpModel"
+	      >runDumpModel</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	      >BuiltinSemanticsVariant</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:runPrint"
+	      >runPrint</a
+	      > &#8759; &#8704; p. (ProgramLike p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	      >Rename</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >), <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	      >PrettyBy</a
+	      > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyConfigPlc</a
+	      > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      >)) &#8658; <a href="PlutusCore-Executable-Types.html#t:PrintOptions" title="PlutusCore.Executable.Types"
+	      >PrintOptions</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:runPrintBuiltinSignatures"
+	      >runPrintBuiltinSignatures</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:runPrintExample"
+	      >runPrintExample</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	      >ExampleName</a
+	      >, SomeExample)] &#8594; <a href="PlutusCore-Executable-Types.html#t:ExampleOptions" title="PlutusCore.Executable.Types"
+	      >ExampleOptions</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:topSrcSpan"
+	      >topSrcSpan</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	      >SrcSpan</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:writeFlat"
+	      >writeFlat</a
+	      > &#8759; (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	      >Functor</a
+	      > p) &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	      >AstNameType</a
+	      > &#8594; p ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:writePrettyToOutput"
+	      >writePrettyToOutput</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	      >PrettyBy</a
+	      > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyConfigPlc</a
+	      > (p ann) &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	      >PrintMode</a
+	      > &#8594; p ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:writeProgram"
+	      >writeProgram</a
+	      > &#8759; (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	      >Functor</a
+	      > p, <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	      >PrettyBy</a
+	      > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	      >PrettyConfigPlc</a
+	      > (p ann)) &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	      >Format</a
+	      > &#8594; <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	      >PrintMode</a
+	      > &#8594; p ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:writeToOutput"
+	      >writeToOutput</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	      >Show</a
+	      > a &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	      >Output</a
+	      > &#8594; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	      >IO</a
+	      > ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  >module <a href="PlutusCore-Executable-Types.html"
+	    >PlutusCore.Executable.Types</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:PrintBudgetState" class="def"
+	    >PrintBudgetState</a
+	    > cost <a href="src/PlutusCore.Executable.Common.html#PrintBudgetState" class="link"
+	    >Source</a
+	    > <a href="#t:PrintBudgetState" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusCore-Executable-Common.html#v:printBudgetState" title="PlutusCore.Executable.Common"
+	      >printBudgetState</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PrintBudgetState"
+	    >Instances</h4
+	    ><details id="i:PrintBudgetState" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:PrintBudgetState:PrintBudgetState:1"
+		      ></span
+		      > <a href="PlutusCore-Executable-Common.html#t:PrintBudgetState" title="PlutusCore.Executable.Common"
+		      >PrintBudgetState</a
+		      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:CountingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+		      >CountingSt</a
+		      ></span
+		    > <a href="src/PlutusCore.Executable.Common.html#line-229" class="link"
+		    >Source</a
+		    > <a href="#t:PrintBudgetState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:PrintBudgetState:PrintBudgetState:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Executable-Common.html"
+			>PlutusCore.Executable.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:printBudgetState"
+			  >printBudgetState</a
+			  > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > () &#8594; <a href="PlutusCore-Executable-Types.html#t:CekModel" title="PlutusCore.Executable.Types"
+			  >CekModel</a
+			  > &#8594; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:CountingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+			  >CountingSt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > () <a href="src/PlutusCore.Executable.Common.html#printBudgetState" class="link"
+			  >Source</a
+			  > <a href="#v:printBudgetState" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:PrintBudgetState:PrintBudgetState:2"
+		      ></span
+		      > <a href="PlutusCore-Executable-Common.html#t:PrintBudgetState" title="PlutusCore.Executable.Common"
+		      >PrintBudgetState</a
+		      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:RestrictingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+		      >RestrictingSt</a
+		      ></span
+		    > <a href="src/PlutusCore.Executable.Common.html#line-238" class="link"
+		    >Source</a
+		    > <a href="#t:PrintBudgetState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:PrintBudgetState:PrintBudgetState:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Executable-Common.html"
+			>PlutusCore.Executable.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:printBudgetState"
+			  >printBudgetState</a
+			  > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > () &#8594; <a href="PlutusCore-Executable-Types.html#t:CekModel" title="PlutusCore.Executable.Types"
+			  >CekModel</a
+			  > &#8594; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:RestrictingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+			  >RestrictingSt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > () <a href="src/PlutusCore.Executable.Common.html#printBudgetState" class="link"
+			  >Source</a
+			  > <a href="#v:printBudgetState" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:PrintBudgetState:PrintBudgetState:3"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		      >Hashable</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > fun) &#8658; <a href="PlutusCore-Executable-Common.html#t:PrintBudgetState" title="PlutusCore.Executable.Common"
+		      >PrintBudgetState</a
+		      > (<a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:TallyingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+		      >TallyingSt</a
+		      > fun)</span
+		    > <a href="src/PlutusCore.Executable.Common.html#line-232" class="link"
+		    >Source</a
+		    > <a href="#t:PrintBudgetState" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:PrintBudgetState:PrintBudgetState:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Executable-Common.html"
+			>PlutusCore.Executable.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:printBudgetState"
+			  >printBudgetState</a
+			  > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			  >DefaultFun</a
+			  > () &#8594; <a href="PlutusCore-Executable-Types.html#t:CekModel" title="PlutusCore.Executable.Types"
+			  >CekModel</a
+			  > &#8594; <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-ExBudgetMode.html#t:TallyingSt" title="UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode"
+			  >TallyingSt</a
+			  > fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > () <a href="src/PlutusCore.Executable.Common.html#printBudgetState" class="link"
+			  >Source</a
+			  > <a href="#v:printBudgetState" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getInput" class="def"
+	    >getInput</a
+	    > &#8759; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusCore.Executable.Common.html#getInput" class="link"
+	    >Source</a
+	    > <a href="#v:getInput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getInteresting" class="def"
+	    >getInteresting</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	    >ExampleName</a
+	    >, <a href="../plutus-core/PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > ())] <a href="src/PlutusCore.Executable.Common.html#getInteresting" class="link"
+	    >Source</a
+	    > <a href="#v:getInteresting" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getPlcExamples" class="def"
+	    >getPlcExamples</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	    >ExampleName</a
+	    >, SomeExample)] <a href="src/PlutusCore.Executable.Common.html#getPlcExamples" class="link"
+	    >Source</a
+	    > <a href="#v:getPlcExamples" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get available typed examples.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyPrintByMode" class="def"
+	    >prettyPrintByMode</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyPlc</a
+	    > a &#8658; <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	    >PrintMode</a
+	    > &#8594; a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a <a href="src/PlutusCore.Executable.Common.html#prettyPrintByMode" class="link"
+	    >Source</a
+	    > <a href="#v:prettyPrintByMode" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getUplcExamples" class="def"
+	    >getUplcExamples</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	    >ExampleName</a
+	    >, SomeExample)] <a href="src/PlutusCore.Executable.Common.html#getUplcExamples" class="link"
+	    >Source</a
+	    > <a href="#v:getUplcExamples" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get available untyped examples. Currently the untyped
+ examples are obtained by erasing typed ones, but it might be useful to have
+ some untyped ones that can't be obtained by erasure.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:helpText" class="def"
+	    >helpText</a
+	    > <a href="src/PlutusCore.Executable.Common.html#helpText" class="link"
+	    >Source</a
+	    > <a href="#v:helpText" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Either &quot;Untyped Plutus Core&quot; or &quot;Typed Plutus Core&quot;</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:loadASTfromFlat" class="def"
+	    >loadASTfromFlat</a
+	    > &#8759; (ProgramLike p, <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Class.html#t:Flat" title="Flat.Class"
+	    >Flat</a
+	    > ann) &#8658; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (p ann) <a href="src/PlutusCore.Executable.Common.html#loadASTfromFlat" class="link"
+	    >Source</a
+	    > <a href="#v:loadASTfromFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Read and deserialise a Flat-encoded AST</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parseInput" class="def"
+	    >parseInput</a
+	    > <a href="src/PlutusCore.Executable.Common.html#parseInput" class="link"
+	    >Source</a
+	    > <a href="#v:parseInput" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (ProgramLike p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+		  >Rename</a
+		  > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		  >SrcSpan</a
+		  >))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+		  >Input</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The source program</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+		  >IO</a
+		  > (<a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  >, p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+		  >SrcSpan</a
+		  >)</td
+		><td class="doc"
+		><p
+		  >The output is a program with annotation</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Read and parse and check the program for <code
+	      >UniqueError</code
+	      >'s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parseNamedProgram" class="def"
+	    >parseNamedProgram</a
+	    > &#8759; ProgramLike p &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	    >Either</a
+	    > <a href="../plutus-core/PlutusCore-Error.html#t:ParserErrorBundle" title="PlutusCore.Error"
+	    >ParserErrorBundle</a
+	    > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >) <a href="src/PlutusCore.Executable.Common.html#parseNamedProgram" class="link"
+	    >Source</a
+	    > <a href="#v:parseNamedProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parse a program.  The first argument (normally the file path) describes
+ the input stream, the second is the program text.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:printBudgetState" class="def"
+	    >printBudgetState</a
+	    > &#8759; <a href="PlutusCore-Executable-Common.html#t:PrintBudgetState" title="PlutusCore.Executable.Common"
+	    >PrintBudgetState</a
+	    > cost &#8658; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="PlutusCore-Executable-Types.html#t:CekModel" title="PlutusCore.Executable.Types"
+	    >CekModel</a
+	    > &#8594; cost &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#printBudgetState" class="link"
+	    >Source</a
+	    > <a href="#v:printBudgetState" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:readProgram" class="def"
+	    >readProgram</a
+	    > &#8759; &#8704; p. (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	    >Functor</a
+	    > p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	    >Rename</a
+	    > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >)) &#8658; <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	    >Format</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:Input" title="PlutusCore.Executable.Types"
+	    >Input</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >) <a href="src/PlutusCore.Executable.Common.html#readProgram" class="link"
+	    >Source</a
+	    > <a href="#v:readProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runConvert" class="def"
+	    >runConvert</a
+	    > &#8759; &#8704; (p &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >). (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	    >Functor</a
+	    > p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	    >Rename</a
+	    > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >), <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	    >PrettyBy</a
+	    > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyConfigPlc</a
+	    > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >)) &#8658; <a href="PlutusCore-Executable-Types.html#t:ConvertOptions" title="PlutusCore.Executable.Types"
+	    >ConvertOptions</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#runConvert" class="link"
+	    >Source</a
+	    > <a href="#v:runConvert" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Convert between textual and FLAT representations.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runDumpModel" class="def"
+	    >runDumpModel</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#runDumpModel" class="link"
+	    >Source</a
+	    > <a href="#v:runDumpModel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runPrint" class="def"
+	    >runPrint</a
+	    > &#8759; &#8704; p. (ProgramLike p, <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+	    >Rename</a
+	    > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >), <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	    >PrettyBy</a
+	    > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyConfigPlc</a
+	    > (p <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    >)) &#8658; <a href="PlutusCore-Executable-Types.html#t:PrintOptions" title="PlutusCore.Executable.Types"
+	    >PrintOptions</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#runPrint" class="link"
+	    >Source</a
+	    > <a href="#v:runPrint" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runPrintBuiltinSignatures" class="def"
+	    >runPrintBuiltinSignatures</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#runPrintBuiltinSignatures" class="link"
+	    >Source</a
+	    > <a href="#v:runPrintBuiltinSignatures" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runPrintExample" class="def"
+	    >runPrintExample</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > [(<a href="PlutusCore-Executable-Types.html#t:ExampleName" title="PlutusCore.Executable.Types"
+	    >ExampleName</a
+	    >, SomeExample)] &#8594; <a href="PlutusCore-Executable-Types.html#t:ExampleOptions" title="PlutusCore.Executable.Types"
+	    >ExampleOptions</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#runPrintExample" class="link"
+	    >Source</a
+	    > <a href="#v:runPrintExample" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:topSrcSpan" class="def"
+	    >topSrcSpan</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Annotation.html#t:SrcSpan" title="PlutusCore.Annotation"
+	    >SrcSpan</a
+	    > <a href="src/PlutusCore.Executable.Common.html#topSrcSpan" class="link"
+	    >Source</a
+	    > <a href="#v:topSrcSpan" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A made-up <code
+	      >SrcSpan</code
+	      > since there's no source locations in Flat.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:writeFlat" class="def"
+	    >writeFlat</a
+	    > &#8759; (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	    >Functor</a
+	    > p) &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:AstNameType" title="PlutusCore.Executable.Types"
+	    >AstNameType</a
+	    > &#8594; p ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#writeFlat" class="link"
+	    >Source</a
+	    > <a href="#v:writeFlat" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:writePrettyToOutput" class="def"
+	    >writePrettyToOutput</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	    >PrettyBy</a
+	    > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyConfigPlc</a
+	    > (p ann) &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	    >PrintMode</a
+	    > &#8594; p ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#writePrettyToOutput" class="link"
+	    >Source</a
+	    > <a href="#v:writePrettyToOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:writeProgram" class="def"
+	    >writeProgram</a
+	    > &#8759; (ProgramLike p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	    >Functor</a
+	    > p, <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+	    >PrettyBy</a
+	    > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+	    >PrettyConfigPlc</a
+	    > (p ann)) &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:Format" title="PlutusCore.Executable.Types"
+	    >Format</a
+	    > &#8594; <a href="PlutusCore-Executable-Types.html#t:PrintMode" title="PlutusCore.Executable.Types"
+	    >PrintMode</a
+	    > &#8594; p ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#writeProgram" class="link"
+	    >Source</a
+	    > <a href="#v:writeProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:writeToOutput" class="def"
+	    >writeToOutput</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a &#8658; <a href="PlutusCore-Executable-Types.html#t:Output" title="PlutusCore.Executable.Types"
+	    >Output</a
+	    > &#8594; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+	    >IO</a
+	    > () <a href="src/PlutusCore.Executable.Common.html#writeToOutput" class="link"
+	    >Source</a
+	    > <a href="#v:writeToOutput" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

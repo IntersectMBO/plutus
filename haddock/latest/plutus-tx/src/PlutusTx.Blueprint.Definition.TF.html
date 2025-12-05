@@ -1,0 +1,2919 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds                #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds                #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StandaloneKindSignatures #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Definition.TF</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#K1"
+	><span class="hs-identifier"
+	  >K1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#M1"
+	><span class="hs-identifier"
+	  >M1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#U1"
+	><span class="hs-identifier"
+	  >U1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#%3A%2A%3A"
+	><span class="hs-operator"
+	  >(:*:)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#%3A%2B%3A"
+	><span class="hs-operator"
+	  >(:+:)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-comment"
+      >-- Detect stuck type families: https://blog.csongor.co.uk/report-stuck-families/#custom-type-errors</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="IfStuckUnroll"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckUnroll"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckUnroll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019256"
+      ><span class="annot"
+	><a href="#local-6989586621680019256"
+	  ><span class="hs-identifier hs-type"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019257"
+      ><span class="annot"
+	><a href="#local-6989586621680019257"
+	  ><span class="hs-identifier hs-type"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckUnroll"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckUnroll"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckUnroll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckUnroll"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckUnroll"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckUnroll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019258"
+      ><span id="local-6989586621680019259"
+	><span class="annot"
+	  ><span class="hs-identifier"
+	    >_</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019258"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="hs-glyph"
+	  >:</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019259"
+	    ><span class="hs-identifier hs-type"
+	      >xs</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019258"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019259"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckUnroll"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckUnroll"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckUnroll</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019260"
+      ><span class="annot"
+	><a href="#local-6989586621680019260"
+	  ><span class="hs-identifier hs-type"
+	    >e</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier"
+	  >_</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019260"
+	><span class="hs-identifier hs-type"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="IfStuckRep"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckRep"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019262"
+      ><span class="annot"
+	><a href="#local-6989586621680019262"
+	  ><span class="hs-identifier hs-type"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019263"
+      ><span class="annot"
+	><a href="#local-6989586621680019263"
+	  ><span class="hs-identifier hs-type"
+	    >rep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckRep"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckRep"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019264"
+      ><span id="local-6989586621680019265"
+	><span id="local-6989586621680019266"
+	  ><span class="annot"
+	    ><span class="hs-identifier"
+	      >_</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#M1"
+	      ><span class="hs-identifier hs-type"
+		>M1</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019264"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019265"
+	      ><span class="hs-identifier hs-type"
+		>b</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019266"
+	      ><span class="hs-identifier hs-type"
+		>c</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#M1"
+	><span class="hs-identifier hs-type"
+	  >M1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019264"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019265"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019266"
+	><span class="hs-identifier hs-type"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckRep"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckRep"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019267"
+      ><span id="local-6989586621680019268"
+	><span class="annot"
+	  ><span class="hs-identifier"
+	    >_</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019267"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#%3A%2A%3A"
+	    ><span class="hs-operator hs-type"
+	      >:*:</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019268"
+	    ><span class="hs-identifier hs-type"
+	      >g</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019267"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#%3A%2A%3A"
+	><span class="hs-operator hs-type"
+	  >:*:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019268"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckRep"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckRep"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019269"
+      ><span id="local-6989586621680019270"
+	><span class="annot"
+	  ><span class="hs-identifier"
+	    >_</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019269"
+	    ><span class="hs-identifier hs-type"
+	      >f</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#%3A%2B%3A"
+	    ><span class="hs-operator hs-type"
+	      >:+:</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019270"
+	    ><span class="hs-identifier hs-type"
+	      >g</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019269"
+	><span class="hs-identifier hs-type"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#%3A%2B%3A"
+	><span class="hs-operator hs-type"
+	  >:+:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019270"
+	><span class="hs-identifier hs-type"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckRep"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckRep"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019271"
+      ><span id="local-6989586621680019272"
+	><span class="annot"
+	  ><span class="hs-identifier"
+	    >_</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#K1"
+	    ><span class="hs-identifier hs-type"
+	      >K1</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019271"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019272"
+	    ><span class="hs-identifier hs-type"
+	      >b</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#K1"
+	><span class="hs-identifier hs-type"
+	  >K1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019271"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019272"
+	><span class="hs-identifier hs-type"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckRep"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckRep"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019273"
+      ><span class="annot"
+	><a href="#local-6989586621680019273"
+	  ><span class="hs-identifier hs-type"
+	    >e</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#U1"
+	  ><span class="hs-identifier hs-type"
+	    >U1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#U1"
+	><span class="hs-identifier hs-type"
+	  >U1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span id="IfStuckRep"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#IfStuckRep"
+	  ><span class="hs-identifier hs-var"
+	    >IfStuckRep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019274"
+      ><span id="local-6989586621680019275"
+	><span class="annot"
+	  ><a href="#local-6989586621680019274"
+	    ><span class="hs-identifier hs-type"
+	      >e</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019275"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019274"
+	><span class="hs-identifier hs-type"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- Type-level list operations ----------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert @x@ into @xs@ unless it's already there.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	><span class="hs-identifier hs-type"
+	  >Insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680019277"
+      ><span class="annot"
+	><a href="#local-6989586621680019277"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019277"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019277"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019277"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="Insert"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	  ><span class="hs-identifier hs-var"
+	    >Insert</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019278"
+      ><span class="annot"
+	><a href="#local-6989586621680019278"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019279"
+      ><span class="annot"
+	><a href="#local-6989586621680019279"
+	  ><span class="hs-identifier hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span id="Insert"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	  ><span class="hs-identifier hs-var"
+	    >Insert</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019280"
+      ><span class="annot"
+	><a href="#local-6989586621680019280"
+	  ><span class="hs-identifier hs-type"
+	    >x</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019280"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span id="Insert"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	  ><span class="hs-identifier hs-var"
+	    >Insert</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019281"
+      ><span id="local-6989586621680019282"
+	><span class="annot"
+	  ><a href="#local-6989586621680019281"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019281"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	    ><span class="hs-glyph hs-type"
+	      >:</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019282"
+	    ><span class="hs-identifier hs-type"
+	      >xs</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019281"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019282"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span id="Insert"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	  ><span class="hs-identifier hs-var"
+	    >Insert</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019283"
+      ><span id="local-6989586621680019284"
+	><span id="local-6989586621680019285"
+	  ><span class="annot"
+	    ><a href="#local-6989586621680019283"
+	      ><span class="hs-identifier hs-type"
+		>x</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019284"
+	      ><span class="hs-identifier hs-type"
+		>y</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	      ><span class="hs-glyph hs-type"
+		>:</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019285"
+	      ><span class="hs-identifier hs-type"
+		>xs</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019284"
+	><span class="hs-identifier hs-type"
+	  >y</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	><span class="hs-identifier hs-type"
+	  >Insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019283"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019285"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Concatenates two type-level lists</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Concat"
+	><span class="hs-identifier hs-type"
+	  >Concat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680019287"
+      ><span class="annot"
+	><a href="#local-6989586621680019287"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019287"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019287"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019287"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="Concat"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Concat"
+	  ><span class="hs-identifier hs-var"
+	    >Concat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019288"
+      ><span class="annot"
+	><a href="#local-6989586621680019288"
+	  ><span class="hs-keyword hs-type"
+	    >as</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019289"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-identifier"
+      >bs</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-identifier"
+      >k</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019289"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span id="Concat"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Concat"
+	  ><span class="hs-identifier hs-var"
+	    >Concat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019290"
+      ><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680019290"
+	  ><span class="hs-identifier hs-type"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019290"
+	><span class="hs-identifier hs-type"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span id="Concat"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Concat"
+	  ><span class="hs-identifier hs-var"
+	    >Concat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019291"
+      ><span class="annot"
+	><a href="#local-6989586621680019291"
+	  ><span class="hs-keyword hs-type"
+	    >as</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019291"
+	><span class="hs-keyword hs-type"
+	  >as</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span id="Concat"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Concat"
+	  ><span class="hs-identifier hs-var"
+	    >Concat</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019292"
+      ><span id="local-6989586621680019293"
+	><span id="local-6989586621680019294"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019292"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	      ><span class="hs-glyph hs-type"
+		>:</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019293"
+	      ><span class="hs-keyword hs-type"
+		>as</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019294"
+	      ><span class="hs-identifier hs-type"
+		>bs</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019292"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Concat"
+	><span class="hs-identifier hs-type"
+	  >Concat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019293"
+	><span class="hs-keyword hs-type"
+	  >as</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019294"
+	><span class="hs-identifier hs-type"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Concatenates two type-level lists removing duplicates.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#%2B%2B"
+	><span class="hs-operator hs-type"
+	  >(++)</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680019296"
+      ><span class="annot"
+	><a href="#local-6989586621680019296"
+	  ><span class="hs-identifier hs-type"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019296"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019296"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019296"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019297"
+      ><span class="annot"
+	><a href="#local-6989586621680019297"
+	  ><span class="hs-keyword hs-type"
+	    >as</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019298"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="%2B%2B"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#%2B%2B"
+	  ><span class="hs-operator hs-var"
+	    >++</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019299"
+      ><span class="annot"
+	><a href="#local-6989586621680019299"
+	  ><span class="hs-identifier hs-type"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019298"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019298"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680019300"
+      ><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span id="%2B%2B"
+	><span class="annot"
+	  ><a href="PlutusTx.Blueprint.Definition.TF.html#%2B%2B"
+	    ><span class="hs-operator hs-var"
+	      >++</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680019300"
+	  ><span class="hs-identifier hs-type"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019300"
+	><span class="hs-identifier hs-type"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680019301"
+      ><span class="annot"
+	><a href="#local-6989586621680019301"
+	  ><span class="hs-keyword hs-type"
+	    >as</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span id="%2B%2B"
+	><span class="annot"
+	  ><a href="PlutusTx.Blueprint.Definition.TF.html#%2B%2B"
+	    ><span class="hs-operator hs-var"
+	      >++</span
+	      ></a
+	    ></span
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019301"
+	><span class="hs-keyword hs-type"
+	  >as</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680019302"
+      ><span id="local-6989586621680019303"
+	><span id="local-6989586621680019304"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019302"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	      ><span class="hs-glyph hs-type"
+		>:</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019303"
+	      ><span class="hs-keyword hs-type"
+		>as</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span id="%2B%2B"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Blueprint.Definition.TF.html#%2B%2B"
+		><span class="hs-operator hs-var"
+		  >++</span
+		  ></a
+		></span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019304"
+	      ><span class="hs-identifier hs-type"
+		>bs</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	><span class="hs-identifier hs-type"
+	  >Insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019302"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019303"
+	><span class="hs-keyword hs-type"
+	  >as</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#%2B%2B"
+	><span class="hs-operator hs-type"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019304"
+	><span class="hs-identifier hs-type"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >infixr</span
+      ><span
+      > </span
+      ><span class="hs-number"
+      >5</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#%2B%2B"
+	><span class="hs-operator hs-type"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="Reverse"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Reverse"
+	  ><span class="hs-identifier hs-var"
+	    >Reverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019306"
+      ><span class="annot"
+	><a href="#local-6989586621680019306"
+	  ><span class="hs-identifier hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019307"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019307"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span id="Reverse"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Reverse"
+	  ><span class="hs-identifier hs-var"
+	    >Reverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span id="Reverse"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Reverse"
+	  ><span class="hs-identifier hs-var"
+	    >Reverse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019308"
+      ><span id="local-6989586621680019309"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019308"
+	    ><span class="hs-identifier hs-type"
+	      >x</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >'</span
+	  ><span class="hs-glyph"
+	  >:</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680019309"
+	    ><span class="hs-identifier hs-type"
+	      >xs</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Append"
+	><span class="hs-identifier hs-type"
+	  >Append</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Reverse"
+	><span class="hs-identifier hs-type"
+	  >Reverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019309"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019308"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="Append"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Append"
+	  ><span class="hs-identifier hs-var"
+	    >Append</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019311"
+      ><span class="annot"
+	><a href="#local-6989586621680019311"
+	  ><span class="hs-identifier hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019312"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680019313"
+      ><span class="annot"
+	><a href="#local-6989586621680019313"
+	  ><span class="hs-identifier hs-type"
+	    >ys</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019312"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680019312"
+	><span class="hs-identifier hs-type"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span id="Append"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Append"
+	  ><span class="hs-identifier hs-var"
+	    >Append</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019314"
+      ><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680019314"
+	  ><span class="hs-identifier hs-type"
+	    >ys</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019314"
+	><span class="hs-identifier hs-type"
+	  >ys</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span id="Append"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Append"
+	  ><span class="hs-identifier hs-var"
+	    >Append</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019315"
+      ><span id="local-6989586621680019316"
+	><span id="local-6989586621680019317"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019315"
+	      ><span class="hs-identifier hs-type"
+		>x</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="hs-glyph"
+	    >:</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019316"
+	      ><span class="hs-identifier hs-type"
+		>xs</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019317"
+	      ><span class="hs-identifier hs-type"
+		>ys</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019315"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Append"
+	><span class="hs-identifier hs-type"
+	  >Append</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019316"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019317"
+	><span class="hs-identifier hs-type"
+	  >ys</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="Nub"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Nub"
+	  ><span class="hs-identifier hs-var"
+	    >Nub</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019319"
+      ><span class="annot"
+	><a href="#local-6989586621680019319"
+	  ><span class="hs-identifier hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span id="Nub"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#Nub"
+	  ><span class="hs-identifier hs-var"
+	    >Nub</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019320"
+      ><span class="annot"
+	><a href="#local-6989586621680019320"
+	  ><span class="hs-identifier hs-type hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#NubHelper"
+	><span class="hs-identifier hs-type"
+	  >NubHelper</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >'</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019320"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >family</span
+      ><span
+      > </span
+      ><span id="NubHelper"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#NubHelper"
+	  ><span class="hs-identifier hs-var"
+	    >NubHelper</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019322"
+      ><span class="annot"
+	><a href="#local-6989586621680019322"
+	  ><span class="hs-identifier hs-type"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019323"
+      ><span class="annot"
+	><a href="#local-6989586621680019323"
+	  ><span class="hs-identifier hs-type"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span id="NubHelper"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#NubHelper"
+	  ><span class="hs-identifier hs-var"
+	    >NubHelper</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019324"
+      ><span class="annot"
+	><a href="#local-6989586621680019324"
+	  ><span class="hs-identifier hs-type"
+	    >acc</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>'</span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019324"
+	><span class="hs-identifier hs-type"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="NubHelper"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Definition.TF.html#NubHelper"
+	  ><span class="hs-identifier hs-var"
+	    >NubHelper</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680019325"
+      ><span id="local-6989586621680019326"
+	><span id="local-6989586621680019327"
+	  ><span class="annot"
+	    ><a href="#local-6989586621680019325"
+	      ><span class="hs-identifier hs-type"
+		>acc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019326"
+	      ><span class="hs-identifier hs-type"
+		>x</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >'</span
+	    ><span class="hs-glyph"
+	    >:</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621680019327"
+	      ><span class="hs-identifier hs-type"
+		>xs</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#NubHelper"
+	><span class="hs-identifier hs-type"
+	  >NubHelper</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Definition.TF.html#Insert"
+	><span class="hs-identifier hs-type"
+	  >Insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019326"
+	><span class="hs-identifier hs-type"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019325"
+	><span class="hs-identifier hs-type"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680019327"
+	><span class="hs-identifier hs-type"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

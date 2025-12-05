@@ -1,0 +1,4845 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- | This module defines tools for associating PLC terms with their corresponding</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-comment"
+      >-- Haskell values.</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE GADTs           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Generators.Hedgehog.Denotation</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#KnownType"
+	><span class="hs-identifier"
+	  >KnownType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	><span class="hs-identifier"
+	  >Denotation</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContextMember"
+	><span class="hs-identifier"
+	  >DenotationContextMember</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#lookupInContext"
+	><span class="hs-identifier"
+	  >lookupInContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#denoteVariable"
+	><span class="hs-identifier"
+	  >denoteVariable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertVariable"
+	><span class="hs-identifier"
+	  >insertVariable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#typedBuiltins"
+	><span class="hs-identifier"
+	  >typedBuiltins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/src/Data.Dependent.Map.html"
+	><span class="hs-identifier"
+	  >Data.Dependent.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/src/Data.Dependent.Map.Internal.html#DMap"
+	><span class="hs-identifier"
+	  >DMap</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/src/Data.Dependent.Map.html"
+	><span class="hs-identifier"
+	  >Data.Dependent.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>DMap</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Compose.html"
+	><span class="hs-identifier"
+	  >Data.Functor.Compose</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Type.Reflection.html"
+	><span class="hs-identifier"
+	  >Type.Reflection</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="KnownType"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#KnownType"
+	  ><span class="hs-identifier hs-var"
+	    >KnownType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266426"
+      ><span class="annot"
+	><a href="#local-6989586621679266426"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266427"
+      ><span class="annot"
+	><a href="#local-6989586621679266427"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.KnownTypeAst.html#KnownTypeAst"
+	><span class="hs-identifier hs-type"
+	  >KnownTypeAst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#UniOf"
+	><span class="hs-identifier hs-type"
+	  >UniOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266426"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266427"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.KnownType.html#MakeKnown"
+	><span class="hs-identifier hs-type"
+	  >MakeKnown</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266426"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266427"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Haskell denotation of a PLC object. An object can be a 'Builtin' or a variable for example.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Denotation"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	  ><span class="hs-identifier hs-var"
+	    >Denotation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266279"
+      ><span class="annot"
+	><a href="#local-6989586621679266279"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266280"
+      ><span class="annot"
+	><a href="#local-6989586621679266280"
+	  ><span class="hs-identifier hs-type"
+	    >object</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266281"
+      ><span class="annot"
+	><a href="#local-6989586621679266281"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679266429"
+      ><span class="annot"
+	><a href="#local-6989586621679266429"
+	  ><span class="hs-identifier hs-type"
+	    >args</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span id="Denotation"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	  ><span class="hs-identifier hs-var"
+	    >Denotation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_denotationObject"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall term object res. Denotation term object res -&gt; object
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#_denotationObject"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_denotationObject</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266280"
+	><span class="hs-identifier hs-type"
+	  >object</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A PLC object.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_denotationToTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall term object res.
+Denotation term object res -&gt; object -&gt; term
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#_denotationToTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_denotationToTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266280"
+	><span class="hs-identifier hs-type"
+	  >object</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266279"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ How to embed the object into a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_denotationItself"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#_denotationItself"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_denotationItself</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#FoldArgs"
+	><span class="hs-identifier hs-type"
+	  >FoldArgs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266429"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266281"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The denotation of the object. E.g. the denotation of 'AddInteger' is '(+)'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_denotationScheme"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#_denotationScheme"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_denotationScheme</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.TypeScheme.html#TypeScheme"
+	><span class="hs-identifier hs-type"
+	  >TypeScheme</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266279"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266429"
+	><span class="hs-identifier hs-type"
+	  >args</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266281"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ The 'TypeScheme' of the object.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-comment"
+      >-- | A member of a 'DenotationContext'.</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-comment"
+      >-- @object@ is existentially quantified, so the only thing that can be done with it,</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >-- is turning it into a 'Term' using '_denotationToTerm'.</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="DenotationContextMember"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContextMember"
+	  ><span class="hs-identifier hs-var"
+	    >DenotationContextMember</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266374"
+      ><span class="annot"
+	><a href="#local-6989586621679266374"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266376"
+      ><span class="annot"
+	><a href="#local-6989586621679266376"
+	  ><span class="hs-identifier hs-type"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679266438"
+      ><span class="annot"
+	><a href="#local-6989586621679266438"
+	  ><span class="hs-identifier hs-type"
+	    >object</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span id="DenotationContextMember"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContextMember"
+	  ><span class="hs-identifier hs-var"
+	    >DenotationContextMember</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	><span class="hs-identifier hs-type"
+	  >Denotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266374"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266438"
+	><span class="hs-identifier hs-type"
+	  >object</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266376"
+	><span class="hs-identifier hs-type"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- | A context of 'DenotationContextMember's.</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >-- Each row is a mapping from a type to a list of things that can return that type.</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-comment"
+      >-- For example it can contain a mapping from @integer@ to</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="hs-comment"
+      >--   1. a bound variable of type @integer@</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-comment"
+      >--   2. a bound variable of functional type with the result being @integer@</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >--   3. the 'AddInteger' 'Builtin' or any other 'Builtin' which returns an @integer@.</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="DenotationContext"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	  ><span class="hs-identifier hs-var"
+	    >DenotationContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266289"
+      ><span class="annot"
+	><a href="#local-6989586621679266289"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="DenotationContext"
+      ><span class="annot"
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	  ><span class="hs-identifier hs-var"
+	    >DenotationContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unDenotationContext"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall term.
+DenotationContext term
+-&gt; DMap TypeRep (Compose [] (DenotationContextMember term))
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#unDenotationContext"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unDenotationContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/src/Data.Dependent.Map.Internal.html#DMap"
+	><span class="hs-identifier hs-type"
+	  >DMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#TypeRep"
+	><span class="hs-identifier hs-type"
+	  >TypeRep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Compose.html#Compose"
+	><span class="hs-identifier hs-type"
+	  >Compose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContextMember"
+	><span class="hs-identifier hs-type"
+	  >DenotationContextMember</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266289"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- | Look up a list of 'Denotation's from 'DenotationContext' each of which has a type that ends in</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- the same type as the one that the 'TypeRep' argument represents.</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#lookupInContext"
+	><span class="hs-identifier hs-type"
+	  >lookupInContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679266292"
+      ><span class="annot"
+	><a href="#local-6989586621679266292"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266293"
+      ><span class="annot"
+	><a href="#local-6989586621679266293"
+	  ><span class="hs-identifier hs-type"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#TypeRep"
+	><span class="hs-identifier hs-type"
+	  >TypeRep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266292"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier hs-type"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266293"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContextMember"
+	><span class="hs-identifier hs-type"
+	  >DenotationContextMember</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266293"
+	><span class="hs-identifier hs-type"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679266292"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span id="lookupInContext"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupInContext :: forall a term.
+TypeRep a
+-&gt; DenotationContext term -&gt; [DenotationContextMember term a]
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#lookupInContext"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupInContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266447"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeRep a
+</span
+	  ><a href="#local-6989586621679266447"
+	  ><span class="hs-identifier hs-var"
+	    >tr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Compose [] (DenotationContextMember term) a
+ -&gt; [DenotationContextMember term a])
+-&gt; Maybe (Compose [] (DenotationContextMember term) a)
+-&gt; [DenotationContextMember term a]
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; Maybe a -&gt; m
+forall (t :: * -&gt; *) m a.
+(Foldable t, Monoid m) =&gt;
+(a -&gt; m) -&gt; t a -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldMap"
+	><span class="hs-identifier hs-var"
+	  >foldMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Compose [] (DenotationContextMember term) a
+-&gt; [DenotationContextMember term a]
+forall {k1} {k2} (f :: k1 -&gt; *) (g :: k2 -&gt; k1) (a :: k2).
+Compose f g a -&gt; f (g a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Compose.html#getCompose"
+	><span class="hs-identifier hs-var"
+	  >getCompose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe (Compose [] (DenotationContextMember term) a)
+ -&gt; [DenotationContextMember term a])
+-&gt; (DenotationContext term
+    -&gt; Maybe (Compose [] (DenotationContextMember term) a))
+-&gt; DenotationContext term
+-&gt; [DenotationContextMember term a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep a
+-&gt; DMap TypeRep (Compose [] (DenotationContextMember term))
+-&gt; Maybe (Compose [] (DenotationContextMember term) a)
+forall {k1} (k2 :: k1 -&gt; *) (f :: k1 -&gt; *) (v :: k1).
+GCompare k2 =&gt;
+k2 v -&gt; DMap k2 f -&gt; Maybe (f v)
+</span
+	><a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/src/Data.Dependent.Map.Internal.html#lookup"
+	><span class="hs-identifier hs-var"
+	  >DMap.lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep a
+</span
+	><a href="#local-6989586621679266447"
+	><span class="hs-identifier hs-var"
+	  >tr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DMap TypeRep (Compose [] (DenotationContextMember term))
+ -&gt; Maybe (Compose [] (DenotationContextMember term) a))
+-&gt; (DenotationContext term
+    -&gt; DMap TypeRep (Compose [] (DenotationContextMember term)))
+-&gt; DenotationContext term
+-&gt; Maybe (Compose [] (DenotationContextMember term) a)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DenotationContext term
+-&gt; DMap TypeRep (Compose [] (DenotationContextMember term))
+forall term.
+DenotationContext term
+-&gt; DMap TypeRep (Compose [] (DenotationContextMember term))
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#unDenotationContext"
+	><span class="hs-identifier hs-var"
+	  >unDenotationContext</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- Here the only search that we need to perform is the search for things that return an appropriate</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- @r@, be them variables or functions. Better if we also take types of arguments into account,</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >-- but it is not required as we can always generate an argument out of thin air in a rank-0 setting</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- (without @Void@).</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The resulting type of a 'TypeScheme'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="local-6989586621679266312"
+      ><span id="local-6989586621679266313"
+	><span id="local-6989586621679266314"
+	  ><span id="local-6989586621679266317"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#withTypeSchemeResult"
+		><span class="hs-identifier hs-type"
+		  >withTypeSchemeResult</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Builtin.TypeScheme.html#TypeScheme"
+		><span class="hs-identifier hs-type"
+		  >TypeScheme</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266312"
+		><span class="hs-identifier hs-type"
+		  >term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266313"
+		><span class="hs-identifier hs-type"
+		  >args</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266314"
+		><span class="hs-identifier hs-type"
+		  >res</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#KnownType"
+		><span class="hs-identifier hs-type"
+		  >KnownType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266312"
+		><span class="hs-identifier hs-type"
+		  >term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266314"
+		><span class="hs-identifier hs-type"
+		  >res</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#TypeRep"
+		><span class="hs-identifier hs-type"
+		  >TypeRep</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266314"
+		><span class="hs-identifier hs-type"
+		  >res</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266317"
+		><span class="hs-identifier hs-type"
+		  >c</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679266317"
+		><span class="hs-identifier hs-type"
+		  >c</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="withTypeSchemeResult"
+      ><span class="annot"
+	><span class="annottext"
+	  >withTypeSchemeResult :: forall term (args :: [*]) res c.
+TypeScheme term args res
+-&gt; (KnownType term res =&gt; TypeRep res -&gt; c) -&gt; c
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#withTypeSchemeResult"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withTypeSchemeResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme term args res
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.TypeScheme.html#TypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >TypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      >       </span
+      ><span id="local-6989586621679266460"
+      ><span class="annot"
+	><span class="annottext"
+	  >(KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+TypeRep res -&gt; c
+</span
+	  ><a href="#local-6989586621679266460"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res -&gt; c
+(KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+TypeRep res -&gt; c
+</span
+	><a href="#local-6989586621679266460"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res
+forall {k} (a :: k). Typeable a =&gt; TypeRep a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#typeRep"
+	><span class="hs-identifier hs-var"
+	  >typeRep</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#withTypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >withTypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.TypeScheme.html#TypeSchemeArrow"
+	><span class="hs-identifier hs-type"
+	  >TypeSchemeArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266468"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeScheme term args1 res
+</span
+	  ><a href="#local-6989586621679266468"
+	  ><span class="hs-identifier hs-var"
+	    >schB</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679266469"
+      ><span class="annot"
+	><span class="annottext"
+	  >(KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+TypeRep res -&gt; c
+</span
+	  ><a href="#local-6989586621679266469"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme term args1 res
+-&gt; ((KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+    TypeRep res -&gt; c)
+-&gt; c
+forall term (args :: [*]) res c.
+TypeScheme term args res
+-&gt; (KnownType term res =&gt; TypeRep res -&gt; c) -&gt; c
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#withTypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >withTypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme term args1 res
+</span
+	><a href="#local-6989586621679266468"
+	><span class="hs-identifier hs-var"
+	  >schB</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res -&gt; c
+(KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+TypeRep res -&gt; c
+</span
+	><a href="#local-6989586621679266469"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#withTypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >withTypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.TypeScheme.html#TypeSchemeAll"
+	><span class="hs-identifier hs-type"
+	  >TypeSchemeAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Proxy '(text, uniq, kind)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266476"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeScheme term args res
+</span
+	  ><a href="#local-6989586621679266476"
+	  ><span class="hs-identifier hs-var"
+	    >schK</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679266477"
+      ><span class="annot"
+	><span class="annottext"
+	  >(KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+TypeRep res -&gt; c
+</span
+	  ><a href="#local-6989586621679266477"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme term args res
+-&gt; ((KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+    TypeRep res -&gt; c)
+-&gt; c
+forall term (args :: [*]) res c.
+TypeScheme term args res
+-&gt; (KnownType term res =&gt; TypeRep res -&gt; c) -&gt; c
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#withTypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >withTypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme term args res
+</span
+	><a href="#local-6989586621679266476"
+	><span class="hs-identifier hs-var"
+	  >schK</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res -&gt; c
+(KnownTypeAst TyName (UniOf term) res, MakeKnown term res) =&gt;
+TypeRep res -&gt; c
+</span
+	><a href="#local-6989586621679266477"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the 'Denotation' of a variable.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span id="local-6989586621679266335"
+      ><span id="local-6989586621679266336"
+	><span id="local-6989586621679266337"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#denoteVariable"
+	      ><span class="hs-identifier hs-type"
+		>denoteVariable</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-83"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#KnownType"
+	      ><span class="hs-identifier hs-type"
+		>KnownType</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266335"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266336"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266337"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-84"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#TypeRep"
+	      ><span class="hs-identifier hs-type"
+		>TypeRep</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266337"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266337"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	      ><span class="hs-identifier hs-type"
+		>Denotation</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266335"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266336"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266337"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span id="denoteVariable"
+      ><span class="annot"
+	><span class="annottext"
+	  >denoteVariable :: forall (uni :: * -&gt; *) fun res.
+KnownType (Term TyName Name uni fun ()) res =&gt;
+Name
+-&gt; TypeRep res
+-&gt; res
+-&gt; Denotation (Term TyName Name uni fun ()) Name res
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#denoteVariable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >denoteVariable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266485"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679266485"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266486"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeRep res
+</span
+	  ><a href="#local-6989586621679266486"
+	  ><span class="hs-identifier hs-var"
+	    >tr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266487"
+      ><span class="annot"
+	><span class="annottext"
+	  >res
+</span
+	  ><a href="#local-6989586621679266487"
+	  ><span class="hs-identifier hs-var"
+	    >meta</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res
+-&gt; (Typeable res =&gt;
+    Denotation (Term TyName Name uni fun ()) Name res)
+-&gt; Denotation (Term TyName Name uni fun ()) Name res
+forall k (a :: k) r. TypeRep a -&gt; (Typeable a =&gt; r) -&gt; r
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#withTypeable"
+	><span class="hs-identifier hs-var"
+	  >withTypeable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res
+</span
+	><a href="#local-6989586621679266486"
+	><span class="hs-identifier hs-var"
+	  >tr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Typeable res =&gt;
+  Denotation (Term TyName Name uni fun ()) Name res)
+ -&gt; Denotation (Term TyName Name uni fun ()) Name res)
+-&gt; (Typeable res =&gt;
+    Denotation (Term TyName Name uni fun ()) Name res)
+-&gt; Denotation (Term TyName Name uni fun ()) Name res
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+-&gt; (Name -&gt; Term TyName Name uni fun ())
+-&gt; FoldArgs '[] res
+-&gt; TypeScheme (Term TyName Name uni fun ()) '[] res
+-&gt; Denotation (Term TyName Name uni fun ()) Name res
+forall term object res (args :: [*]).
+object
+-&gt; (object -&gt; term)
+-&gt; FoldArgs args res
+-&gt; TypeScheme term args res
+-&gt; Denotation term object res
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	><span class="hs-identifier hs-var"
+	  >Denotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679266485"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Name -&gt; Term TyName Name uni fun ()
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; name -&gt; Term tyname name uni fun ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-var"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>res
+FoldArgs '[] res
+</span
+	><a href="#local-6989586621679266487"
+	><span class="hs-identifier hs-var"
+	  >meta</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme (Term TyName Name uni fun ()) '[] res
+forall res val.
+(Typeable res, KnownTypeAst TyName (UniOf val) res,
+ MakeKnown val res) =&gt;
+TypeScheme val '[] res
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.TypeScheme.html#TypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >TypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert the 'Denotation' of an object into a 'DenotationContext'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span id="local-6989586621679266358"
+      ><span id="local-6989586621679266359"
+	><span id="local-6989586621679266360"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertDenotation"
+	      ><span class="hs-identifier hs-type"
+		>insertDenotation</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-89"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#TypeRep"
+	      ><span class="hs-identifier hs-type"
+		>TypeRep</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266358"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	      ><span class="hs-identifier hs-type"
+		>Denotation</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266359"
+	      ><span class="hs-identifier hs-type"
+		>term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266360"
+	      ><span class="hs-identifier hs-type"
+		>object</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266358"
+	      ><span class="hs-identifier hs-type"
+		>res</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	      ><span class="hs-identifier hs-type"
+		>DenotationContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266359"
+	      ><span class="hs-identifier hs-type"
+		>term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	      ><span class="hs-identifier hs-type"
+		>DenotationContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266359"
+	      ><span class="hs-identifier hs-type"
+		>term</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span id="insertDenotation"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertDenotation :: forall res term object.
+TypeRep res
+-&gt; Denotation term object res
+-&gt; DenotationContext term
+-&gt; DenotationContext term
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertDenotation"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertDenotation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266496"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeRep res
+</span
+	  ><a href="#local-6989586621679266496"
+	  ><span class="hs-identifier hs-var"
+	    >tr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266497"
+      ><span class="annot"
+	><span class="annottext"
+	  >Denotation term object res
+</span
+	  ><a href="#local-6989586621679266497"
+	  ><span class="hs-identifier hs-var"
+	    >denotation</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier hs-type"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266498"
+      ><span class="annot"
+	><span class="annottext"
+	  >DMap TypeRep (Compose [] (DenotationContextMember term))
+</span
+	  ><a href="#local-6989586621679266498"
+	  ><span class="hs-identifier hs-var"
+	    >vs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DMap TypeRep (Compose [] (DenotationContextMember term))
+-&gt; DenotationContext term
+forall term.
+DMap TypeRep (Compose [] (DenotationContextMember term))
+-&gt; DenotationContext term
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier hs-var"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DMap TypeRep (Compose [] (DenotationContextMember term))
+ -&gt; DenotationContext term)
+-&gt; DMap TypeRep (Compose [] (DenotationContextMember term))
+-&gt; DenotationContext term
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Compose [] (DenotationContextMember term) res
+ -&gt; Compose [] (DenotationContextMember term) res
+ -&gt; Compose [] (DenotationContextMember term) res)
+-&gt; TypeRep res
+-&gt; Compose [] (DenotationContextMember term) res
+-&gt; DMap TypeRep (Compose [] (DenotationContextMember term))
+-&gt; DMap TypeRep (Compose [] (DenotationContextMember term))
+forall {k1} (k2 :: k1 -&gt; *) (f :: k1 -&gt; *) (v :: k1).
+GCompare k2 =&gt;
+(f v -&gt; f v -&gt; f v) -&gt; k2 v -&gt; f v -&gt; DMap k2 f -&gt; DMap k2 f
+</span
+	><a href="https://hackage.haskell.org/package/dependent-map-0.4.0.0/docs/src/Data.Dependent.Map.html#insertWith%27"
+	><span class="hs-identifier hs-var"
+	  >DMap.insertWith'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Compose.html#Compose"
+	><span class="hs-identifier hs-type"
+	  >Compose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266501"
+      ><span class="annot"
+	><span class="annottext"
+	  >[DenotationContextMember term res]
+</span
+	  ><a href="#local-6989586621679266501"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Compose.html#Compose"
+	><span class="hs-identifier hs-type"
+	  >Compose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266502"
+      ><span class="annot"
+	><span class="annottext"
+	  >[DenotationContextMember term res]
+</span
+	  ><a href="#local-6989586621679266502"
+	  ><span class="hs-identifier hs-var"
+	    >ys</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DenotationContextMember term res]
+-&gt; Compose [] (DenotationContextMember term) res
+forall {k} {k1} (f :: k -&gt; *) (g :: k1 -&gt; k) (a :: k1).
+f (g a) -&gt; Compose f g a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Compose.html#Compose"
+	><span class="hs-identifier hs-var"
+	  >Compose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([DenotationContextMember term res]
+ -&gt; Compose [] (DenotationContextMember term) res)
+-&gt; [DenotationContextMember term res]
+-&gt; Compose [] (DenotationContextMember term) res
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DenotationContextMember term res]
+</span
+	><a href="#local-6989586621679266501"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DenotationContextMember term res]
+-&gt; [DenotationContextMember term res]
+-&gt; [DenotationContextMember term res]
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DenotationContextMember term res]
+</span
+	><a href="#local-6989586621679266502"
+	><span class="hs-identifier hs-var"
+	  >ys</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res
+</span
+	><a href="#local-6989586621679266496"
+	><span class="hs-identifier hs-var"
+	  >tr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[DenotationContextMember term res]
+-&gt; Compose [] (DenotationContextMember term) res
+forall {k} {k1} (f :: k -&gt; *) (g :: k1 -&gt; k) (a :: k1).
+f (g a) -&gt; Compose f g a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.Compose.html#Compose"
+	><span class="hs-identifier hs-var"
+	  >Compose</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Denotation term object res -&gt; DenotationContextMember term res
+forall term res object.
+Denotation term object res -&gt; DenotationContextMember term res
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContextMember"
+	><span class="hs-identifier hs-var"
+	  >DenotationContextMember</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Denotation term object res
+</span
+	><a href="#local-6989586621679266497"
+	><span class="hs-identifier hs-var"
+	  >denotation</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DMap TypeRep (Compose [] (DenotationContextMember term))
+</span
+	><a href="#local-6989586621679266498"
+	><span class="hs-identifier hs-var"
+	  >vs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert a variable into a 'DenotationContext'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="local-6989586621679266377"
+      ><span id="local-6989586621679266378"
+	><span id="local-6989586621679266379"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertVariable"
+	      ><span class="hs-identifier hs-type"
+		>insertVariable</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-99"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#KnownType"
+	      ><span class="hs-identifier hs-type"
+		>KnownType</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266377"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266378"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266379"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-100"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-101"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#TypeRep"
+	      ><span class="hs-identifier hs-type"
+		>TypeRep</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266379"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-102"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266379"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-103"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	      ><span class="hs-identifier hs-type"
+		>DenotationContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266377"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266378"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-104"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	      ><span class="hs-identifier hs-type"
+		>DenotationContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	      ><span class="hs-identifier hs-type"
+		>Term</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	      ><span class="hs-identifier hs-type"
+		>TyName</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266377"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679266378"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="insertVariable"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertVariable :: forall (uni :: * -&gt; *) fun a.
+KnownType (Term TyName Name uni fun ()) a =&gt;
+Name
+-&gt; TypeRep a
+-&gt; a
+-&gt; DenotationContext (Term TyName Name uni fun ())
+-&gt; DenotationContext (Term TyName Name uni fun ())
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertVariable"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertVariable</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266506"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679266506"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266507"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeRep a
+</span
+	  ><a href="#local-6989586621679266507"
+	  ><span class="hs-identifier hs-var"
+	    >tr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep a
+-&gt; Denotation (Term TyName Name uni fun ()) Name a
+-&gt; DenotationContext (Term TyName Name uni fun ())
+-&gt; DenotationContext (Term TyName Name uni fun ())
+forall res term object.
+TypeRep res
+-&gt; Denotation term object res
+-&gt; DenotationContext term
+-&gt; DenotationContext term
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertDenotation"
+	><span class="hs-identifier hs-var"
+	  >insertDenotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep a
+</span
+	><a href="#local-6989586621679266507"
+	><span class="hs-identifier hs-var"
+	  >tr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Denotation (Term TyName Name uni fun ()) Name a
+ -&gt; DenotationContext (Term TyName Name uni fun ())
+ -&gt; DenotationContext (Term TyName Name uni fun ()))
+-&gt; (a -&gt; Denotation (Term TyName Name uni fun ()) Name a)
+-&gt; a
+-&gt; DenotationContext (Term TyName Name uni fun ())
+-&gt; DenotationContext (Term TyName Name uni fun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+-&gt; TypeRep a
+-&gt; a
+-&gt; Denotation (Term TyName Name uni fun ()) Name a
+forall (uni :: * -&gt; *) fun res.
+KnownType (Term TyName Name uni fun ()) res =&gt;
+Name
+-&gt; TypeRep res
+-&gt; res
+-&gt; Denotation (Term TyName Name uni fun ()) Name res
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#denoteVariable"
+	><span class="hs-identifier hs-var"
+	  >denoteVariable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679266506"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep a
+</span
+	><a href="#local-6989586621679266507"
+	><span class="hs-identifier hs-var"
+	  >tr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Insert a builtin into a 'DenotationContext'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-type"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier hs-type"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier hs-type"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span id="insertBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >insertBuiltin :: DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >insertBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266508"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefaultFun
+</span
+	  ><a href="#local-6989586621679266508"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+-&gt; DefaultFun
+-&gt; BuiltinMeaning
+     (Term TyName Name DefaultUni DefaultFun ())
+     (CostingPart DefaultUni DefaultFun)
+forall val.
+HasMeaningIn DefaultUni val =&gt;
+BuiltinSemanticsVariant DefaultFun
+-&gt; DefaultFun
+-&gt; BuiltinMeaning val (CostingPart DefaultUni DefaultFun)
+forall (uni :: * -&gt; *) fun val.
+(ToBuiltinMeaning uni fun, HasMeaningIn uni val) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; fun -&gt; BuiltinMeaning val (CostingPart uni fun)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#toBuiltinMeaning"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant DefaultFun
+forall a. Default a =&gt; a
+</span
+	><span class="hs-identifier hs-var"
+	>def</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="#local-6989586621679266508"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#BuiltinMeaning"
+	><span class="hs-identifier hs-type"
+	  >BuiltinMeaning</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266512"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeScheme (Term TyName Name DefaultUni DefaultFun ()) args res
+</span
+	  ><a href="#local-6989586621679266512"
+	  ><span class="hs-identifier hs-var"
+	    >sch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679266513"
+      ><span class="annot"
+	><span class="annottext"
+	  >FoldArgs args res
+</span
+	  ><a href="#local-6989586621679266513"
+	  ><span class="hs-identifier hs-var"
+	    >meta</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostingPart DefaultUni DefaultFun
+-&gt; BuiltinRuntime (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme (Term TyName Name DefaultUni DefaultFun ()) args res
+-&gt; (KnownType (Term TyName Name DefaultUni DefaultFun ()) res =&gt;
+    TypeRep res
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall term (args :: [*]) res c.
+TypeScheme term args res
+-&gt; (KnownType term res =&gt; TypeRep res -&gt; c) -&gt; c
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#withTypeSchemeResult"
+	><span class="hs-identifier hs-var"
+	  >withTypeSchemeResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme (Term TyName Name DefaultUni DefaultFun ()) args res
+</span
+	><a href="#local-6989586621679266512"
+	><span class="hs-identifier hs-var"
+	  >sch</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((KnownType (Term TyName Name DefaultUni DefaultFun ()) res =&gt;
+  TypeRep res
+  -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+  -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (KnownType (Term TyName Name DefaultUni DefaultFun ()) res =&gt;
+    TypeRep res
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679266515"
+      ><span class="annot"
+	><span class="annottext"
+	  >TypeRep res
+</span
+	  ><a href="#local-6989586621679266515"
+	  ><span class="hs-identifier hs-var"
+	    >tr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res
+-&gt; Denotation
+     (Term TyName Name DefaultUni DefaultFun ()) DefaultFun res
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall res term object.
+TypeRep res
+-&gt; Denotation term object res
+-&gt; DenotationContext term
+-&gt; DenotationContext term
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertDenotation"
+	><span class="hs-identifier hs-var"
+	  >insertDenotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeRep res
+</span
+	><a href="#local-6989586621679266515"
+	><span class="hs-identifier hs-var"
+	  >tr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Denotation
+   (Term TyName Name DefaultUni DefaultFun ()) DefaultFun res
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; Denotation
+     (Term TyName Name DefaultUni DefaultFun ()) DefaultFun res
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; (DefaultFun -&gt; Term TyName Name DefaultUni DefaultFun ())
+-&gt; FoldArgs args res
+-&gt; TypeScheme (Term TyName Name DefaultUni DefaultFun ()) args res
+-&gt; Denotation
+     (Term TyName Name DefaultUni DefaultFun ()) DefaultFun res
+forall term object res (args :: [*]).
+object
+-&gt; (object -&gt; term)
+-&gt; FoldArgs args res
+-&gt; TypeScheme term args res
+-&gt; Denotation term object res
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#Denotation"
+	><span class="hs-identifier hs-var"
+	  >Denotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="#local-6989586621679266508"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; DefaultFun -&gt; Term TyName Name DefaultUni DefaultFun ()
+forall tyname name (uni :: * -&gt; *) fun ann.
+ann -&gt; fun -&gt; Term tyname name uni fun ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Builtin"
+	><span class="hs-identifier hs-var"
+	  >Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FoldArgs args res
+</span
+	><a href="#local-6989586621679266513"
+	><span class="hs-identifier hs-var"
+	  >meta</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TypeScheme (Term TyName Name DefaultUni DefaultFun ()) args res
+</span
+	><a href="#local-6989586621679266512"
+	><span class="hs-identifier hs-var"
+	  >sch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-comment"
+      >-- | A 'DenotationContext' that consists of 'DefaultFun's.</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- DEPRECATED: No need to update for a new builtin.</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >-- Outdated, since we moved to quickcheck generators.</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#typedBuiltins"
+	><span class="hs-identifier hs-type"
+	  >typedBuiltins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier hs-type"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span id="typedBuiltins"
+      ><span class="annot"
+	><span class="annottext"
+	  >typedBuiltins :: DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	  ><a href="PlutusCore.Generators.Hedgehog.Denotation.html#typedBuiltins"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >typedBuiltins</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AddInteger"
+	><span class="hs-identifier hs-var"
+	  >AddInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#SubtractInteger"
+	><span class="hs-identifier hs-var"
+	  >SubtractInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#MultiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >MultiplyInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- We insert those, but they don't really get selected, because the 'TypeRep' of</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- @EvaluationResult Integer@ is different to the one of @Integer@ and when selection is</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- performed only the latter is considered. Maybe we should add @EvaluationResult Integer@ to</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- the set of built-in types to pick up from. Or maybe we should stop using 'TypeRep' and use</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- something custom. Or maybe we should just remove these tests altogether.</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DivideInteger"
+	><span class="hs-identifier hs-var"
+	  >DivideInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#RemainderInteger"
+	><span class="hs-identifier hs-var"
+	  >RemainderInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#QuotientInteger"
+	><span class="hs-identifier hs-var"
+	  >QuotientInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#ModInteger"
+	><span class="hs-identifier hs-var"
+	  >ModInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanInteger"
+	><span class="hs-identifier hs-var"
+	  >LessThanInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#LessThanEqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >LessThanEqualsInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#EqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >EqualsInteger</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#AppendByteString"
+	><span class="hs-identifier hs-var"
+	  >AppendByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Sha2_256"
+	><span class="hs-identifier hs-var"
+	  >Sha2_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Sha3_256"
+	><span class="hs-identifier hs-var"
+	  >Sha3_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Blake2b_224"
+	><span class="hs-identifier hs-var"
+	  >Blake2b_224</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Blake2b_256"
+	><span class="hs-identifier hs-var"
+	  >Blake2b_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Keccak_256"
+	><span class="hs-identifier hs-var"
+	  >Keccak_256</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#Ripemd_160"
+	><span class="hs-identifier hs-var"
+	  >Ripemd_160</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; (DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+    -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#insertBuiltin"
+	><span class="hs-identifier hs-var"
+	  >insertBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun
+</span
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#EqualsByteString"
+	><span class="hs-identifier hs-var"
+	  >EqualsByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+ -&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ()))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DMap
+  TypeRep
+  (Compose
+     []
+     (DenotationContextMember
+        (Term TyName Name DefaultUni DefaultFun ())))
+-&gt; DenotationContext (Term TyName Name DefaultUni DefaultFun ())
+forall term.
+DMap TypeRep (Compose [] (DenotationContextMember term))
+-&gt; DenotationContext term
+</span
+	><a href="PlutusCore.Generators.Hedgehog.Denotation.html#DenotationContext"
+	><span class="hs-identifier hs-var"
+	  >DenotationContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DMap
+  TypeRep
+  (Compose
+     []
+     (DenotationContextMember
+        (Term TyName Name DefaultUni DefaultFun ())))
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

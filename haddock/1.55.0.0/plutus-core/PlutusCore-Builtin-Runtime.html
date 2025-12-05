@@ -1,0 +1,765 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Builtin.Runtime</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Builtin.Runtime.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Builtin.Runtime</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinRuntime"
+	      >BuiltinRuntime</a
+	      > val<ul class="subs"
+	      ><li
+		>= <a href="#v:BuiltinCostedResult"
+		  >BuiltinCostedResult</a
+		  > <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		  >ExBudgetStream</a
+		  > ~(<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		  >BuiltinResult</a
+		  > val)</li
+		><li
+		>| <a href="#v:BuiltinExpectArgument"
+		  >BuiltinExpectArgument</a
+		  > (val &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val)</li
+		><li
+		>| <a href="#v:BuiltinExpectForce"
+		  >BuiltinExpectForce</a
+		  > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinsRuntime"
+	      >BuiltinsRuntime</a
+	      > fun val = <a href="#v:BuiltinsRuntime"
+	      >BuiltinsRuntime</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unBuiltinsRuntime"
+		  >unBuiltinsRuntime</a
+		  > &#8759; fun &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:builtinRuntimeFailure"
+	      >builtinRuntimeFailure</a
+	      > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	      >BuiltinError</a
+	      > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinRuntime</a
+	      > val</li
+	    ><li class="src short"
+	    ><a href="#v:lookupBuiltin"
+	      >lookupBuiltin</a
+	      > &#8759; fun &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinsRuntime</a
+	      > fun val &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	      >BuiltinRuntime</a
+	      > val</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinRuntime" class="def"
+	    >BuiltinRuntime</a
+	    > val <a href="src/PlutusCore.Builtin.Runtime.html#BuiltinRuntime" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinRuntime" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		>BuiltinRuntime</a
+		></code
+	      > represents a possibly partial builtin application, including an empty
+ builtin application (i.e. just the builtin with no arguments).</p
+	    ><p
+	    >Applying or type-instantiating a builtin peels off the corresponding constructor from its
+ <code
+	      ><a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		>BuiltinRuntime</a
+		></code
+	      >.</p
+	    ><p
+	    ><code
+	      ><a href="PlutusCore-Builtin-Runtime.html#v:BuiltinCostedResult" title="PlutusCore.Builtin.Runtime"
+		>BuiltinCostedResult</a
+		></code
+	      > contains the cost (an <code
+	      ><a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>ExBudgetStream</a
+		></code
+	      >) and the result (a
+ <code
+	      >BuiltinResult (HeadSpine val)</code
+	      >) of the builtin application. The cost is stored strictly, since
+ the evaluator is going to look at it and the result is stored lazily, since it's not supposed to
+ be forced before accounting for the cost of the application. If the cost exceeds the available
+ budget, the evaluator discards the result of the builtin application without ever forcing it and
+ terminates with evaluation failure. Allowing the user to compute something that they don't have
+ the budget for would be a major bug.</p
+	    ><p
+	    >Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
+ the result of the builtin application unconditionally.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinCostedResult" class="def"
+		  >BuiltinCostedResult</a
+		  > <a href="PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		  >ExBudgetStream</a
+		  > ~(<a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		  >BuiltinResult</a
+		  > val)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinExpectArgument" class="def"
+		  >BuiltinExpectArgument</a
+		  > (val &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinExpectForce" class="def"
+		  >BuiltinExpectForce</a
+		  > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		  >BuiltinRuntime</a
+		  > val)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinRuntime"
+	    >Instances</h4
+	    ><details id="i:BuiltinRuntime" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinRuntime:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		      >BuiltinRuntime</a
+		      > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+		      >CkValue</a
+		      > uni fun))</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.Ck.html#line-57" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinRuntime:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-Ck.html"
+			>PlutusCore.Evaluation.Machine.Ck</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun)] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinRuntime:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		      >BuiltinRuntime</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekValue</a
+		      > uni fun ann))</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-249" class="link"
+		    >Source</a
+		    > <a href="#t:Show" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinRuntime:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann)] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinRuntime:NFData:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		      >BuiltinRuntime</a
+		      > val)</span
+		    > <a href="src/PlutusCore.Builtin.Runtime.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinRuntime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinRuntime:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Runtime.html"
+			>PlutusCore.Builtin.Runtime</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinRuntime:NoThunks:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		      >BuiltinRuntime</a
+		      > val)</span
+		    > <a href="src/PlutusCore.Builtin.Runtime.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinRuntime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinRuntime:NoThunks:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Runtime.html"
+			>PlutusCore.Builtin.Runtime</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinsRuntime" class="def"
+	    >BuiltinsRuntime</a
+	    > fun val <a href="src/PlutusCore.Builtin.Runtime.html#BuiltinsRuntime" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinsRuntime" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      >data</code
+	      > wrapper around a function returning the <code
+	      ><a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		>BuiltinRuntime</a
+		></code
+	      > of a built-in function.</p
+	    ><p
+	    >In order for lookups to be efficient the <code
+	      ><a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+		>BuiltinRuntime</a
+		></code
+	      >s need to be cached, i.e. pulled out
+ of the function statically. See <code
+	      >makeBuiltinMeaning</code
+	      > for how we achieve that.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinsRuntime" class="def"
+		  >BuiltinsRuntime</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unBuiltinsRuntime" class="def"
+			  >unBuiltinsRuntime</a
+			  > &#8759; fun &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinRuntime</a
+			  > val</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinsRuntime"
+	    >Instances</h4
+	    ><details id="i:BuiltinsRuntime" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinsRuntime:NFData:1"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > fun) &#8658; <a href="PlutusPrelude.html#t:NFData" title="PlutusPrelude"
+		      >NFData</a
+		      > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+		      >BuiltinsRuntime</a
+		      > fun val)</span
+		    > <a href="src/PlutusCore.Builtin.Runtime.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinsRuntime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinsRuntime:NFData:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Runtime.html"
+			>PlutusCore.Builtin.Runtime</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinsRuntime</a
+			  > fun val &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinsRuntime:NoThunks:2"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > fun, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > fun) &#8658; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+		      >BuiltinsRuntime</a
+		      > fun val)</span
+		    > <a href="src/PlutusCore.Builtin.Runtime.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinsRuntime" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinsRuntime:NoThunks:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Runtime.html"
+			>PlutusCore.Builtin.Runtime</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinsRuntime</a
+			  > fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinsRuntime</a
+			  > fun val &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > (<a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+			  >BuiltinsRuntime</a
+			  > fun val) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinRuntimeFailure" class="def"
+	    >builtinRuntimeFailure</a
+	    > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinError" title="PlutusCore.Builtin.Result"
+	    >BuiltinError</a
+	    > &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	    >BuiltinRuntime</a
+	    > val <a href="src/PlutusCore.Builtin.Runtime.html#builtinRuntimeFailure" class="link"
+	    >Source</a
+	    > <a href="#v:builtinRuntimeFailure" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupBuiltin" class="def"
+	    >lookupBuiltin</a
+	    > &#8759; fun &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinsRuntime" title="PlutusCore.Builtin.Runtime"
+	    >BuiltinsRuntime</a
+	    > fun val &#8594; <a href="PlutusCore-Builtin-Runtime.html#t:BuiltinRuntime" title="PlutusCore.Builtin.Runtime"
+	    >BuiltinRuntime</a
+	    > val <a href="src/PlutusCore.Builtin.Runtime.html#lookupBuiltin" class="link"
+	    >Source</a
+	    > <a href="#v:lookupBuiltin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Look up the runtime info of a built-in function during evaluation.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
