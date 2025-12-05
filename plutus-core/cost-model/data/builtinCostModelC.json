@@ -735,7 +735,7 @@
   },
   "indexArray": {
     "cpu": {
-      "arguments": 232010,
+      "arguments": 194922,
       "type": "constant_cost"
     },
     "memory": {
@@ -745,7 +745,7 @@
   },
   "lengthOfArray": {
     "cpu": {
-      "arguments": 231883,
+      "arguments": 198994,
       "type": "constant_cost"
     },
     "memory": {
@@ -756,8 +756,8 @@
   "listToArray": {
     "cpu": {
       "arguments": {
-        "intercept": 1000,
-        "slope": 24838
+        "intercept": 307802,
+        "slope": 8496
       },
       "type": "linear_in_x"
     },
@@ -1275,22 +1275,28 @@
   },
   "insertCoin": {
     "cpu": {
-      "arguments": 1000,
-      "type": "constant_cost"
+      "arguments": {
+          "intercept": 352998,
+          "slope": 19410
+      },
+      "type": "linear_in_w"
     },
     "memory": {
-      "arguments": 10,
+      "arguments": 1,
       "type": "constant_cost"
     }
   },
   "unionValue": {
     "cpu": {
-      "arguments": 1000,
-      "type": "constant_cost"
-   },
+      "arguments": {
+        "square_of_sum_coefficient00": 3128363791,
+        "square_of_sum_coefficient11": 5
+      },
+      "type": "square_of_sum"
+    },
     "memory": {
-      "arguments": 10,
+      "arguments": 1,
       "type": "constant_cost"
+    }
    }
-  }
 }
