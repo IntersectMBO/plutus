@@ -39,7 +39,7 @@ jobs:
           mv out/hpc_index.html out/index.html
 
       - name: Deploy Report
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.4
         with:
           folder: out
           target-folder: dev/coverage
