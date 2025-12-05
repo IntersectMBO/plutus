@@ -195,6 +195,8 @@ data BuiltinCostModelBase f
   , paramValueContains :: f ModelTwoArguments
   , paramValueData :: f ModelOneArgument
   , paramUnValueData :: f ModelOneArgument
+  , paramInsertCoin :: f ModelFourArguments
+  , paramUnionValue :: f ModelTwoArguments
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

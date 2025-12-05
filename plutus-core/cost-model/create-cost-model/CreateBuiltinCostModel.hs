@@ -137,6 +137,8 @@ builtinCostModelNames =
     , paramValueContains = "valueContainsModel"
     , paramValueData = "valueDataModel"
     , paramUnValueData = "unValueDataModel"
+    , paramInsertCoin = "insertCoinModel"
+    , paramUnionValue = "unionValueModel"
     }
 
 {-| Loads the models from R.
@@ -289,6 +291,8 @@ createBuiltinCostModel bmfile rfile = do
   paramValueContains <- getParams readCF2 paramValueContains
   paramValueData <- getParams readCF1 paramValueData
   paramUnValueData <- getParams readCF1 paramUnValueData
+  paramInsertCoin <- getParams readCF4 paramInsertCoin
+  paramUnionValue <- getParams readCF2 paramUnionValue
 
   pure $ BuiltinCostModelBase {..}
 
@@ -446,6 +450,20 @@ readCF3 e = do
     "literal_in_y_or_linear_in_z" -> ModelThreeArgumentsLiteralInYOrLinearInZ <$> error "literal"
     "exp_mod_cost" -> ModelThreeArgumentsExpModCost <$> readExpModCostingFunction "y_mem" "z_mem" e
     _ -> error $ "Unknown three-variable model type: " ++ ty
+
+readCF4 :: MonadR m => SomeSEXP (Region m) -> m ModelFourArguments
+readCF4 e = do
+  ty <- getType e
+  case ty of
+    "constant_cost" -> ModelFourArgumentsConstantCost <$> getConstant e
+    _ -> error $ "Unknown four-variable model type: " ++ ty
+
+readCF4 :: MonadR m => SomeSEXP (Region m) -> m ModelFourArguments
+readCF4 e = do
+  ty <- getType e
+  case ty of
+    "constant_cost" -> ModelFourArgumentsConstantCost <$> getConstant e
+    _ -> error $ "Unknown four-variable model type: " ++ ty
 
 readCF6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments
 readCF6 e = do
