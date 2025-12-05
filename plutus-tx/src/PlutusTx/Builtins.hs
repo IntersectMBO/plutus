@@ -491,7 +491,7 @@ uncons = BI.caseList' Nothing (\h t -> Just (h, t))
 
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
 unsafeUncons :: BI.BuiltinList a -> (a, BI.BuiltinList a)
-unsafeUncons l = BI.caseList' (error "Empty list") (,)
+unsafeUncons l = BI.unsafeCaseList' (,)
 {-# INLINE unsafeUncons #-}
 
 -- | Turn a builtin pair into a normal pair, useful in patterns.
