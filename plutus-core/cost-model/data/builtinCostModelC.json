@@ -308,7 +308,17 @@
       "type": "linear_in_y"
     }
   },
-  "chooseData": {
+  "chooseData6": {
+    "cpu": {
+      "arguments": 94375,
+      "type": "constant_cost"
+    },
+    "memory": {
+      "arguments": 32,
+      "type": "constant_cost"
+    }
+  },
+  "chooseData7": {
     "cpu": {
       "arguments": 94375,
       "type": "constant_cost"

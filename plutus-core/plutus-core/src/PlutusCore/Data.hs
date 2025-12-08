@@ -44,6 +44,7 @@ data Data
   | List [Data]
   | I Integer
   | B BS.ByteString
+  | X Bool
   deriving stock (Show, Read, Eq, Ord, Generic, Data.Data.Data)
   deriving anyclass (Hashable, NFData, NoThunks)
 
@@ -57,6 +58,7 @@ instance Pretty Data where
     B b ->
       -- Base64 encode the ByteString since it may contain arbitrary bytes
       pretty (Text.decodeLatin1 (Base64.encode b))
+    X b -> pretty b
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually
@@ -163,6 +165,7 @@ encodeData = \case
   List ds -> encode ds
   I i -> encodeInteger i
   B b -> encodeBs b
+  X b -> encodeBool b
 
 -- Logic for choosing encoding borrowed from Codec.CBOR.Write
 -- | Given an integer, create a 'CBOR.Term' that encodes it, following our size restrictions.
@@ -199,6 +202,9 @@ encodeBs b | BS.length b <= 64 = CBOR.encodeBytes b
 -- control, so we encode it manually
 -- See Note [Evading the 64-byte limit]
 encodeBs b = CBOR.encodeBytesIndef <> foldMap encode (to64ByteChunks b) <> CBOR.encodeBreak
+
+encodeBool :: Bool -> Encoding
+encodeBool b = if b then encodeInteger 0 else encodeInteger 1
 
 -- | Turns a 'BS.ByteString' into a list of <=64 byte chunks.
 to64ByteChunks :: BS.ByteString -> [BS.ByteString]

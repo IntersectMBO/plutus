@@ -224,7 +224,7 @@ instance ExMemoryUsage [a] where
   {-# INLINE memoryUsage #-}
 
 {- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
- problems, but be sure to check that no costing function involving arrays can
+Z problems, but be sure to check that no costing function involving arrays can
  return zero for an empty array (or any other input).
 -}
 instance ExMemoryUsage (Vector a) where
@@ -383,6 +383,7 @@ instance ExMemoryUsage Data where
         List l -> CostRose 0 $ l <&> sizeData
         I n -> memoryUsage n
         B b -> memoryUsage b
+        X b -> memoryUsage b
 
 instance ExMemoryUsage Value where
   memoryUsage = singletonRose . fromIntegral . Value.totalSize

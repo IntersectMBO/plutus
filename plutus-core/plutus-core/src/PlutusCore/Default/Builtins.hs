@@ -1443,19 +1443,30 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           nullListDenotation
           (runCostingFunOneArgument . paramNullList)
   -- Data
-  toBuiltinMeaning _semvar ChooseData =
-    let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a
-        chooseDataDenotation d xConstr xMap xList xI xB =
+  toBuiltinMeaning semvar ChooseData =
+    let chooseDataDenotation_old :: Data -> a -> a -> a -> a -> a -> BuiltinResult a
+        chooseDataDenotation_old d xConstr xMap xList xI xB =
           case d of
-            Constr {} -> xConstr
-            Map {} -> xMap
-            List {} -> xList
-            I {} -> xI
-            B {} -> xB
-        {-# INLINE chooseDataDenotation #-}
-     in makeBuiltinMeaning
-          chooseDataDenotation
-          (runCostingFunSixArguments . paramChooseData)
+            Constr {} -> pure xConstr
+            Map {} -> pure xMap
+            List {} -> pure xList
+            I {} -> pure xI
+            B {} -> pure xB
+            X {} -> fail "X not allowed in this semantics variant"
+        {-# INLINE chooseDataDenotation_old #-}
+        chooseDataDenotation_new :: Data -> a -> a -> a -> a -> a -> a -> BuiltinResult a
+        chooseDataDenotation_new d xConstr xMap xList xI xB xX =
+          case d of
+            X {} -> pure xX
+            _ -> chooseDataDenotation_old d xConstr xMap xList xI xB
+        {-# INLINE chooseDataDenotation_new #-}
+     in case semvar of
+          DefaultFunSemanticsVariantA ->
+            makeBuiltinMeaning chooseDataDenotation_old (runCostingFunSixArguments . paramChooseData6)
+          DefaultFunSemanticsVariantB ->
+            makeBuiltinMeaning chooseDataDenotation_old (runCostingFunSixArguments . paramChooseData6)
+          DefaultFunSemanticsVariantC ->
+            makeBuiltinMeaning chooseDataDenotation_new (runCostingFunSevenArguments . paramChooseData7)
   toBuiltinMeaning _semvar ConstrData =
     let constrDataDenotation :: Integer -> [Data] -> Data
         constrDataDenotation = Constr
@@ -1926,7 +1937,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
         listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
           case uniListA of
-            DefaultUniList uniA -> 
+            DefaultUniList uniA ->
               pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromListN (length xs) xs
             _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
         {-# INLINE listToArrayDenotation #-}
