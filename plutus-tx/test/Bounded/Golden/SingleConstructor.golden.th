@@ -1,0 +1,5 @@
+instance PlutusTx.Bounded.Class.Bounded a_0 => PlutusTx.Bounded.Class.Bounded (Bounded.Spec.SingleConstructor a_0)
+    where {PlutusTx.Bounded.Class.minBound = Bounded.Spec.SingleConstructor PlutusTx.Bounded.Class.minBound PlutusTx.Bounded.Class.minBound PlutusTx.Bounded.Class.minBound;
+           {-# INLINABLE PlutusTx.Bounded.Class.minBound #-};
+           PlutusTx.Bounded.Class.maxBound = Bounded.Spec.SingleConstructor PlutusTx.Bounded.Class.maxBound PlutusTx.Bounded.Class.maxBound PlutusTx.Bounded.Class.maxBound;
+           {-# INLINABLE PlutusTx.Bounded.Class.maxBound #-}}

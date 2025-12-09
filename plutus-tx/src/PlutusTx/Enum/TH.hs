@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
 module PlutusTx.Enum.TH (Enum (..), deriveEnum) where
@@ -15,7 +14,6 @@ import PlutusTx.Trace
 import Prelude hiding (Bool (True), Enum (..), Eq, (&&), (==))
 
 data SuccPred = Succ | Pred
-  deriving stock (Show)
 
 {-| Derive PlutusTx.Enum typeclass for datatypes, much like `deriving stock Enum` does for Haskell
 

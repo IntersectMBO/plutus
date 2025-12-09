@@ -7,6 +7,7 @@ module Main (main) where
 
 import Blueprint.Definition.Spec qualified
 import Bool.Spec (boolTests)
+import Bounded.Spec (boundedTests)
 import Codec.CBOR.FlatTerm qualified as FlatTerm
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Codec.Serialise qualified as Serialise
@@ -43,6 +44,7 @@ tests =
     , ratioTests
     , bytestringTests
     , enumTests
+    , boundedTests
     , listTests
     , boolTests
     , lawsTests
