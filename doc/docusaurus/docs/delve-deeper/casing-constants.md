@@ -6,8 +6,9 @@ sidebar_position: 26
 
 :::info
 
-This use of `case` was introduced in UPLC with protocol version 11 and requires
-[Plutus Core version](../essential-concepts/versions#plutus-core-version) `1.1.0`.
+This use of `case` in UPLC was introduced with protocol version 11 and requires
+[Plutus Core version](../essential-concepts/versions#plutus-core-version)
+`1.1.0`.
 
 :::
 
@@ -25,31 +26,30 @@ The built-in types that `case` currently supports are:
 
 In the future, support for `data` is also planned.
 
-For each type, the allowed branches and their order differs. For example, when
-casing on `integer`, only non-negative integers can be matched and there is no
-catch-all. See [Supported Types](#supported-types) for more detail.
+For each type, the allowed branches and their order differs. See [Supported
+Types](#supported-types) for more detail.
 
 ## Compiling to `case` in Plinth
 
-When compiling Plinth code with the `datatypes`
-[option](./plinth-compiler-options) set to `BuiltinCasing`, many standard
-library functions will be compiled into this use of `case`, such as `fstPair`,
-`ifThenElse` and `caseList`. Note that Plinth's `case ... of ...` syntax is not
-necessarily compiled to UPLC, as it can be more expressive.
+When compiling Plinth code with the [option](./plinth-compiler-options)
+`datatypes=BuiltinCasing`, many standard library functions will be compiled into
+this use of `case`, such as `fstPair`, `ifThenElse` and `caseList`. Note that
+Plinth's `case ... of ...` syntax is not necessarily compiled to UPLC, as it can
+be more expressive.
 
 ## Supported types
 
 ### Bool
 
 Booleans can be used in `case` with either one or two branches, where the first
-is the `false` branch. Boolean negation can be written for example as:
+is the `False` branch. Boolean negation can be written for example as:
 
 ```uplc
 lam b (case b (con bool True) (con bool False))
 ```
 
 When only a single branch is provided, script execution will fail when the
-boolean evaluates to `true`.
+boolean evaluates to `True`.
 
 Using a single branch is appropriate when the second branch was supposed to fail
 already, saving script size.
@@ -57,14 +57,12 @@ already, saving script size.
 ### Unit
 
 Needs exactly one branch. If the expression being cased on evaluates to a unit
-value, evaluation will continue with the expression in that branch.
+value, evaluation will continue with the expression in that branch. For example,
+this expression evaluates to `con integer 5`.
 
 ```uplc
-lam x (case x (con integer 5))
+case (con unit ()) (con integer 5)
 ```
-
-Is a function that returns `5` if `x` evaluates to `()` without an error.
-
 
 ### Pair
 
@@ -111,7 +109,7 @@ An error has occurred:
 Caused by: 4
 ```
 
-Note that there is no way to provide a "catch-all" case.
+Note that there is no way to provide a "catch-all" case for integers.
 
 ### List
 
