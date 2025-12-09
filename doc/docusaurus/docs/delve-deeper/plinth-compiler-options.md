@@ -26,7 +26,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`coverage-all`|Bool|False|Add all available coverage annotations in the trace output|
 |`coverage-boolean`|Bool|False|Add boolean coverage annotations in the trace output|
 |`coverage-location`|Bool|False|Add location coverage annotations in the trace output|
-|`datatypes`|DatatypeCompilationOpts|SumsOfProducts|Set datatype encoding style|
+|`datatypes`|DatatypeCompilationOpts|SumsOfProducts|BuiltinCasing|Set datatype encoding style|
 |`defer-errors`|Bool|False|If a compilation error happens and this option is turned on, the compilation error is suppressed and the original Haskell expression is replaced with a runtime-error expression.|
 |`dump-compilation-trace`|Bool|False|Dump compilation trace for debugging|
 |`dump-pir`|Bool|False|Dump Plutus IR|
