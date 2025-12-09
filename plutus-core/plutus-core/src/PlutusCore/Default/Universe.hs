@@ -489,8 +489,8 @@ So, what to do? We adopt the following strategy:
 - We allow lifting/unlifting 'Int' via 'Int64' and 'Word' via 'Word64', constraining the conversion
   between them to 64-bit architectures where this conversion is safe.
 
-Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
-supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
+Doing this effectively bans builds on all non-64-bit systems, which is acceptable since 64-bit
+systems are required for node deployment, and this way any attempts to build on them will fail fast.
 
 We used to use newtype- and via-deriving for implementations of relevant instances, but at some
 point GHC stopped attaching @INLINE@ annotations to those causing the GHC Core for builtins to have
