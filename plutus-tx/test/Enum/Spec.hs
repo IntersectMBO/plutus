@@ -34,7 +34,6 @@ data SomeVeryLargeEnum
   deriving stock (HS.Eq, HS.Enum, HS.Bounded, HS.Show)
 deriveEnum ''SomeVeryLargeEnum
 
--- we lack Tx.Bounded so we use Haskell's for the tests
 enumTests :: TestTree
 enumTests =
   let

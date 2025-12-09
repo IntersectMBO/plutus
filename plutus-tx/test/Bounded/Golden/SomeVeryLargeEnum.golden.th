@@ -1,0 +1,5 @@
+instance PlutusTx.Bounded.Class.Bounded Bounded.Spec.SomeVeryLargeEnum
+    where {PlutusTx.Bounded.Class.minBound = Bounded.Spec.E1;
+           {-# INLINABLE PlutusTx.Bounded.Class.minBound #-};
+           PlutusTx.Bounded.Class.maxBound = Bounded.Spec.E10;
+           {-# INLINABLE PlutusTx.Bounded.Class.maxBound #-}}
