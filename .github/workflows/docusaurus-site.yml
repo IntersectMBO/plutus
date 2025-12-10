@@ -39,7 +39,7 @@ jobs:
 
       - name: Deploy Site 
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: JamesIves/github-pages-deploy-action@v4.7.4
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           folder: doc/docusaurus/build
           target-folder: docs
