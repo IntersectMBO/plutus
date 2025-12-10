@@ -252,10 +252,11 @@ unionValueArgs gen = do
   -- case1 <- replicateM 20 (genUnionArgs1 gen)
   -- let case2 = map (\(a, b) -> (b, a)) case1
   caseWorst <- replicateM 50 (genUnionArgsWorst gen)
+  -- caseInverses <- replicateM 50 (genUnionArgsInverses gen)
   -- case2 <- replicateM 20 (genUnionArgs2 gen)
   -- case3 is definitely not worst-case
   -- case3 <- replicateM 20 (genUnionArgs3 gen)
-  pure $ caseWorst -- case1 <> case2
+  pure $ caseWorst
 
 -- pure (case2 <> case3)
 
@@ -285,10 +286,40 @@ genUnionArgsWorst gen = do
   policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
   tokenNames <- replicateM numTokenNames (generateKey gen)
   let value2 = buildValue policyIdsV2 tokenNames
-  -- numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
+  numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
+  let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
+      value1 = buildValue policyIdsV1 tokenNames
+  pure (value1, value2)
+
+genUnionArgsOneSmall :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsOneSmall gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
   let numPolicyIdsToKeep = 1
   let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
       value1 = buildValue policyIdsV1 tokenNames
+  pure (value1, value2)
+
+genUnionArgsOneEmpty :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsOneEmpty gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
+  pure (Value.empty, value2)
+
+genUnionArgsInverses :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsInverses gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
+      BuiltinSuccess value1 = Value.scaleValue (-1) value2
   pure (value1, value2)
 
 -- Values where first is contained in the second
@@ -385,7 +416,7 @@ what's achievable within CPU execution budget, not ledger storage limits.
 Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
 consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
 maxValueEntries :: Int
-maxValueEntries = 100_000
+maxValueEntries = 50_000
 
 -- | Generate Value within total size budget
 generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
