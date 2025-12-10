@@ -383,6 +383,19 @@ valueContains v1 v2
 
 {-| \(O(n_{1}) + O(n_{2})\), where \(n_{1}\) and \(n_{2}\) are the total sizes
 (i.e., sum of inner map sizes) of the two maps. -}
+unionValue' :: Value -> Value -> BuiltinResult Value
+unionValue' (unpack -> vA) (unpack -> vB) =
+  let result =
+        (traverse . traverse) checkOverflow $
+          Map.unionWith (Map.unionWith unsafeAddQuantity) vA vB
+   in case result of
+        Nothing ->
+          fail "unionValue: quantity is out of the signed 128-bit integer bounds"
+        Just v -> BuiltinSuccess $ pack v
+  where
+    checkOverflow :: Quantity -> Maybe Quantity
+    checkOverflow (UnsafeQuantity x) = quantity x
+
 unionValue :: Value -> Value -> BuiltinResult Value
 unionValue vA vB
   | totalSize vA == 0 = BuiltinSuccess vB
