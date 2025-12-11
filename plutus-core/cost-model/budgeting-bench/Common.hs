@@ -24,6 +24,7 @@ import Control.DeepSeq (NFData, force)
 import Criterion.Main (Benchmark, bench, bgroup, whnf)
 import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
+import Data.Text qualified as T
 import Data.Typeable (Typeable)
 
 type PlainTerm uni fun = UPLC.Term Name uni fun ()
@@ -74,7 +75,8 @@ pairWith f = fmap (\a -> (a, f a))
 ---------------- Creating benchmarks ----------------
 
 benchWith
-  :: (Pretty fun, Typeable fun)
+  :: forall fun
+   . (Pretty fun, Typeable fun)
   => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
   -> String
   -> PlainTerm DefaultUni fun
@@ -85,13 +87,19 @@ benchWith
 -- gets back a 'Data' value it'll traverse all of it.
 benchWith params name term =
   bench name $
-    whnf (handleEvaluationErrors . evaluateCekNoEmit params) term
+    whnf (runEvalCek params) term
   where
-    handleEvaluationErrors = \case
-      Right res -> res
-      Left (ErrorWithCause err cause) ->
-        error $
-          "Evaluation error:\n" ++ show err ++ "\nCaused by:\n" ++ display cause
+    runEvalCek
+      :: MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
+      -> PlainTerm DefaultUni fun
+      -> PlainTerm DefaultUni fun
+    runEvalCek ps t =
+      let (result, logs) = evaluateCek logEmitter ps t
+       in case result of
+            Right res -> res
+            Left (ErrorWithCause err cause) ->
+              error $
+                "Evaluation error:\n" ++ show err ++ "\nCaused by:\n" ++ display cause <> "\nLogs:\n" ++ unlines (map T.unpack logs)
 
 {- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
