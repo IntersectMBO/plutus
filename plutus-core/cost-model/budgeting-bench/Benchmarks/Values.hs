@@ -351,7 +351,7 @@ genUnionArgs3 gen = do
 
 buildValue :: [K] -> [K] -> Value
 buildValue policyIds tokenNames =
-  unsafeFromBuiltinResult $ Value.fromList entries
+  Value.unsafeFromList entries
   where
     entries =
       [ ( pId
@@ -361,7 +361,7 @@ buildValue policyIds tokenNames =
         )
       | pId <- policyIds
       ]
-    amt = mkQuantity 10000000
+    amt = mkQuantity 2 -- mkQuantity 10000000
 
 -- mkQuantity $
 --   unQuantity (maxBound :: Quantity) `div` 2 - 10000
@@ -378,11 +378,13 @@ scaleValueBenchmark gen =
     (runBenchGen gen scaleValueArgs)
 
 scaleValueArgs :: StatefulGen g m => g -> m [(Integer, Value)]
-scaleValueArgs gen = do
-  replicateM 100 $ do
-    (i1, i2) <- genBoundedProduct gen
-    val <- generateValueWithQuantity (mkQuantity $ sqrtMax - 1000) gen
-    pure (i1, val)
+scaleValueArgs gen =
+  replicateM 200 $ do
+    numPolicyIds <- uniformRM (1, 100_000) gen
+    policyIds <- replicateM numPolicyIds (generateKey gen)
+    tokenName <- generateKey gen
+    let value = buildValue policyIds [tokenName]
+    pure (halfMax, value)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
@@ -565,6 +567,9 @@ genBoundedProduct gen = do
 
 sqrtMax :: Integer
 sqrtMax = floor . sqrt . fromIntegral $ unQuantity (maxBound :: Quantity)
+
+halfMax :: Integer
+halfMax = unQuantity (maxBound :: Quantity) `div` 2
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
