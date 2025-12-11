@@ -78,7 +78,7 @@ jobs:
           cp -RL result/* _metatheory
 
       - name: Deploy Site
-        uses: JamesIves/github-pages-deploy-action@v4.7.4
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           folder: _metatheory
           target-folder: metatheory/${{ inputs.destination || github.ref_name }}
@@ -86,7 +86,7 @@ jobs:
 
       - name: Deploy Site (latest)
         if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4.7.4
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           folder: _metatheory
           target-folder: metatheory/latest
