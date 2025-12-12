@@ -21,64 +21,49 @@ import qualified MAlonzo.Code.Data.Irrelevant
 import qualified MAlonzo.Code.Relation.Nullary.Decidable.Core
 import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
-import qualified MAlonzo.Code.Untyped.Equality
 import qualified MAlonzo.Code.Untyped.RenamingSubstitution
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 
 -- VerifiedCompilation.UCSE.UCSE
-d_UCSE_4 a0 a1 a2 a3 = ()
+d_UCSE_4 a0 a1 a2 = ()
 newtype T_UCSE_4
-  = C_cse_16 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16
+  = C_cse_14 MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12
 -- VerifiedCompilation.UCSE.UntypedCSE
-d_UntypedCSE_26 ::
-  () ->
-  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
+d_UntypedCSE_22 ::
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 -> ()
-d_UntypedCSE_26 = erased
+d_UntypedCSE_22 = erased
 -- VerifiedCompilation.UCSE.isUntypedCSE?
-d_isUntypedCSE'63'_32 ::
-  () ->
-  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
+d_isUntypedCSE'63'_26 ::
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
-d_isUntypedCSE'63'_32 ~v0 v1 = du_isUntypedCSE'63'_32 v1
-du_isUntypedCSE'63'_32 ::
-  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
-du_isUntypedCSE'63'_32 v0
+d_isUntypedCSE'63'_26 v0
   = coe
-      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_178
-      erased (coe v0)
+      MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
+      (coe v0)
       (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_cseT_18)
-      (\ v1 v2 v3 v4 -> coe du_isUCSE'63'_38 v2 v3 v4)
+      (coe d_isUCSE'63'_30)
 -- VerifiedCompilation.UCSE.isUCSE?
-d_isUCSE'63'_38 ::
-  () ->
-  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
+d_isUCSE'63'_30 ::
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
-d_isUCSE'63'_38 ~v0 v1 v2 v3 = du_isUCSE'63'_38 v1 v2 v3
-du_isUCSE'63'_38 ::
-  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
-du_isUCSE'63'_38 v0 v1 v2
+d_isUCSE'63'_30 v0 v1 v2
   = let v3
           = coe
               MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isApp'63'_166
-              erased
+              (coe v0)
               (coe
                  (\ v3 ->
                     coe
                       MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isLambda'63'_70
+                      (coe v3)
                       (\ v4 v5 ->
                          coe
                            MAlonzo.Code.VerifiedCompilation.UntypedViews.du_isTerm'63'_782)))
@@ -106,16 +91,16 @@ du_isUCSE'63'_38 v0 v1 v2
                                                              seq (coe v10)
                                                              (let v16
                                                                     = coe
-                                                                        du_isUntypedCSE'63'_32 v0 v1
-                                                                        (coe
-                                                                           MAlonzo.Code.Untyped.RenamingSubstitution.du__'91'_'93'_468
-                                                                           (coe v15) (coe v12)) in
+                                                                        d_isUntypedCSE'63'_26 v0 v1
+                                                                        (MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_468
+                                                                           (coe v0) (coe v15)
+                                                                           (coe v12)) in
                                                               coe
                                                                 (case coe v16 of
                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_34 v17
                                                                      -> coe
                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_34
-                                                                          (coe C_cse_16 v17)
+                                                                          (coe C_cse_14 v17)
                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_42 v20 v21 v22
                                                                      -> coe
                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_42
@@ -133,27 +118,25 @@ du_isUCSE'63'_38 v0 v1 v2
                           (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_cseT_18) v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UCSE..extendedlambda0
-d_'46'extendedlambda0_54 ::
-  () ->
+d_'46'extendedlambda0_46 ::
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   (MAlonzo.Code.VerifiedCompilation.UntypedViews.T_isApp_142 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
-  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   T_UCSE_4 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda0_54 = erased
+d_'46'extendedlambda0_46 = erased
 -- VerifiedCompilation.UCSE..extendedlambda1
-d_'46'extendedlambda1_86 ::
-  () ->
+d_'46'extendedlambda1_78 ::
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_16 ->
+  (MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
   MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny -> T_UCSE_4 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
-d_'46'extendedlambda1_86 = erased
+d_'46'extendedlambda1_78 = erased

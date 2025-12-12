@@ -22,6 +22,7 @@ import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Agda.Builtin.Maybe
 import qualified MAlonzo.Code.Builtin
 import qualified MAlonzo.Code.Builtin.Signature
+import qualified MAlonzo.Code.Data.Fin.Base
 import qualified MAlonzo.Code.Data.List.Base
 import qualified MAlonzo.Code.Data.List.NonEmpty.Base
 import qualified MAlonzo.Code.Data.List.Relation.Unary.All
@@ -58,7 +59,8 @@ d_interleave'45'error_32
   = error
       "MAlonzo Runtime Error: postulate evaluated: Untyped.Reduction.interleave-error"
 -- Untyped.Reduction.sat
-d_sat_36 :: () -> MAlonzo.Code.Untyped.T__'8866'_14 -> T_Arity_4
+d_sat_36 ::
+  Integer -> MAlonzo.Code.Untyped.T__'8866'_14 -> T_Arity_4
 d_sat_36 ~v0 v1 = du_sat_36 v1
 du_sat_36 :: MAlonzo.Code.Untyped.T__'8866'_14 -> T_Arity_4
 du_sat_36 v0
@@ -101,7 +103,7 @@ du_sat_36 v0
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.Reduction.sat-app-step
 d_sat'45'app'45'step_114 ::
-  () ->
+  Integer ->
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -110,7 +112,7 @@ d_sat'45'app'45'step_114 ::
 d_sat'45'app'45'step_114 = erased
 -- Untyped.Reduction.sat-force-step
 d_sat'45'force'45'step_138 ::
-  () ->
+  Integer ->
   Integer ->
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -135,7 +137,7 @@ data T_Value_182
     C_constr_228 MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44
 -- Untyped.Reduction.value-constr-recurse
 d_value'45'constr'45'recurse_234 ::
-  () ->
+  Integer ->
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   T_Value_182 -> MAlonzo.Code.Data.List.Relation.Unary.All.T_All_44
@@ -155,7 +157,7 @@ du_value'45'constr'45'recurse_234 v0
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Untyped.Reduction.iterApp
 d_iterApp_242 ::
-  () ->
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Untyped.T__'8866'_14
@@ -207,7 +209,7 @@ data T__'10230''42'__470
                 T__'10230''42'__470
 -- Untyped.Reduction.tran-⟶*
 d_tran'45''10230''42'_494 ::
-  () ->
+  Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -269,9 +271,8 @@ d_progress_532 v0
                                         MAlonzo.Code.Untyped.C_ƛ_20 v10
                                           -> coe
                                                C_step_522
-                                               (coe
-                                                  MAlonzo.Code.Untyped.RenamingSubstitution.du__'91'_'93'_468
-                                                  (coe v10) (coe v2))
+                                               (MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_468
+                                                  (coe (0 :: Integer)) (coe v10) (coe v2))
                                                (coe C_β_286 v8)
                                         _ -> MAlonzo.RTE.mazUnreachableError
                                  C_con_196
@@ -319,7 +320,8 @@ d_progress_532 v0
                                                             1 -> coe
                                                                    C_step_522
                                                                    (coe
-                                                                      d_reduceBuiltin_252 erased v0)
+                                                                      d_reduceBuiltin_252
+                                                                      (0 :: Integer) v0)
                                                                    (coe C_sat'45'app'45'builtin_306)
                                                             _ -> let v13
                                                                        = subInt
@@ -368,7 +370,8 @@ d_progress_532 v0
                                                                                  MAlonzo.Code.Untyped.C__'183'__22
                                                                                  (coe
                                                                                     d_reduceBuiltin_252
-                                                                                    erased v1)
+                                                                                    (0 :: Integer)
+                                                                                    v1)
                                                                                  (coe v2))
                                                                               (coe
                                                                                  C_ξ'8321'_266
@@ -378,7 +381,7 @@ d_progress_532 v0
                                                                               C_step_522
                                                                               (coe
                                                                                  d_reduceBuiltin_252
-                                                                                 erased v0)
+                                                                                 (0 :: Integer) v0)
                                                                               (coe
                                                                                  C_sat'45'app'45'builtin_306)
                                                                        _ -> let v17
@@ -430,7 +433,8 @@ d_progress_532 v0
                                                                                            MAlonzo.Code.Untyped.C__'183'__22
                                                                                            (coe
                                                                                               d_reduceBuiltin_252
-                                                                                              erased
+                                                                                              (0 ::
+                                                                                                 Integer)
                                                                                               v1)
                                                                                            (coe v2))
                                                                                         (coe
@@ -441,7 +445,8 @@ d_progress_532 v0
                                                                                         C_step_522
                                                                                         (coe
                                                                                            d_reduceBuiltin_252
-                                                                                           erased
+                                                                                           (0 ::
+                                                                                              Integer)
                                                                                            v0)
                                                                                         (coe
                                                                                            C_sat'45'app'45'builtin_306)
@@ -481,7 +486,7 @@ d_progress_532 v0
                                                                           MAlonzo.Code.Untyped.C__'183'__22
                                                                           (coe
                                                                              d_reduceBuiltin_252
-                                                                             erased v1)
+                                                                             (0 :: Integer) v1)
                                                                           (coe v2))
                                                                        (coe
                                                                           C_ξ'8321'_266
@@ -490,8 +495,8 @@ d_progress_532 v0
                                                                 1 -> coe
                                                                        C_step_522
                                                                        (coe
-                                                                          d_reduceBuiltin_252 erased
-                                                                          v0)
+                                                                          d_reduceBuiltin_252
+                                                                          (0 :: Integer) v0)
                                                                        (coe
                                                                           C_sat'45'app'45'builtin_306)
                                                                 _ -> let v17
@@ -540,7 +545,8 @@ d_progress_532 v0
                                                                                  MAlonzo.Code.Untyped.C__'183'__22
                                                                                  (coe
                                                                                     d_reduceBuiltin_252
-                                                                                    erased v1)
+                                                                                    (0 :: Integer)
+                                                                                    v1)
                                                                                  (coe v2))
                                                                               (coe
                                                                                  C_ξ'8321'_266
@@ -550,7 +556,7 @@ d_progress_532 v0
                                                                               C_step_522
                                                                               (coe
                                                                                  d_reduceBuiltin_252
-                                                                                 erased v0)
+                                                                                 (0 :: Integer) v0)
                                                                               (coe
                                                                                  C_sat'45'app'45'builtin_306)
                                                                        _ -> let v20
@@ -594,7 +600,8 @@ d_progress_532 v0
                                                                                               MAlonzo.Code.Untyped.C__'183'__22
                                                                                               (coe
                                                                                                  d_reduceBuiltin_252
-                                                                                                 erased
+                                                                                                 (0 ::
+                                                                                                    Integer)
                                                                                                  v1)
                                                                                               (coe
                                                                                                  v2))
@@ -606,7 +613,8 @@ d_progress_532 v0
                                                                                            C_step_522
                                                                                            (coe
                                                                                               d_reduceBuiltin_252
-                                                                                              erased
+                                                                                              (1 ::
+                                                                                                 Integer)
                                                                                               v0)
                                                                                            (coe
                                                                                               C_sat'45'app'45'builtin_306)
@@ -649,7 +657,8 @@ d_progress_532 v0
                                                                                               MAlonzo.Code.Untyped.C__'183'__22
                                                                                               (coe
                                                                                                  d_reduceBuiltin_252
-                                                                                                 erased
+                                                                                                 (0 ::
+                                                                                                    Integer)
                                                                                                  v1)
                                                                                               (coe
                                                                                                  v2))
@@ -661,7 +670,8 @@ d_progress_532 v0
                                                                                            C_step_522
                                                                                            (coe
                                                                                               d_reduceBuiltin_252
-                                                                                              erased
+                                                                                              (0 ::
+                                                                                                 Integer)
                                                                                               v0)
                                                                                            (coe
                                                                                               C_sat'45'app'45'builtin_306)
@@ -711,7 +721,8 @@ d_progress_532 v0
                                                                                            MAlonzo.Code.Untyped.C__'183'__22
                                                                                            (coe
                                                                                               d_reduceBuiltin_252
-                                                                                              erased
+                                                                                              (0 ::
+                                                                                                 Integer)
                                                                                               v1)
                                                                                            (coe v2))
                                                                                         (coe
@@ -722,7 +733,8 @@ d_progress_532 v0
                                                                                         C_step_522
                                                                                         (coe
                                                                                            d_reduceBuiltin_252
-                                                                                           erased
+                                                                                           (0 ::
+                                                                                              Integer)
                                                                                            v0)
                                                                                         (coe
                                                                                            C_sat'45'app'45'builtin_306)
@@ -822,7 +834,8 @@ d_progress_532 v0
                                         (coe C_force'45'interleave'45'error_382 v7)
                                  1 -> case coe v7 of
                                         0 -> coe
-                                               C_step_522 (coe d_reduceBuiltin_252 erased v0)
+                                               C_step_522
+                                               (coe d_reduceBuiltin_252 (0 :: Integer) v0)
                                                (coe C_sat'45'force'45'builtin_310)
                                         _ -> let v8 = subInt (coe v7) (coe (1 :: Integer)) in
                                              coe
@@ -1001,9 +1014,9 @@ d_progress_532 v0
                                           -> case coe v3 of
                                                MAlonzo.Code.Untyped.C_ƛ_20 v12
                                                  -> let v13
-                                                          = coe
-                                                              MAlonzo.Code.Untyped.RenamingSubstitution.du__'91'_'93'_468
-                                                              (coe v12) (coe v4) in
+                                                          = MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_468
+                                                              (coe (0 :: Integer)) (coe v12)
+                                                              (coe v4) in
                                                     coe
                                                       (let v14 = coe C_β_286 v10 in
                                                        coe
@@ -1066,7 +1079,8 @@ d_progress_532 v0
                                                                    1 -> let v15
                                                                               = coe
                                                                                   d_reduceBuiltin_252
-                                                                                  erased v1 in
+                                                                                  (0 :: Integer)
+                                                                                  v1 in
                                                                         coe
                                                                           (let v16
                                                                                  = coe
@@ -1177,7 +1191,8 @@ d_progress_532 v0
                                                                                              MAlonzo.Code.Untyped.C__'183'__22
                                                                                              (coe
                                                                                                 d_reduceBuiltin_252
-                                                                                                erased
+                                                                                                (0 ::
+                                                                                                   Integer)
                                                                                                 v3)
                                                                                              (coe
                                                                                                 v4) in
@@ -1202,7 +1217,8 @@ d_progress_532 v0
                                                                               1 -> let v19
                                                                                          = coe
                                                                                              d_reduceBuiltin_252
-                                                                                             erased
+                                                                                             (0 ::
+                                                                                                Integer)
                                                                                              v1 in
                                                                                    coe
                                                                                      (let v20
@@ -1313,7 +1329,8 @@ d_progress_532 v0
                                                                                                        MAlonzo.Code.Untyped.C__'183'__22
                                                                                                        (coe
                                                                                                           d_reduceBuiltin_252
-                                                                                                          erased
+                                                                                                          (0 ::
+                                                                                                             Integer)
                                                                                                           v3)
                                                                                                        (coe
                                                                                                           v4) in
@@ -1338,7 +1355,8 @@ d_progress_532 v0
                                                                                         1 -> let v22
                                                                                                    = coe
                                                                                                        d_reduceBuiltin_252
-                                                                                                       erased
+                                                                                                       (0 ::
+                                                                                                          Integer)
                                                                                                        v1 in
                                                                                              coe
                                                                                                (let v23
@@ -1407,7 +1425,9 @@ d_progress_532 v0
                                                                                       MAlonzo.Code.Untyped.C__'183'__22
                                                                                       (coe
                                                                                          d_reduceBuiltin_252
-                                                                                         erased v3)
+                                                                                         (0 ::
+                                                                                            Integer)
+                                                                                         v3)
                                                                                       (coe v4) in
                                                                             coe
                                                                               (let v20
@@ -1428,7 +1448,8 @@ d_progress_532 v0
                                                                        1 -> let v19
                                                                                   = coe
                                                                                       d_reduceBuiltin_252
-                                                                                      erased v1 in
+                                                                                      (0 :: Integer)
+                                                                                      v1 in
                                                                             coe
                                                                               (let v20
                                                                                      = coe
@@ -1528,7 +1549,8 @@ d_progress_532 v0
                                                                                              MAlonzo.Code.Untyped.C__'183'__22
                                                                                              (coe
                                                                                                 d_reduceBuiltin_252
-                                                                                                erased
+                                                                                                (0 ::
+                                                                                                   Integer)
                                                                                                 v3)
                                                                                              (coe
                                                                                                 v4) in
@@ -1553,7 +1575,8 @@ d_progress_532 v0
                                                                               1 -> let v22
                                                                                          = coe
                                                                                              d_reduceBuiltin_252
-                                                                                             erased
+                                                                                             (0 ::
+                                                                                                Integer)
                                                                                              v1 in
                                                                                    coe
                                                                                      (let v23
@@ -1631,7 +1654,8 @@ d_progress_532 v0
                                                                                                           MAlonzo.Code.Untyped.C__'183'__22
                                                                                                           (coe
                                                                                                              d_reduceBuiltin_252
-                                                                                                             erased
+                                                                                                             (0 ::
+                                                                                                                Integer)
                                                                                                              v3)
                                                                                                           (coe
                                                                                                              v4) in
@@ -1656,7 +1680,8 @@ d_progress_532 v0
                                                                                            1 -> let v24
                                                                                                       = coe
                                                                                                           d_reduceBuiltin_252
-                                                                                                          erased
+                                                                                                          (1 ::
+                                                                                                             Integer)
                                                                                                           v1 in
                                                                                                 coe
                                                                                                   (let v25
@@ -1729,7 +1754,8 @@ d_progress_532 v0
                                                                                                           MAlonzo.Code.Untyped.C__'183'__22
                                                                                                           (coe
                                                                                                              d_reduceBuiltin_252
-                                                                                                             erased
+                                                                                                             (0 ::
+                                                                                                                Integer)
                                                                                                              v3)
                                                                                                           (coe
                                                                                                              v4) in
@@ -1754,7 +1780,8 @@ d_progress_532 v0
                                                                                            2 -> let v24
                                                                                                       = coe
                                                                                                           d_reduceBuiltin_252
-                                                                                                          erased
+                                                                                                          (0 ::
+                                                                                                             Integer)
                                                                                                           v1 in
                                                                                                 coe
                                                                                                   (let v25
@@ -1859,7 +1886,8 @@ d_progress_532 v0
                                                                                                        MAlonzo.Code.Untyped.C__'183'__22
                                                                                                        (coe
                                                                                                           d_reduceBuiltin_252
-                                                                                                          erased
+                                                                                                          (0 ::
+                                                                                                             Integer)
                                                                                                           v3)
                                                                                                        (coe
                                                                                                           v4) in
@@ -1884,7 +1912,8 @@ d_progress_532 v0
                                                                                         1 -> let v25
                                                                                                    = coe
                                                                                                        d_reduceBuiltin_252
-                                                                                                       erased
+                                                                                                       (0 ::
+                                                                                                          Integer)
                                                                                                        v1 in
                                                                                              coe
                                                                                                (let v26
@@ -2134,7 +2163,10 @@ d_progress_532 v0
                                                         (coe v2))
                                                      (coe C_case'45'reduce_466 v11)))
                                         1 -> case coe v9 of
-                                               0 -> let v10 = coe d_reduceBuiltin_252 erased v1 in
+                                               0 -> let v10
+                                                          = coe
+                                                              d_reduceBuiltin_252 (0 :: Integer)
+                                                              v1 in
                                                     coe
                                                       (let v11
                                                              = coe C_sat'45'force'45'builtin_310 in
@@ -2229,7 +2261,7 @@ d_integer_1220
       (coe MAlonzo.Code.RawU.C_integer_30)
 -- Untyped.Reduction.con-integer
 d_con'45'integer_1224 ::
-  () -> Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+  Integer -> Integer -> MAlonzo.Code.Untyped.T__'8866'_14
 d_con'45'integer_1224 ~v0 v1 = du_con'45'integer_1224 v1
 du_con'45'integer_1224 ::
   Integer -> MAlonzo.Code.Untyped.T__'8866'_14
@@ -2255,18 +2287,18 @@ d_ex1_1236
                      (coe
                         MAlonzo.Code.Untyped.C_'96'_18
                         (coe
-                           MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                           MAlonzo.Code.Data.Fin.Base.C_suc_16
                            (coe
-                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                              (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))))
+                              MAlonzo.Code.Data.Fin.Base.C_suc_16
+                              (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
                      (coe
                         MAlonzo.Code.Untyped.C_'96'_18
-                        (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))))
+                        (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
                (coe
                   MAlonzo.Code.Untyped.C_'96'_18
                   (coe
-                     MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                     (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))
+                     MAlonzo.Code.Data.Fin.Base.C_suc_16
+                     (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))))
          (coe du_con'45'integer_1224 (coe (2 :: Integer))))
       (coe du_con'45'integer_1224 (coe (3 :: Integer)))
 -- Untyped.Reduction.ex2
@@ -2287,17 +2319,17 @@ d_ex2_1238
                      (coe
                         MAlonzo.Code.Untyped.C_'96'_18
                         (coe
-                           MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                           MAlonzo.Code.Data.Fin.Base.C_suc_16
                            (coe
-                              MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                              (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))))
+                              MAlonzo.Code.Data.Fin.Base.C_suc_16
+                              (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
                      (coe
                         MAlonzo.Code.Untyped.C_'96'_18
                         (coe
-                           MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
-                           (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18))))
+                           MAlonzo.Code.Data.Fin.Base.C_suc_16
+                           (coe MAlonzo.Code.Data.Fin.Base.C_zero_12))))
                   (coe
                      MAlonzo.Code.Untyped.C_'96'_18
-                     (coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18)))))
+                     (coe MAlonzo.Code.Data.Fin.Base.C_zero_12)))))
          (coe du_con'45'integer_1224 (coe (3 :: Integer))))
       (coe du_con'45'integer_1224 (coe (2 :: Integer)))

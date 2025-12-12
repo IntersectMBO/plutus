@@ -28,7 +28,7 @@ import qualified MAlonzo.Code.Utils
 
 -- Type.BetaNBE.RenamingSubstitution.reify-reflect
 d_reify'45'reflect_12 ::
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
@@ -37,12 +37,12 @@ d_reify'45'reflect_12 = erased
 d_evalCRSubst_38 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 -> AgdaAny) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 -> AgdaAny) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 -> AgdaAny) ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
@@ -52,12 +52,12 @@ d_evalCRSubst_38 v0 v1 v2 v3 v4 v5 v6 v7 ~v8
 du_evalCRSubst_38 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 -> AgdaAny) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 -> AgdaAny) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 -> AgdaAny) ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 -> AgdaAny
@@ -70,8 +70,8 @@ du_evalCRSubst_38 v0 v1 v2 v3 v4 v5 v6 v7
 d_ren'45'nf_56 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
@@ -81,8 +81,8 @@ d_ren'45'nf_56 = erased
 d_ren'45'nf'45'μ_74 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -98,10 +98,10 @@ d_SubNf_90 = erased
 d_subNf_104 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_subNf_104 v0 v1 v2 v3 v4
@@ -120,14 +120,14 @@ d_subNf_104 v0 v1 v2 v3 v4
 -- Type.BetaNBE.RenamingSubstitution.subNf-id
 d_subNf'45'id_116 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'45'id_116 = erased
 -- Type.BetaNBE.RenamingSubstitution.subNf-id'
 d_subNf'45'id''_126 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'45'id''_126 = erased
@@ -135,8 +135,8 @@ d_subNf'45'id''_126 = erased
 d_subNf'45''8715'_142 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.T__'8715''8902'__14 ->
@@ -146,10 +146,10 @@ d_subNf'45''8715'_142 = erased
 d_subNf'45'nf_160 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'45'nf_160 = erased
@@ -158,13 +158,13 @@ d_subNf'45'comp_182 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'45'comp_182 = erased
@@ -172,21 +172,21 @@ d_subNf'45'comp_182 = erased
 d_extsNf_198 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T__'8715''8902'__14 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_extsNf_198 ~v0 v1 v2 v3 v4 v5 = du_extsNf_198 v1 v2 v3 v4 v5
 du_extsNf_198 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T__'8715''8902'__14 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 du_extsNf_198 v0 v1 v2 v3 v4
@@ -205,22 +205,22 @@ du_extsNf_198 v0 v1 v2 v3 v4
 d_subNf'45'cons_218 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T__'8715''8902'__14 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_subNf'45'cons_218 ~v0 ~v1 v2 ~v3 v4 v5 v6
   = du_subNf'45'cons_218 v2 v4 v5 v6
 du_subNf'45'cons_218 ::
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T__'8715''8902'__14 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 du_subNf'45'cons_218 v0 v1 v2 v3
@@ -231,8 +231,8 @@ du_subNf'45'cons_218 v0 v1 v2 v3
 -- Type.BetaNBE.RenamingSubstitution._[_]Nf
 d__'91'_'93'Nf_236 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
@@ -253,16 +253,16 @@ d__'91'_'93'Nf_236 v0 v1 v2 v3 v4
 d_subNf'45'cong_260 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'45'cong_260 = erased
@@ -270,10 +270,10 @@ d_subNf'45'cong_260 = erased
 d_subNf'45'cong''_280 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12 ->
@@ -284,13 +284,13 @@ d_renNf'45'subNf_300 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_renNf'45'subNf_300 = erased
@@ -299,13 +299,13 @@ d_subNf'45'renNf_324 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'45'renNf_324 = erased
@@ -313,9 +313,9 @@ d_subNf'45'renNf_324 = erased
 d_ren'91''93'Nf_350 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -326,9 +326,9 @@ d_ren'91''93'Nf_350 = erased
 d_sub'91''93'Nf_378 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -339,9 +339,9 @@ d_sub'91''93'Nf_378 = erased
 d_subNf'45'lemma_404 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
@@ -350,8 +350,8 @@ d_subNf'45'lemma_404 = erased
 -- Type.BetaNBE.RenamingSubstitution.subNf-lemma'
 d_subNf'45'lemma''_422 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'45'lemma''_422 = erased
@@ -359,9 +359,9 @@ d_subNf'45'lemma''_422 = erased
 d_sub'91''93'Nf''_446 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -372,10 +372,10 @@ d_sub'91''93'Nf''_446 = erased
 d_weakenNf'45'renNf_464 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_weakenNf'45'renNf_464 = erased
@@ -383,17 +383,17 @@ d_weakenNf'45'renNf_464 = erased
 d_weakenNf'45'subNf_480 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_weakenNf'45'subNf_480 = erased
 -- Type.BetaNBE.RenamingSubstitution.weakenNf[]
 d_weakenNf'91''93'_494 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
@@ -402,10 +402,10 @@ d_weakenNf'91''93'_494 = erased
 d_sub'45'nf'45'Π_510 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_sub'45'nf'45'Π_510 = erased
@@ -413,8 +413,8 @@ d_sub'45'nf'45'Π_510 = erased
 d_sub'45'nf'45'μ_528 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -424,9 +424,9 @@ d_sub'45'nf'45'μ_528 = erased
 -- Type.BetaNBE.RenamingSubstitution.subNf-cons-[]Nf
 d_subNf'45'cons'45''91''93'Nf_548 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -436,7 +436,7 @@ d_subNf'45'cons'45''91''93'Nf_548 = erased
 -- Type.BetaNBE.RenamingSubstitution.subNf∅
 d_subNf'8709'_566 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4
 d_subNf'8709'_566 v0 v1 v2
@@ -450,7 +450,7 @@ d_subNf'8709'_566 v0 v1 v2
 -- Type.BetaNBE.RenamingSubstitution.subNf∅≡subNf
 d_subNf'8709''8801'subNf_582 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_subNf'8709''8801'subNf_582 = erased
@@ -458,8 +458,8 @@ d_subNf'8709''8801'subNf_582 = erased
 d_subNf'8709''45'renNf_600 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -469,8 +469,8 @@ d_subNf'8709''45'renNf_600 = erased
 d_subNf'8709''45'subNf_616 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->

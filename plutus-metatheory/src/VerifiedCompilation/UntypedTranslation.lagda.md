@@ -19,7 +19,8 @@ open import VerifiedCompilation.UntypedViews using (Pred; ListPred)
 open import Utils as U using (Maybe)
 open import RawU using (TmCon; tmCon; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
 open import Data.List using (List; [_])
-open import Data.Nat using (ℕ; eq?)
+open import Data.Fin using (Fin)
+open import Data.Nat using (ℕ; suc; eq?)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Builtin using (Builtin)
 import Relation.Binary.PropositionalEquality as Eq
@@ -34,13 +35,13 @@ The generic type of a Translation is that it matches one (or more) patterns on t
 we can build a decision procedure to apply them recursivley down the AST structure.
 
 ```
-Relation = { X : Set } → {{_ : DecEq X}} → (X ⊢) → (X ⊢) → Set₁
+Relation = { X : ℕ } → (X ⊢) → (X ⊢) → Set₁
 
-data Translation (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁
+data Translation (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set₁
 
-data TransMatch (R : Relation) { X : Set } {{_ : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
-  var : {x : X} → TransMatch R (` x) (` x) -- We assume we won't want to translate variables individually?
-  ƛ   : {x x' : Maybe X ⊢}
+data TransMatch (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set₁ where
+  var : {x : Fin X} → TransMatch R (` x) (` x) -- We assume we won't want to translate variables individually?
+  ƛ   : {x x' : suc X ⊢}
            → Translation R x x'
            ----------------------
            → TransMatch R (ƛ x) (ƛ x')
@@ -79,7 +80,7 @@ for each pair of term types.
 ```
 open import Data.Product
 
-untypedIx : {X : Set} → X ⊢ → ℕ
+untypedIx : {X : ℕ} → X ⊢ → ℕ
 untypedIx (` x) = 1
 untypedIx (ƛ t) = 2
 untypedIx (t · t₁) = 3
@@ -91,7 +92,7 @@ untypedIx (case t ts) = 8
 untypedIx (builtin b) = 9
 untypedIx error = 10
 
-matchIx : {R : Relation}{X : Set}{{ _ : DecEq X}}{a b : X ⊢} → TransMatch R a b → untypedIx a ≡ untypedIx b
+matchIx : {R : Relation}{X : ℕ}{a b : X ⊢} → TransMatch R a b → untypedIx a ≡ untypedIx b
 matchIx var = refl
 matchIx (ƛ x) = refl
 matchIx (app x x₁) = refl
@@ -104,85 +105,85 @@ matchIx builtin = refl
 matchIx error = refl
 
 translation?
-  : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
+  : {X' : ℕ} {R : Relation}
   → SimplifierTag
-  → ({ X : Set } {{ _ : DecEq X}} → MatchOrCE (R {X}))
+  → ({ X : ℕ } → MatchOrCE (R {X}))
   → (p q : X' ⊢) → ProofOrCE (Translation R {X'} p q)
 
 decPointwiseTranslation?
-  : {X' : Set} {{ _ : DecEq X'}} {R : Relation}
+  : {X' : ℕ} {R : Relation}
   → SimplifierTag
-  → ({ X : Set } {{ _ : DecEq X}} → MatchOrCE (R {X}))
+  → ({ X : ℕ } → MatchOrCE (R {X}))
   → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
 decPointwiseTranslation? _ _ [] [] = proof Pointwise.[]
-decPointwiseTranslation? {X' = X'} tag isR? [] (x ∷ ys) = ce (λ ()) {X = List X'} tag [] (x ∷ ys)
-decPointwiseTranslation? {X' = X'} tag isR? (x ∷ xs) [] = ce (λ ()) {X' = List X'} tag (x ∷ xs) []
+decPointwiseTranslation? {X' = X'} tag isR? [] (x ∷ ys) = ce (λ ()) {X = List (Fin X')} tag [] (x ∷ ys)
+decPointwiseTranslation? {X' = X'} tag isR? (x ∷ xs) [] = ce (λ ()) {X' = List (Fin X')} tag (x ∷ xs) []
 decPointwiseTranslation? tag isR? (x ∷ xs) (y ∷ ys)
     with translation? tag isR? x y | decPointwiseTranslation? tag isR? xs ys
 ... | proof p | proof q = proof (p Pointwise.∷ q)
 ... | proof _ | ce ¬p t before after = ce (λ { (x∼y Pointwise.∷ x) → ¬p x }) t before after
 ... | ce ¬p t before after | _     = ce (λ { (x∼y Pointwise.∷ x) → ¬p x∼y }) t before after
 
-translation? {_} ⦃ de ⦄ tag isR? ast ast' with (untypedIx ast) Data.Nat.≟ (untypedIx ast')
-translation? {X} ⦃ de ⦄ tag isR? (` x) (` x₁) | yes _ with x ≟ x₁
+translation? {_} tag isR? ast ast' with (untypedIx ast) Data.Nat.≟ (untypedIx ast')
+translation? {X} tag isR? (` x) (` x₁) | yes _ with Data.Fin._≟_ x x₁
 ... | yes refl = proof (match var)
 ... | no x≠x₁ with isR? {X} (` x) (` x₁)
 ...   | proof p = proof (istranslation p)
 ...   | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match var) → x≠x₁ refl }) t b a
-translation? {_} ⦃ de ⦄ tag isR? (ƛ ast) (ƛ ast') | yes _ with translation? tag isR? ast ast'
+translation? {_} tag isR? (ƛ ast) (ƛ ast') | yes _ with translation? tag isR? ast ast'
 ...                  | proof t = proof (match (ƛ t))
 ...                  | ce ¬tr t b a with isR? (ƛ ast) (ƛ ast')
 ...                               | proof p = proof (istranslation p)
 ...                               | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (ƛ tr)) → ¬tr tr }) t b a
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ with (translation? tag isR? ast ast')
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬p t b a with isR? (ast · ast₁) (ast' · ast₁')
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬p t b a | proof p = proof (istranslation p)
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x }) t b a
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l with (translation? tag isR? ast₁ ast₁')
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | proof r = proof (match (app l r))
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬p t b a with isR? (ast · ast₁) (ast' · ast₁')
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬p t b a | proof p = proof (istranslation p)
-translation? {_} ⦃ de ⦄ tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x₁ }) t b a
-translation? {_} ⦃ de ⦄ tag isR? (force ast) (force ast') | yes _ with translation? tag isR? ast ast'
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ with (translation? tag isR? ast ast')
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬p t b a with isR? (ast · ast₁) (ast' · ast₁')
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬p t b a | proof p = proof (istranslation p)
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x }) t b a
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l with (translation? tag isR? ast₁ ast₁')
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | proof r = proof (match (app l r))
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬p t b a with isR? (ast · ast₁) (ast' · ast₁')
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬p t b a | proof p = proof (istranslation p)
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x₁ }) t b a
+translation? {_} tag isR? (force ast) (force ast') | yes _ with translation? tag isR? ast ast'
 ...                  | proof t = proof (match (force t))
 ...                  | ce ¬tr t b a with isR? (force ast) (force ast')
 ...                               | proof p = proof (istranslation p)
 ...                               |  ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (force x)) → ¬tr x }) t b a
-translation? {_} ⦃ de ⦄ tag isR? (delay ast) (delay ast') | yes _ with translation? tag isR? ast ast'
+translation? {_} tag isR? (delay ast) (delay ast') | yes _ with translation? tag isR? ast ast'
 ...                  | proof t = proof (match (delay t))
 ...                  | ce ¬tr t b a with isR? (delay ast) (delay ast')
 ...                               | proof p = proof (istranslation p)
 ...                               | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (delay x)) → ¬tr x }) t b a
-translation? {X} ⦃ de ⦄ tag isR? (con x) (con x₁) | yes _ with x ≟ x₁
+translation? {X} tag isR? (con x) (con x₁) | yes _ with x ≟ x₁
 ...                  | yes refl = proof (match con)
 ...                  | no x≠x₁ with isR? {X} (con x) (con x₁)
 ...                                   | proof p = proof (istranslation p)
 ...                                   | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match con) → x≠x₁ refl }) t b a
-translation? {_} ⦃ de ⦄ tag isR? (constr i xs) (constr i₁ xs₁) | yes _ with (decToPCE tag (i ≟ i₁) {constr i xs} {constr i₁ xs₁})
+translation? {_} tag isR? (constr i xs) (constr i₁ xs₁) | yes _ with (decToPCE tag (i ≟ i₁) {constr i xs} {constr i₁ xs₁})
 ...                  | ce ¬i≡i₁ t b a with isR? (constr i xs) (constr i₁ xs₁)
 ...                                    | proof p = proof (istranslation p)
 ...                                    | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (constr x)) → ¬i≡i₁ refl }) t b a
-translation? {_} ⦃ de ⦄ tag isR? (constr i xs) (constr i₁ xs₁) | yes _ | proof refl with (decPointwiseTranslation? tag isR? xs xs₁)
+translation? {_} tag isR? (constr i xs) (constr i₁ xs₁) | yes _ | proof refl with (decPointwiseTranslation? tag isR? xs xs₁)
 ...                                    | proof t = proof (match (constr t))
 ...                                    | ce ¬pp t b a with isR? (constr i xs) (constr i₁ xs₁)
 ...                                                | proof p = proof (istranslation p)
 ...                                                | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (constr x)) → ¬pp x}) t b a
-translation? {_} ⦃ de ⦄ tag isR? (case ast ts) (case ast' ts₁) | yes _ with (translation? tag isR? ast ast')
+translation? {_} tag isR? (case ast ts) (case ast' ts₁) | yes _ with (translation? tag isR? ast ast')
 ...                  | ce ¬tr t b a with isR? (case ast ts) (case ast' ts₁)
 ...                                    | proof p = proof (istranslation p)
 ...                                    | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (case x x₁)) → ¬tr x₁}) t b a
-translation? {_} ⦃ de ⦄ tag isR? (case ast ts) (case ast' ts₁) | yes _ | proof pa with (decPointwiseTranslation? tag isR? ts ts₁)
+translation? {_} tag isR? (case ast ts) (case ast' ts₁) | yes _ | proof pa with (decPointwiseTranslation? tag isR? ts ts₁)
 ...                                    | proof t = proof (match (case t pa))
 ...                                    | ce ¬tr t b a with isR? (case ast ts) (case ast' ts₁)
 ...                                           | proof p = proof (istranslation p)
 ...                                           | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (case x x₁)) → ¬tr x}) t b a
-translation? {X} ⦃ de ⦄ tag isR? (builtin b) (builtin b₁) | yes _ with b ≟ b₁
+translation? {X} tag isR? (builtin b) (builtin b₁) | yes _ with b ≟ b₁
 ... | yes refl = proof (match builtin)
 ... | no b≠b₁ with isR? {X} (builtin b) (builtin b₁)
 ...                  | proof p = proof (istranslation p)
 ...                  | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match builtin) → b≠b₁ refl }) t b a
-translation? {_} ⦃ de ⦄ tag isR? error error | yes _ = proof (match error)
-translation? {_} ⦃ de ⦄ tag isR? ast ast' | no ast≠ast' with isR? ast ast'
+translation? {_} tag isR? error error | yes _ = proof (match error)
+translation? {_} tag isR? ast ast' | no ast≠ast' with isR? ast ast'
 ... | proof p = proof (istranslation p)
 ... | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match tm) → ast≠ast' (matchIx tm)} ) t b a
 
@@ -194,17 +195,17 @@ These functions can be useful when showing equivilence etc. between translation 
 ```
 variable
   R S : Relation
-  X : Set
+  X : ℕ
   x x' : X ⊢
   xs xs' : List (X ⊢)
 
-convert-pointwise : {{deX : DecEq X}} → (∀ {Y : Set} {{deY : DecEq Y}} {y y' : Y ⊢} → R {{deY}} y y' → S {{deY}} y y') → (Pointwise (R {{deX}}) xs xs' → Pointwise (S {{deX}}) xs xs')
+convert-pointwise : (∀ {Y : ℕ} {y y' : Y ⊢} → R y y' → S y y') → (Pointwise R xs xs' → Pointwise S xs xs')
 convert-pointwise f Pointwise.[] = Pointwise.[]
 convert-pointwise {R = R} {S = S} f (x∼y Pointwise.∷ p) = f x∼y Pointwise.∷ convert-pointwise {R =  R} {S = S} f p
 
 
 {-# TERMINATING #-}
-convert : {{deX : DecEq X}} → (∀ {Y : Set} {{deY : DecEq Y}} {y y' : Y ⊢} → R y y' → S y y') → (Translation R {{deX}} x x' → Translation S {{deX}} x x')
+convert : (∀ {Y : ℕ} {y y' : Y ⊢} → R y y' → S y y') → (Translation R x x' → Translation S x x')
 convert f (Translation.istranslation xx') = Translation.istranslation (f xx')
 convert f (match var) = match var
 convert f (match (ƛ x)) = match (ƛ (convert f x))
@@ -218,12 +219,12 @@ convert {R = R} {S = S} f (match (case (x∼y Pointwise.∷ x) x₁)) = match (c
 convert f (match builtin) = match builtin
 convert f (match error) = match error
 
-pointwise-reflexive : (∀ {X : Set} {{deX : DecEq X}} {x : X ⊢} → Translation R {{deX}} x x) → (∀ {X : Set} {{deX : DecEq X}} {xs : List (X ⊢)} → Pointwise (Translation R {{deX}}) xs xs)
+pointwise-reflexive : (∀ {X : ℕ} {x : X ⊢} → Translation R x x) → (∀ {X : ℕ} {xs : List (X ⊢)} → Pointwise (Translation R) xs xs)
 pointwise-reflexive f {xs = List.[]} = Pointwise.[]
 pointwise-reflexive f {xs = x List.∷ xs} = f Pointwise.∷ pointwise-reflexive f
 
 {-# TERMINATING #-}
-reflexive : {{deX : DecEq X}} → Translation R {{deX}} x x
+reflexive : Translation R x x
 reflexive {x = ` x} = match var
 reflexive {x = ƛ x} = match (ƛ reflexive)
 reflexive {x = x · x₁} = match (app reflexive reflexive)
