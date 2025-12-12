@@ -47,7 +47,7 @@ data UCSE : Relation where
     → Translation UCSE x (x' [ e ])
     → UCSE x ((ƛ x') · e)
 
-UntypedCSE : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UntypedCSE : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
 UntypedCSE = Translation UCSE
 
 ```

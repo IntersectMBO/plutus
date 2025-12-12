@@ -49,7 +49,7 @@ data CoC : Relation where
                (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 
-CaseOfCase : {X : ℕ} (ast : X ⊢) → (ast' : X ⊢) → Set₁
+CaseOfCase : {X : ℕ} (ast : X ⊢) → (ast' : X ⊢) → Set
 CaseOfCase = Translation CoC
 
 ```
