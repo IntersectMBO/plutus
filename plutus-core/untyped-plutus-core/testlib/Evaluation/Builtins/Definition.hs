@@ -507,6 +507,7 @@ test_IdBuiltinData =
                 [ emb ConstrData
                 , emb MapData
                 , emb ListData
+                , emb ArrayData
                 , emb IData
                 , emb BData
                 , dTerm
@@ -862,6 +863,10 @@ test_MatchData = testNestedM "MatchData" $ do
             runQuote $ do
               a1 <- freshName "a1"
               pure $ lamAbs () a1 (TyApp () Builtin.list dataTy) false
+          , -- array
+            runQuote $ do
+              a1 <- freshName "a1"
+              pure $ lamAbs () a1 (mkTyBuiltin @_ @(Vector Data) ()) false
           , -- I
             runQuote $ do
               a1 <- freshName "a1"

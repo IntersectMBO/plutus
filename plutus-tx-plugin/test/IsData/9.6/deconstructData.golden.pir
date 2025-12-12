@@ -7,7 +7,7 @@ let
     = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
   !casePair : all a b r. pair a b -> (a -> b -> r) -> r
     = /\a b r -> \(p : pair a b) (f : a -> b -> r) -> case r p [f]
-  !chooseData : all a. data -> a -> a -> a -> a -> a -> a = chooseData
+  !chooseData : all a. data -> a -> a -> a -> a -> a -> a -> a = chooseData
   !equalsInteger : integer -> integer -> bool = equalsInteger
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
@@ -127,6 +127,7 @@ let
             (\(ds : Unit) -> Nothing {Tuple2 a b})
             (\(ds : Unit) -> Nothing {Tuple2 a b})
             (\(ds : Unit) -> Nothing {Tuple2 a b})
+            (\(ds : Unit) -> Nothing {Tuple2 a b})
             Unit
   ~`$fFromDataTuple2` :
      all a b.
@@ -134,6 +135,7 @@ let
        (\a -> data -> Maybe a) b ->
        (\a -> data -> Maybe a) (Tuple2 a b)
     = `$fFromDataTuple2_$cfromBuiltinData`
+  !unsafeDataAsArray : data -> array data = unArrayData
   !unsafeDataAsB : data -> bytestring = unBData
   !unsafeDataAsI : data -> integer = unIData
   !unsafeDataAsList : data -> list data = unListData
@@ -161,6 +163,11 @@ let
           (\(ds : Unit) ->
              let
                !ds : list data = unsafeDataAsList d
+             in
+             Nothing {integer})
+          (\(ds : Unit) ->
+             let
+               !ds : array data = unsafeDataAsArray d
              in
              Nothing {integer})
           (\(ds : Unit) -> Just {integer} (unsafeDataAsI d))

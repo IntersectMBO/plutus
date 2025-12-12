@@ -1,6 +1,978 @@
-CPU:               598_224_552
-Memory:              2_916_171
-AST Size:               11_675
-Flat Size:              10_681
-
-(delay (lam i i))
+An error has occurred:
+Attempted to instantiate a non-polymorphic term.
+Caused by: \i-0 ->
+             (\i-1 ->
+                (\i-2 ->
+                   (\i-3 ->
+                      (\i-4 ->
+                         (\i-5 ->
+                            (\i-6 ->
+                               (\i-7 ->
+                                  force ifThenElse
+                                    (equalsInteger
+                                       (force (force fstPair) (force i-1))
+                                       0)
+                                    (\i-8 -> force i-7)
+                                    (\i-9 ->
+                                       force
+                                         (delay (delay (\i-10 i-11 -> i-11))))
+                                    ())
+                                 (delay
+                                    (force (force chooseList)
+                                       (force i-2)
+                                       (\i-12 ->
+                                          force
+                                            (delay
+                                               (delay (\i-13 i-14 -> i-14))))
+                                       (\i-15 -> force i-6)
+                                       (delay (\i-16 -> i-16)))))
+                              (delay
+                                 (force (force chooseList)
+                                    (force i-3)
+                                    (\i-17 ->
+                                       force
+                                         (delay (delay (\i-18 i-19 -> i-19))))
+                                    (\i-20 -> force i-5)
+                                    (delay (\i-21 -> i-21)))))
+                           (delay
+                              (force (force chooseList)
+                                 (force tailList (force i-3))
+                                 (\i-22 -> force i-4)
+                                 (\i-23 ->
+                                    force (delay (delay (\i-24 i-25 -> i-25))))
+                                 (delay (\i-26 -> i-26)))))
+                        (delay
+                           (force
+                              (force
+                                 (force
+                                    (delay (\i-27 -> i-27))
+                                    ((\i-28 ->
+                                        force
+                                          (delay
+                                             (\i-29
+                                               i-30 ->
+                                                (\i-31 ->
+                                                   (\i-32 ->
+                                                      force chooseData
+                                                        i-30
+                                                        (\i-33 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-34
+                                                                     i-35 ->
+                                                                      i-35))))
+                                                        (\i-36 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-37
+                                                                     i-38 ->
+                                                                      i-38))))
+                                                        (\i-39 ->
+                                                           i-32
+                                                             (unListData i-30))
+                                                        (\i-40 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-41
+                                                                     i-42 ->
+                                                                      i-42))))
+                                                        (\i-43 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-44
+                                                                     i-45 ->
+                                                                      i-45))))
+                                                        (delay (\i-46 -> i-46)))
+                                                     (force i-31
+                                                        (\i-47 -> i-47)))
+                                                  (delay
+                                                     (\i-48 ->
+                                                        i-48
+                                                          (force
+                                                             (force
+                                                                (delay
+                                                                   (delay
+                                                                      (\i-49 ->
+                                                                         (\i-50 ->
+                                                                            i-50
+                                                                              i-50)
+                                                                           (\i-51
+                                                                             i-52 ->
+                                                                              i-49
+                                                                                (i-51
+                                                                                   i-51)
+                                                                                i-52)))))
+                                                             (\i-53
+                                                               i-54 ->
+                                                                (\i-55 ->
+                                                                   force
+                                                                     (force
+                                                                        chooseList)
+                                                                     i-54
+                                                                     (\i-56 ->
+                                                                        force
+                                                                          i-55)
+                                                                     (\i-57 ->
+                                                                        force
+                                                                          (force
+                                                                             (force
+                                                                                (delay
+                                                                                   (\i-58 ->
+                                                                                      i-58))
+                                                                                (i-29
+                                                                                   (force
+                                                                                      headList
+                                                                                      i-54)))
+                                                                             (\i-59 ->
+                                                                                delay
+                                                                                  (force
+                                                                                     (force
+                                                                                        (force
+                                                                                           (delay
+                                                                                              (\i-60 ->
+                                                                                                 i-60))
+                                                                                           (i-53
+                                                                                              (force
+                                                                                                 tailList
+                                                                                                 i-54)))
+                                                                                        (\i-61 ->
+                                                                                           delay
+                                                                                             (force
+                                                                                                (delay
+                                                                                                   (\i-62 ->
+                                                                                                      delay
+                                                                                                        (\i-63
+                                                                                                          i-64 ->
+                                                                                                           i-63
+                                                                                                             i-62)))
+                                                                                                (force
+                                                                                                   (delay
+                                                                                                      (\i-65
+                                                                                                        i-66 ->
+                                                                                                         delay
+                                                                                                           (\i-67
+                                                                                                             i-68 ->
+                                                                                                              i-68
+                                                                                                                i-65
+                                                                                                                i-66)))
+                                                                                                   i-59
+                                                                                                   i-61)))
+                                                                                        (delay
+                                                                                           (force
+                                                                                              (delay
+                                                                                                 (delay
+                                                                                                    (\i-69
+                                                                                                      i-70 ->
+                                                                                                       i-70))))))))
+                                                                             (delay
+                                                                                (force
+                                                                                   (delay
+                                                                                      (delay
+                                                                                         (\i-71
+                                                                                           i-72 ->
+                                                                                            i-72)))))))
+                                                                     (delay
+                                                                        (\i-73 ->
+                                                                           i-73)))
+                                                                  (delay
+                                                                     (force
+                                                                        (delay
+                                                                           (\i-74 ->
+                                                                              delay
+                                                                                (\i-75
+                                                                                  i-76 ->
+                                                                                   i-75
+                                                                                     i-74)))
+                                                                        (force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-77
+                                                                                   i-78 ->
+                                                                                    i-77))))))))))))
+                                          (force
+                                             (delay
+                                                (force
+                                                   (force
+                                                      (delay
+                                                         (delay
+                                                            (\i-79
+                                                              i-80
+                                                              i-81 ->
+                                                               force
+                                                                 chooseData
+                                                                 i-81
+                                                                 (\i-82 ->
+                                                                    (\i-83 ->
+                                                                       (\i-84 ->
+                                                                          (\i-85 ->
+                                                                             (\i-86 ->
+                                                                                (\i-87 ->
+                                                                                   (\i-88 ->
+                                                                                      (\i-89 ->
+                                                                                         force
+                                                                                           ifThenElse
+                                                                                           (equalsInteger
+                                                                                              (force
+                                                                                                 (force
+                                                                                                    fstPair)
+                                                                                                 (force
+                                                                                                    i-83))
+                                                                                              0)
+                                                                                           (\i-90 ->
+                                                                                              force
+                                                                                                i-89)
+                                                                                           (\i-91 ->
+                                                                                              force
+                                                                                                (delay
+                                                                                                   (delay
+                                                                                                      (\i-92
+                                                                                                        i-93 ->
+                                                                                                         i-93))))
+                                                                                           ())
+                                                                                        (delay
+                                                                                           (force
+                                                                                              (force
+                                                                                                 chooseList)
+                                                                                              (force
+                                                                                                 i-84)
+                                                                                              (\i-94 ->
+                                                                                                 force
+                                                                                                   (delay
+                                                                                                      (delay
+                                                                                                         (\i-95
+                                                                                                           i-96 ->
+                                                                                                            i-96))))
+                                                                                              (\i-97 ->
+                                                                                                 force
+                                                                                                   i-88)
+                                                                                              (delay
+                                                                                                 (\i-98 ->
+                                                                                                    i-98)))))
+                                                                                     (delay
+                                                                                        (force
+                                                                                           (force
+                                                                                              chooseList)
+                                                                                           (force
+                                                                                              i-85)
+                                                                                           (\i-99 ->
+                                                                                              force
+                                                                                                (delay
+                                                                                                   (delay
+                                                                                                      (\i-100
+                                                                                                        i-101 ->
+                                                                                                         i-101))))
+                                                                                           (\i-102 ->
+                                                                                              force
+                                                                                                i-87)
+                                                                                           (delay
+                                                                                              (\i-103 ->
+                                                                                                 i-103)))))
+                                                                                  (delay
+                                                                                     (force
+                                                                                        (force
+                                                                                           chooseList)
+                                                                                        (force
+                                                                                           tailList
+                                                                                           (force
+                                                                                              i-85))
+                                                                                        (\i-104 ->
+                                                                                           force
+                                                                                             i-86)
+                                                                                        (\i-105 ->
+                                                                                           force
+                                                                                             (delay
+                                                                                                (delay
+                                                                                                   (\i-106
+                                                                                                     i-107 ->
+                                                                                                      i-107))))
+                                                                                        (delay
+                                                                                           (\i-108 ->
+                                                                                              i-108)))))
+                                                                               (delay
+                                                                                  (force
+                                                                                     (force
+                                                                                        (force
+                                                                                           (delay
+                                                                                              (\i-109 ->
+                                                                                                 i-109))
+                                                                                           (i-79
+                                                                                              (force
+                                                                                                 headList
+                                                                                                 (force
+                                                                                                    i-84))))
+                                                                                        (\i-110 ->
+                                                                                           delay
+                                                                                             (force
+                                                                                                (force
+                                                                                                   (force
+                                                                                                      (delay
+                                                                                                         (\i-111 ->
+                                                                                                            i-111))
+                                                                                                      (i-80
+                                                                                                         (force
+                                                                                                            headList
+                                                                                                            (force
+                                                                                                               i-85))))
+                                                                                                   (\i-112 ->
+                                                                                                      delay
+                                                                                                        (force
+                                                                                                           (delay
+                                                                                                              (\i-113 ->
+                                                                                                                 delay
+                                                                                                                   (\i-114
+                                                                                                                     i-115 ->
+                                                                                                                      i-114
+                                                                                                                        i-113)))
+                                                                                                           (force
+                                                                                                              (force
+                                                                                                                 (delay
+                                                                                                                    (delay
+                                                                                                                       (\i-116
+                                                                                                                         i-117 ->
+                                                                                                                          delay
+                                                                                                                            (\i-118 ->
+                                                                                                                               i-118
+                                                                                                                                 i-116
+                                                                                                                                 i-117)))))
+                                                                                                              i-110
+                                                                                                              i-112)))
+                                                                                                   (delay
+                                                                                                      (force
+                                                                                                         (delay
+                                                                                                            (delay
+                                                                                                               (\i-119
+                                                                                                                 i-120 ->
+                                                                                                                  i-120))))))))
+                                                                                        (delay
+                                                                                           (force
+                                                                                              (delay
+                                                                                                 (delay
+                                                                                                    (\i-121
+                                                                                                      i-122 ->
+                                                                                                       i-122)))))))))
+                                                                            (delay
+                                                                               (force
+                                                                                  tailList
+                                                                                  (force
+                                                                                     i-84))))
+                                                                         (delay
+                                                                            (force
+                                                                               (force
+                                                                                  sndPair)
+                                                                               (force
+                                                                                  i-83))))
+                                                                      (delay
+                                                                         (unConstrData
+                                                                            i-81)))
+                                                                 (\i-123 ->
+                                                                    force
+                                                                      (delay
+                                                                         (delay
+                                                                            (\i-124
+                                                                              i-125 ->
+                                                                               i-125))))
+                                                                 (\i-126 ->
+                                                                    force
+                                                                      (delay
+                                                                         (delay
+                                                                            (\i-127
+                                                                              i-128 ->
+                                                                               i-128))))
+                                                                 (\i-129 ->
+                                                                    force
+                                                                      (delay
+                                                                         (delay
+                                                                            (\i-130
+                                                                              i-131 ->
+                                                                               i-131))))
+                                                                 (\i-132 ->
+                                                                    force
+                                                                      (delay
+                                                                         (delay
+                                                                            (\i-133
+                                                                              i-134 ->
+                                                                               i-134))))
+                                                                 (delay
+                                                                    (\i-135 ->
+                                                                       i-135))))))
+                                                   (\i-136 ->
+                                                      force
+                                                        chooseData
+                                                        i-136
+                                                        (\i-137 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-138
+                                                                     i-139 ->
+                                                                      i-139))))
+                                                        (\i-140 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-141
+                                                                     i-142 ->
+                                                                      i-142))))
+                                                        (\i-143 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-144
+                                                                     i-145 ->
+                                                                      i-145))))
+                                                        (\i-146 ->
+                                                           force
+                                                             (delay
+                                                                (delay
+                                                                   (\i-147
+                                                                     i-148 ->
+                                                                      i-148))))
+                                                        (\i-149 ->
+                                                           force
+                                                             (delay
+                                                                (\i-150 ->
+                                                                   delay
+                                                                     (\i-151
+                                                                       i-152 ->
+                                                                        i-151
+                                                                          i-150)))
+                                                             (unBData i-136))
+                                                        (delay
+                                                           (\i-153 -> i-153)))
+                                                   (\i-154 ->
+                                                      force
+                                                        (delay
+                                                           (\i-155
+                                                             i-156 ->
+                                                              (\i-157 ->
+                                                                 (\i-158 ->
+                                                                    force
+                                                                      chooseData
+                                                                      i-156
+                                                                      (\i-159 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-160
+                                                                                   i-161 ->
+                                                                                    i-161))))
+                                                                      (\i-162 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-163
+                                                                                   i-164 ->
+                                                                                    i-164))))
+                                                                      (\i-165 ->
+                                                                         i-158
+                                                                           (unListData
+                                                                              i-156))
+                                                                      (\i-166 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-167
+                                                                                   i-168 ->
+                                                                                    i-168))))
+                                                                      (\i-169 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-170
+                                                                                   i-171 ->
+                                                                                    i-171))))
+                                                                      (delay
+                                                                         (\i-172 ->
+                                                                            i-172)))
+                                                                   (force
+                                                                      i-157
+                                                                      (\i-173 ->
+                                                                         i-173)))
+                                                                (delay
+                                                                   (\i-174 ->
+                                                                      i-174
+                                                                        (force
+                                                                           (force
+                                                                              (delay
+                                                                                 (delay
+                                                                                    (\i-175 ->
+                                                                                       (\i-176 ->
+                                                                                          i-176
+                                                                                            i-176)
+                                                                                         (\i-177
+                                                                                           i-178 ->
+                                                                                            i-175
+                                                                                              (i-177
+                                                                                                 i-177)
+                                                                                              i-178)))))
+                                                                           (\i-179
+                                                                             i-180 ->
+                                                                              (\i-181 ->
+                                                                                 force
+                                                                                   (force
+                                                                                      chooseList)
+                                                                                   i-180
+                                                                                   (\i-182 ->
+                                                                                      force
+                                                                                        i-181)
+                                                                                   (\i-183 ->
+                                                                                      force
+                                                                                        (force
+                                                                                           (force
+                                                                                              (delay
+                                                                                                 (\i-184 ->
+                                                                                                    i-184))
+                                                                                              (i-155
+                                                                                                 (force
+                                                                                                    headList
+                                                                                                    i-180)))
+                                                                                           (\i-185 ->
+                                                                                              delay
+                                                                                                (force
+                                                                                                   (force
+                                                                                                      (force
+                                                                                                         (delay
+                                                                                                            (\i-186 ->
+                                                                                                               i-186))
+                                                                                                         (i-179
+                                                                                                            (force
+                                                                                                               tailList
+                                                                                                               i-180)))
+                                                                                                      (\i-187 ->
+                                                                                                         delay
+                                                                                                           (force
+                                                                                                              (delay
+                                                                                                                 (\i-188 ->
+                                                                                                                    delay
+                                                                                                                      (\i-189
+                                                                                                                        i-190 ->
+                                                                                                                         i-189
+                                                                                                                           i-188)))
+                                                                                                              (force
+                                                                                                                 (delay
+                                                                                                                    (\i-191
+                                                                                                                      i-192 ->
+                                                                                                                       delay
+                                                                                                                         (\i-193
+                                                                                                                           i-194 ->
+                                                                                                                            i-194
+                                                                                                                              i-191
+                                                                                                                              i-192)))
+                                                                                                                 i-185
+                                                                                                                 i-187)))
+                                                                                                      (delay
+                                                                                                         (force
+                                                                                                            (delay
+                                                                                                               (delay
+                                                                                                                  (\i-195
+                                                                                                                    i-196 ->
+                                                                                                                     i-196))))))))
+                                                                                           (delay
+                                                                                              (force
+                                                                                                 (delay
+                                                                                                    (delay
+                                                                                                       (\i-197
+                                                                                                         i-198 ->
+                                                                                                          i-198)))))))
+                                                                                   (delay
+                                                                                      (\i-199 ->
+                                                                                         i-199)))
+                                                                                (delay
+                                                                                   (force
+                                                                                      (delay
+                                                                                         (\i-200 ->
+                                                                                            delay
+                                                                                              (\i-201
+                                                                                                i-202 ->
+                                                                                                 i-201
+                                                                                                   i-200)))
+                                                                                      (force
+                                                                                         (delay
+                                                                                            (delay
+                                                                                               (\i-203
+                                                                                                 i-204 ->
+                                                                                                  i-203))))))))))))
+                                                        (force
+                                                           (delay
+                                                              (force
+                                                                 (force
+                                                                    (delay
+                                                                       (delay
+                                                                          (\i-205
+                                                                            i-206
+                                                                            i-207 ->
+                                                                             force
+                                                                               chooseData
+                                                                               i-207
+                                                                               (\i-208 ->
+                                                                                  (\i-209 ->
+                                                                                     (\i-210 ->
+                                                                                        (\i-211 ->
+                                                                                           (\i-212 ->
+                                                                                              (\i-213 ->
+                                                                                                 (\i-214 ->
+                                                                                                    (\i-215 ->
+                                                                                                       force
+                                                                                                         ifThenElse
+                                                                                                         (equalsInteger
+                                                                                                            (force
+                                                                                                               (force
+                                                                                                                  fstPair)
+                                                                                                               (force
+                                                                                                                  i-209))
+                                                                                                            0)
+                                                                                                         (\i-216 ->
+                                                                                                            force
+                                                                                                              i-215)
+                                                                                                         (\i-217 ->
+                                                                                                            force
+                                                                                                              (delay
+                                                                                                                 (delay
+                                                                                                                    (\i-218
+                                                                                                                      i-219 ->
+                                                                                                                       i-219))))
+                                                                                                         ())
+                                                                                                      (delay
+                                                                                                         (force
+                                                                                                            (force
+                                                                                                               chooseList)
+                                                                                                            (force
+                                                                                                               i-210)
+                                                                                                            (\i-220 ->
+                                                                                                               force
+                                                                                                                 (delay
+                                                                                                                    (delay
+                                                                                                                       (\i-221
+                                                                                                                         i-222 ->
+                                                                                                                          i-222))))
+                                                                                                            (\i-223 ->
+                                                                                                               force
+                                                                                                                 i-214)
+                                                                                                            (delay
+                                                                                                               (\i-224 ->
+                                                                                                                  i-224)))))
+                                                                                                   (delay
+                                                                                                      (force
+                                                                                                         (force
+                                                                                                            chooseList)
+                                                                                                         (force
+                                                                                                            i-211)
+                                                                                                         (\i-225 ->
+                                                                                                            force
+                                                                                                              (delay
+                                                                                                                 (delay
+                                                                                                                    (\i-226
+                                                                                                                      i-227 ->
+                                                                                                                       i-227))))
+                                                                                                         (\i-228 ->
+                                                                                                            force
+                                                                                                              i-213)
+                                                                                                         (delay
+                                                                                                            (\i-229 ->
+                                                                                                               i-229)))))
+                                                                                                (delay
+                                                                                                   (force
+                                                                                                      (force
+                                                                                                         chooseList)
+                                                                                                      (force
+                                                                                                         tailList
+                                                                                                         (force
+                                                                                                            i-211))
+                                                                                                      (\i-230 ->
+                                                                                                         force
+                                                                                                           i-212)
+                                                                                                      (\i-231 ->
+                                                                                                         force
+                                                                                                           (delay
+                                                                                                              (delay
+                                                                                                                 (\i-232
+                                                                                                                   i-233 ->
+                                                                                                                    i-233))))
+                                                                                                      (delay
+                                                                                                         (\i-234 ->
+                                                                                                            i-234)))))
+                                                                                             (delay
+                                                                                                (force
+                                                                                                   (force
+                                                                                                      (force
+                                                                                                         (delay
+                                                                                                            (\i-235 ->
+                                                                                                               i-235))
+                                                                                                         (i-205
+                                                                                                            (force
+                                                                                                               headList
+                                                                                                               (force
+                                                                                                                  i-210))))
+                                                                                                      (\i-236 ->
+                                                                                                         delay
+                                                                                                           (force
+                                                                                                              (force
+                                                                                                                 (force
+                                                                                                                    (delay
+                                                                                                                       (\i-237 ->
+                                                                                                                          i-237))
+                                                                                                                    (i-206
+                                                                                                                       (force
+                                                                                                                          headList
+                                                                                                                          (force
+                                                                                                                             i-211))))
+                                                                                                                 (\i-238 ->
+                                                                                                                    delay
+                                                                                                                      (force
+                                                                                                                         (delay
+                                                                                                                            (\i-239 ->
+                                                                                                                               delay
+                                                                                                                                 (\i-240
+                                                                                                                                   i-241 ->
+                                                                                                                                    i-240
+                                                                                                                                      i-239)))
+                                                                                                                         (force
+                                                                                                                            (force
+                                                                                                                               (delay
+                                                                                                                                  (delay
+                                                                                                                                     (\i-242
+                                                                                                                                       i-243 ->
+                                                                                                                                        delay
+                                                                                                                                          (\i-244 ->
+                                                                                                                                             i-244
+                                                                                                                                               i-242
+                                                                                                                                               i-243)))))
+                                                                                                                            i-236
+                                                                                                                            i-238)))
+                                                                                                                 (delay
+                                                                                                                    (force
+                                                                                                                       (delay
+                                                                                                                          (delay
+                                                                                                                             (\i-245
+                                                                                                                               i-246 ->
+                                                                                                                                i-246))))))))
+                                                                                                      (delay
+                                                                                                         (force
+                                                                                                            (delay
+                                                                                                               (delay
+                                                                                                                  (\i-247
+                                                                                                                    i-248 ->
+                                                                                                                     i-248)))))))))
+                                                                                          (delay
+                                                                                             (force
+                                                                                                tailList
+                                                                                                (force
+                                                                                                   i-210))))
+                                                                                       (delay
+                                                                                          (force
+                                                                                             (force
+                                                                                                sndPair)
+                                                                                             (force
+                                                                                                i-209))))
+                                                                                    (delay
+                                                                                       (unConstrData
+                                                                                          i-207)))
+                                                                               (\i-249 ->
+                                                                                  force
+                                                                                    (delay
+                                                                                       (delay
+                                                                                          (\i-250
+                                                                                            i-251 ->
+                                                                                             i-251))))
+                                                                               (\i-252 ->
+                                                                                  force
+                                                                                    (delay
+                                                                                       (delay
+                                                                                          (\i-253
+                                                                                            i-254 ->
+                                                                                             i-254))))
+                                                                               (\i-255 ->
+                                                                                  force
+                                                                                    (delay
+                                                                                       (delay
+                                                                                          (\i-256
+                                                                                            i-257 ->
+                                                                                             i-257))))
+                                                                               (\i-258 ->
+                                                                                  force
+                                                                                    (delay
+                                                                                       (delay
+                                                                                          (\i-259
+                                                                                            i-260 ->
+                                                                                             i-260))))
+                                                                               (delay
+                                                                                  (\i-261 ->
+                                                                                     i-261))))))
+                                                                 (\i-262 ->
+                                                                    force
+                                                                      chooseData
+                                                                      i-262
+                                                                      (\i-263 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-264
+                                                                                   i-265 ->
+                                                                                    i-265))))
+                                                                      (\i-266 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-267
+                                                                                   i-268 ->
+                                                                                    i-268))))
+                                                                      (\i-269 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-270
+                                                                                   i-271 ->
+                                                                                    i-271))))
+                                                                      (\i-272 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-273
+                                                                                   i-274 ->
+                                                                                    i-274))))
+                                                                      (\i-275 ->
+                                                                         force
+                                                                           (delay
+                                                                              (\i-276 ->
+                                                                                 delay
+                                                                                   (\i-277
+                                                                                     i-278 ->
+                                                                                      i-277
+                                                                                        i-276)))
+                                                                           (unBData
+                                                                              i-262))
+                                                                      (delay
+                                                                         (\i-279 ->
+                                                                            i-279)))
+                                                                 (\i-280 ->
+                                                                    force
+                                                                      chooseData
+                                                                      i-280
+                                                                      (\i-281 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-282
+                                                                                   i-283 ->
+                                                                                    i-283))))
+                                                                      (\i-284 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-285
+                                                                                   i-286 ->
+                                                                                    i-286))))
+                                                                      (\i-287 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-288
+                                                                                   i-289 ->
+                                                                                    i-289))))
+                                                                      (\i-290 ->
+                                                                         force
+                                                                           (delay
+                                                                              (\i-291 ->
+                                                                                 delay
+                                                                                   (\i-292
+                                                                                     i-293 ->
+                                                                                      i-292
+                                                                                        i-291)))
+                                                                           (unIData
+                                                                              i-280))
+                                                                      (\i-294 ->
+                                                                         force
+                                                                           (delay
+                                                                              (delay
+                                                                                 (\i-295
+                                                                                   i-296 ->
+                                                                                    i-296))))
+                                                                      (delay
+                                                                         (\i-297 ->
+                                                                            i-297))))))
+                                                        i-154))))
+                                          i-28)
+                                       (force headList (force i-2))))
+                                 (\i-298 ->
+                                    delay
+                                      (force
+                                         (force
+                                            (force (delay (\i-299 -> i-299))
+                                               ((\i-300 ->
+                                                   force chooseData
+                                                     i-300
+                                                     (\i-301 ->
+                                                        force
+                                                          (delay
+                                                             (delay
+                                                                (\i-302 i-303 ->
+                                                                   i-303))))
+                                                     (\i-304 ->
+                                                        force
+                                                          (delay
+                                                             (delay
+                                                                (\i-305 i-306 ->
+                                                                   i-306))))
+                                                     (\i-307 ->
+                                                        force
+                                                          (delay
+                                                             (delay
+                                                                (\i-308 i-309 ->
+                                                                   i-309))))
+                                                     (\i-310 ->
+                                                        force
+                                                          (delay
+                                                             (\i-311 ->
+                                                                delay
+                                                                  (\i-312
+                                                                    i-313 ->
+                                                                     i-312
+                                                                       i-311)))
+                                                          (unIData i-300))
+                                                     (\i-314 ->
+                                                        force
+                                                          (delay
+                                                             (delay
+                                                                (\i-315 i-316 ->
+                                                                   i-316))))
+                                                     (delay (\i-317 -> i-317)))
+                                                  (force headList (force i-3))))
+                                            (\i-318 ->
+                                               delay
+                                                 (force
+                                                    (delay
+                                                       (\i-319 ->
+                                                          delay
+                                                            (\i-320 i-321 ->
+                                                               i-320 i-319)))
+                                                    (force
+                                                       (delay
+                                                          (\i-322 i-323 ->
+                                                             delay
+                                                               (\i-324 ->
+                                                                  i-324
+                                                                    i-322
+                                                                    i-323)))
+                                                       i-298
+                                                       i-318)))
+                                            (delay
+                                               (force
+                                                  (delay
+                                                     (delay
+                                                        (\i-325 i-326 ->
+                                                           i-326))))))))
+                                 (delay
+                                    (force
+                                       (delay
+                                          (delay (\i-327 i-328 -> i-328)))))))))
+                     (delay (force tailList (force i-2))))
+                  (delay (force (force sndPair) (force i-1))))
+               (delay
+                  (unConstrData
+                     (Constr 0
+                        [ List [Constr 0 [B #, List [Constr 0 [B #, I 11240]]]]
+                        , I 1596059116000 ])))

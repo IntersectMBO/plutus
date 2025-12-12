@@ -17,7 +17,7 @@ instance (PlutusTx.IsData.Class.FromData a_0,
                                                                                                (((PlutusTx.Eq.==) (1 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_11))) -> GHC.Maybe.Just (Plugin.Data.Spec.Poly2 arg_11);
                                                                                                _ -> GHC.Maybe.Nothing}
-                                                        in PlutusTx.Builtins.matchData' d_5 constrFun_6 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}
+                                                        in PlutusTx.Builtins.matchData' d_5 constrFun_6 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}
 instance (PlutusTx.IsData.Class.UnsafeFromData a_0,
           PlutusTx.IsData.Class.UnsafeFromData b_1) => PlutusTx.IsData.Class.UnsafeFromData (Plugin.Data.Spec.MyPolyData a_0
                                                                                                                          b_1)

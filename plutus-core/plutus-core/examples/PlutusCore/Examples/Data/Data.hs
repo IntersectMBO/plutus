@@ -25,6 +25,7 @@ import PlutusCore.Examples.Data.List
 import PlutusCore.Examples.Data.Pair
 
 import Data.ByteString (ByteString)
+import Data.Vector.Strict (Vector)
 
 {-| Right-folding over 'Data' inside PLC currently hardcoded to only ever return @Data@ as a
 result, 'cause we need to be able to map built-in lists and pairs in the definition of the
@@ -40,6 +41,7 @@ keeping the actual test trivial.
 >     \(fConstr : integer -> list r -> r)
 >      (fMap : list (pair r r) -> r)
 >      (fList : list r -> r)
+>      (fArray : array r -> r)
 >      (fI : integer -> r)
 >      (fB : bytestring -> r) ->
 >          fix {data} {r} \(rec : data -> r) (d : data) ->
@@ -50,6 +52,7 @@ keeping the actual test trivial.
 >                  (\(es : list (pair data data)) ->
 >                      fMap (omapList {pair data data} (obothPair {data} rec) es))
 >                  (\(ds : list data) -> fList (omapList {data} rec ds))
+>                  (\(ds : list data) -> fArray (omapList {data} rec ds))
 >                  fI
 >                  fB -}
 ofoldrData :: MatchOption -> Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
@@ -58,6 +61,7 @@ ofoldrData optMatch = runQuote $ do
   fConstr <- freshName "fConstr"
   fMap <- freshName "fMap"
   fList <- freshName "fList"
+  fArray <- freshName "fArray"
   fI <- freshName "fI"
   fB <- freshName "fB"
   rec <- freshName "rec"
@@ -66,13 +70,16 @@ ofoldrData optMatch = runQuote $ do
   ds <- freshName "ds"
   es <- freshName "es"
   let listData = mkTyBuiltin @_ @[Data] ()
+      arrayData = mkTyBuiltin @_ @(Vector Data) ()
       listR = TyApp () list r
+      arrayR = mkTyBuiltin @_ @(Vector Data) ()
       opair a = mkIterTyAppNoAnn pair [a, a]
       unwrap' ann = apply ann $ mapFun Left matchData
   return
     . lamAbs () fConstr (TyFun () integer $ TyFun () listR r)
     . lamAbs () fMap (TyFun () (TyApp () list $ opair r) r)
     . lamAbs () fList (TyFun () listR r)
+    . lamAbs () fArray (TyFun () arrayR r)
     . lamAbs () fI (TyFun () integer r)
     . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) r)
     . apply () (mkIterInstNoAnn fix [dataTy, r])
@@ -103,6 +110,13 @@ ofoldrData optMatch = runQuote $ do
             [ var () rec
             , var () ds
             ]
+      , lamAbs () ds arrayData
+          -- Note: we don't recursively map over array elements because there's no
+          -- array-specific map function. This is fine for the test since the test data
+          -- doesn't contain arrays. For a fully correct implementation, we'd need
+          -- to convert array->list, map, list->array, or implement index-based iteration.
+          . apply () (var () fArray)
+          $ var () ds
       , var () fI
       , var () fB
       ]
