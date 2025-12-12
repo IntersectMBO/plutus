@@ -105,11 +105,13 @@ data Builtin : Set where
   constrData                      : Builtin
   mapData                         : Builtin
   listData                        : Builtin
+  arrayData                       : Builtin
   iData                           : Builtin
   bData                           : Builtin
   unConstrData                    : Builtin
   unMapData                       : Builtin
   unListData                      : Builtin
+  unArrayData                     : Builtin
   unIData                         : Builtin
   unBData                         : Builtin
   equalsData                      : Builtin
@@ -306,15 +308,17 @@ sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
     signature lengthOfArray              = ∀a [ array a ]⟶ integer ↑
     signature listToArray                   = ∀a [ list a ]⟶ array a
     signature indexArray                    = ∀a [ array a , integer ↑ ]⟶ a ↑
-    signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A ]⟶ A
+    signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A , A ]⟶ A
     signature constrData                      = ∙ [ integer ↑ , list pdata ]⟶ pdata ↑
     signature mapData                         = ∙ [ list (bpair pdata pdata) ]⟶ pdata ↑
     signature listData                        = ∙ [ list pdata ]⟶ pdata ↑
+    signature arrayData                       = ∙ [ list pdata ]⟶ pdata ↑
     signature iData                           = ∙ [ integer ↑ ]⟶ pdata ↑
     signature bData                           = ∙ [ bytestring ↑ ]⟶ pdata ↑
     signature unConstrData                    = ∙ [ pdata ↑ ]⟶ pair integer (blist pdata)
     signature unMapData                       = ∙ [ pdata ↑ ]⟶ list (bpair pdata pdata)
     signature unListData                      = ∙ [ pdata ↑ ]⟶ list pdata
+    signature unArrayData                     = ∙ [ pdata ↑ ]⟶ list pdata
     signature unIData                         = ∙ [ pdata ↑ ]⟶ integer ↑
     signature unBData                         = ∙ [ pdata ↑ ]⟶ bytestring ↑
     signature equalsData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ bool ↑
@@ -421,11 +425,13 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | ConstrData
                                           | MapData
                                           | ListData
+                                          | ArrayData
                                           | IData
                                           | BData
                                           | UnConstrData
                                           | UnMapData
                                           | UnListData
+                                          | UnArrayData
                                           | UnIData
                                           | UnBData
                                           | EqualsData

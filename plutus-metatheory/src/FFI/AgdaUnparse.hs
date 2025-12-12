@@ -101,6 +101,8 @@ instance AgdaUnparse Data where
     "(MapDATA " ++ agdaUnparse assocList ++ ")"
   agdaUnparse (Data.List xs) =
     "(ListDATA " ++ agdaUnparse xs ++ ")"
+  agdaUnparse (Data.Array v) =
+    "(ArrayDATA " ++ agdaUnparse v ++ ")"
   agdaUnparse (Data.I i) =
     "(iDATA " ++ agdaUnparse i ++ ")"
   agdaUnparse (Data.B b) =

@@ -377,11 +377,12 @@ BUILTIN indexArray = λ
     ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ
-  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) _) _) v) _) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) _) _) _) v) _) → inj₂ v
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) _) _) _) _) v) → inj₂ v
+  { (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) _) _) v) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (ArrayDATA x₁))) _) _) _) v) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) _) _) _) _) v) _) → inj₂ v
+  ; (app (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) _) _) _) _) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
 BUILTIN constrData = λ
@@ -399,6 +400,11 @@ BUILTIN listData = λ
      return (V-con pdata (ListDATA xs))
   ; _ -> inj₁ userError
   }
+BUILTIN arrayData = λ
+  { (app base (V-con (list pdata) xs)) → do
+     return (V-con pdata (ArrayDATA xs))
+  ; _ -> inj₁ userError
+  }
 BUILTIN unConstrData = λ
   { (app base (V-con pdata (ConstrDATA i xs))) → inj₂ (V-con (pair integer (list pdata)) (i , xs))
   ; _ -> inj₁ userError
@@ -409,6 +415,10 @@ BUILTIN unMapData = λ
   }
 BUILTIN unListData = λ
   { (app base (V-con pdata (ListDATA xs))) → inj₂ (V-con (list pdata) xs)
+  ; _ -> inj₁ userError
+  }
+BUILTIN unArrayData = λ
+  { (app base (V-con pdata (ArrayDATA xs))) → inj₂ (V-con (list pdata) xs)
   ; _ -> inj₁ userError
   }
 BUILTIN equalsData = λ

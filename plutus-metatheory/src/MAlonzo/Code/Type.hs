@@ -25,7 +25,7 @@ import qualified MAlonzo.Code.Utils
 d_Ctx'8902'_2 = ()
 data T_Ctx'8902'_2
   = C_'8709'_4 |
-    C__'44''8902'__6 T_Ctx'8902'_2 MAlonzo.Code.Utils.T_Kind_652
+    C__'44''8902'__6 T_Ctx'8902'_2 MAlonzo.Code.Utils.T_Kind_702
 -- Type._∋⋆_
 d__'8715''8902'__14 a0 a1 = ()
 data T__'8715''8902'__14 = C_Z_16 | C_S_18 T__'8715''8902'__14
@@ -33,12 +33,12 @@ data T__'8715''8902'__14 = C_Z_16 | C_S_18 T__'8715''8902'__14
 d__'8866''8902'__20 a0 a1 = ()
 data T__'8866''8902'__20
   = C_'96'_22 T__'8715''8902'__14 |
-    C_Π_24 MAlonzo.Code.Utils.T_Kind_652 T__'8866''8902'__20 |
+    C_Π_24 MAlonzo.Code.Utils.T_Kind_702 T__'8866''8902'__20 |
     C__'8658'__26 T__'8866''8902'__20 T__'8866''8902'__20 |
     C_ƛ_28 T__'8866''8902'__20 |
-    C__'183'__30 MAlonzo.Code.Utils.T_Kind_652 T__'8866''8902'__20
+    C__'183'__30 MAlonzo.Code.Utils.T_Kind_702 T__'8866''8902'__20
                  T__'8866''8902'__20 |
-    C_μ_32 MAlonzo.Code.Utils.T_Kind_652 T__'8866''8902'__20
+    C_μ_32 MAlonzo.Code.Utils.T_Kind_702 T__'8866''8902'__20
            T__'8866''8902'__20 |
     C_'94'_34 MAlonzo.Code.Builtin.Constant.Type.T_TyCon_6 |
     C_con_36 T__'8866''8902'__20 |
