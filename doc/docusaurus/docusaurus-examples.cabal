@@ -40,10 +40,10 @@ library docusaurus-code
 
   build-depends:
     , base               >=4.9   && <5
-    , plutus-core        ^>=1.55
-    , plutus-ledger-api  ^>=1.55
-    , plutus-tx          ^>=1.55
-    , plutus-tx-plugin   ^>=1.55
+    , plutus-core        ^>=1.56
+    , plutus-ledger-api  ^>=1.56
+    , plutus-tx          ^>=1.56
+    , plutus-tx-plugin   ^>=1.56
 
 executable example-cip57
   import:           lang, ghc-version-support, os-support
@@ -54,9 +54,9 @@ executable example-cip57
   build-depends:
     , base               ^>=4.18
     , containers
-    , plutus-ledger-api  ^>=1.55
-    , plutus-tx          ^>=1.55
-    , plutus-tx-plugin   ^>=1.55
+    , plutus-ledger-api  ^>=1.56
+    , plutus-tx          ^>=1.56
+    , plutus-tx-plugin   ^>=1.56
 
 executable example-evaluation
   import:           lang, ghc-version-support, os-support
@@ -66,9 +66,9 @@ executable example-evaluation
   other-modules:    Paths_docusaurus_examples
   build-depends:
     , base                         ^>=4.18
-    , plutus-ledger-api            ^>=1.55
-    , plutus-tx                    ^>=1.55
-    , plutus-tx-plugin             ^>=1.55
+    , plutus-ledger-api            ^>=1.56
+    , plutus-tx                    ^>=1.56
+    , plutus-tx-plugin             ^>=1.56
     , plutus-tx:plutus-tx-testlib
     , text
 
@@ -87,9 +87,9 @@ executable example-builtin-array
   build-depends:
     , base                         ^>=4.18
     , colourista
-    , plutus-core                  ^>=1.55
-    , plutus-tx                    ^>=1.55
-    , plutus-tx-plugin             ^>=1.55
+    , plutus-core                  ^>=1.56
+    , plutus-tx                    ^>=1.56
+    , plutus-tx-plugin             ^>=1.56
     , plutus-tx:plutus-tx-testlib
     , text
 
@@ -109,6 +109,6 @@ executable quickstart
     , base               >=4.9   && <5
     , base16-bytestring
     , bytestring
-    , plutus-ledger-api  ^>=1.55
-    , plutus-tx          ^>=1.55
-    , plutus-tx-plugin   ^>=1.55
+    , plutus-ledger-api  ^>=1.56
+    , plutus-tx          ^>=1.56
+    , plutus-tx-plugin   ^>=1.56
