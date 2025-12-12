@@ -310,7 +310,7 @@
   },
   "chooseData": {
     "cpu": {
-      "arguments": 94375,
+      "arguments": 2205982,
       "type": "constant_cost"
     },
     "memory": {
@@ -1252,6 +1252,26 @@
     },
     "memory": {
       "arguments": 1,
+      "type": "constant_cost"
+    }
+  },
+  "arrayData": {
+    "cpu": {
+      "arguments": 33852,
+      "type": "constant_cost"
+    },
+    "memory": {
+      "arguments": 32,
+      "type": "constant_cost"
+    }
+  },
+  "unArrayData": {
+    "cpu": {
+      "arguments": 25933,
+      "type": "constant_cost"
+    },
+    "memory": {
+      "arguments": 32,
       "type": "constant_cost"
     }
   }

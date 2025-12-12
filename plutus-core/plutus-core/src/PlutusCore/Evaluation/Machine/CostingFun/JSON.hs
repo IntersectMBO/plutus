@@ -110,6 +110,14 @@ deriving via
   ModelArgumentJSON "ModelSixArguments" ModelSixArguments
   instance
     ToJSON ModelSixArguments
+deriving via
+  ModelArgumentJSON "ModelSevenArguments" ModelSevenArguments
+  instance
+    FromJSON ModelSevenArguments
+deriving via
+  ModelArgumentJSON "ModelSevenArguments" ModelSevenArguments
+  instance
+    ToJSON ModelSevenArguments
 
 deriving via
   ModelJSON "modelSubtractedSizes" ModelSubtractedSizes
