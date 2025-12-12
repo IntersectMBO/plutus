@@ -157,6 +157,7 @@ instance PrettyBy ConstConfig Data where
     Constr i ds -> ("Constr" <+> prettyArg i) :| [prettyArg ds]
     Map ps -> "Map" :| [prettyArg ps]
     List ds -> "List" :| [prettyArg ds]
+    Array ds -> "Array" :| [prettyArg ds]
     I i -> ("I" <+> prettyArg i) :| []
     B b -> ("B" <+> prettyArg b) :| []
 
