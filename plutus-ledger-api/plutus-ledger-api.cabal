@@ -299,6 +299,7 @@ executable analyse-script-events
     , plutus-tx                                    ^>=1.55
     , primitive
     , serialise
+    , vector
 
 executable dump-cost-model-parameters
   import:           lang
