@@ -10,8 +10,8 @@ module Declarative.Erasure where
 ## Imports
 
 ```
-open import Data.Nat using (ℕ)
-open import Data.Fin using (toℕ)
+open import Data.Nat using (ℕ;suc;zero)
+open import Data.Fin using (Fin;suc;zero;toℕ)
 open import Data.Empty using (⊥)
 open import Data.Vec using (Vec)
 open import Data.Unit using (tt)
@@ -39,23 +39,23 @@ open import Algorithmic using (ty≅sty₁)
 ```
 
 ```
-len : ∀{Φ} → Ctx Φ → Set
-len ∅        = ⊥
+len : ∀{Φ} → Ctx Φ → ℕ
+len ∅        = 0
 len (Γ ,⋆ K) = len Γ
-len (Γ , A)  = Maybe (len Γ)
+len (Γ , A)  = suc (len Γ)
 
-lenI : ∀{Φ} → Ctx Φ → Set
-lenI ∅        = ⊥
-lenI (Γ ,⋆ K) = Maybe (lenI Γ)
-lenI (Γ , A)  = Maybe (lenI Γ)
+lenI : ∀{Φ} → Ctx Φ → ℕ
+lenI ∅        = 0
+lenI (Γ ,⋆ K) = suc (lenI Γ)
+lenI (Γ , A)  = suc (lenI Γ)
 
-len⋆ : Ctx⋆ → Set
-len⋆ ∅        = ⊥
-len⋆ (Γ ,⋆ K) = Maybe (len⋆ Γ)
+len⋆ : Ctx⋆ → ℕ
+len⋆ ∅        = 0
+len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
-eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → len Γ
-eraseVar Z     = nothing
-eraseVar (S α) = just (eraseVar α)
+eraseVar : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ∋ A → Fin (len Γ)
+eraseVar Z     = zero
+eraseVar (S α) = suc (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : (A : ∅ ⊢⋆ ♯) → ⟦ A ⟧d → TmCon
@@ -94,15 +94,15 @@ erase (error A)       = error
 erase (constr e Tss p cs) = constr (toℕ e) (erase-ConstrArgs cs)
 erase (case t cases)  = case (erase t) (erase-Cases cases)
 
-backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → len Γ → Φ ⊢⋆ *
+backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → Fin (len Γ) → Φ ⊢⋆ *
 backVar⋆ (Γ ,⋆ J) x       = T.weaken (backVar⋆ Γ x)
-backVar⋆ (Γ , A) nothing  = A
-backVar⋆ (Γ , A) (just x) = backVar⋆ Γ x
+backVar⋆ (Γ , A) zero  = A
+backVar⋆ (Γ , A) (suc x) = backVar⋆ Γ x
 
-backVar : ∀{Φ}(Γ : Ctx Φ)(x : len Γ) → Γ ∋ (backVar⋆ Γ x)
+backVar : ∀{Φ}(Γ : Ctx Φ)(x : Fin (len Γ)) → Γ ∋ (backVar⋆ Γ x)
 backVar (Γ ,⋆ J) x        = T (backVar Γ x)
-backVar (Γ , A)  nothing  = Z
-backVar (Γ , A)  (just x) = S (backVar Γ x)
+backVar (Γ , A)  zero  = Z
+backVar (Γ , A)  (suc x) = S (backVar Γ x)
 
 erase-Sub σ⋆ σ i = erase (σ (backVar _ i))
 ```

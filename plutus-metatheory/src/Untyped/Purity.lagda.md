@@ -14,13 +14,13 @@ module Untyped.Purity where
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 open import Relation.Nullary using (Dec; yes; no; ¬_; _×-dec_)
 open import Builtin using (Builtin; arity; arity₀)
-open import Utils as U using (Maybe;nothing;just)
 open import RawU using (TmCon)
 open import Data.Product using (_,_; _×_)
+open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _>_; _>?_)
 open import Data.List using (List; _∷_; [])
 open import Data.List.Relation.Unary.All using (All)
-open import Data.Maybe using (Maybe; just; nothing; from-just)
+open import Data.Maybe using (just; nothing; from-just)
 open import Data.Maybe.Properties using (just-injective)
 open import Agda.Builtin.Equality using (_≡_; refl)
 open import Relation.Nullary.Negation using (contradiction)
@@ -37,7 +37,7 @@ The `sat` function is used to measure whether a builtin at the bottom of a
 sub-tree of `force` and applications is now saturated and ready to reduce.
 
 ```
-data Pure {X : Set} : (X ⊢) → Set where
+data Pure {X : ℕ} : (X ⊢) → Set where
     force : {t : X ⊢} → Pure t → Pure (force (delay t))
 
     constr : {i : ℕ} {xs : List (X ⊢)} → All Pure xs → Pure (constr i xs)
@@ -83,20 +83,20 @@ data Pure {X : Set} : (X ⊢) → Set where
     -- ƛ ƛ ( (` nothing) · (` just nothing) ) · (ƛ error) · t -- not pure
     -- Double application is considered impure (Unknown) by
     -- the Haskell implementation at the moment.
-    app : {l : Maybe X ⊢} {r : X ⊢}
+    app : {l : suc X ⊢} {r : X ⊢}
             → Pure l
             → Pure r
             → Pure ((ƛ l) · r)
 
-    var : {v : X} → Pure (` v)
+    var : {v : Fin X} → Pure (` v)
     delay : {t : X ⊢} → Pure (delay t)
-    ƛ : {t : (Maybe X) ⊢} → Pure (ƛ t)
+    ƛ : {t : (suc X) ⊢} → Pure (ƛ t)
     con : {c : TmCon} → Pure (con c)
     -- errors are not pure ever.
 
-isPure? : {X : Set} → (t : X ⊢) → Dec (Pure t)
+isPure? : {X : ℕ} → (t : X ⊢) → Dec (Pure t)
 
-allPure? : {X : Set} → (ts : List (X ⊢)) → Dec (All Pure ts)
+allPure? : {X : ℕ} → (ts : List (X ⊢)) → Dec (All Pure ts)
 allPure? [] = yes All.[]
 allPure? (t ∷ ts) with (isPure? t) ×-dec (allPure? ts)
 ... | yes (p , ps) = yes (p All.∷ ps)
