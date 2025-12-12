@@ -21,10 +21,33 @@ open _⊢
 
 ## Renaming
 
+When manipulating terms with de Bruijn indices, special care has to be taken
+with free variables. As an example, consider the term `3 · λ 4`, which has one
+free variable that occurs twice. Now let us substitute for that variable the
+expression `(λ 0) · 1`, which itself has one free variable. The result is `((λ
+0) · 1) · λ ((λ 0) · 2)`. Note that substitution under the lambda required
+renaming the free variable (`1` became `2`), this is also called shifting. Also
+note that bound variables are not changed (`0` stayed `0`).
+
+A renaming is a function from de Bruijn indices to de Bruijn indices:
+
 ```
 Ren : Set → Set → Set
 Ren X Y = X → Y
+```
 
+For example, `just : Ren ⊥ (Maybe ⊥)` is a renaming that renames a variable `i` to `suc
+i`. And `id` is the identity renaming.
+
+As we have seen in the substitution example, we are only interested in renaming
+free variables. So when renaming under a lambda abstraction:
+- we need to take care not to rename `0`, which was bound by that lambda.
+- the renaming function needs to be shifted: if it mapped `1` to `4`, under the
+  lambda it will have to map `2` to `5`.
+
+The `lift` function takes care of both:
+
+```
 lift : {X Y : Set} → Ren X Y → Ren (Maybe X) (Maybe Y)
 lift ρ nothing = nothing
 lift ρ (just x) = just (ρ x)
