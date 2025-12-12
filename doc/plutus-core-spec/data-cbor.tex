@@ -13,6 +13,7 @@ possible, but this is useful for the present discussion.
       Constr Integer [Data]
       | Map [(Data, Data)]
       | List [Data]
+      | Array (Vector Data)
       | I Integer
       | B ByteString
 \end{alltt}
@@ -346,6 +347,7 @@ $\mathtt{Constr}\: i\, l$).
 \begin{alignat*}{2}
 &  \eData(\mathtt{Map}\: l) && = \eHead(5,\length(l)) \cdot \eDataStarSq(l)\\
 &  \eData(\mathtt{List}\: l) && = \eIndef(4) \cdot \eDataStar(l) \cdot 255\\
+&  \eData(\mathtt{Array}\: l) && = \eHead(6,128) \cdot \eIndef(4) \cdot \eDataStar(l) \cdot 255\\
 &  \eData(\mathtt{Constr}\: i\, l) && = \ecTag(i) \cdot \eIndef(4) \cdot  \eDataStar(l) \cdot 255\\
 & \eData(\mathtt{I}\: n) && = \eZ(n)\\
 &  \eData(\mathtt{B}\: s) && = \eBS(s).
@@ -394,6 +396,7 @@ $$
 \begin{cases}
   (s'', \mathtt{Map}\: l) & \text{if $\dHead(s) = (s', 5, n)$ and $\dDataStarSq^{(n)}(s') = (s'', l)$}\\
   (s', \mathtt{List}\: l) & \text{if $\dDataStar(s) = (s', l)$}\\
+  (s'', \mathtt{Array}\: l) & \text{if $\dHead(s) = (s', 6, 128)$ and $\dDataStar(s') = (s'', l)$}\\
   (s'', \mathtt{Constr}\: i \, l) & \text{if $\dcTag(s) = (s', i)$ and $\dDataStar(s') = (s'', l)$}\\
   (s', \mathtt{I}\: n) & \text{if $\dZ(s) = (s', n)$}\\
   (s', \mathtt{B}\: b) & \text{if $\dBS(s) = (s', b)$}
