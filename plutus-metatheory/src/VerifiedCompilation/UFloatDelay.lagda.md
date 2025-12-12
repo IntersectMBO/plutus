@@ -130,14 +130,14 @@ subs-delay v error = error
 The translation relation is then fairly striaghtforward.
 
 ```
-data FlD {X : ℕ}  : (X ⊢) → (X ⊢) → Set₁ where
+data FlD {X : ℕ}  : (X ⊢) → (X ⊢) → Set where
   floatdelay : {y y' : X ⊢} {x x' : suc X ⊢}
           → Translation FlD (subs-delay zero x) x'
           → Translation FlD y y'
           → Pure y'
           → FlD (ƛ x · (delay y)) (ƛ x' · y')
 
-FloatDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+FloatDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
 FloatDelay = Translation FlD
 
 ```

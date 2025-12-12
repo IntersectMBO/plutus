@@ -68,7 +68,7 @@ something has happened.
 
 ```
 
-data Inline {X : ℕ} : Env {X} → (X ⊢) → (X ⊢) → Set₁ where
+data Inline {X : ℕ} : Env {X} → (X ⊢) → (X ⊢) → Set where
   var : {x y z : X ⊢} {e : Env} → Inline (e , x) z y → Inline e (z · x) y
   last-sub : {x : suc X ⊢ } {y v : X ⊢} → Translation (Inline □) (x [ v ]) y → Inline (□ , v) (ƛ x) y
   sub : {x : suc X ⊢ } {y v v₁ : X ⊢} {e : Env} → Inline (e , v₁) (x [ v ]) y → Inline ((e , v₁) , v) (ƛ x) y
@@ -111,7 +111,7 @@ isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with 
 
 isInline? = translation? inlineT (isIl? □)
 
-UInline : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UInline : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
 UInline = Translation (Inline □)
 
 ```

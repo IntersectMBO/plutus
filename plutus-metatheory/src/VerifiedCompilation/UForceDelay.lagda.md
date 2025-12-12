@@ -47,7 +47,7 @@ Ultimately they should be equivalent.
 
 ```
 
-data pureFD {X : ℕ} : X ⊢ → X ⊢ → Set₁ where
+data pureFD {X : ℕ} : X ⊢ → X ⊢ → Set where
   forcedelay : {x x' : X ⊢} → pureFD x x' → pureFD (force (delay x)) x'
   pushfd : {x x' : suc X ⊢} → {y y' : X ⊢}
          → pureFD x x'
@@ -110,8 +110,7 @@ without keeping track. Consequently, it only allows you to recurse to
 environment.
 ```
 
--- TODO: It can probably be in Set rather than Set₁ now
-data FD {X : ℕ} : Zipper X → X ⊢ → X ⊢ → Set₁ where
+data FD {X : ℕ} : Zipper X → X ⊢ → X ⊢ → Set where
   force : FD (force z) x x' → FD z (force x) x'
   delay : FD z x x' → FD (force z) (delay x) x'
   app : FD (z · y') x x' → Translation (FD □) y y' → FD z (x · y) (x' · y')
@@ -126,7 +125,7 @@ data FD {X : ℕ} : Zipper X → X ⊢ → X ⊢ → Set₁ where
     → FD (force z) y y'
     → FD (force z) ((((force (builtin ifThenElse)) · b) · x) · y) ((((force (builtin ifThenElse)) · b') · x') · y')
 
-ForceDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+ForceDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
 ForceDelay = Translation (FD □)
 
 ```

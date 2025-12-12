@@ -87,7 +87,7 @@ data Transformation : SimplifierTag → Relation where
   isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
   forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
-data Trace : { X : ℕ }  → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
+data Trace : { X : ℕ }  → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set where
   empty : {X : ℕ} → Trace {X} []
   cons
     : {X : ℕ}

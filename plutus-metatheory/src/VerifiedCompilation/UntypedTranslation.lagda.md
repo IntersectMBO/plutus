@@ -35,11 +35,11 @@ The generic type of a Translation is that it matches one (or more) patterns on t
 we can build a decision procedure to apply them recursivley down the AST structure.
 
 ```
-Relation = { X : ℕ } → (X ⊢) → (X ⊢) → Set₁
+Relation = { X : ℕ } → (X ⊢) → (X ⊢) → Set
 
-data Translation (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set₁
+data Translation (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set
 
-data TransMatch (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set₁ where
+data TransMatch (R : Relation) { X : ℕ } : (X ⊢) → (X ⊢) → Set where
   var : {x : Fin X} → TransMatch R (` x) (` x) -- We assume we won't want to translate variables individually?
   ƛ   : {x x' : suc X ⊢}
            → Translation R x x'
