@@ -1,6 +1,6 @@
 (program 1.0.0
 [[[[[[[(force (builtin chooseData))
- (con data (Constr 1 [I 1]))]
+ (con data (Array [I 0, I 1 ]))]
  (lam x (con integer 1))]
  (lam y (con string "two"))]
  (lam z3 z3)]
