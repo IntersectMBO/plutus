@@ -125,6 +125,8 @@ isCommutative = \case
   UnConstrData -> False
   UnMapData -> False
   UnListData -> False
+  ArrayData -> False
+  UnArrayData -> False
   UnIData -> False
   UnBData -> False
   SerialiseData -> False
