@@ -22,8 +22,8 @@ open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; 
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Relation.Binary.PropositionalEquality.Core using (cong)
-open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
+open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Untyped.RenamingSubstitution using (weaken)
 open import Data.List using (List; _∷_; [])
@@ -47,9 +47,9 @@ Ultimately they should be equivalent.
 
 ```
 
-data pureFD {X : Set} {{de : DecEq X}} : X ⊢ → X ⊢ → Set₁ where
+data pureFD {X : ℕ} : X ⊢ → X ⊢ → Set where
   forcedelay : {x x' : X ⊢} → pureFD x x' → pureFD (force (delay x)) x'
-  pushfd : {x x' : Maybe X ⊢} → {y y' : X ⊢}
+  pushfd : {x x' : suc X ⊢} → {y y' : X ⊢}
          → pureFD x x'
          → pureFD y y'
          → pureFD (force ((ƛ x) · y)) ((ƛ (force x')) · y')
@@ -61,42 +61,43 @@ data pureFD {X : Set} {{de : DecEq X}} : X ⊢ → X ⊢ → Set₁ where
          → Translation pureFD x x'
          → pureFD x x'
 
-  appfd : {x : Maybe X ⊢} → {y z : X ⊢} → pureFD (((ƛ x) · y) · z) (ƛ (x · (weaken z)) · y)
-  appfd⁻¹ : {x : Maybe X ⊢} → {y z : X ⊢} → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
+  appfd : {x : suc X ⊢} → {y z : X ⊢} → pureFD (((ƛ x) · y) · z) (ƛ (x · (weaken z)) · y)
+  appfd⁻¹ : {x : suc X ⊢} → {y z : X ⊢} → pureFD (ƛ (x · (weaken z)) · y) (((ƛ x) · y) · z)
 
-_ : pureFD {Maybe ⊥} (force (delay (` nothing))) (` nothing)
+_ : pureFD {1} (force (delay (` zero))) (` zero)
 _ = forcedelay (translationfd (Translation.match TransMatch.var))
 
-forceappdelay : pureFD {Maybe ⊥} (force ((ƛ (delay (` nothing))) · (` nothing))) ((ƛ (` nothing)) · (` nothing))
+forceappdelay : pureFD {1} (force ((ƛ (delay (` zero))) · (` zero))) ((ƛ (` zero)) · (` zero))
 forceappdelay = (pushfd (translationfd (Translation.match
                                          (TransMatch.delay (Translation.match TransMatch.var)))) (translationfd reflexive)) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation
                                                                                                                                                           (forcedelay (translationfd (Translation.match TransMatch.var)))))) (Translation.match TransMatch.var))))
 
-_ : pureFD {Maybe ⊥} (force (force (delay (delay error)))) error
+_ : pureFD {1} (force (force (delay (delay error)))) error
 _ = translationfd (Translation.match (TransMatch.force (Translation.istranslation (forcedelay (translationfd reflexive))))) ⨾ forcedelay (translationfd (Translation.match TransMatch.error))
 
-_ : pureFD {Maybe ⊥} (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
+_ : pureFD {1} (force (force (ƛ (ƛ (delay (delay (` zero))) · (` zero)) · (` zero)))) (ƛ (ƛ (` zero) · (` zero)) · (` zero))
 _ = (translationfd (Translation.match (TransMatch.force (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive)))))) ⨾ ((translationfd (Translation.match (TransMatch.force (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive))))) ⨾ ( pushfd (translationfd reflexive) (translationfd reflexive) ⨾ ((translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive))) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ((translationfd (Translation.match (TransMatch.force (Translation.istranslation (forcedelay (translationfd (Translation.match (TransMatch.delay (Translation.match TransMatch.var))))))))) ⨾ (forcedelay (translationfd (Translation.match TransMatch.var))))))) reflexive)))) reflexive))))))
 
-test4 : {X : Set} {{_ : DecEq X}} {N : Maybe (Maybe X) ⊢} {M M' : X ⊢} → pureFD (force (((ƛ (ƛ (delay N))) · M) · M')) (((ƛ (ƛ N)) · M) · M')
+test4 : {X : ℕ} {N : suc (suc X) ⊢} {M M' : X ⊢} → pureFD (force (((ƛ (ƛ (delay N))) · M) · M')) (((ƛ (ƛ N)) · M) · M')
 test4 = (translationfd (Translation.match (TransMatch.force (Translation.istranslation appfd)))) ⨾ ((pushfd (translationfd reflexive) (translationfd reflexive)) ⨾ ((translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (pushfd (translationfd reflexive) (translationfd reflexive))))) reflexive ))) ⨾ (translationfd (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation (forcedelay (translationfd reflexive))))) reflexive)))) reflexive)) ⨾ appfd⁻¹)))
 
 variable
-  X : Set
+  X : ℕ
 
-data Zipper (X : Set) : Set where
+data Zipper (X : ℕ) : Set where
   □ : Zipper X
   force : Zipper X → Zipper X
   _·_ : Zipper X → (X ⊢) → Zipper X
 
-zipwk : Zipper X → Zipper (Maybe X)
+zipwk : Zipper X → Zipper (suc X)
 zipwk □ = □
 zipwk (force z) = force (zipwk z)
 zipwk (z · x) = zipwk z · (weaken x)
 
 variable
   z : Zipper X
-  x x' y y' b b' : X
+  x x' y y' b b' : X ⊢
+  -- TODO: why were all of these of type X before? (FD expects them to be terms)
 
 ```
 # FD Relation
@@ -109,7 +110,7 @@ without keeping track. Consequently, it only allows you to recurse to
 environment.
 ```
 
-data FD {X : Set} {{_ : DecEq X}} : Zipper X → X ⊢ → X ⊢ → Set₁ where
+data FD {X : ℕ} : Zipper X → X ⊢ → X ⊢ → Set where
   force : FD (force z) x x' → FD z (force x) x'
   delay : FD z x x' → FD (force z) (delay x) x'
   app : FD (z · y') x x' → Translation (FD □) y y' → FD z (x · y) (x' · y')
@@ -124,7 +125,7 @@ data FD {X : Set} {{_ : DecEq X}} : Zipper X → X ⊢ → X ⊢ → Set₁ wher
     → FD (force z) y y'
     → FD (force z) ((((force (builtin ifThenElse)) · b) · x) · y) ((((force (builtin ifThenElse)) · b') · x') · y')
 
-ForceDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+ForceDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
 ForceDelay = Translation (FD □)
 
 ```
@@ -132,12 +133,12 @@ ForceDelay = Translation (FD □)
 ```
 open import Untyped using (con-integer)
 
-simpleSuccess : FD {⊥} □ (force (ƛ (delay (con-integer 1)) · (con-integer 2))) (ƛ (con-integer 1) · (con-integer 2))
+simpleSuccess : FD {0} □ (force (ƛ (delay (con-integer 1)) · (con-integer 2))) (ƛ (con-integer 1) · (con-integer 2))
 simpleSuccess = force
                  (app (abs (last-delay (Translation.match TransMatch.con)))
                   (Translation.match TransMatch.con))
 
-multiApplied : FD {Maybe ⊥} □ (force (force (ƛ (ƛ (delay (delay (` nothing))) · (` nothing)) · (` nothing)))) (ƛ (ƛ (` nothing) · (` nothing)) · (` nothing))
+multiApplied : FD {1} □ (force (force (ƛ (ƛ (delay (delay (` zero))) · (` zero)) · (` zero)))) (ƛ (ƛ (` zero) · (` zero)) · (` zero))
 multiApplied = force
      (force
       (app
@@ -146,7 +147,7 @@ multiApplied = force
          (Translation.match TransMatch.var)))
        (Translation.match TransMatch.var)))
 
-nested : FD {⊥} □ (force (delay ((ƛ (force (delay ((ƛ (con-integer 2)) · (con-integer 3))))) · (con-integer 1)))) ((ƛ ((ƛ (con-integer 2)) · (con-integer 3))) · (con-integer 1))
+nested : FD {0} □ (force (delay ((ƛ (force (delay ((ƛ (con-integer 2)) · (con-integer 3))))) · (con-integer 1)))) ((ƛ ((ƛ (con-integer 2)) · (con-integer 3))) · (con-integer 1))
 nested = force
           (delay
            (app
@@ -157,19 +158,19 @@ nested = force
                 (Translation.match TransMatch.con)))))
             (Translation.match TransMatch.con)))
 
-forceDelaySimpleBefore : ⊥ ⊢
-forceDelaySimpleBefore = (force ((force ((force (delay (ƛ (delay (ƛ (delay (ƛ (` nothing)))))))) · (con-integer 1))) · (con-integer 2))) · (con-integer 3)
+forceDelaySimpleBefore : 0 ⊢
+forceDelaySimpleBefore = (force ((force ((force (delay (ƛ (delay (ƛ (delay (ƛ (` zero)))))))) · (con-integer 1))) · (con-integer 2))) · (con-integer 3)
 
-forceDelaySimpleAfter : ⊥ ⊢
-forceDelaySimpleAfter = (((ƛ (ƛ (ƛ (` nothing)))) · (con-integer 1)) · (con-integer 2)) · (con-integer 3)
+forceDelaySimpleAfter : 0 ⊢
+forceDelaySimpleAfter = (((ƛ (ƛ (ƛ (` zero)))) · (con-integer 1)) · (con-integer 2)) · (con-integer 3)
 
 forceDelaySimple : FD □ forceDelaySimpleBefore forceDelaySimpleAfter
 forceDelaySimple = app (force (app (force (app (force (delay (abs (delay (abs (delay (last-abs (Translation.match TransMatch.var)))))))) reflexive)) reflexive)) reflexive
 
-lastDelayBreak : ¬ (FD {⊥} □ (force (delay (con-integer 1))) (con-integer 2))
+lastDelayBreak : ¬ (FD {0} □ (force (delay (con-integer 1))) (con-integer 2))
 lastDelayBreak = λ { (force (last-delay (Translation.match ()))) }
 
-lastAbsBreak : ¬ (FD {⊥} □ (force (delay ((ƛ (con-integer 1)) · (con-integer 3)))) ((ƛ (con-integer 2)) · (con-integer 3)))
+lastAbsBreak : ¬ (FD {0} □ (force (delay ((ƛ (con-integer 1)) · (con-integer 3)))) ((ƛ (con-integer 2)) · (con-integer 3)))
 lastAbsBreak = λ { (force (delay (app (last-abs (Translation.istranslation ())) x₁))) ; (force (delay (app (last-abs (Translation.match ())) x₁))) ; (force (last-delay (Translation.istranslation (app (last-abs (Translation.istranslation ())) x₁)))) ; (force (last-delay (Translation.istranslation (app (last-abs (Translation.match ())) x₁)))) ; (force (last-delay (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.istranslation ()))) x₁)))) ; (force (last-delay (Translation.match (TransMatch.app (Translation.match (TransMatch.ƛ (Translation.match ()))) x₁)))) }
 
 ```
@@ -177,10 +178,10 @@ This `ifThenElse` example is converted from the Haskell constructors in the Hask
 so is written with a prefix style.
 ```
 
-ast0 : ⊥ ⊢
+ast0 : 0 ⊢
 ast0 = (force (_·_ (_·_ (_·_ (force (builtin ifThenElse)) (con-integer 1)) (delay (con-integer 1))) (delay (con-integer 2))))
 
-ast1 : ⊥ ⊢
+ast1 : 0 ⊢
 ast1 = (_·_ (_·_ (_·_ (force (builtin ifThenElse)) (con-integer 1)) (con-integer 1)) (con-integer 2))
 
 ifThenElseProof : FD □ ast0 ast1
@@ -200,13 +201,13 @@ the forces and applications back on to the current term and have a valid
 ## Decision Procedure
 
 ```
-isForceDelay? : {X : Set} {{_ : DecEq X}} → MatchOrCE (Translation (FD □) {X})
+isForceDelay? : {X : ℕ} → MatchOrCE (Translation (FD □) {X})
 
 {-# TERMINATING #-}
-isFD? : {X : Set} {{_ : DecEq X}} → (z : Zipper X) → MatchOrCE (FD {X} z)
+isFD? : {X : ℕ} → (z : Zipper X) → MatchOrCE (FD {X} z)
 
 -- Helper function for the recursion search
-ForceFDNeverITE : {X : Set} {{_ : DecEq X}} {z : Zipper X} {b b' x x' y' : X ⊢} → ¬ FD (force z · y') ((force (builtin ifThenElse) · b) · x) ((force (builtin ifThenElse) · b') · x')
+ForceFDNeverITE : {X : ℕ} {z : Zipper X} {b b' x x' y' : X ⊢} → ¬ FD (force z · y') ((force (builtin ifThenElse) · b) · x) ((force (builtin ifThenElse) · b') · x')
 ForceFDNeverITE (app (app (force ()) x₁) x)
 
 isFD? □ ast ast' with isForce? isTerm? ast

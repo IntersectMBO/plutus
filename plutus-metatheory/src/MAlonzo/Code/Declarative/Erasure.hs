@@ -18,7 +18,6 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
 import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.List
-import qualified MAlonzo.Code.Agda.Builtin.Maybe
 import qualified MAlonzo.Code.Data.Fin.Base
 import qualified MAlonzo.Code.Data.Vec.Base
 import qualified MAlonzo.Code.Declarative
@@ -32,36 +31,65 @@ import qualified MAlonzo.Code.Utils.List
 -- Declarative.Erasure.len
 d_len_6 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Declarative.T_Ctx_16 -> ()
-d_len_6 = erased
+  MAlonzo.Code.Declarative.T_Ctx_16 -> Integer
+d_len_6 v0 v1
+  = case coe v1 of
+      MAlonzo.Code.Declarative.C_'8709'_18 -> coe (0 :: Integer)
+      MAlonzo.Code.Declarative.C__'44''8902'__22 v3
+        -> case coe v0 of
+             MAlonzo.Code.Type.C__'44''8902'__6 v5 v6
+               -> coe d_len_6 (coe v5) (coe v3)
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Declarative.C__'44'__26 v3 v4
+        -> coe addInt (coe (1 :: Integer)) (coe d_len_6 (coe v0) (coe v3))
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Declarative.Erasure.lenI
 d_lenI_18 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Declarative.T_Ctx_16 -> ()
-d_lenI_18 = erased
+  MAlonzo.Code.Declarative.T_Ctx_16 -> Integer
+d_lenI_18 v0 v1
+  = case coe v1 of
+      MAlonzo.Code.Declarative.C_'8709'_18 -> coe (0 :: Integer)
+      MAlonzo.Code.Declarative.C__'44''8902'__22 v3
+        -> case coe v0 of
+             MAlonzo.Code.Type.C__'44''8902'__6 v5 v6
+               -> coe
+                    addInt (coe (1 :: Integer)) (coe d_lenI_18 (coe v5) (coe v3))
+             _ -> MAlonzo.RTE.mazUnreachableError
+      MAlonzo.Code.Declarative.C__'44'__26 v3 v4
+        -> coe
+             addInt (coe (1 :: Integer)) (coe d_lenI_18 (coe v0) (coe v3))
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Declarative.Erasure.len⋆
-d_len'8902'_28 :: MAlonzo.Code.Type.T_Ctx'8902'_2 -> ()
-d_len'8902'_28 = erased
+d_len'8902'_28 :: MAlonzo.Code.Type.T_Ctx'8902'_2 -> Integer
+d_len'8902'_28 v0
+  = case coe v0 of
+      MAlonzo.Code.Type.C_'8709'_4 -> coe (0 :: Integer)
+      MAlonzo.Code.Type.C__'44''8902'__6 v1 v2
+        -> coe addInt (coe (1 :: Integer)) (coe d_len'8902'_28 (coe v1))
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Declarative.Erasure.eraseVar
 d_eraseVar_40 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
-  MAlonzo.Code.Declarative.T__'8715'__34 -> AgdaAny
+  MAlonzo.Code.Declarative.T__'8715'__34 ->
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10
 d_eraseVar_40 v0 v1 ~v2 v3 = du_eraseVar_40 v0 v1 v3
 du_eraseVar_40 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
-  MAlonzo.Code.Declarative.T__'8715'__34 -> AgdaAny
+  MAlonzo.Code.Declarative.T__'8715'__34 ->
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10
 du_eraseVar_40 v0 v1 v2
   = case coe v2 of
       MAlonzo.Code.Declarative.C_Z_36
-        -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
+        -> coe MAlonzo.Code.Data.Fin.Base.C_zero_12
       MAlonzo.Code.Declarative.C_S_38 v7
         -> case coe v1 of
              MAlonzo.Code.Declarative.C__'44'__26 v9 v10
                -> coe
-                    MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
+                    MAlonzo.Code.Data.Fin.Base.C_suc_16
                     (coe du_eraseVar_40 (coe v0) (coe v9) (coe v7))
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Declarative.C_T_40 v5 v7
@@ -137,8 +165,8 @@ d_erase_60 v0 v1 v2 v3
                        (coe
                           MAlonzo.Code.Type.C__'183'__30
                           (coe
-                             MAlonzo.Code.Utils.C__'8658'__658 (coe v9)
-                             (coe MAlonzo.Code.Utils.C_'42'_654))
+                             MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
+                             (coe MAlonzo.Code.Utils.C_'42'_684))
                           v10
                           (coe
                              MAlonzo.Code.Type.C_ƛ_28
@@ -147,13 +175,13 @@ d_erase_60 v0 v1 v2 v3
                                 (coe
                                    MAlonzo.Code.Type.RenamingSubstitution.d_weaken_98 v0
                                    (coe
-                                      MAlonzo.Code.Utils.C__'8658'__658
+                                      MAlonzo.Code.Utils.C__'8658'__688
                                       (coe
-                                         MAlonzo.Code.Utils.C__'8658'__658 (coe v9)
-                                         (coe MAlonzo.Code.Utils.C_'42'_654))
+                                         MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
+                                         (coe MAlonzo.Code.Utils.C_'42'_684))
                                       (coe
-                                         MAlonzo.Code.Utils.C__'8658'__658 (coe v9)
-                                         (coe MAlonzo.Code.Utils.C_'42'_654)))
+                                         MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
+                                         (coe MAlonzo.Code.Utils.C_'42'_684)))
                                    v9 v10)
                                 (coe MAlonzo.Code.Type.C_'96'_22 (coe MAlonzo.Code.Type.C_Z_16)))))
                        v11)
@@ -198,19 +226,20 @@ d_erase'45'Sub_72 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8866''8902'__20) ->
   (MAlonzo.Code.Type.T__'8866''8902'__20 ->
    MAlonzo.Code.Declarative.T__'8715'__34 ->
    MAlonzo.Code.Declarative.T__'8866'__110) ->
-  AgdaAny -> MAlonzo.Code.Untyped.T__'8866'_14
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
+  MAlonzo.Code.Untyped.T__'8866'_14
 d_erase'45'Sub_72 v0 v1 v2 v3 v4 v5 v6
   = coe
       d_erase_60 (coe v1) (coe v3)
       (coe
          MAlonzo.Code.Type.RenamingSubstitution.d_sub_346 (coe v0) (coe v1)
-         (coe v4) (coe MAlonzo.Code.Utils.C_'42'_654)
+         (coe v4) (coe MAlonzo.Code.Utils.C_'42'_684)
          (coe d_backVar'8902'_156 (coe v0) (coe v2) (coe v6)))
       (coe
          v5 (d_backVar'8902'_156 (coe v0) (coe v2) (coe v6))
@@ -275,7 +304,8 @@ du_erase'45'Cases_100 v0 v1 v2 v3 v4
 d_backVar'8902'_156 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
-  AgdaAny -> MAlonzo.Code.Type.T__'8866''8902'__20
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
+  MAlonzo.Code.Type.T__'8866''8902'__20
 d_backVar'8902'_156 v0 v1 v2
   = case coe v1 of
       MAlonzo.Code.Declarative.C__'44''8902'__22 v4
@@ -283,21 +313,22 @@ d_backVar'8902'_156 v0 v1 v2
              MAlonzo.Code.Type.C__'44''8902'__6 v6 v7
                -> coe
                     MAlonzo.Code.Type.RenamingSubstitution.d_weaken_98 v6
-                    (coe MAlonzo.Code.Utils.C_'42'_654) v7
+                    (coe MAlonzo.Code.Utils.C_'42'_684) v7
                     (d_backVar'8902'_156 (coe v6) (coe v4) (coe v2))
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Declarative.C__'44'__26 v4 v5
         -> case coe v2 of
-             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v6
-               -> coe d_backVar'8902'_156 (coe v0) (coe v4) (coe v6)
-             MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18 -> coe v5
+             MAlonzo.Code.Data.Fin.Base.C_zero_12 -> coe v5
+             MAlonzo.Code.Data.Fin.Base.C_suc_16 v7
+               -> coe d_backVar'8902'_156 (coe v0) (coe v4) (coe v7)
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Declarative.Erasure.backVar
 d_backVar_180 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Declarative.T_Ctx_16 ->
-  AgdaAny -> MAlonzo.Code.Declarative.T__'8715'__34
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
+  MAlonzo.Code.Declarative.T__'8715'__34
 d_backVar_180 v0 v1 v2
   = case coe v1 of
       MAlonzo.Code.Declarative.C__'44''8902'__22 v4
@@ -310,11 +341,11 @@ d_backVar_180 v0 v1 v2
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Declarative.C__'44'__26 v4 v5
         -> case coe v2 of
-             MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v6
+             MAlonzo.Code.Data.Fin.Base.C_zero_12
+               -> coe MAlonzo.Code.Declarative.C_Z_36
+             MAlonzo.Code.Data.Fin.Base.C_suc_16 v7
                -> coe
                     MAlonzo.Code.Declarative.C_S_38
-                    (d_backVar_180 (coe v0) (coe v4) (coe v6))
-             MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
-               -> coe MAlonzo.Code.Declarative.C_Z_36
+                    (d_backVar_180 (coe v0) (coe v4) (coe v7))
              _ -> MAlonzo.RTE.mazUnreachableError
       _ -> MAlonzo.RTE.mazUnreachableError

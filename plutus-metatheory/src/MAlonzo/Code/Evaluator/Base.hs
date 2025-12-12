@@ -69,7 +69,7 @@ check_scopeError_18 ::
   MAlonzo.Code.Scoped.T_ScopeError_576 -> T_ERROR_12
 check_scopeError_18 = ScopeError
 check_runtimeError_20 ::
-  MAlonzo.Code.Utils.T_RuntimeError_348 -> T_ERROR_12
+  MAlonzo.Code.Utils.T_RuntimeError_378 -> T_ERROR_12
 check_runtimeError_20 = RuntimeError
 check_jsonError_22 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 -> T_ERROR_12
@@ -112,7 +112,7 @@ d_uglyTypeError_24 v0
                    (coe MAlonzo.Code.Scoped.Extrication.d_len'8902'_4 (coe v1))
                    (coe
                       MAlonzo.Code.Scoped.Extrication.d_extricateNf'8902'_26 (coe v1)
-                      (coe MAlonzo.Code.Utils.C_'42'_654) (coe v2))))
+                      (coe MAlonzo.Code.Utils.C_'42'_684) (coe v2))))
       MAlonzo.Code.Check.C_IndexOutOfBounds_82 v1 v2
         -> coe ("IndexOutOfBounds" :: Data.Text.Text)
       MAlonzo.Code.Check.C_TooManyConstrArgs_84
@@ -166,11 +166,11 @@ d_reportError_66 v0
       C_scopeError_18 v1 -> coe ("scopeError" :: Data.Text.Text)
       C_runtimeError_20 v1
         -> case coe v1 of
-             MAlonzo.Code.Utils.C_gasError_350
+             MAlonzo.Code.Utils.C_gasError_380
                -> coe ("gasError" :: Data.Text.Text)
-             MAlonzo.Code.Utils.C_userError_352
+             MAlonzo.Code.Utils.C_userError_382
                -> coe ("userError" :: Data.Text.Text)
-             MAlonzo.Code.Utils.C_runtimeTypeError_354
+             MAlonzo.Code.Utils.C_runtimeTypeError_384
                -> coe ("runtimeTypeError" :: Data.Text.Text)
              _ -> MAlonzo.RTE.mazUnreachableError
       C_jsonError_22 v1

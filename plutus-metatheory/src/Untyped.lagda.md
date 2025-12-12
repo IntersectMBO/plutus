@@ -10,7 +10,7 @@ module Untyped where
 ## Imports
 
 ```
-open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
+open import Utils as U using (Maybe;nothing;just;maybeToEither;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_;natToFin)
 open Monad {{...}}
 import Data.List as L
 
@@ -19,10 +19,11 @@ open import Builtin using (Builtin;equals;decBuiltin)
 open Builtin.Builtin
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
-open import Data.Nat using (ℕ;suc;zero)
+open import Data.Nat using (ℕ;suc;zero;_<_;_<?_)
+open import Data.Fin using (Fin;suc;zero;toℕ;fromℕ<)
 open import Data.Nat.Show using () renaming (show to showℕ)
 open import Data.Bool using (Bool;true;false;_∧_)
-open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
+open import Data.Integer using (_+_;_-_;∣_∣;_≟_;ℤ) renaming (_*_ to _**_) -- TODO: remove unnecessary imports
 open import Relation.Nullary using (does;yes;no)
 open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
@@ -47,17 +48,17 @@ natural number, which uses the Maybe type (so: `Nothing` = zero, `Just Just Noth
 to allow direct translation to Haskell.
 
 ```
-data _⊢ (X : Set) : Set where
-  `   : X → X ⊢
-  ƛ   : Maybe X ⊢ → X ⊢
-  _·_ : X ⊢ → X ⊢ → X ⊢
-  force : X ⊢ → X ⊢
-  delay : X ⊢ → X ⊢
-  con : TmCon → X ⊢
-  constr : (i : ℕ) → (xs : L.List (X ⊢)) → X ⊢
-  case :  (t : X ⊢) → (ts : L.List (X ⊢)) → X ⊢
-  builtin : (b : Builtin) → X ⊢
-  error : X ⊢
+data _⊢ (n : ℕ) : Set where
+  `   : Fin n → n ⊢
+  ƛ   : suc n ⊢ → n ⊢
+  _·_ : n ⊢ → n ⊢ → n ⊢
+  force : n ⊢ → n ⊢
+  delay : n ⊢ → n ⊢
+  con : TmCon → n ⊢
+  constr : (i : ℕ) → (xs : L.List (n ⊢)) → n ⊢
+  case :  (t : n ⊢) → (ts : L.List (n ⊢)) → n ⊢
+  builtin : (b : Builtin) → n ⊢
+  error : n ⊢
 ```
 
 ```
@@ -134,59 +135,58 @@ extG : {X : Set} → (X → ℕ) → Maybe X → ℕ
 extG g (just x) = suc (g x)
 extG g nothing  = 0
 
-extricateUList : {X : Set} → (X → ℕ) → L.List (X ⊢) → List Untyped
-extricateU : {X : Set} → (X → ℕ) → X ⊢ → Untyped
-extricateU g (` x)         = UVar (g x)
-extricateU g (ƛ t)         = ULambda (extricateU (extG g) t)
-extricateU g (t · u)       = UApp (extricateU g t) (extricateU g u)
-extricateU g (force t)     = UForce (extricateU g t)
-extricateU g (delay t)     = UDelay (extricateU g t)
-extricateU g (con c)       = UCon (tmCon2TagCon c)
-extricateU g (builtin b)   = UBuiltin b
-extricateU g error         = UError
-extricateU g (constr i L.[]) = UConstr i []
-extricateU g (constr i (x L.∷ xs)) = UConstr i (extricateU g x ∷ extricateUList g xs)
-extricateU g (case x xs)   = UCase (extricateU g x) (extricateUList g xs)
+extricateUList : {n : ℕ} → L.List (n ⊢) → List Untyped
+extricateU : {n : ℕ} → n ⊢ → Untyped
+extricateU (` x)         = UVar (toℕ x)
+extricateU (ƛ t)         = ULambda (extricateU t)
+extricateU (t · u)       = UApp (extricateU t) (extricateU u)
+extricateU (force t)     = UForce (extricateU t)
+extricateU (delay t)     = UDelay (extricateU t)
+extricateU (con c)       = UCon (tmCon2TagCon c)
+extricateU (builtin b)   = UBuiltin b
+extricateU error         = UError
+extricateU (constr i L.[]) = UConstr i []
+extricateU (constr i (x L.∷ xs)) = UConstr i (extricateU x ∷ extricateUList xs)
+extricateU (case x xs)   = UCase (extricateU x) (extricateUList xs)
 
-extricateUList g L.[] = []
-extricateUList g (x L.∷ xs) = extricateU g x ∷ extricateUList g xs
+extricateUList L.[] = []
+extricateUList (x L.∷ xs) = extricateU x ∷ extricateUList xs
 
-extricateU0 : ⊥  ⊢ → Untyped
-extricateU0 t = extricateU (λ()) t
+extricateU0 : 0  ⊢ → Untyped
+extricateU0 t = extricateU t
 
 extG' : {X : Set} → (ℕ → Either ScopeError X) → ℕ → Either ScopeError (Maybe X)
 extG' g zero    = return nothing
 extG' g (suc n) = fmap just (g n)
 
-scopeCheckUList : {X : Set}
-            → (ℕ → Either ScopeError X) → List Untyped → Either ScopeError (L.List (X ⊢))
-scopeCheckU : {X : Set}
-            → (ℕ → Either ScopeError X) → Untyped → Either ScopeError (X ⊢)
-scopeCheckU g (UVar x)     = fmap ` (g x)
-scopeCheckU g (ULambda t)  = fmap ƛ (scopeCheckU (extG' g) t)
-scopeCheckU g (UApp t u)   = do
-  t ← scopeCheckU g t
-  u ← scopeCheckU g u
+
+scopeCheckUList : {n : ℕ} → List Untyped → Either ScopeError (L.List (n ⊢))
+scopeCheckU : {n : ℕ} → Untyped → Either ScopeError (n ⊢)
+scopeCheckU (UVar x)     = fmap ` (maybeToEither deBError (natToFin x))
+scopeCheckU (ULambda t)  = fmap ƛ (scopeCheckU t)
+scopeCheckU (UApp t u)   = do
+  t ← scopeCheckU t
+  u ← scopeCheckU u
   return (t · u)
-scopeCheckU g (UCon c)       = return (con (tagCon2TmCon c))
-scopeCheckU g UError         = return error
-scopeCheckU g (UBuiltin b)   = return (builtin b)
-scopeCheckU g (UDelay t)     = fmap delay (scopeCheckU g t)
-scopeCheckU g (UForce t)     = fmap force (scopeCheckU g t)
-scopeCheckU g (UConstr i ts) = fmap (constr i) (scopeCheckUList g ts)
-scopeCheckU g (UCase t ts)   = do
-                 u  ← scopeCheckU g t
-                 us ← scopeCheckUList g ts
+scopeCheckU (UCon c)       = return (con (tagCon2TmCon c))
+scopeCheckU UError         = return error
+scopeCheckU (UBuiltin b)   = return (builtin b)
+scopeCheckU (UDelay t)     = fmap delay (scopeCheckU t)
+scopeCheckU (UForce t)     = fmap force (scopeCheckU t)
+scopeCheckU (UConstr i ts) = fmap (constr i) (scopeCheckUList ts)
+scopeCheckU (UCase t ts)   = do
+                 u  ← scopeCheckU t
+                 us ← scopeCheckUList ts
                  return (case u us)
 
-scopeCheckUList g [] = inj₂ L.[]
-scopeCheckUList g (x ∷ xs) = do
-                 u  ← scopeCheckU g x
-                 us ← scopeCheckUList g xs
+scopeCheckUList [] = inj₂ L.[]
+scopeCheckUList (x ∷ xs) = do
+                 u  ← scopeCheckU x
+                 us ← scopeCheckUList xs
                  return (u L.∷ us)
 
-scopeCheckU0 : Untyped → Either ScopeError (⊥ ⊢)
-scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
+scopeCheckU0 : Untyped → Either ScopeError (0 ⊢)
+scopeCheckU0 t = scopeCheckU t
 ```
 
 ## Equality checking for raw terms
@@ -211,9 +211,6 @@ decUTm _ _ = false
 buildDebruijnEncoding : {X : Set} → ℕ → Either ScopeError (Maybe X)
 buildDebruijnEncoding x = extG' (λ _ → inj₁ deBError) x
 
-toWellScoped : {X : Set} → Untyped → Either ScopeError (Maybe X ⊢)
-toWellScoped = scopeCheckU buildDebruijnEncoding
-
 ```
 Some useful functions for making integer literals.
 ```
@@ -222,5 +219,5 @@ open import Agda.Builtin.Int using (Int)
 make-integer : RawU.TyTag
 make-integer = RawU.tag2TyTag RawU.integer
 
-con-integer : {X : Set} → ℕ → X ⊢
+con-integer : {n : ℕ} → ℕ → n ⊢
 con-integer n = (con (tmCon make-integer (Int.pos n)))

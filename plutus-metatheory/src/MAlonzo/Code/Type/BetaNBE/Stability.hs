@@ -28,14 +28,14 @@ import qualified MAlonzo.Code.Utils
 -- Type.BetaNBE.Stability.stability
 d_stability_10 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
 d_stability_10 = erased
 -- Type.BetaNBE.Stability.stabilityNe
 d_stabilityNe_14 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6 -> AgdaAny
 d_stabilityNe_14 v0 v1 v2
   = case coe v2 of
@@ -50,7 +50,7 @@ d_stabilityNe_14 v0 v1 v2
                 MAlonzo.Code.Type.BetaNBE.d__'183'V__150 (coe v0) (coe v4) (coe v1)
                 (coe
                    MAlonzo.Code.Type.BetaNBE.d_eval_166 (coe v0) (coe v0)
-                   (coe MAlonzo.Code.Utils.C__'8658'__658 (coe v4) (coe v1))
+                   (coe MAlonzo.Code.Utils.C__'8658'__688 (coe v4) (coe v1))
                    (coe MAlonzo.Code.Type.BetaNormal.du_embNe_134 (coe v0) (coe v6))
                    (coe MAlonzo.Code.Type.BetaNBE.du_idEnv_250))
                 (coe
@@ -63,7 +63,7 @@ d_stabilityNe_14 v0 v1 v2
                 MAlonzo.Code.Type.BetaNBE.d__'183'V__150 (coe v0) (coe v4) (coe v1)
                 (coe
                    MAlonzo.Code.Type.BetaNBE.du_reflect_22
-                   (coe MAlonzo.Code.Utils.C__'8658'__658 (coe v4) (coe v1)) (coe v6))
+                   (coe MAlonzo.Code.Utils.C__'8658'__688 (coe v4) (coe v1)) (coe v6))
                 (coe
                    MAlonzo.Code.Type.BetaNBE.d_eval_166 (coe v0) (coe v0) (coe v4)
                    (coe
@@ -78,15 +78,15 @@ d_stabilityNe_14 v0 v1 v2
                 (coe v1)
                 (coe
                    MAlonzo.Code.Type.BetaNBE.d_eval_166 (coe v0) (coe v0)
-                   (coe MAlonzo.Code.Utils.C__'8658'__658 (coe v4) (coe v1))
+                   (coe MAlonzo.Code.Utils.C__'8658'__688 (coe v4) (coe v1))
                    (coe MAlonzo.Code.Type.BetaNormal.du_embNe_134 (coe v0) (coe v6))
                    (coe MAlonzo.Code.Type.BetaNBE.du_idEnv_250))
                 (coe
                    MAlonzo.Code.Type.BetaNBE.du_reflect_22
-                   (coe MAlonzo.Code.Utils.C__'8658'__658 (coe v4) (coe v1)) (coe v6))
+                   (coe MAlonzo.Code.Utils.C__'8658'__688 (coe v4) (coe v1)) (coe v6))
                 (coe
                    d_stabilityNe_14 (coe v0)
-                   (coe MAlonzo.Code.Utils.C__'8658'__658 (coe v4) (coe v1)) (coe v6))
+                   (coe MAlonzo.Code.Utils.C__'8658'__688 (coe v4) (coe v1)) (coe v6))
                 (coe
                    MAlonzo.Code.Type.BetaNBE.d_eval_166 (coe v0) (coe v0) (coe v4)
                    (coe
