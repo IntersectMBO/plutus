@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Test.Common.EvaluationContext</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.51.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Test.Common.EvaluationContext.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Test.Common.EvaluationContext</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MCostModel"
+	      >MCostModel</a
+	      > = <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCekMachineCosts" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	      >MCekMachineCosts</a
+	      > <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MBuiltinCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	      >MBuiltinCostModel</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MCekMachineCosts"
+	      >MCekMachineCosts</a
+	      > = <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCostsBase</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MBuiltinCostModel"
+	      >MBuiltinCostModel</a
+	      > = <a href="../plutus-core/PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModelBase" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	      >BuiltinCostModelBase</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:MCostingFun" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	      >MCostingFun</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toMCostModel"
+	      >toMCostModel</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	      >CostModel</a
+	      > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	      >CekMachineCosts</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	      >BuiltinCostModel</a
+	      > &#8594; <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	      >MCostModel</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:extractCostModelParamsLedgerOrder"
+	      >extractCostModelParamsLedgerOrder</a
+	      > &#8759; (<a href="../plutus-ledger-api/PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+	      >IsParamName</a
+	      > p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > p) &#8658; <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	      >MCostModel</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > p <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      >)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MCostModel" class="def"
+	    >MCostModel</a
+	    > = <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCekMachineCosts" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	    >MCekMachineCosts</a
+	    > <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MBuiltinCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	    >MBuiltinCostModel</a
+	    > <a href="src/PlutusLedgerApi.Test.Common.EvaluationContext.html#MCostModel" class="link"
+	    >Source</a
+	    > <a href="#t:MCostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MCekMachineCosts" class="def"
+	    >MCekMachineCosts</a
+	    > = <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCostsBase" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCostsBase</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="src/PlutusLedgerApi.Test.Common.EvaluationContext.html#MCekMachineCosts" class="link"
+	    >Source</a
+	    > <a href="#t:MCekMachineCosts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MBuiltinCostModel" class="def"
+	    >MBuiltinCostModel</a
+	    > = <a href="../plutus-core/PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModelBase" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	    >BuiltinCostModelBase</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:MCostingFun" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	    >MCostingFun</a
+	    > <a href="src/PlutusLedgerApi.Test.Common.EvaluationContext.html#MBuiltinCostModel" class="link"
+	    >Source</a
+	    > <a href="#t:MBuiltinCostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toMCostModel" class="def"
+	    >toMCostModel</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-MachineParameters.html#t:CostModel" title="PlutusCore.Evaluation.Machine.MachineParameters"
+	    >CostModel</a
+	    > <a href="../plutus-core/UntypedPlutusCore-Evaluation-Machine-Cek-CekMachineCosts.html#t:CekMachineCosts" title="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts"
+	    >CekMachineCosts</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-BuiltinCostModel.html#t:BuiltinCostModel" title="PlutusCore.Evaluation.Machine.BuiltinCostModel"
+	    >BuiltinCostModel</a
+	    > &#8594; <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	    >MCostModel</a
+	    > <a href="src/PlutusLedgerApi.Test.Common.EvaluationContext.html#toMCostModel" class="link"
+	    >Source</a
+	    > <a href="#v:toMCostModel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A helper function to lift to a &quot;full&quot; <code
+	      ><a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+		>MCostModel</a
+		></code
+	      >, by mapping *all* of its fields to <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+		>Just</a
+		></code
+	      >.
+ The fields can be later on cleared, by assigning them to <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+		>Nothing</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:extractCostModelParamsLedgerOrder" class="def"
+	    >extractCostModelParamsLedgerOrder</a
+	    > &#8759; (<a href="../plutus-ledger-api/PlutusLedgerApi-Common-ParamName.html#t:IsParamName" title="PlutusLedgerApi.Common.ParamName"
+	    >IsParamName</a
+	    > p, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > p) &#8658; <a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+	    >MCostModel</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > p <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	    >Int64</a
+	    >) <a href="src/PlutusLedgerApi.Test.Common.EvaluationContext.html#extractCostModelParamsLedgerOrder" class="link"
+	    >Source</a
+	    > <a href="#v:extractCostModelParamsLedgerOrder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A variant of <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostModelInterface.html#v:extractCostModelParams" title="PlutusCore.Evaluation.Machine.CostModelInterface"
+		>extractCostModelParams</a
+		></code
+	      > to make a mapping of params not in alphabetical order,
+but in the <code
+	      >ParamName</code
+	      > order, i.e. the order expected by the ledger.</p
+	    ><p
+	    >Here, overconstrained to <code
+	      ><a href="PlutusLedgerApi-Test-Common-EvaluationContext.html#t:MCostModel" title="PlutusLedgerApi.Test.Common.EvaluationContext"
+		>MCostModel</a
+		></code
+	      >, but it could also work with `CostModel mcosts bcosts`.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

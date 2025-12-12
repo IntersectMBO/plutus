@@ -1,0 +1,1475 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Test.Orphans</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyConst"
+	><span class="hs-identifier"
+	  >PrettyConst</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Test.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Test</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Test.html#ToTPlc"
+	><span class="hs-identifier"
+	  >ToTPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Test.html#ToUPlc"
+	><span class="hs-identifier"
+	  >ToUPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Test.html#catchAll"
+	><span class="hs-identifier"
+	  >catchAll</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Analysis.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Test.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Test</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Transform.RewriteRules.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Default</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Code</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCodeIn"
+	><span class="hs-identifier"
+	  >CompiledCodeIn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#getPir"
+	><span class="hs-identifier"
+	  >getPir</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Code.html#getPlcNoAnn"
+	><span class="hs-identifier"
+	  >getPlcNoAnn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Flat.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	><span class="hs-identifier"
+	  >Flat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/Test.Tasty.Extras.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.Extras</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679224360"
+      ><span id="local-6989586621679224361"
+	><span id="local-6989586621679224362"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Closed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224360"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224360"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224361"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-29"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Test.html#ToUPlc"
+	      ><span class="hs-identifier hs-type"
+		>ToUPlc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224360"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224361"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224362"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224360"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224361"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679224436"
+      ><span class="annot"
+	><span class="annottext"
+	  >toUPlc :: CompiledCodeIn uni fun a
+-&gt; ExceptT SomeException IO (Program Name uni fun ())
+</span
+	  ><a href="#local-6989586621679224436"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toUPlc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679224438"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun a
+</span
+	  ><a href="#local-6989586621679224438"
+	  ><span class="hs-identifier hs-var"
+	    >compiledCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun ()
+-&gt; ExceptT SomeException IO (Program Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+ToUPlc a uni fun =&gt;
+a -&gt; ExceptT SomeException IO (Program Name uni fun ())
+</span
+	><a href="../../plutus-core/src/PlutusCore.Test.html#toUPlc"
+	><span class="hs-identifier hs-var"
+	  >toUPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Program NamedDeBruijn uni fun ()
+ -&gt; ExceptT SomeException IO (Program Name uni fun ()))
+-&gt; ExceptT SomeException IO (Program NamedDeBruijn uni fun ())
+-&gt; ExceptT SomeException IO (Program Name uni fun ())
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3D%3C%3C"
+	><span class="hs-operator hs-var"
+	  >=&lt;&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program NamedDeBruijn uni fun ()
+-&gt; ExceptT SomeException IO (Program NamedDeBruijn uni fun ())
+forall a. a -&gt; ExceptT SomeException IO a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Test.html#catchAll"
+	><span class="hs-identifier hs-var"
+	  >catchAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun ()
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a -&gt; Program NamedDeBruijn uni fun ()
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#getPlcNoAnn"
+	><span class="hs-identifier hs-var"
+	  >getPlcNoAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621679224438"
+	><span class="hs-identifier hs-var"
+	  >compiledCode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679224395"
+      ><span id="local-6989586621679224396"
+	><span id="local-6989586621679224397"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Pretty.Extra.html#PrettyParens"
+	      ><span class="hs-identifier hs-type"
+		>PLC.PrettyParens</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#SomeTypeIn"
+	      ><span class="hs-identifier hs-type"
+		>PLC.SomeTypeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-35"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/some-1.0.6/docs/src/Data.GADT.Internal.html#GEq"
+	      ><span class="hs-identifier hs-type"
+		>PLC.GEq</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-36"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.TypeCheck.html#Typecheckable"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Typecheckable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-37"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.Case.html#CaseBuiltin"
+	      ><span class="hs-identifier hs-type"
+		>PLC.CaseBuiltin</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-38"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Closed"
+	      ><span class="hs-identifier hs-type"
+		>PLC.Closed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-39"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyConst"
+	      ><span class="hs-identifier hs-type"
+		>PrettyConst</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-40"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-41"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/Universe.Core.html#Everywhere"
+	      ><span class="hs-operator hs-type"
+		>`PLC.Everywhere`</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-42"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Flat.Class.html#Flat"
+	      ><span class="hs-identifier hs-type"
+		>Flat</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-43"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >Default</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#CostingPart"
+	      ><span class="hs-identifier hs-type"
+		>PLC.CostingPart</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-44"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >Default</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	      ><span class="hs-identifier hs-type"
+		>PIR.BuiltinsInfo</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-45"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >Default</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	      ><span class="hs-identifier hs-type"
+		>PIR.RewriteRules</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-46"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-47"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Test.html#ToTPlc"
+	      ><span class="hs-identifier hs-type"
+		>ToTPlc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-tx/src/PlutusTx.Code.html#CompiledCodeIn"
+	      ><span class="hs-identifier hs-type"
+		>CompiledCodeIn</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224397"
+	      ><span class="hs-identifier hs-type"
+		>a</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224395"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679224396"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679224475"
+      ><span class="annot"
+	><span class="annottext"
+	  >toTPlc :: CompiledCodeIn uni fun a
+-&gt; ExceptT SomeException IO (Program TyName Name uni fun ())
+</span
+	  ><a href="#local-6989586621679224475"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toTPlc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679224477"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledCodeIn uni fun a
+</span
+	  ><a href="#local-6989586621679224477"
+	  ><span class="hs-identifier hs-var"
+	    >compiledCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+-&gt; ExceptT
+     SomeException IO (Maybe (Program TyName Name uni fun SrcSpans))
+forall a. a -&gt; ExceptT SomeException IO a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Test.html#catchAll"
+	><span class="hs-identifier hs-var"
+	  >catchAll</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+forall (uni :: * -&gt; *) fun a.
+(Closed uni, Everywhere uni Flat, Flat fun) =&gt;
+CompiledCodeIn uni fun a
+-&gt; Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Code.html#getPir"
+	><span class="hs-identifier hs-var"
+	  >getPir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledCodeIn uni fun a
+</span
+	><a href="#local-6989586621679224477"
+	><span class="hs-identifier hs-var"
+	  >compiledCode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExceptT
+  SomeException IO (Maybe (Program TyName Name uni fun SrcSpans))
+-&gt; (Maybe (Program TyName Name uni fun SrcSpans)
+    -&gt; ExceptT SomeException IO (Program TyName Name uni fun ()))
+-&gt; ExceptT SomeException IO (Program TyName Name uni fun ())
+forall a b.
+ExceptT SomeException IO a
+-&gt; (a -&gt; ExceptT SomeException IO b) -&gt; ExceptT SomeException IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (Program TyName Name uni fun SrcSpans)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; ExceptT SomeException IO (Program TyName Name uni fun ())
+forall a. String -&gt; ExceptT SomeException IO a
+forall (m :: * -&gt; *) a. MonadFail m =&gt; String -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-identifier hs-var"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;No PIR available&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679224478"
+      ><span class="annot"
+	><span class="annottext"
+	  >Program TyName Name uni fun SrcSpans
+</span
+	  ><a href="#local-6989586621679224478"
+	  ><span class="hs-identifier hs-var"
+	    >program</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+-&gt; ExceptT SomeException IO (Program TyName Name uni fun ())
+forall a (uni :: * -&gt; *) fun.
+ToTPlc a uni fun =&gt;
+a -&gt; ExceptT SomeException IO (Program TyName Name uni fun ())
+</span
+	><a href="../../plutus-core/src/PlutusCore.Test.html#toTPlc"
+	><span class="hs-identifier hs-var"
+	  >toTPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Program TyName Name uni fun SrcSpans
+</span
+	><a href="#local-6989586621679224478"
+	><span class="hs-identifier hs-var"
+	  >program</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

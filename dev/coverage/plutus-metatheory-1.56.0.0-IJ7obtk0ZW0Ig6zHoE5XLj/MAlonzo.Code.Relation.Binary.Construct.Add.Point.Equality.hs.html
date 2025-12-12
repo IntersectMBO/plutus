@@ -1,0 +1,307 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Relation.Binary.Construct.Add.Point.Equality where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Bool qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Builtin.Equality qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Agda.Builtin.Maybe qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Function.Base qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Relation.Binary.Structures qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Relation.Nullary.Decidable.Core qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Relation.Nullary.Reflects qualified
+<span class="lineno">   24 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   25 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   26 </span>                    word64ToNat)
+<span class="lineno">   27 </span>import MAlonzo.RTE qualified
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- Relation.Binary.Construct.Add.Point.Equality._≈∙_
+<span class="lineno">   30 </span><span class="decl"><span class="nottickedoff">d__'8776''8729'__20 a0 a1 a2 a3 a4 a5 = ()</span></span>
+<span class="lineno">   31 </span>data T__'8776''8729'__20
+<span class="lineno">   32 </span>  = C_'8729''8776''8729'_22 | C_'91'_'93'_28 AgdaAny
+<span class="lineno">   33 </span>-- Relation.Binary.Construct.Add.Point.Equality.[≈]-injective
+<span class="lineno">   34 </span>d_'91''8776''93''45'injective_34 ::
+<span class="lineno">   35 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   36 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   37 </span>  () -&gt;
+<span class="lineno">   38 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   39 </span>  AgdaAny -&gt; AgdaAny -&gt; T__'8776''8729'__20 -&gt; AgdaAny
+<span class="lineno">   40 </span><span class="decl"><span class="nottickedoff">d_'91''8776''93''45'injective_34 ~v0 ~v1 ~v2 ~v3 ~v4 ~v5 v6</span>
+<span class="lineno">   41 </span><span class="spaces">  </span><span class="nottickedoff">= du_'91''8776''93''45'injective_34 v6</span></span>
+<span class="lineno">   42 </span>du_'91''8776''93''45'injective_34 :: T__'8776''8729'__20 -&gt; AgdaAny
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">du_'91''8776''93''45'injective_34 v0</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">C_'91'_'93'_28 v3 -&gt; coe v3</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">_                 -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   47 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-refl
+<span class="lineno">   48 </span>d_'8776''8729''45'refl_38 ::
+<span class="lineno">   49 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   50 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   51 </span>  () -&gt;
+<span class="lineno">   52 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   53 </span>  (AgdaAny -&gt; AgdaAny) -&gt; Maybe AgdaAny -&gt; T__'8776''8729'__20
+<span class="lineno">   54 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'refl_38 ~v0 ~v1 ~v2 ~v3 v4 v5</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8776''8729''45'refl_38 v4 v5</span></span>
+<span class="lineno">   56 </span>du_'8776''8729''45'refl_38 ::
+<span class="lineno">   57 </span>  (AgdaAny -&gt; AgdaAny) -&gt; Maybe AgdaAny -&gt; T__'8776''8729'__20
+<span class="lineno">   58 </span><span class="decl"><span class="nottickedoff">du_'8776''8729''45'refl_38 v0 v1</span>
+<span class="lineno">   59 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">   60 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v2</span>
+<span class="lineno">   61 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe C_'91'_'93'_28 (coe v0 v2)</span>
+<span class="lineno">   62 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">   63 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; coe C_'8729''8776''8729'_22</span>
+<span class="lineno">   64 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   65 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-sym
+<span class="lineno">   66 </span>d_'8776''8729''45'sym_46 ::
+<span class="lineno">   67 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   68 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   69 </span>  () -&gt;
+<span class="lineno">   70 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   71 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   72 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">   73 </span>  Maybe AgdaAny -&gt; T__'8776''8729'__20 -&gt; T__'8776''8729'__20
+<span class="lineno">   74 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'sym_46 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8776''8729''45'sym_46 v4 v5 v6 v7</span></span>
+<span class="lineno">   76 </span>du_'8776''8729''45'sym_46 ::
+<span class="lineno">   77 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   78 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">   79 </span>  Maybe AgdaAny -&gt; T__'8776''8729'__20 -&gt; T__'8776''8729'__20
+<span class="lineno">   80 </span><span class="decl"><span class="nottickedoff">du_'8776''8729''45'sym_46 v0 v1 v2 v3</span>
+<span class="lineno">   81 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v3 of</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="nottickedoff">C_'8729''8776''8729'_22 -&gt; coe v3</span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="nottickedoff">C_'91'_'93'_28 v6</span>
+<span class="lineno">   84 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">   85 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v7</span>
+<span class="lineno">   86 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">   87 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v8</span>
+<span class="lineno">   88 </span><span class="spaces">                      </span><span class="nottickedoff">-&gt; coe C_'91'_'93'_28 (coe v0 v7 v8 v6)</span>
+<span class="lineno">   89 </span><span class="spaces">                    </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">   90 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   92 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-trans
+<span class="lineno">   93 </span>d_'8776''8729''45'trans_54 ::
+<span class="lineno">   94 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   95 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   96 </span>  () -&gt;
+<span class="lineno">   97 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">   98 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">   99 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  100 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  101 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  102 </span>  T__'8776''8729'__20 -&gt; T__'8776''8729'__20 -&gt; T__'8776''8729'__20
+<span class="lineno">  103 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'trans_54 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7 v8 v9</span>
+<span class="lineno">  104 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8776''8729''45'trans_54 v4 v5 v6 v7 v8 v9</span></span>
+<span class="lineno">  105 </span>du_'8776''8729''45'trans_54 ::
+<span class="lineno">  106 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  107 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  108 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  109 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  110 </span>  T__'8776''8729'__20 -&gt; T__'8776''8729'__20 -&gt; T__'8776''8729'__20
+<span class="lineno">  111 </span><span class="decl"><span class="nottickedoff">du_'8776''8729''45'trans_54 v0 v1 v2 v3 v4 v5</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v4 of</span>
+<span class="lineno">  113 </span><span class="spaces">      </span><span class="nottickedoff">C_'8729''8776''8729'_22 -&gt; coe v5</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="nottickedoff">C_'91'_'93'_28 v8</span>
+<span class="lineno">  115 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v1 of</span>
+<span class="lineno">  116 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v9</span>
+<span class="lineno">  117 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  118 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v10</span>
+<span class="lineno">  119 </span><span class="spaces">                      </span><span class="nottickedoff">-&gt; case coe v5 of</span>
+<span class="lineno">  120 </span><span class="spaces">                           </span><span class="nottickedoff">C_'91'_'93'_28 v13</span>
+<span class="lineno">  121 </span><span class="spaces">                             </span><span class="nottickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">  122 </span><span class="spaces">                                  </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v14</span>
+<span class="lineno">  123 </span><span class="spaces">                                    </span><span class="nottickedoff">-&gt; coe C_'91'_'93'_28 (coe v0 v9 v10 v14 v8 v13)</span>
+<span class="lineno">  124 </span><span class="spaces">                                  </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  125 </span><span class="spaces">                           </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  126 </span><span class="spaces">                    </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  127 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  128 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  129 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-dec
+<span class="lineno">  130 </span>d_'8776''8729''45'dec_66 ::
+<span class="lineno">  131 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  132 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  133 </span>  () -&gt;
+<span class="lineno">  134 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  135 </span>  (AgdaAny -&gt;
+<span class="lineno">  136 </span>   AgdaAny -&gt;
+<span class="lineno">  137 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">  138 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  139 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  140 </span>  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  141 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'dec_66 ~v0 ~v1 ~v2 ~v3 v4 v5 v6</span>
+<span class="lineno">  142 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8776''8729''45'dec_66 v4 v5 v6</span></span>
+<span class="lineno">  143 </span>du_'8776''8729''45'dec_66 ::
+<span class="lineno">  144 </span>  (AgdaAny -&gt;
+<span class="lineno">  145 </span>   AgdaAny -&gt;
+<span class="lineno">  146 </span>   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) -&gt;
+<span class="lineno">  147 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  148 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  149 </span>  MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
+<span class="lineno">  150 </span><span class="decl"><span class="nottickedoff">du_'8776''8729''45'dec_66 v0 v1 v2</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v1 of</span>
+<span class="lineno">  152 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3</span>
+<span class="lineno">  153 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  154 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v4</span>
+<span class="lineno">  155 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  156 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168</span>
+<span class="lineno">  157 </span><span class="spaces">                    </span><span class="nottickedoff">(coe C_'91'_'93'_28) (coe du_'91''8776''93''45'injective_34)</span>
+<span class="lineno">  158 </span><span class="spaces">                    </span><span class="nottickedoff">(coe v0 v3 v4)</span>
+<span class="lineno">  159 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">  160 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  161 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  162 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span>
+<span class="lineno">  163 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)</span>
+<span class="lineno">  164 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  165 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">  166 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  167 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v3</span>
+<span class="lineno">  168 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  169 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  170 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8)</span>
+<span class="lineno">  171 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)</span>
+<span class="lineno">  172 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18</span>
+<span class="lineno">  173 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  174 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span>
+<span class="lineno">  175 </span><span class="spaces">                    </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10)</span>
+<span class="lineno">  176 </span><span class="spaces">                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  177 </span><span class="spaces">                       </span><span class="nottickedoff">MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22</span>
+<span class="lineno">  178 </span><span class="spaces">                       </span><span class="nottickedoff">(coe C_'8729''8776''8729'_22))</span>
+<span class="lineno">  179 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  180 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  181 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-irrelevant
+<span class="lineno">  182 </span>d_'8776''8729''45'irrelevant_84 ::
+<span class="lineno">  183 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  184 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  185 </span>  () -&gt;
+<span class="lineno">  186 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  187 </span>  (AgdaAny -&gt;
+<span class="lineno">  188 </span>   AgdaAny -&gt;
+<span class="lineno">  189 </span>   AgdaAny -&gt;
+<span class="lineno">  190 </span>   AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) -&gt;
+<span class="lineno">  191 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  192 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  193 </span>  T__'8776''8729'__20 -&gt;
+<span class="lineno">  194 </span>  T__'8776''8729'__20 -&gt;
+<span class="lineno">  195 </span>  MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
+<span class="lineno">  196 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'irrelevant_84 = erased</span></span>
+<span class="lineno">  197 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-substitutive
+<span class="lineno">  198 </span>d_'8776''8729''45'substitutive_96 ::
+<span class="lineno">  199 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  200 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  201 </span>  () -&gt;
+<span class="lineno">  202 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  203 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  204 </span>  ((AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  205 </span>   AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  206 </span>  (Maybe AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  207 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  208 </span>  Maybe AgdaAny -&gt; T__'8776''8729'__20 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  209 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'substitutive_96 ~v0 ~v1 ~v2 ~v3 ~v4 v5 v6 v7 v8</span>
+<span class="lineno">  210 </span><span class="spaces">                                  </span><span class="nottickedoff">v9</span>
+<span class="lineno">  211 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8776''8729''45'substitutive_96 v5 v6 v7 v8 v9</span></span>
+<span class="lineno">  212 </span>du_'8776''8729''45'substitutive_96 ::
+<span class="lineno">  213 </span>  ((AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  214 </span>   AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt;
+<span class="lineno">  215 </span>  (Maybe AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  216 </span>  Maybe AgdaAny -&gt;
+<span class="lineno">  217 </span>  Maybe AgdaAny -&gt; T__'8776''8729'__20 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  218 </span><span class="decl"><span class="nottickedoff">du_'8776''8729''45'substitutive_96 v0 v1 v2 v3 v4</span>
+<span class="lineno">  219 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v4 of</span>
+<span class="lineno">  220 </span><span class="spaces">      </span><span class="nottickedoff">C_'8729''8776''8729'_22 -&gt; coe (\ v5 -&gt; v5)</span>
+<span class="lineno">  221 </span><span class="spaces">      </span><span class="nottickedoff">C_'91'_'93'_28 v7</span>
+<span class="lineno">  222 </span><span class="spaces">        </span><span class="nottickedoff">-&gt; case coe v2 of</span>
+<span class="lineno">  223 </span><span class="spaces">             </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v8</span>
+<span class="lineno">  224 </span><span class="spaces">               </span><span class="nottickedoff">-&gt; case coe v3 of</span>
+<span class="lineno">  225 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v9</span>
+<span class="lineno">  226 </span><span class="spaces">                      </span><span class="nottickedoff">-&gt; coe</span>
+<span class="lineno">  227 </span><span class="spaces">                           </span><span class="nottickedoff">v0</span>
+<span class="lineno">  228 </span><span class="spaces">                           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  229 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Function.Base.du__'8728''8242'__216 (coe v1)</span>
+<span class="lineno">  230 </span><span class="spaces">                              </span><span class="nottickedoff">(coe MAlonzo.Code.Agda.Builtin.Maybe.C_just_16))</span>
+<span class="lineno">  231 </span><span class="spaces">                           </span><span class="nottickedoff">v8 v9 v7</span>
+<span class="lineno">  232 </span><span class="spaces">                    </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  233 </span><span class="spaces">             </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span>
+<span class="lineno">  234 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  235 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-isEquivalence
+<span class="lineno">  236 </span>d_'8776''8729''45'isEquivalence_108 ::
+<span class="lineno">  237 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  238 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  239 </span>  () -&gt;
+<span class="lineno">  240 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  241 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 -&gt;
+<span class="lineno">  242 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+<span class="lineno">  243 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'isEquivalence_108 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  244 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8776''8729''45'isEquivalence_108 v4</span></span>
+<span class="lineno">  245 </span>du_'8776''8729''45'isEquivalence_108 ::
+<span class="lineno">  246 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26 -&gt;
+<span class="lineno">  247 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+<span class="lineno">  248 </span><span class="decl"><span class="nottickedoff">du_'8776''8729''45'isEquivalence_108 v0</span>
+<span class="lineno">  249 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsEquivalence'46'constructor_745</span>
+<span class="lineno">  251 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  252 </span><span class="spaces">         </span><span class="nottickedoff">du_'8776''8729''45'refl_38</span>
+<span class="lineno">  253 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Binary.Structures.d_refl_34 (coe v0)))</span>
+<span class="lineno">  254 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  255 </span><span class="spaces">         </span><span class="nottickedoff">du_'8776''8729''45'sym_46</span>
+<span class="lineno">  256 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Binary.Structures.d_sym_36 (coe v0)))</span>
+<span class="lineno">  257 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  258 </span><span class="spaces">         </span><span class="nottickedoff">du_'8776''8729''45'trans_54</span>
+<span class="lineno">  259 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Relation.Binary.Structures.d_trans_38 (coe v0)))</span></span>
+<span class="lineno">  260 </span>-- Relation.Binary.Construct.Add.Point.Equality.≈∙-isDecEquivalence
+<span class="lineno">  261 </span>d_'8776''8729''45'isDecEquivalence_128 ::
+<span class="lineno">  262 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  263 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  264 </span>  () -&gt;
+<span class="lineno">  265 </span>  (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt;
+<span class="lineno">  266 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44 -&gt;
+<span class="lineno">  267 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44
+<span class="lineno">  268 </span><span class="decl"><span class="nottickedoff">d_'8776''8729''45'isDecEquivalence_128 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  269 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8776''8729''45'isDecEquivalence_128 v4</span></span>
+<span class="lineno">  270 </span>du_'8776''8729''45'isDecEquivalence_128 ::
+<span class="lineno">  271 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44 -&gt;
+<span class="lineno">  272 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsDecEquivalence_44
+<span class="lineno">  273 </span><span class="decl"><span class="nottickedoff">du_'8776''8729''45'isDecEquivalence_128 v0</span>
+<span class="lineno">  274 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  275 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.C_IsDecEquivalence'46'constructor_3083</span>
+<span class="lineno">  276 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  277 </span><span class="spaces">         </span><span class="nottickedoff">du_'8776''8729''45'isEquivalence_108</span>
+<span class="lineno">  278 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  279 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_isEquivalence_50</span>
+<span class="lineno">  280 </span><span class="spaces">            </span><span class="nottickedoff">(coe v0)))</span>
+<span class="lineno">  281 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  282 </span><span class="spaces">         </span><span class="nottickedoff">du_'8776''8729''45'dec_66</span>
+<span class="lineno">  283 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  284 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d__'8799'__52 (coe v0)))</span></span>
+
+</pre>
+</body>
+</html>

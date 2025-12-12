@@ -1,0 +1,193 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    5 </span>
+<span class="lineno">    6 </span>-- | The API parameterized over some machine.
+<span class="lineno">    7 </span>module UntypedPlutusCore.Evaluation.Machine.CommonAPI
+<span class="lineno">    8 </span>  ( -- * Running the machine
+<span class="lineno">    9 </span>    runCek
+<span class="lineno">   10 </span>  , runCekDeBruijn
+<span class="lineno">   11 </span>  , runCekNoEmit
+<span class="lineno">   12 </span>  , evaluateCek
+<span class="lineno">   13 </span>  , evaluateCekNoEmit
+<span class="lineno">   14 </span>  , EvaluationResult (..)
+<span class="lineno">   15 </span>  , splitStructuralOperational
+<span class="lineno">   16 </span>  , unsafeSplitStructuralOperational
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>    -- * Errors
+<span class="lineno">   19 </span>  , CekUserError (..)
+<span class="lineno">   20 </span>  , ErrorWithCause (..)
+<span class="lineno">   21 </span>  , CekEvaluationException
+<span class="lineno">   22 </span>  , EvaluationError (..)
+<span class="lineno">   23 </span>
+<span class="lineno">   24 </span>    -- * Costing
+<span class="lineno">   25 </span>  , ExBudgetCategory (..)
+<span class="lineno">   26 </span>  , CekBudgetSpender (..)
+<span class="lineno">   27 </span>  , ExBudgetMode (..)
+<span class="lineno">   28 </span>  , StepKind (..)
+<span class="lineno">   29 </span>  , CekExTally (..)
+<span class="lineno">   30 </span>  , CountingSt (..)
+<span class="lineno">   31 </span>  , TallyingSt (..)
+<span class="lineno">   32 </span>  , RestrictingSt (..)
+<span class="lineno">   33 </span>  , CekMachineCosts
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>    -- ** Costing modes
+<span class="lineno">   36 </span>  , counting
+<span class="lineno">   37 </span>  , tallying
+<span class="lineno">   38 </span>  , restricting
+<span class="lineno">   39 </span>  , restrictingEnormous
+<span class="lineno">   40 </span>  , enormousBudget
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>    -- * Emitter modes
+<span class="lineno">   43 </span>  , noEmitter
+<span class="lineno">   44 </span>  , logEmitter
+<span class="lineno">   45 </span>  , logWithTimeEmitter
+<span class="lineno">   46 </span>  , logWithBudgetEmitter
+<span class="lineno">   47 </span>  , logWithCallTraceEmitter
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>    -- * Misc
+<span class="lineno">   50 </span>  , CekValue (..)
+<span class="lineno">   51 </span>  , readKnownCek
+<span class="lineno">   52 </span>  , Hashable
+<span class="lineno">   53 </span>  , ThrowableBuiltins
+<span class="lineno">   54 </span>  )
+<span class="lineno">   55 </span>where
+<span class="lineno">   56 </span>
+<span class="lineno">   57 </span>import PlutusPrelude
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>import UntypedPlutusCore.Core
+<span class="lineno">   60 </span>import UntypedPlutusCore.DeBruijn
+<span class="lineno">   61 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+<span class="lineno">   62 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
+<span class="lineno">   63 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+<span class="lineno">   64 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>import PlutusCore.Builtin
+<span class="lineno">   67 </span>import PlutusCore.Evaluation.Machine.MachineParameters
+<span class="lineno">   68 </span>import PlutusCore.Name.Unique
+<span class="lineno">   69 </span>import PlutusCore.Quote
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>import Control.Monad.Except
+<span class="lineno">   72 </span>import Control.Monad.State
+<span class="lineno">   73 </span>import Data.Text (Text)
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>-- The type of the machine (runner function).
+<span class="lineno">   76 </span>type MachineRunner cost uni fun ann =
+<span class="lineno">   77 </span>  MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">   78 </span>  -&gt; ExBudgetMode cost uni fun
+<span class="lineno">   79 </span>  -&gt; EmitterMode uni fun
+<span class="lineno">   80 </span>  -&gt; NTerm uni fun ann
+<span class="lineno">   81 </span>  -&gt; CekReport cost NamedDeBruijn uni fun
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>{- Note [CEK runners naming convention]
+<span class="lineno">   84 </span>A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
+<span class="lineno">   85 </span>A function whose name starts with @unsafe@ throws exceptions instead of returning them purely.
+<span class="lineno">   86 </span>A function from the @runCek@ family takes an 'ExBudgetMode' parameter and returns the final
+<span class="lineno">   87 </span>'CekExBudgetState' (and possibly logs). Note that 'runCek' is defined in @...Cek.Internal@ for
+<span class="lineno">   88 </span>reasons explained in Note [Compilation peculiarities].
+<span class="lineno">   89 </span>A function from the @evaluateCek@ family does not return the final 'ExBudgetMode', nor does it
+<span class="lineno">   90 </span>allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully evaluating programs
+<span class="lineno">   91 </span>(and possibly returning logs). See also haddocks of 'enormousBudget'.
+<span class="lineno">   92 </span>-}
+<span class="lineno">   93 </span>
+<span class="lineno">   94 </span>{-| Evaluate a term using a machine with logging enabled and keep track of costing.
+<span class="lineno">   95 </span>A wrapper around the internal runCek to debruijn input and undebruijn output.
+<span class="lineno">   96 </span>*THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
+<span class="lineno">   97 </span>runCek
+<span class="lineno">   98 </span>  :: MachineRunner cost uni fun ann
+<span class="lineno">   99 </span>  -&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  100 </span>  -&gt; ExBudgetMode cost uni fun
+<span class="lineno">  101 </span>  -&gt; EmitterMode uni fun
+<span class="lineno">  102 </span>  -&gt; Term Name uni fun ann
+<span class="lineno">  103 </span>  -&gt; CekReport cost Name uni fun
+<span class="lineno">  104 </span><span class="decl"><span class="istickedoff">runCek runner params mode emitMode term =</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="istickedoff">-- translating input</span>
+<span class="lineno">  106 </span><span class="spaces">  </span><span class="istickedoff">case runExcept @FreeVariableError $ deBruijnTerm term of</span>
+<span class="lineno">  107 </span><span class="spaces">    </span><span class="istickedoff">Left fvError -&gt; <span class="nottickedoff">throw fvError</span></span>
+<span class="lineno">  108 </span><span class="spaces">    </span><span class="istickedoff">Right dbt -&gt; do</span>
+<span class="lineno">  109 </span><span class="spaces">      </span><span class="istickedoff">-- Don't use 'let': https://github.com/IntersectMBO/plutus/issues/3876</span>
+<span class="lineno">  110 </span><span class="spaces">      </span><span class="istickedoff">case runner params mode emitMode dbt of</span>
+<span class="lineno">  111 </span><span class="spaces">        </span><span class="istickedoff">-- translating back the output</span>
+<span class="lineno">  112 </span><span class="spaces">        </span><span class="istickedoff">CekReport res cost' logs -&gt;</span>
+<span class="lineno">  113 </span><span class="spaces">          </span><span class="istickedoff">CekReport (mapTermCekResult gracefulUnDeBruijn res) cost' logs</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">  115 </span><span class="spaces">    </span><span class="istickedoff">-- \*GRACEFULLY* undebruijnifies: a) the error-cause-term (if it exists) or b) the success</span>
+<span class="lineno">  116 </span><span class="spaces">    </span><span class="istickedoff">-- \*value-term.</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">-- 'Graceful' means that the (a) &amp;&amp; (b) undebruijnifications do not throw an error upon a free</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="istickedoff">-- variable encounter: free debruijn indices will be turned to free, consistent uniques</span>
+<span class="lineno">  119 </span><span class="spaces">    </span><span class="istickedoff">gracefulUnDeBruijn :: Term NamedDeBruijn uni fun () -&gt; Term Name uni fun ()</span>
+<span class="lineno">  120 </span><span class="spaces">    </span><span class="istickedoff">gracefulUnDeBruijn t =</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="istickedoff">runQuote</span>
+<span class="lineno">  122 </span><span class="spaces">        </span><span class="istickedoff">. flip evalStateT <span class="nottickedoff">mempty</span></span>
+<span class="lineno">  123 </span><span class="spaces">        </span><span class="istickedoff">$ unDeBruijnTermWith <span class="nottickedoff">freeIndexAsConsistentLevel</span> t</span></span>
+<span class="lineno">  124 </span>
+<span class="lineno">  125 </span>{-| Evaluate a term using a machine with logging disabled and keep track of costing.
+<span class="lineno">  126 </span>*THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
+<span class="lineno">  127 </span>runCekNoEmit
+<span class="lineno">  128 </span>  :: MachineRunner cost uni fun ann
+<span class="lineno">  129 </span>  -&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  130 </span>  -&gt; ExBudgetMode cost uni fun
+<span class="lineno">  131 </span>  -&gt; Term Name uni fun ann
+<span class="lineno">  132 </span>  -&gt; (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
+<span class="lineno">  133 </span><span class="decl"><span class="istickedoff">runCekNoEmit runner params mode =</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="istickedoff">-- throw away the logs</span>
+<span class="lineno">  135 </span><span class="spaces">  </span><span class="istickedoff">(\(CekReport res cost _logs) -&gt; (cekResultToEither res, cost))</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="istickedoff">. runCek runner params mode noEmitter</span></span>
+<span class="lineno">  137 </span>
+<span class="lineno">  138 </span>{-| Evaluate a term using a machine with logging enabled.
+<span class="lineno">  139 </span>*THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
+<span class="lineno">  140 </span>evaluateCek
+<span class="lineno">  141 </span>  :: ThrowableBuiltins uni fun
+<span class="lineno">  142 </span>  =&gt; MachineRunner RestrictingSt uni fun ann
+<span class="lineno">  143 </span>  -&gt; EmitterMode uni fun
+<span class="lineno">  144 </span>  -&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  145 </span>  -&gt; Term Name uni fun ann
+<span class="lineno">  146 </span>  -&gt; (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
+<span class="lineno">  147 </span><span class="decl"><span class="istickedoff">evaluateCek runner emitMode params =</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="istickedoff">-- throw away the cost</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="istickedoff">(\(CekReport res _cost logs) -&gt; (cekResultToEither res, logs))</span>
+<span class="lineno">  150 </span><span class="spaces">    </span><span class="istickedoff">. runCek runner params restrictingEnormous emitMode</span></span>
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>{-| Evaluate a term using a machine with logging disabled.
+<span class="lineno">  153 </span>*THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
+<span class="lineno">  154 </span>evaluateCekNoEmit
+<span class="lineno">  155 </span>  :: ThrowableBuiltins uni fun
+<span class="lineno">  156 </span>  =&gt; MachineRunner RestrictingSt uni fun ann
+<span class="lineno">  157 </span>  -&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  158 </span>  -&gt; Term Name uni fun ann
+<span class="lineno">  159 </span>  -&gt; Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
+<span class="lineno">  160 </span><span class="decl"><span class="istickedoff">evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEnormous</span></span>
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>{-| Unlift a value using a machine.
+<span class="lineno">  163 </span>*THIS FUNCTION IS PARTIAL if the input term contains free variables* -}
+<span class="lineno">  164 </span>readKnownCek
+<span class="lineno">  165 </span>  :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
+<span class="lineno">  166 </span>  =&gt; MachineRunner RestrictingSt uni fun ann
+<span class="lineno">  167 </span>  -&gt; MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+<span class="lineno">  168 </span>  -&gt; Term Name uni fun ann
+<span class="lineno">  169 </span>  -&gt; Either (CekEvaluationException Name uni fun) a
+<span class="lineno">  170 </span><span class="decl"><span class="istickedoff">readKnownCek runner params = evaluateCekNoEmit runner params &gt;=&gt; readKnownSelf</span></span>
+
+</pre>
+</body>
+</html>

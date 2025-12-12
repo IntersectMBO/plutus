@@ -1,0 +1,1140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Builtin.HasConstant</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Builtin.HasConstant.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Builtin.HasConstant</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:BuiltinError"
+	      >BuiltinError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:BuiltinUnliftingEvaluationError"
+		  >BuiltinUnliftingEvaluationError</a
+		  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		  >UnliftingEvaluationError</a
+		  ></li
+		><li
+		>| <a href="#v:BuiltinEvaluationFailure"
+		  >BuiltinEvaluationFailure</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:notAConstant"
+	      >notAConstant</a
+	      > &#8759; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+	      >BuiltinError</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:HasConstant"
+	      >HasConstant</a
+	      > term <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:asConstant"
+		  >asConstant</a
+		  > &#8759; term &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+		  >Either</a
+		  > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+		  >BuiltinError</a
+		  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > term)))</li
+		><li
+		><a href="#v:fromConstant"
+		  >fromConstant</a
+		  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+		  >Some</a
+		  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+		  >ValueOf</a
+		  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+		  >UniOf</a
+		  > term)) &#8594; term</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:HasConstantIn"
+	      >HasConstantIn</a
+	      > uni term = (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > uni, <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	      >HasConstant</a
+	      > term)</li
+	    ><li class="src short"
+	    ><a href="#v:fromValueOf"
+	      >fromValueOf</a
+	      > &#8759; &#8704; a term. <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	      >HasConstant</a
+	      > term &#8658; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > term (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	      >Esc</a
+	      > a) &#8594; a &#8594; term</li
+	    ><li class="src short"
+	    ><a href="#v:fromValue"
+	      >fromValue</a
+	      > &#8759; &#8704; a term. (<a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	      >HasConstant</a
+	      > term, <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > term <a href="PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+	      >`HasTermLevel`</a
+	      > a) &#8658; a &#8594; term</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:BuiltinError" class="def"
+	    >BuiltinError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#BuiltinError" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of errors that <code
+	      >readKnown</code
+	      > and <code
+	      >makeKnown</code
+	      > can return.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinUnliftingEvaluationError" class="def"
+		  >BuiltinUnliftingEvaluationError</a
+		  > <a href="PlutusCore-Builtin-Result.html#t:UnliftingEvaluationError" title="PlutusCore.Builtin.Result"
+		  >UnliftingEvaluationError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:BuiltinEvaluationFailure" class="def"
+		  >BuiltinEvaluationFailure</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BuiltinError"
+	    >Instances</h4
+	    ><details id="i:BuiltinError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+		      >BuiltinError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+		      >BuiltinError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:Pretty:3"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+		      >BuiltinError</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  >] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BuiltinError:MonadError:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+		      >BuiltinError</a
+		      > <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+		      >BuiltinResult</a
+		      ></span
+		    > <a href="src/PlutusCore.Builtin.Result.html#line-206" class="link"
+		    >Source</a
+		    > <a href="#t:BuiltinError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    ><code
+		      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#v:throwError" title="Control.Monad.Error.Class"
+			>throwError</a
+			></code
+		      > puts every operational unlifting error into the <code
+		      ><a href="PlutusCore-Builtin-Result.html#v:BuiltinFailure" title="PlutusCore.Builtin.Result"
+			>BuiltinFailure</a
+			></code
+		      > logs. This is to
+ compensate for the historical lack of error message content in operational errors (structural
+ ones don't have this problem) in our evaluators (the CK and CEK machines). It would be better to
+ fix the underlying issue and allow operational evaluation errors to carry some form of content,
+ but for now we just fix the symptom in order for the end user to see the error message that they
+ are supposed to see. The fix even makes some sense: what we do here is we emulate logging when
+ the thrown unlifting error is an operational one, i.e. this is similar to what some builtins do
+ manually (like when a crypto builtin fails and puts info about the failure into the logs).</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BuiltinError:MonadError:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Result.html"
+			>PlutusCore.Builtin.Result</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a &#8594; (<a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a) &#8594; <a href="PlutusCore-Builtin-Result.html#t:BuiltinResult" title="PlutusCore.Builtin.Result"
+			  >BuiltinResult</a
+			  > a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:notAConstant" class="def"
+	    >notAConstant</a
+	    > &#8759; <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+	    >BuiltinError</a
+	    > <a href="src/PlutusCore.Builtin.Result.html#notAConstant" class="link"
+	    >Source</a
+	    > <a href="#v:notAConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:HasConstant" class="def"
+	    >HasConstant</a
+	    > term <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Builtin.HasConstant.html#HasConstant" class="link"
+	    >Source</a
+	    > <a href="#t:HasConstant" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Ensures that <code
+	      >term</code
+	      > has a <code
+	      ><a href="PlutusCore-Core-Type.html#v:Constant" title="PlutusCore.Core.Type"
+		>Constant</a
+		></code
+	      >-like constructor to lift values to and unlift values from.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:asConstant" class="def"
+	      >asConstant</a
+	      > &#8759; term &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+	      >Either</a
+	      > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+	      >BuiltinError</a
+	      > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > term))) <a href="src/PlutusCore.Builtin.HasConstant.html#asConstant" class="link"
+	      >Source</a
+	      > <a href="#v:asConstant" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Unwrap from a <code
+		><a href="PlutusCore-Core-Type.html#v:Constant" title="PlutusCore.Core.Type"
+		  >Constant</a
+		  ></code
+		>-like constructor throwing an <code
+		><a href="PlutusCore-Builtin-Result.html#t:UnliftingError" title="PlutusCore.Builtin.Result"
+		  >UnliftingError</a
+		  ></code
+		> if the provided
+ <code
+		>term</code
+		> is not a wrapped Haskell value.</p
+	      ></div
+	    ><p class="src"
+	    ><a id="v:fromConstant" class="def"
+	      >fromConstant</a
+	      > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+	      >Some</a
+	      > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+	      >ValueOf</a
+	      > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	      >UniOf</a
+	      > term)) &#8594; term <a href="src/PlutusCore.Builtin.HasConstant.html#fromConstant" class="link"
+	      >Source</a
+	      > <a href="#v:fromConstant" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Wrap a Haskell value as a <code
+		>term</code
+		>.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:HasConstant"
+	    >Instances</h4
+	    ><details id="i:HasConstant" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasConstant:HasConstant:1"
+		      ></span
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+		      >HasConstant</a
+		      > val &#8658; <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+		      >HasConstant</a
+		      > (<a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+		      >Opaque</a
+		      > val rep)</span
+		    > <a href="src/PlutusCore.Builtin.Polymorphism.html#line-148" class="link"
+		    >Source</a
+		    > <a href="#t:HasConstant" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasConstant:HasConstant:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Polymorphism.html"
+			>PlutusCore.Builtin.Polymorphism</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:asConstant"
+			  >asConstant</a
+			  > &#8759; <a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+			  >Opaque</a
+			  > val rep &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+			  >Opaque</a
+			  > val rep)))) <a href="src/PlutusCore.Builtin.HasConstant.html#asConstant" class="link"
+			  >Source</a
+			  > <a href="#v:asConstant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromConstant"
+			  >fromConstant</a
+			  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+			  >Opaque</a
+			  > val rep))) &#8594; <a href="PlutusCore-Builtin-Polymorphism.html#t:Opaque" title="PlutusCore.Builtin.Polymorphism"
+			  >Opaque</a
+			  > val rep <a href="src/PlutusCore.Builtin.HasConstant.html#fromConstant" class="link"
+			  >Source</a
+			  > <a href="#v:fromConstant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasConstant:HasConstant:2"
+		      ></span
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+		      >HasConstant</a
+		      > (<a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+		      >SomeConstant</a
+		      > uni rep)</span
+		    > <a href="src/PlutusCore.Builtin.Polymorphism.html#line-168" class="link"
+		    >Source</a
+		    > <a href="#t:HasConstant" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasConstant:HasConstant:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-Polymorphism.html"
+			>PlutusCore.Builtin.Polymorphism</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:asConstant"
+			  >asConstant</a
+			  > &#8759; <a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+			  >SomeConstant</a
+			  > uni rep &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+			  >SomeConstant</a
+			  > uni rep)))) <a href="src/PlutusCore.Builtin.HasConstant.html#asConstant" class="link"
+			  >Source</a
+			  > <a href="#v:asConstant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromConstant"
+			  >fromConstant</a
+			  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+			  >SomeConstant</a
+			  > uni rep))) &#8594; <a href="PlutusCore-Builtin-Polymorphism.html#t:SomeConstant" title="PlutusCore.Builtin.Polymorphism"
+			  >SomeConstant</a
+			  > uni rep <a href="src/PlutusCore.Builtin.HasConstant.html#fromConstant" class="link"
+			  >Source</a
+			  > <a href="#v:fromConstant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasConstant:HasConstant:3"
+		      ></span
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+		      >HasConstant</a
+		      > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+		      >CkValue</a
+		      > uni fun)</span
+		    > <a href="src/PlutusCore.Evaluation.Machine.Ck.html#line-130" class="link"
+		    >Source</a
+		    > <a href="#t:HasConstant" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasConstant:HasConstant:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Evaluation-Machine-Ck.html"
+			>PlutusCore.Evaluation.Machine.Ck</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:asConstant"
+			  >asConstant</a
+			  > &#8759; <a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun)))) <a href="src/PlutusCore.Builtin.HasConstant.html#asConstant" class="link"
+			  >Source</a
+			  > <a href="#v:asConstant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromConstant"
+			  >fromConstant</a
+			  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun))) &#8594; <a href="PlutusCore-Evaluation-Machine-Ck.html#t:CkValue" title="PlutusCore.Evaluation.Machine.Ck"
+			  >CkValue</a
+			  > uni fun <a href="src/PlutusCore.Builtin.HasConstant.html#fromConstant" class="link"
+			  >Source</a
+			  > <a href="#v:fromConstant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasConstant:HasConstant:4"
+		      ></span
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+		      >HasConstant</a
+		      > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+		      >CekValue</a
+		      > uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Evaluation.Machine.Cek.Internal.html#line-591" class="link"
+		    >Source</a
+		    > <a href="#t:HasConstant" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasConstant:HasConstant:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html"
+			>UntypedPlutusCore.Evaluation.Machine.Cek.Internal</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:asConstant"
+			  >asConstant</a
+			  > &#8759; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann)))) <a href="src/PlutusCore.Builtin.HasConstant.html#asConstant" class="link"
+			  >Source</a
+			  > <a href="#v:asConstant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromConstant"
+			  >fromConstant</a
+			  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann))) &#8594; <a href="UntypedPlutusCore-Evaluation-Machine-Cek-Internal.html#t:CekValue" title="UntypedPlutusCore.Evaluation.Machine.Cek.Internal"
+			  >CekValue</a
+			  > uni fun ann <a href="src/PlutusCore.Builtin.HasConstant.html#fromConstant" class="link"
+			  >Source</a
+			  > <a href="#v:fromConstant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasConstant:HasConstant:5"
+		      ></span
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+		      >HasConstant</a
+		      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		      >Term</a
+		      > name uni fun ())</span
+		    > <a href="src/UntypedPlutusCore.Core.Type.html#line-143" class="link"
+		    >Source</a
+		    > <a href="#t:HasConstant" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasConstant:HasConstant:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Core-Type.html"
+			>UntypedPlutusCore.Core.Type</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:asConstant"
+			  >asConstant</a
+			  > &#8759; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ())))) <a href="src/PlutusCore.Builtin.HasConstant.html#asConstant" class="link"
+			  >Source</a
+			  > <a href="#v:asConstant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromConstant"
+			  >fromConstant</a
+			  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ()))) &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun () <a href="src/PlutusCore.Builtin.HasConstant.html#fromConstant" class="link"
+			  >Source</a
+			  > <a href="#v:fromConstant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:HasConstant:HasConstant:6"
+		      ></span
+		      > <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+		      >HasConstant</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		      >TyName</a
+		      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		      >Name</a
+		      > uni fun ())</span
+		    > <a href="src/PlutusCore.Builtin.HasConstant.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:HasConstant" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:HasConstant:HasConstant:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Builtin-HasConstant.html"
+			>PlutusCore.Builtin.HasConstant</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:asConstant"
+			  >asConstant</a
+			  > &#8759; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Either.html#t:Either" title="Data.Either"
+			  >Either</a
+			  > <a href="PlutusCore-Builtin-HasConstant.html#t:BuiltinError" title="PlutusCore.Builtin.HasConstant"
+			  >BuiltinError</a
+			  > (<a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ())))) <a href="src/PlutusCore.Builtin.HasConstant.html#asConstant" class="link"
+			  >Source</a
+			  > <a href="#v:asConstant" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromConstant"
+			  >fromConstant</a
+			  > &#8759; <a href="Universe-Core.html#t:Some" title="Universe.Core"
+			  >Some</a
+			  > (<a href="Universe-Core.html#t:ValueOf" title="Universe.Core"
+			  >ValueOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+			  >UniOf</a
+			  > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun ()))) &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > uni fun () <a href="src/PlutusCore.Builtin.HasConstant.html#fromConstant" class="link"
+			  >Source</a
+			  > <a href="#v:fromConstant" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:HasConstantIn" class="def"
+	    >HasConstantIn</a
+	    > uni term = (<a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	    >UniOf</a
+	    > term <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > uni, <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	    >HasConstant</a
+	    > term) <a href="src/PlutusCore.Builtin.HasConstant.html#HasConstantIn" class="link"
+	    >Source</a
+	    > <a href="#t:HasConstantIn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Ensures that <code
+	      >term</code
+	      > has a <code
+	      ><a href="PlutusCore-Core-Type.html#v:Constant" title="PlutusCore.Core.Type"
+		>Constant</a
+		></code
+	      >-like constructor to lift values to and unlift values from
+ and connects <code
+	      >term</code
+	      > and its <code
+	      >uni</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromValueOf" class="def"
+	    >fromValueOf</a
+	    > &#8759; &#8704; a term. <a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	    >HasConstant</a
+	    > term &#8658; <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	    >UniOf</a
+	    > term (<a href="Universe-Core.html#t:Esc" title="Universe.Core"
+	    >Esc</a
+	    > a) &#8594; a &#8594; term <a href="src/PlutusCore.Builtin.HasConstant.html#fromValueOf" class="link"
+	    >Source</a
+	    > <a href="#v:fromValueOf" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Wrap a Haskell value (given its explicit type tag) as a <code
+	      >term</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromValue" class="def"
+	    >fromValue</a
+	    > &#8759; &#8704; a term. (<a href="PlutusCore-Builtin-HasConstant.html#t:HasConstant" title="PlutusCore.Builtin.HasConstant"
+	    >HasConstant</a
+	    > term, <a href="PlutusCore-Core-Type.html#t:UniOf" title="PlutusCore.Core.Type"
+	    >UniOf</a
+	    > term <a href="PlutusCore-Core-Type.html#t:HasTermLevel" title="PlutusCore.Core.Type"
+	    >`HasTermLevel`</a
+	    > a) &#8658; a &#8594; term <a href="src/PlutusCore.Builtin.HasConstant.html#fromValue" class="link"
+	    >Source</a
+	    > <a href="#v:fromValue" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Wrap a Haskell value (provided its type is in the universe) as a <code
+	      >term</code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

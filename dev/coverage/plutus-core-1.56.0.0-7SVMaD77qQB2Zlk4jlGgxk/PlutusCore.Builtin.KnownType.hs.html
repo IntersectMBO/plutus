@@ -1,0 +1,521 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BlockArguments #-}
+<span class="lineno">    2 </span>{-# LANGUAGE ConstraintKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    4 </span>{-# LANGUAGE DefaultSignatures #-}
+<span class="lineno">    5 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    6 </span>{-# LANGUAGE FunctionalDependencies #-}
+<span class="lineno">    7 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    8 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    9 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">   10 </span>{-# LANGUAGE StandaloneKindSignatures #-}
+<span class="lineno">   11 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">   12 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">   13 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">   14 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">   15 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">   16 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>module PlutusCore.Builtin.KnownType
+<span class="lineno">   19 </span>  ( BuiltinError
+<span class="lineno">   20 </span>  , GEqL (..)
+<span class="lineno">   21 </span>  , LoopBreaker (..)
+<span class="lineno">   22 </span>  , KnownBuiltinTypeIn
+<span class="lineno">   23 </span>  , KnownBuiltinType
+<span class="lineno">   24 </span>  , BuiltinResult (..)
+<span class="lineno">   25 </span>  , ReadKnownM
+<span class="lineno">   26 </span>  , Spine (..)
+<span class="lineno">   27 </span>  , HeadSpine (..)
+<span class="lineno">   28 </span>  , headSpine
+<span class="lineno">   29 </span>  , MonoHeadSpine
+<span class="lineno">   30 </span>  , MakeKnownIn (..)
+<span class="lineno">   31 </span>  , readKnownConstant
+<span class="lineno">   32 </span>  , MakeKnown
+<span class="lineno">   33 </span>  , ReadKnownIn (..)
+<span class="lineno">   34 </span>  , ReadKnown
+<span class="lineno">   35 </span>  , makeKnownOrFail
+<span class="lineno">   36 </span>  , readKnownSelf
+<span class="lineno">   37 </span>  ) where
+<span class="lineno">   38 </span>
+<span class="lineno">   39 </span>import PlutusPrelude
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>import PlutusCore.Builtin.HasConstant
+<span class="lineno">   42 </span>import PlutusCore.Builtin.Polymorphism
+<span class="lineno">   43 </span>import PlutusCore.Builtin.Result
+<span class="lineno">   44 </span>import PlutusCore.Core
+<span class="lineno">   45 </span>import PlutusCore.Evaluation.Machine.Exception
+<span class="lineno">   46 </span>import PlutusCore.Evaluation.Result
+<span class="lineno">   47 </span>import PlutusCore.Pretty
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>import Control.Monad.Except
+<span class="lineno">   50 </span>import Data.Bifunctor
+<span class="lineno">   51 </span>import Data.Either.Extras
+<span class="lineno">   52 </span>import Data.Functor.Identity
+<span class="lineno">   53 </span>import Data.Kind qualified as GHC
+<span class="lineno">   54 </span>import Data.String
+<span class="lineno">   55 </span>import GHC.Exts (inline, oneShot)
+<span class="lineno">   56 </span>import GHC.TypeLits
+<span class="lineno">   57 </span>import Prettyprinter
+<span class="lineno">   58 </span>import Text.PrettyBy.Internal
+<span class="lineno">   59 </span>import Universe
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>{-| A version of 'GEq' that fixes @a@ in place, which allows us to create an inlinable recursive
+<span class="lineno">   62 </span>implementation of 'geqL'.
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>The way it works is that whenever there's recursion, we look up the recursive case in the current
+<span class="lineno">   65 </span>context (i.e. the dictionary) instead of actually calling 'geqL' recursively (even though it's
+<span class="lineno">   66 </span>gonna look like we do exactly that, because there's no way to distinguish between a recursive
+<span class="lineno">   67 </span>call and a dictionary lookup as the two share the same name, although to help GHC choose a lookup
+<span class="lineno">   68 </span>we sprinkle the perhaps unreliable 'LoopBreaker' in the 'DefaultUni' instance of this class).
+<span class="lineno">   69 </span>
+<span class="lineno">   70 </span>Alligning things this way allows us to inline arbitrarily deep recursion for as long as types
+<span class="lineno">   71 </span>keep being monomorphic.
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>For example, the 'MapData' builtin accepts a @[(Data, Data)]@ and with 'geqL' matching on all of
+<span class="lineno">   74 </span>'DefaultUniProtoList', 'DefaultUniProtoPair' and 'DefaultUniData' gets inlined in the denotation
+<span class="lineno">   75 </span>of the builtin. For the 'Constr' builtin that resulted in a 4.3% speedup at the time this comment
+<span class="lineno">   76 </span>was written. -}
+<span class="lineno">   77 </span>type GEqL :: (GHC.Type -&gt; GHC.Type) -&gt; GHC.Type -&gt; GHC.Constraint
+<span class="lineno">   78 </span>class GEqL f a where
+<span class="lineno">   79 </span>  geqL :: f (Esc a) -&gt; f (Esc b) -&gt; EvaluationResult (a :~: b)
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>{-| In @f = ... f ...@ where @f@ is a class method, how do you know if @f@ is going to be a
+<span class="lineno">   82 </span>recursive call or a type class method call? If both type check, then you don't really know how
+<span class="lineno">   83 </span>GHC is going to play it. So we add this data type to make sure that the RHS @f@ will have to
+<span class="lineno">   84 </span>become a type class method call.
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>Can GHC turn that method call into a recursive one once type classes are resolved? Dunno, but at
+<span class="lineno">   87 </span>least we've introduced an obstacle preventing GHC from immediately creating a non-inlinable
+<span class="lineno">   88 </span>recursive definition. -}
+<span class="lineno">   89 </span>newtype LoopBreaker uni a = LoopBreaker (uni a)
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>instance GEqL uni a =&gt; GEqL (LoopBreaker uni) a where
+<span class="lineno">   92 </span>  <span class="decl"><span class="istickedoff">geqL = coerce $ geqL @uni</span></span>
+<span class="lineno">   93 </span>  {-# INLINE geqL #-}
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>{-| A constraint for \&quot;@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+<span class="lineno">   96 </span>in @uni@\&quot;. -}
+<span class="lineno">   97 </span>type KnownBuiltinTypeIn uni val a =
+<span class="lineno">   98 </span>  (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEqL uni a, uni `HasTermLevel` a)
+<span class="lineno">   99 </span>
+<span class="lineno">  100 </span>{-| A constraint for \&quot;@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+<span class="lineno">  101 </span>in @UniOf term@\&quot;. -}
+<span class="lineno">  102 </span>type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
+<span class="lineno">  103 </span>
+<span class="lineno">  104 </span>{- Note [Performance of ReadKnownIn and MakeKnownIn instances]
+<span class="lineno">  105 </span>It's critically important that 'readKnown' runs in the concrete 'Either' rather than a general
+<span class="lineno">  106 </span>'MonadError'. Changing from the latter to the former gave us a speedup of up to 19%, see
+<span class="lineno">  107 </span>https://github.com/IntersectMBO/plutus/pull/4307
+<span class="lineno">  108 </span>
+<span class="lineno">  109 </span>Replacing the @AsUnliftingError err, AsEvaluationFailure err@ constraints with the dedicated
+<span class="lineno">  110 </span>'BuiltinError' data type gave us a speedup of up to 4%.
+<span class="lineno">  111 </span>
+<span class="lineno">  112 </span>All the same considerations apply to 'makeKnown':
+<span class="lineno">  113 </span>https://github.com/IntersectMBO/plutus/pull/4421
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>It's beneficial to inline 'readKnown' and 'makeKnown' not only because we use them directly over
+<span class="lineno">  116 </span>concrete types once 'toBuiltinsRuntime' is inlined, but also because otherwise GHC compiles each of
+<span class="lineno">  117 </span>them to two definitions (one calling the other) for some reason.
+<span class="lineno">  118 </span>So always add an @INLINE@ pragma to all definitions of 'makeKnown' and 'readKnown' unless you have
+<span class="lineno">  119 </span>a specific reason not to.
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>Neither 'readKnown' nor 'makeKnown' should appear in the generated Core for builtins. In most cases
+<span class="lineno">  122 </span>they would slow builtins down, but even if a 'readKnown' only throws an error, it still makes sense
+<span class="lineno">  123 </span>to keep it out of Core just not to trigger an investigation on whether it's fine that a call to
+<span class="lineno">  124 </span>'readKnown' is not inlined.
+<span class="lineno">  125 </span>
+<span class="lineno">  126 </span>Some 'readKnown' implementations require inserting a call to 'oneShot'. E.g. if 'oneShot' is not
+<span class="lineno">  127 </span>used in 'readKnownConstant' then 'GHC pulls @gshow uniExp@ out of the 'Nothing' branch, thus
+<span class="lineno">  128 </span>allocating a thunk of type 'String' that is completely redundant whenever there's no error,
+<span class="lineno">  129 </span>which is the majority of cases. And putting 'oneShot' as the outermost call results in
+<span class="lineno">  130 </span>worse Core.
+<span class="lineno">  131 </span>
+<span class="lineno">  132 </span>Any change to an instance of 'ReadKnownIn' or 'MakeKnownIn', even completely trivial, requires
+<span class="lineno">  133 </span>looking into the generated Core, since compilation of these instances is extremely brittle
+<span class="lineno">  134 </span>optimization-wise.
+<span class="lineno">  135 </span>
+<span class="lineno">  136 </span>Things to watch out for are unnecessary sharing (for example, a @let@ appearing outside of a @case@
+<span class="lineno">  137 </span>allocates a thunk and if that thunk is not referenced inside of one of the branches, then it's
+<span class="lineno">  138 </span>wasteful, especially when it's not referenced in the most commonly chosen branch) and type class
+<span class="lineno">  139 </span>methods not being extracted from the dictionary and used directly instead (i.e. if you see
+<span class="lineno">  140 </span>multiple @pure@ and @&gt;&gt;=@ in the code, that's not good). Note that neither @let@ nor @&gt;&gt;=@ are bad
+<span class="lineno">  141 </span>in general, we certainly do need to allocate thunks occasionally, it's just that when it comes to
+<span class="lineno">  142 </span>builtins this is rarely the case as most of the time we want aggressive inlining and specialization
+<span class="lineno">  143 </span>and the &quot;just compute the damn thing&quot; behavior.
+<span class="lineno">  144 </span>-}
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>{- Note [Unlifting terminology]
+<span class="lineno">  147 </span>This function:
+<span class="lineno">  148 </span>
+<span class="lineno">  149 </span>    f :: Integer -&gt; CkValue DefaultUni fun
+<span class="lineno">  150 </span>    f = VCon . Some . ValueOf DefaultUniInteger
+<span class="lineno">  151 </span>
+<span class="lineno">  152 </span>lifts an 'Integer' to 'CkValue'. Unlifting is the opposite:
+<span class="lineno">  153 </span>
+<span class="lineno">  154 </span>    g :: CkValue DefaultUni fun -&gt; Maybe Integer
+<span class="lineno">  155 </span>    g (VCon (Some (ValueOf uni x))) = case uni of
+<span class="lineno">  156 </span>        DefaultUniInteger -&gt; Just x
+<span class="lineno">  157 </span>        _                 -&gt; Nothing
+<span class="lineno">  158 </span>
+<span class="lineno">  159 </span>The following usages of the &quot;unlift&quot; term are grammatical:
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>1. unlift a 'CkValue' to 'Integer'
+<span class="lineno">  162 </span>2. unlift to 'Integer'
+<span class="lineno">  163 </span>3. unlift a 'CkValue' as an 'Integer'
+<span class="lineno">  164 </span>4. unlift from the 'VCon' constructor (or just 'VCon') to 'Integer'
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>We call the integer that @g@ returns &quot;the unlifted integer&quot;.
+<span class="lineno">  167 </span>-}
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>{- Note [Unlifting a term as a value of a built-in type]
+<span class="lineno">  170 </span>See Note [Unlifting terminology] first.
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>It's trivial to unlift a term to a monomorphic built-in type like 'Integer': just check that the
+<span class="lineno">  173 </span>term is a constant, extract the type tag and check it for equality with the type tag of 'Integer'.
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>Things work the same way for a fully monomorphized polymorphic type, i.e. @(Integer, Bool@) is not
+<span class="lineno">  176 </span>any different from just 'Integer' unlifting-wise.
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>(TODO: the following explanation needs to be improved, there's PLT-338 for that)
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>However there's no sensible way of unlifting to, say, @[a]@ where @a@ in not a built-in type. So
+<span class="lineno">  181 </span>let's say we instantiated @a@ to an @Opaque val rep@ like we do for polymorphic functions that don't
+<span class="lineno">  182 </span>deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would mean we'd need to
+<span class="lineno">  183 </span>write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which is really
+<span class="lineno">  184 </span>easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be cheap and
+<span class="lineno">  185 </span>that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making perfectly linear
+<span class="lineno">  186 </span>algorithms quadratic. See https://github.com/IntersectMBO/plutus/pull/4215 for how that would
+<span class="lineno">  187 </span>look like.
+<span class="lineno">  188 </span>
+<span class="lineno">  189 </span>So the problem is that we can't convert in O(1) time a @[a]@ coming from a constant of
+<span class="lineno">  190 </span>statically-unknown type (that @a@ is existential) to @[a']@ where @a'@ is known statically.
+<span class="lineno">  191 </span>Thus it's impossible to instantiate @a@ in Haskell's
+<span class="lineno">  192 </span>
+<span class="lineno">  193 </span>    nullList :: [a] -&gt; Bool
+<span class="lineno">  194 </span>
+<span class="lineno">  195 </span>so that there's a 'TypeScheme' for this function.
+<span class="lineno">  196 </span>
+<span class="lineno">  197 </span>One non-solution would be to instantiate @a@, then recurse on the type, construct a new function
+<span class="lineno">  198 </span>that defers to the original @nullList@ but wraps its argument in a specific way (more on that below)
+<span class="lineno">  199 </span>making it possible to assign a 'TypeScheme' to the resulting function. Astonishingly enough, that
+<span class="lineno">  200 </span>could actually work and if we ever write a paper on builtins, we should mention that example, but:
+<span class="lineno">  201 </span>
+<span class="lineno">  202 </span>1. such a trick requires a generic machinery that knows how to check that the head of the builtin
+<span class="lineno">  203 </span>   application is a particular built-in type. We used to have that, but it was just way too slow
+<span class="lineno">  204 </span>2. that would only work for functions that don't care about @a@ at all. But for example when
+<span class="lineno">  205 </span>   elaborating @cons :: a -&gt; [a] -&gt; [a]@ as a Plutus builtin we need to unlift both the arguments
+<span class="lineno">  206 </span>   and check that their @a@s are equal
+<span class="lineno">  207 </span>   (See Note [Representable built-in functions over polymorphic built-in types])
+<span class="lineno">  208 </span>   and it's either way too complex or even impossible to do that automatically within some generic
+<span class="lineno">  209 </span>   machinery
+<span class="lineno">  210 </span>
+<span class="lineno">  211 </span>So what we do is we simply require the user to write
+<span class="lineno">  212 </span>
+<span class="lineno">  213 </span>    nullList :: SomeConstant uni [a] -&gt; Bool
+<span class="lineno">  214 </span>
+<span class="lineno">  215 </span>and unlift to @[a]@ manually within the definition of the builtin. This works, because the
+<span class="lineno">  216 </span>existential @a@ never escapes the definition of the builtin. I.e. it's fine to unpack an existential
+<span class="lineno">  217 </span>and use it immediately without ever exposing the existential parts to the outside and it's not fine
+<span class="lineno">  218 </span>to try to return a value having an existential inside of it, which is what unlifting to @[a]@ would
+<span class="lineno">  219 </span>amount to.
+<span class="lineno">  220 </span>
+<span class="lineno">  221 </span>Could we somehow align the unlifting machinery so that it does not construct values of particular
+<span class="lineno">  222 </span>types, but rather feeds them to a continuation or something, so that the existential parts never
+<span class="lineno">  223 </span>try to escape? Maybe, but see point 2 from the above, we do want to get our hands on the particular
+<span class="lineno">  224 </span>universes sometimes and point 1 prevents us from doing that generically, so it doesn't seem like
+<span class="lineno">  225 </span>we could do that within some automated machinery.
+<span class="lineno">  226 </span>
+<span class="lineno">  227 </span>Overall, asking the user to manually unlift a @SomeConstant uni [a]@ is just always going to be
+<span class="lineno">  228 </span>faster than any kind of fancy encoding.
+<span class="lineno">  229 </span>-}
+<span class="lineno">  230 </span>
+<span class="lineno">  231 </span>{- Note [Alignment of ReadKnownIn and MakeKnownIn]
+<span class="lineno">  232 </span>We keep 'ReadKnownIn' and 'MakeKnownIn' separate, because values of some types can only be lifted
+<span class="lineno">  233 </span>and not unlifted, for example 'EvaluationResult' and 'Emitter' can't appear in argument position.
+<span class="lineno">  234 </span>
+<span class="lineno">  235 </span>'KnownTypeAst' is not a superclass of ReadKnownIn and MakeKnownIn. This is due to the fact that
+<span class="lineno">  236 </span>polymorphic built-in types are only liftable/unliftable when they're fully monomorphized, while
+<span class="lineno">  237 </span>'toTypeAst' works for polymorphic built-in types that have type variables in them, and so the
+<span class="lineno">  238 </span>constraints are completely different in the two cases and we keep the two concepts apart
+<span class="lineno">  239 </span>(there doesn't seem to be any cons to that).
+<span class="lineno">  240 </span>-}
+<span class="lineno">  241 </span>
+<span class="lineno">  242 </span>{- Note [Allowed unlifting and lifting]
+<span class="lineno">  243 </span>Read Note [Alignment of ReadKnownIn and MakeKnownIn] first.
+<span class="lineno">  244 </span>
+<span class="lineno">  245 </span>The following classes of Haskell types represent Plutus types:
+<span class="lineno">  246 </span>
+<span class="lineno">  247 </span>1. monomorphic built-in types such as @Bool@
+<span class="lineno">  248 </span>   (assuming @Bool@ is in the universe)
+<span class="lineno">  249 </span>2. polymorphic built-in types such as @(a, b)@ for any @a@ and @b@ representing Plutus types
+<span class="lineno">  250 </span>   (assuming @(,)@ is in the universe)
+<span class="lineno">  251 </span>3. @Opaque val rep@ for any @rep@ representing a Plutus type
+<span class="lineno">  252 </span>4. @SomeConstant uni rep@ for any @rep@ representing a Plutus type
+<span class="lineno">  253 </span>5. @Emitter a@ for any @a@ representing a Plutus type
+<span class="lineno">  254 </span>6. @EvaluationResult a@ for any @a@ representing a Plutus type
+<span class="lineno">  255 </span>7. 'TyVarRep', 'TyAppRep', 'TyForallRep' and all similar types mirroring constructors of @Type@
+<span class="lineno">  256 </span>8. @a -&gt; b@ for any @a@ and @b@ representing Plutus types (mirrors 'TyFun')
+<span class="lineno">  257 </span>9. anything else that has a 'KnownTypeAst' instance, for example we express the
+<span class="lineno">  258 </span>   @KnownTypeAst DefaultUni Int@ instance in terms of the @KnownType DefaultUni Integer@
+<span class="lineno">  259 </span>   one
+<span class="lineno">  260 </span>
+<span class="lineno">  261 </span>Unlifting is allowed to the following classes of types:
+<span class="lineno">  262 </span>
+<span class="lineno">  263 </span>1. monomorphic built-in types such as @Bool@
+<span class="lineno">  264 </span>2. monomorphized polymorphic built-in types such as @(Integer, Text)@
+<span class="lineno">  265 </span>3. @Opaque val rep@ for @rep@ representing a Plutus type
+<span class="lineno">  266 </span>4. @SomeConstant uni rep@ for @rep@ representing a Plutus type
+<span class="lineno">  267 </span>5. anything else that implements 'ReadKnownIn', for example we express the
+<span class="lineno">  268 </span>   @ReadKnownIn DefaultUni term Int@ instance in terms of the @ReadKnownIn DefaultUni term Integer@
+<span class="lineno">  269 </span>   one, and for another example define an instance for 'Void' in tests
+<span class="lineno">  270 </span>
+<span class="lineno">  271 </span>Lifting is allowed to the following classes of types:
+<span class="lineno">  272 </span>
+<span class="lineno">  273 </span>1. monomorphic built-in types such as @Bool@
+<span class="lineno">  274 </span>2. monomorphized polymorphic built-in types such as @(Integer, Text)@
+<span class="lineno">  275 </span>3. @Opaque val rep@ for @rep@ representing a Plutus type
+<span class="lineno">  276 </span>4. @SomeConstant uni rep@ for @rep@ representing a Plutus type
+<span class="lineno">  277 </span>5. @Emitter a@ for any @a@ that lifting is allowed to
+<span class="lineno">  278 </span>6. @EvaluationResult a@ for any @a@ that lifting is allowed to
+<span class="lineno">  279 </span>7. anything else that implements 'MakeKnownIn', for example we express the
+<span class="lineno">  280 </span>   @MakeKnownIn DefaultUni term Int@ instance in terms of the @MakeKnownIn DefaultUni term Integer@
+<span class="lineno">  281 </span>   one, and for another example define an instance for 'Void' in tests
+<span class="lineno">  282 </span>-}
+<span class="lineno">  283 </span>
+<span class="lineno">  284 </span>typeMismatchError
+<span class="lineno">  285 </span>  :: PrettyParens (SomeTypeIn uni)
+<span class="lineno">  286 </span>  =&gt; uni (Esc a)
+<span class="lineno">  287 </span>  -&gt; uni (Esc b)
+<span class="lineno">  288 </span>  -&gt; UnliftingEvaluationError
+<span class="lineno">  289 </span><span class="decl"><span class="istickedoff">typeMismatchError uniExp uniAct =</span>
+<span class="lineno">  290 </span><span class="spaces">  </span><span class="istickedoff">MkUnliftingEvaluationError . StructuralError . fromString $</span>
+<span class="lineno">  291 </span><span class="spaces">    </span><span class="istickedoff">concat</span>
+<span class="lineno">  292 </span><span class="spaces">      </span><span class="istickedoff">[ &quot;Type mismatch: &quot;</span>
+<span class="lineno">  293 </span><span class="spaces">      </span><span class="istickedoff">, &quot;expected: &quot; ++ displayBy botRenderContext (SomeTypeIn uniExp)</span>
+<span class="lineno">  294 </span><span class="spaces">      </span><span class="istickedoff">, &quot;; actual: &quot; ++ displayBy botRenderContext (SomeTypeIn uniAct)</span>
+<span class="lineno">  295 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">  296 </span>-- See Note [INLINE and OPAQUE on error-related definitions].
+<span class="lineno">  297 </span>{-# OPAQUE typeMismatchError #-}
+<span class="lineno">  298 </span>
+<span class="lineno">  299 </span>-- Normally it's a good idea for an exported abstraction not to be a type synonym, since a @newtype@
+<span class="lineno">  300 </span>-- is cheap, looks good in error messages and clearly emphasize an abstraction barrier. However we
+<span class="lineno">  301 </span>-- make 'ReadKnownM' a type synonym for convenience: that way we don't need to derive all the
+<span class="lineno">  302 </span>-- instances (and add new ones whenever we need them), wrap and unwrap all the time (including in
+<span class="lineno">  303 </span>-- user code), which can be non-trivial for such performance-sensitive code (see e.g. '(#.)' and
+<span class="lineno">  304 </span>-- 'coerceArg') and there is no abstraction barrier anyway.
+<span class="lineno">  305 </span>-- | The monad that 'readKnown' runs in.
+<span class="lineno">  306 </span>type ReadKnownM = Either BuiltinError
+<span class="lineno">  307 </span>
+<span class="lineno">  308 </span>-- See Note [Unlifting a term as a value of a built-in type].
+<span class="lineno">  309 </span>-- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
+<span class="lineno">  310 </span>readKnownConstant :: forall val a. KnownBuiltinType val a =&gt; val -&gt; ReadKnownM a
+<span class="lineno">  311 </span>-- See Note [Performance of ReadKnownIn and MakeKnownIn instances]
+<span class="lineno">  312 </span><span class="decl"><span class="istickedoff">readKnownConstant val =</span>
+<span class="lineno">  313 </span><span class="spaces">  </span><span class="istickedoff">asConstant val &gt;&gt;= oneShot \case</span>
+<span class="lineno">  314 </span><span class="spaces">    </span><span class="istickedoff">Some (ValueOf uniAct x) -&gt; do</span>
+<span class="lineno">  315 </span><span class="spaces">      </span><span class="istickedoff">let uniExp = knownUni @_ @(UniOf val) @a</span>
+<span class="lineno">  316 </span><span class="spaces">      </span><span class="istickedoff">-- 'geq' matches on its first argument first, so we make the type tag that will be known</span>
+<span class="lineno">  317 </span><span class="spaces">      </span><span class="istickedoff">-- statically (because this function will be inlined) go first in order for GHC to</span>
+<span class="lineno">  318 </span><span class="spaces">      </span><span class="istickedoff">-- optimize some of the matching away.</span>
+<span class="lineno">  319 </span><span class="spaces">      </span><span class="istickedoff">case uniExp `geqL` uniAct of</span>
+<span class="lineno">  320 </span><span class="spaces">        </span><span class="istickedoff">EvaluationSuccess Refl -&gt; pure x</span>
+<span class="lineno">  321 </span><span class="spaces">        </span><span class="istickedoff">EvaluationFailure -&gt;</span>
+<span class="lineno">  322 </span><span class="spaces">          </span><span class="istickedoff">throwError . BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct</span></span>
+<span class="lineno">  323 </span>{-# INLINE readKnownConstant #-}
+<span class="lineno">  324 </span>
+<span class="lineno">  325 </span>{-| A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
+<span class="lineno">  326 </span>recursive data type. -}
+<span class="lineno">  327 </span>data Spine a
+<span class="lineno">  328 </span>  = SpineLast a
+<span class="lineno">  329 </span>  | SpineCons a (Spine a)
+<span class="lineno">  330 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Foldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>)
+<span class="lineno">  331 </span>
+<span class="lineno">  332 </span>{-| The head-spine form of an iterated application. Provides O(1) access to the head of the
+<span class="lineno">  333 </span>application. @NonEmpty a ~ HeadSpine a a@, except is strict and the no-spine case is made a separate
+<span class="lineno">  334 </span>constructor for performance reasons (it only takes a single pattern match to access the head when
+<span class="lineno">  335 </span>there's no spine this way, while otherwise we'd also need to match on the spine to ensure that
+<span class="lineno">  336 </span>it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
+<span class="lineno">  337 </span>
+<span class="lineno">  338 </span>Used in built-in functions returning function applications such as 'CaseList'. -}
+<span class="lineno">  339 </span>data HeadSpine err a b
+<span class="lineno">  340 </span>  = HeadOnly a
+<span class="lineno">  341 </span>  | HeadSpine a (Spine b)
+<span class="lineno">  342 </span>  | HeadError ~err
+<span class="lineno">  343 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Functor</span></span></span></span>)
+<span class="lineno">  344 </span>
+<span class="lineno">  345 </span>-- | @HeadSpine@ but the type of head and spine is same
+<span class="lineno">  346 </span>type MonoHeadSpine err a = HeadSpine err a a
+<span class="lineno">  347 </span>
+<span class="lineno">  348 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Bifunctor (HeadSpine err)</span></span></span></span> where
+<span class="lineno">  349 </span>  <span class="decl"><span class="istickedoff">bimap _ _ (HeadError x) = HeadError <span class="nottickedoff">x</span></span>
+<span class="lineno">  350 </span><span class="spaces">  </span><span class="istickedoff">bimap headF _ (HeadOnly a) = <span class="nottickedoff">HeadOnly $ headF a</span></span>
+<span class="lineno">  351 </span><span class="spaces">  </span><span class="istickedoff">bimap headF spineF (HeadSpine a b) = <span class="nottickedoff">HeadSpine (headF a) (spineF &lt;$&gt; b)</span></span></span>
+<span class="lineno">  352 </span>
+<span class="lineno">  353 </span>-- | Construct @HeadSpine@ from head and list.
+<span class="lineno">  354 </span>headSpine :: a -&gt; [b] -&gt; HeadSpine err a b
+<span class="lineno">  355 </span><span class="decl"><span class="istickedoff">headSpine h [] = <span class="nottickedoff">HeadOnly h</span></span>
+<span class="lineno">  356 </span><span class="spaces"></span><span class="istickedoff">headSpine h (x : xs) =</span>
+<span class="lineno">  357 </span><span class="spaces">  </span><span class="istickedoff">-- It's critical to use 'foldr' here, so that deforestation kicks in.</span>
+<span class="lineno">  358 </span><span class="spaces">  </span><span class="istickedoff">-- See Note [Definition of foldl'] in &quot;GHC.List&quot; and related Notes around for an explanation</span>
+<span class="lineno">  359 </span><span class="spaces">  </span><span class="istickedoff">-- of the trick.</span>
+<span class="lineno">  360 </span><span class="spaces">  </span><span class="istickedoff">HeadSpine h $ foldr (\x2 r x1 -&gt; SpineCons x1 $ r x2) SpineLast xs x</span></span>
+<span class="lineno">  361 </span>{-# INLINE headSpine #-}
+<span class="lineno">  362 </span>
+<span class="lineno">  363 </span>{-|
+<span class="lineno">  364 </span>
+<span class="lineno">  365 </span>&gt;&gt;&gt; import Text.Pretty
+<span class="lineno">  366 </span>&gt;&gt;&gt; pretty (SpineCons 'a' $ SpineLast 'b')
+<span class="lineno">  367 </span>[a, b] -}
+<span class="lineno">  368 </span>instance <span class="decl"><span class="nottickedoff">Pretty a =&gt; Pretty (Spine a)</span></span> where <span class="decl"><span class="nottickedoff">pretty = pretty . map Identity . toList</span></span>
+<span class="lineno">  369 </span>
+<span class="lineno">  370 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config a =&gt; DefaultPrettyBy config (Spine a)</span></span></span></span>
+<span class="lineno">  371 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  372 </span><span class="spaces">  </span><span class="nottickedoff">PrettyCommon (Spine a)</span>
+<span class="lineno">  373 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  374 </span><span class="spaces">    </span><span class="nottickedoff">PrettyDefaultBy config (Spine a) =&gt; PrettyBy config (Spine a)</span></span></span></span>
+<span class="lineno">  375 </span>
+<span class="lineno">  376 </span>{-|
+<span class="lineno">  377 </span>
+<span class="lineno">  378 </span>&gt;&gt;&gt; import Text.Pretty
+<span class="lineno">  379 </span>&gt;&gt;&gt; pretty (HeadOnly 'z')
+<span class="lineno">  380 </span>z
+<span class="lineno">  381 </span>&gt;&gt;&gt; pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
+<span class="lineno">  382 </span>f `applyN` [x, y] -}
+<span class="lineno">  383 </span>instance <span class="decl"><span class="nottickedoff">(Pretty err, Pretty a, Pretty b) =&gt; Pretty (HeadSpine err a b)</span></span> where
+<span class="lineno">  384 </span>  <span class="decl"><span class="nottickedoff">pretty (HeadError x) = &quot;HeadError&quot; &lt;+&gt; pretty x</span>
+<span class="lineno">  385 </span><span class="spaces">  </span><span class="nottickedoff">pretty (HeadOnly x) = pretty x</span>
+<span class="lineno">  386 </span><span class="spaces">  </span><span class="nottickedoff">pretty (HeadSpine f xs) = pretty f &lt;+&gt; &quot;`applyN`&quot; &lt;+&gt; pretty xs</span></span>
+<span class="lineno">  387 </span>
+<span class="lineno">  388 </span>instance
+<span class="lineno">  389 </span>  <span class="decl"><span class="nottickedoff">(PrettyBy config err, PrettyBy config a, PrettyBy config (Spine b))</span>
+<span class="lineno">  390 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; DefaultPrettyBy config (HeadSpine err a b)</span></span>
+<span class="lineno">  391 </span>  where
+<span class="lineno">  392 </span>  <span class="decl"><span class="nottickedoff">defaultPrettyBy config (HeadError x) = &quot;HeadError&quot; &lt;+&gt; prettyBy config x</span>
+<span class="lineno">  393 </span><span class="spaces">  </span><span class="nottickedoff">defaultPrettyBy config (HeadOnly x) = prettyBy config x</span>
+<span class="lineno">  394 </span><span class="spaces">  </span><span class="nottickedoff">defaultPrettyBy config (HeadSpine f xs) = prettyBy config f &lt;+&gt; &quot;`applyN`&quot; &lt;+&gt; prettyBy config xs</span></span>
+<span class="lineno">  395 </span><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">deriving via</span>
+<span class="lineno">  396 </span><span class="spaces">  </span><span class="nottickedoff">PrettyCommon (HeadSpine err a b)</span>
+<span class="lineno">  397 </span><span class="spaces">  </span><span class="nottickedoff">instance</span>
+<span class="lineno">  398 </span><span class="spaces">    </span><span class="nottickedoff">PrettyDefaultBy config (HeadSpine err a b) =&gt; PrettyBy config (HeadSpine err a b)</span></span></span></span>
+<span class="lineno">  399 </span>
+<span class="lineno">  400 </span>-- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
+<span class="lineno">  401 </span>class uni ~ UniOf val =&gt; MakeKnownIn uni val a where
+<span class="lineno">  402 </span>  {-| Convert a Haskell value to the corresponding PLC value.
+<span class="lineno">  403 </span>  The inverse of 'readKnown'. -}
+<span class="lineno">  404 </span>  makeKnown :: a -&gt; BuiltinResult val
+<span class="lineno">  405 </span>  default makeKnown :: KnownBuiltinType val a =&gt; a -&gt; BuiltinResult val
+<span class="lineno">  406 </span>  -- Everything on evaluation path has to be strict in production, so in theory we don't need to
+<span class="lineno">  407 </span>  -- force anything here. In practice however all kinds of weird things happen in tests and @val@
+<span class="lineno">  408 </span>  -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
+<span class="lineno">  409 </span>  -- generated Core, the forcing amounts to pulling a @case@ out of the 'fromConstant' call,
+<span class="lineno">  410 </span>  -- which doesn't affect the overall cost and benchmarking results suggest the same.
+<span class="lineno">  411 </span>  --
+<span class="lineno">  412 </span>  -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
+<span class="lineno">  413 </span>  -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
+<span class="lineno">  414 </span>  <span class="decl"><span class="istickedoff">makeKnown x = pure . fromValue $! x</span></span>
+<span class="lineno">  415 </span>  {-# INLINE makeKnown #-}
+<span class="lineno">  416 </span>
+<span class="lineno">  417 </span>type MakeKnown val = MakeKnownIn (UniOf val) val
+<span class="lineno">  418 </span>
+<span class="lineno">  419 </span>-- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
+<span class="lineno">  420 </span>class uni ~ UniOf val =&gt; ReadKnownIn uni val a where
+<span class="lineno">  421 </span>  {-| Convert a PLC value to the corresponding Haskell value.
+<span class="lineno">  422 </span>  The inverse of 'makeKnown'. -}
+<span class="lineno">  423 </span>  readKnown :: val -&gt; ReadKnownM a
+<span class="lineno">  424 </span>  default readKnown :: KnownBuiltinType val a =&gt; val -&gt; ReadKnownM a
+<span class="lineno">  425 </span>  -- If 'inline' is not used, proper inlining does not happen for whatever reason.
+<span class="lineno">  426 </span>  <span class="decl"><span class="istickedoff">readKnown = inline readKnownConstant</span></span>
+<span class="lineno">  427 </span>  {-# INLINE readKnown #-}
+<span class="lineno">  428 </span>
+<span class="lineno">  429 </span>type ReadKnown val = ReadKnownIn (UniOf val) val
+<span class="lineno">  430 </span>
+<span class="lineno">  431 </span>-- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
+<span class="lineno">  432 </span>makeKnownOrFail :: MakeKnownIn uni val a =&gt; a -&gt; EvaluationResult val
+<span class="lineno">  433 </span><span class="decl"><span class="istickedoff">makeKnownOrFail x = case makeKnown x of</span>
+<span class="lineno">  434 </span><span class="spaces">  </span><span class="istickedoff">BuiltinSuccess val -&gt; EvaluationSuccess val</span>
+<span class="lineno">  435 </span><span class="spaces">  </span><span class="istickedoff">BuiltinSuccessWithLogs _ val -&gt; <span class="nottickedoff">EvaluationSuccess val</span></span>
+<span class="lineno">  436 </span><span class="spaces">  </span><span class="istickedoff">BuiltinFailure _ _ -&gt; EvaluationFailure</span></span>
+<span class="lineno">  437 </span>{-# INLINE makeKnownOrFail #-}
+<span class="lineno">  438 </span>
+<span class="lineno">  439 </span>-- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
+<span class="lineno">  440 </span>readKnownSelf
+<span class="lineno">  441 </span>  :: (ReadKnown val a, BuiltinErrorToEvaluationError structural operational)
+<span class="lineno">  442 </span>  =&gt; val -&gt; Either (ErrorWithCause (EvaluationError structural operational) val) a
+<span class="lineno">  443 </span><span class="decl"><span class="istickedoff">readKnownSelf val =</span>
+<span class="lineno">  444 </span><span class="spaces">  </span><span class="istickedoff">fromRightM <span class="nottickedoff">(flip throwErrorWithCause val . builtinErrorToEvaluationError)</span> $ readKnown val</span></span>
+<span class="lineno">  445 </span>{-# INLINE readKnownSelf #-}
+<span class="lineno">  446 </span>
+<span class="lineno">  447 </span>instance MakeKnownIn uni val a =&gt; MakeKnownIn uni val (BuiltinResult a) where
+<span class="lineno">  448 </span>  <span class="decl"><span class="istickedoff">makeKnown res = res &gt;&gt;= makeKnown</span></span>
+<span class="lineno">  449 </span>  {-# INLINE makeKnown #-}
+<span class="lineno">  450 </span>
+<span class="lineno">  451 </span>-- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
+<span class="lineno">  452 </span>-- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
+<span class="lineno">  453 </span>-- the programmer would be given an explicit 'EvaluationResult' value to handle, which means
+<span class="lineno">  454 </span>-- that when this value is 'EvaluationFailure', a PLC 'Error' was caught.
+<span class="lineno">  455 </span>-- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
+<span class="lineno">  456 </span>-- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
+<span class="lineno">  457 </span>instance
+<span class="lineno">  458 </span>  ( TypeError ('Text &quot;‘BuiltinResult’ cannot appear in the type of an argument&quot;)
+<span class="lineno">  459 </span>  , uni ~ UniOf val
+<span class="lineno">  460 </span>  )
+<span class="lineno">  461 </span>  =&gt; ReadKnownIn uni val (BuiltinResult a)
+<span class="lineno">  462 </span>  where
+<span class="lineno">  463 </span>  <span class="decl"><span class="nottickedoff">readKnown _ = throwError underTypeError</span></span>
+<span class="lineno">  464 </span>  {-# INLINE readKnown #-}
+<span class="lineno">  465 </span>
+<span class="lineno">  466 </span>instance
+<span class="lineno">  467 </span>  ( TypeError ('Text &quot;Use ‘BuiltinResult’ instead of ‘EvaluationResult’&quot;)
+<span class="lineno">  468 </span>  , uni ~ UniOf val
+<span class="lineno">  469 </span>  )
+<span class="lineno">  470 </span>  =&gt; MakeKnownIn uni val (EvaluationResult a)
+<span class="lineno">  471 </span>  where
+<span class="lineno">  472 </span>  <span class="decl"><span class="nottickedoff">makeKnown _ = throwError underTypeError</span></span>
+<span class="lineno">  473 </span>  {-# INLINE makeKnown #-}
+<span class="lineno">  474 </span>
+<span class="lineno">  475 </span>instance
+<span class="lineno">  476 </span>  ( TypeError ('Text &quot;Use ‘BuiltinResult’ instead of ‘EvaluationResult’&quot;)
+<span class="lineno">  477 </span>  , uni ~ UniOf val
+<span class="lineno">  478 </span>  )
+<span class="lineno">  479 </span>  =&gt; ReadKnownIn uni val (EvaluationResult a)
+<span class="lineno">  480 </span>  where
+<span class="lineno">  481 </span>  <span class="decl"><span class="nottickedoff">readKnown _ = throwError underTypeError</span></span>
+<span class="lineno">  482 </span>  {-# INLINE readKnown #-}
+<span class="lineno">  483 </span>
+<span class="lineno">  484 </span>instance HasConstantIn uni val =&gt; MakeKnownIn uni val (SomeConstant uni rep) where
+<span class="lineno">  485 </span>  <span class="decl"><span class="istickedoff">makeKnown = coerceArg $ pure . fromConstant</span></span>
+<span class="lineno">  486 </span>  {-# INLINE makeKnown #-}
+<span class="lineno">  487 </span>
+<span class="lineno">  488 </span>instance HasConstantIn uni val =&gt; ReadKnownIn uni val (SomeConstant uni rep) where
+<span class="lineno">  489 </span>  <span class="decl"><span class="istickedoff">readKnown = <span class="nottickedoff">fmap SomeConstant</span> #. asConstant</span></span>
+<span class="lineno">  490 </span>  {-# INLINE readKnown #-}
+<span class="lineno">  491 </span>
+<span class="lineno">  492 </span>instance uni ~ UniOf val =&gt; MakeKnownIn uni val (Opaque val rep) where
+<span class="lineno">  493 </span>  <span class="decl"><span class="istickedoff">makeKnown = coerceArg pure</span></span>
+<span class="lineno">  494 </span>  {-# INLINE makeKnown #-}
+<span class="lineno">  495 </span>
+<span class="lineno">  496 </span>instance uni ~ UniOf val =&gt; ReadKnownIn uni val (Opaque val rep) where
+<span class="lineno">  497 </span>  <span class="decl"><span class="istickedoff">readKnown = coerceArg pure</span></span>
+<span class="lineno">  498 </span>  {-# INLINE readKnown #-}
+
+</pre>
+</body>
+</html>

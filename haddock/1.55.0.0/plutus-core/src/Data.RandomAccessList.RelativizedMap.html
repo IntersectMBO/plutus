@@ -1,0 +1,1634 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Data.RandomAccessList.RelativizedMap</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Word.html"
+	><span class="hs-identifier"
+	  >Data.Word</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html"
+	><span class="hs-identifier"
+	  >Data.RandomAccessList.Class</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>RAL</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.html"
+	><span class="hs-identifier"
+	  >Data.IntMap.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>IM</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exts.html"
+	><span class="hs-identifier"
+	  >GHC.Exts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IsList.html#IsList"
+	><span class="hs-identifier"
+	  >IsList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-comment"
+      >-- | A sequence implemented by a map from &quot;levels&quot; to values and a counter giving the &quot;current&quot;</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-comment"
+      >-- level.</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="RelativizedMap"
+      ><span class="annot"
+	><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	  ><span class="hs-identifier hs-var"
+	    >RelativizedMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078611"
+      ><span class="annot"
+	><a href="#local-6989586621679078611"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="RelativizedMap"
+      ><span class="annot"
+	><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	  ><span class="hs-identifier hs-var"
+	    >RelativizedMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#IntMap"
+	><span class="hs-identifier hs-type"
+	  >IM.IntMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679078611"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >{-# UNPACK</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Word.html#Word64"
+	><span class="hs-identifier hs-type"
+	  >Word64</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679078623"
+      ><span id="local-6989586621679078631"
+	><span id="local-6989586621679078635"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; RelativizedMap a -&gt; ShowS
+[RelativizedMap a] -&gt; ShowS
+RelativizedMap a -&gt; String
+(Int -&gt; RelativizedMap a -&gt; ShowS)
+-&gt; (RelativizedMap a -&gt; String)
+-&gt; ([RelativizedMap a] -&gt; ShowS)
+-&gt; Show (RelativizedMap a)
+forall a. Show a =&gt; Int -&gt; RelativizedMap a -&gt; ShowS
+forall a. Show a =&gt; [RelativizedMap a] -&gt; ShowS
+forall a. Show a =&gt; RelativizedMap a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; RelativizedMap a -&gt; ShowS
+showsPrec :: Int -&gt; RelativizedMap a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; RelativizedMap a -&gt; String
+show :: RelativizedMap a -&gt; String
+$cshowList :: forall a. Show a =&gt; [RelativizedMap a] -&gt; ShowS
+showList :: [RelativizedMap a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679078640"
+      ><span id="local-6989586621679078646"
+	><span class="annot"
+	  ><span class="annottext"
+	    >RelativizedMap a -&gt; RelativizedMap a -&gt; Bool
+(RelativizedMap a -&gt; RelativizedMap a -&gt; Bool)
+-&gt; (RelativizedMap a -&gt; RelativizedMap a -&gt; Bool)
+-&gt; Eq (RelativizedMap a)
+forall a. Eq a =&gt; RelativizedMap a -&gt; RelativizedMap a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; RelativizedMap a -&gt; RelativizedMap a -&gt; Bool
+== :: RelativizedMap a -&gt; RelativizedMap a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; RelativizedMap a -&gt; RelativizedMap a -&gt; Bool
+/= :: RelativizedMap a -&gt; RelativizedMap a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679078651"
+      ><span id="local-6989586621679078658"
+	><span id="local-6989586621679078664"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; [Item (RelativizedMap a)] -&gt; RelativizedMap a
+[Item (RelativizedMap a)] -&gt; RelativizedMap a
+RelativizedMap a -&gt; [Item (RelativizedMap a)]
+([Item (RelativizedMap a)] -&gt; RelativizedMap a)
+-&gt; (Int -&gt; [Item (RelativizedMap a)] -&gt; RelativizedMap a)
+-&gt; (RelativizedMap a -&gt; [Item (RelativizedMap a)])
+-&gt; IsList (RelativizedMap a)
+forall a. Int -&gt; [Item (RelativizedMap a)] -&gt; RelativizedMap a
+forall a. [Item (RelativizedMap a)] -&gt; RelativizedMap a
+forall a. RelativizedMap a -&gt; [Item (RelativizedMap a)]
+forall l.
+([Item l] -&gt; l)
+-&gt; (Int -&gt; [Item l] -&gt; l) -&gt; (l -&gt; [Item l]) -&gt; IsList l
+$cfromList :: forall a. [Item (RelativizedMap a)] -&gt; RelativizedMap a
+fromList :: [Item (RelativizedMap a)] -&gt; RelativizedMap a
+$cfromListN :: forall a. Int -&gt; [Item (RelativizedMap a)] -&gt; RelativizedMap a
+fromListN :: Int -&gt; [Item (RelativizedMap a)] -&gt; RelativizedMap a
+$ctoList :: forall a. RelativizedMap a -&gt; [Item (RelativizedMap a)]
+toList :: RelativizedMap a -&gt; [Item (RelativizedMap a)]
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.IsList.html#IsList"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>IsList</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#AsRAL"
+	><span class="hs-identifier hs-type"
+	  >RAL.AsRAL</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679078611"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679078604"
+      ><span id="local-6989586621679078677"
+	><span id="local-6989586621679078681"
+	  ><span id="local-6989586621679078684"
+	    ><span id="local-6989586621679078687"
+	      ><span class="annot"
+		><a href="Data.RandomAccessList.Class.html#RandomAccessList"
+		  ><span class="hs-identifier hs-type"
+		    >RAL.RandomAccessList</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+		  ><span class="hs-identifier hs-type"
+		    >RelativizedMap</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679078604"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Element"
+      ><span class="annot"
+	><a href="Data.RandomAccessList.Class.html#Element"
+	  ><span class="hs-identifier hs-var"
+	    >Element</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679078604"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679078604"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#empty"
+	><span class="hs-pragma hs-type"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679078695"
+      ><span class="annot"
+	><span class="annottext"
+	  >empty :: RelativizedMap a
+</span
+	  ><a href="Data.RandomAccessList.Class.html#empty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >empty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a -&gt; Word64 -&gt; RelativizedMap a
+forall a. IntMap a -&gt; Word64 -&gt; RelativizedMap a
+</span
+	><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-var"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#cons"
+	><span class="hs-pragma hs-type"
+	  >cons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679078703"
+      ><span class="annot"
+	><span class="annottext"
+	  >cons :: Element (RelativizedMap a) -&gt; RelativizedMap a -&gt; RelativizedMap a
+</span
+	  ><a href="Data.RandomAccessList.Class.html#cons"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >cons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078704"
+      ><span class="annot"
+	><span class="annottext"
+	  >Element (RelativizedMap a)
+</span
+	  ><a href="#local-6989586621679078704"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078705"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntMap a
+</span
+	  ><a href="#local-6989586621679078705"
+	  ><span class="hs-identifier hs-var"
+	    >im</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078706"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621679078706"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a -&gt; Word64 -&gt; RelativizedMap a
+forall a. IntMap a -&gt; Word64 -&gt; RelativizedMap a
+</span
+	><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-var"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; a -&gt; IntMap a -&gt; IntMap a
+forall a. Int -&gt; a -&gt; IntMap a -&gt; IntMap a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Strict.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >IM.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078706"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+Element (RelativizedMap a)
+</span
+	><a href="#local-6989586621679078704"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+</span
+	><a href="#local-6989586621679078705"
+	><span class="hs-identifier hs-var"
+	  >im</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078706"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Word64 -&gt; Word64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#uncons"
+	><span class="hs-pragma hs-type"
+	  >uncons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679078714"
+      ><span class="annot"
+	><span class="annottext"
+	  >uncons :: RelativizedMap a
+-&gt; Maybe (Element (RelativizedMap a), RelativizedMap a)
+</span
+	  ><a href="Data.RandomAccessList.Class.html#uncons"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >uncons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (a, RelativizedMap a)
+Maybe (Element (RelativizedMap a), RelativizedMap a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#uncons"
+	><span class="hs-identifier hs-var"
+	  >uncons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078715"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntMap a
+</span
+	  ><a href="#local-6989586621679078715"
+	  ><span class="hs-identifier hs-var"
+	    >im</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078716"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621679078716"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a -&gt; Maybe ((Int, a), IntMap a)
+forall a. IntMap a -&gt; Maybe ((Int, a), IntMap a)
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#maxViewWithKey"
+	><span class="hs-identifier hs-var"
+	  >IM.maxViewWithKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+</span
+	><a href="#local-6989586621679078715"
+	><span class="hs-identifier hs-var"
+	  >im</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ((Int, a), IntMap a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (a, RelativizedMap a)
+Maybe (Element (RelativizedMap a), RelativizedMap a)
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679078718"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679078718"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679078719"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntMap a
+</span
+	  ><a href="#local-6989586621679078719"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a, RelativizedMap a) -&gt; Maybe (a, RelativizedMap a)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679078718"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a -&gt; Word64 -&gt; RelativizedMap a
+forall a. IntMap a -&gt; Word64 -&gt; RelativizedMap a
+</span
+	><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-var"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+</span
+	><a href="#local-6989586621679078719"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078716"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Word64 -&gt; Word64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#length"
+	><span class="hs-pragma hs-type"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679078721"
+      ><span class="annot"
+	><span class="annottext"
+	  >length :: RelativizedMap a -&gt; Word64
+</span
+	  ><a href="Data.RandomAccessList.Class.html#length"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >length</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078722"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621679078722"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078722"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#indexZero"
+	><span class="hs-pragma hs-type"
+	  >indexZero</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679078735"
+      ><span class="annot"
+	><span class="annottext"
+	  >indexZero :: RelativizedMap a -&gt; Word64 -&gt; Maybe (Element (RelativizedMap a))
+</span
+	  ><a href="Data.RandomAccessList.Class.html#indexZero"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >indexZero</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+Maybe (Element (RelativizedMap a))
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.Class.html#indexZero"
+	><span class="hs-identifier hs-var"
+	  >indexZero</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.RandomAccessList.RelativizedMap.html#RelativizedMap"
+	><span class="hs-identifier hs-type"
+	  >RelativizedMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078736"
+      ><span class="annot"
+	><span class="annottext"
+	  >IntMap a
+</span
+	  ><a href="#local-6989586621679078736"
+	  ><span class="hs-identifier hs-var"
+	    >im</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679078737"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621679078737"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679078738"
+      ><span class="annot"
+	><span class="annottext"
+	  >Word64
+</span
+	  ><a href="#local-6989586621679078738"
+	  ><span class="hs-identifier hs-var"
+	    >w</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679078739"
+      ><span class="annot"
+	><span class="annottext"
+	  >maxIndex :: Word64
+</span
+	  ><a href="#local-6989586621679078739"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maxIndex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078737"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Word64 -&gt; Word64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078738"
+	><span class="hs-identifier hs-var"
+	  >w</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Word64 -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3E"
+	><span class="hs-operator hs-var"
+	  >&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078739"
+	><span class="hs-identifier hs-var"
+	  >maxIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+Maybe (Element (RelativizedMap a))
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; IntMap a -&gt; Maybe a
+forall a. Int -&gt; IntMap a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.IntMap.Internal.html#lookup"
+	><span class="hs-identifier hs-var"
+	  >IM.lookup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078739"
+	><span class="hs-identifier hs-var"
+	  >maxIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word64
+</span
+	><a href="#local-6989586621679078738"
+	><span class="hs-identifier hs-var"
+	  >w</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>IntMap a
+</span
+	><a href="#local-6989586621679078736"
+	><span class="hs-identifier hs-var"
+	  >im</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

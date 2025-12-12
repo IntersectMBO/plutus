@@ -1,0 +1,6350 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyDataDecls #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ExistentialQuantification #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >MAlonzo.Code.VerifiedCompilation.Certificate</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier"
+	  >coe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier"
+	  >erased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#addInt"
+	><span class="hs-identifier"
+	  >addInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#subInt"
+	><span class="hs-identifier"
+	  >subInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mulInt"
+	><span class="hs-identifier"
+	  >mulInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quotInt"
+	><span class="hs-identifier"
+	  >quotInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#remInt"
+	><span class="hs-identifier"
+	  >remInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#geqInt"
+	><span class="hs-identifier"
+	  >geqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#ltInt"
+	><span class="hs-identifier"
+	  >ltInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eqInt"
+	><span class="hs-identifier"
+	  >eqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#add64"
+	><span class="hs-identifier"
+	  >add64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#sub64"
+	><span class="hs-identifier"
+	  >sub64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mul64"
+	><span class="hs-identifier"
+	  >mul64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quot64"
+	><span class="hs-identifier"
+	  >quot64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#rem64"
+	><span class="hs-identifier"
+	  >rem64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#lt64"
+	><span class="hs-identifier"
+	  >lt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eq64"
+	><span class="hs-identifier"
+	  >eq64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64FromNat"
+	><span class="hs-identifier"
+	  >word64FromNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64ToNat"
+	><span class="hs-identifier"
+	  >word64ToNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Builtin.Bool.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Builtin.Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Primitive</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.Irrelevant.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Data.Irrelevant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Reflects.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Nullary.Reflects</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Transform.Simplifier</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- VerifiedCompilation.Certificate.SimplifierTag</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="d_SimplifierTag_4"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_SimplifierTag_4 :: ()
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_SimplifierTag_4"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_SimplifierTag_4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="T_SimplifierTag_4"
+      ><span class="annot"
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	  ><span class="hs-identifier hs-var"
+	    >T_SimplifierTag_4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierStage"
+	><span class="hs-identifier hs-type"
+	  >SimplifierStage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_floatDelayT_6"
+      ><span id="%24mC_floatDelayT_6"
+	><span id="%24bC_floatDelayT_6"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_floatDelayT_6 :: forall {r}. SimplifierStage -&gt; ((# #) -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_floatDelayT_6 :: SimplifierStage
+</span
+	      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_floatDelayT_6"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_floatDelayT_6</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#FloatDelay"
+	><span class="hs-identifier hs-type"
+	  >FloatDelay</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_forceDelayT_8"
+      ><span id="%24mC_forceDelayT_8"
+	><span id="%24bC_forceDelayT_8"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_forceDelayT_8 :: forall {r}. SimplifierStage -&gt; ((# #) -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_forceDelayT_8 :: SimplifierStage
+</span
+	      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_forceDelayT_8"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_forceDelayT_8</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#ForceDelay"
+	><span class="hs-identifier hs-type"
+	  >ForceDelay</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_forceCaseDelayT_10"
+      ><span id="%24mC_forceCaseDelayT_10"
+	><span id="%24bC_forceCaseDelayT_10"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_forceCaseDelayT_10 :: forall {r}. SimplifierStage -&gt; ((# #) -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_forceCaseDelayT_10 :: SimplifierStage
+</span
+	      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_forceCaseDelayT_10"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_forceCaseDelayT_10</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#ForceCaseDelay"
+	><span class="hs-identifier hs-type"
+	  >ForceCaseDelay</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_caseOfCaseT_12"
+      ><span id="%24mC_caseOfCaseT_12"
+	><span id="%24bC_caseOfCaseT_12"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_caseOfCaseT_12 :: forall {r}. SimplifierStage -&gt; ((# #) -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_caseOfCaseT_12 :: SimplifierStage
+</span
+	      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_caseOfCaseT_12"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_caseOfCaseT_12</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CaseOfCase"
+	><span class="hs-identifier hs-type"
+	  >CaseOfCase</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_caseReduceT_14"
+      ><span id="%24mC_caseReduceT_14"
+	><span id="%24bC_caseReduceT_14"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_caseReduceT_14 :: forall {r}. SimplifierStage -&gt; ((# #) -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_caseReduceT_14 :: SimplifierStage
+</span
+	      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_caseReduceT_14"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_caseReduceT_14</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CaseReduce"
+	><span class="hs-identifier hs-type"
+	  >CaseReduce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_inlineT_16"
+      ><span id="%24mC_inlineT_16"
+	><span id="%24bC_inlineT_16"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_inlineT_16 :: forall {r}. SimplifierStage -&gt; ((# #) -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_inlineT_16 :: SimplifierStage
+</span
+	      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_inlineT_16"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_inlineT_16</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#Inline"
+	><span class="hs-identifier hs-type"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >pattern</span
+      ><span
+      > </span
+      ><span id="C_cseT_18"
+      ><span id="%24mC_cseT_18"
+	><span id="%24bC_cseT_18"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >$mC_cseT_18 :: forall {r}. SimplifierStage -&gt; ((# #) -&gt; r) -&gt; ((# #) -&gt; r) -&gt; r
+$bC_cseT_18 :: SimplifierStage
+</span
+	      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_cseT_18"
+	      ><span class="hs-identifier hs-var hs-var hs-var"
+		>C_cseT_18</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CSE"
+	><span class="hs-identifier hs-type"
+	  >CSE</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_floatDelayT_6"
+	><span class="hs-identifier hs-type"
+	  >check_floatDelayT_6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span id="check_floatDelayT_6"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_floatDelayT_6 :: SimplifierStage
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_floatDelayT_6"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_floatDelayT_6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#FloatDelay"
+	><span class="hs-identifier hs-var"
+	  >FloatDelay</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_forceDelayT_8"
+	><span class="hs-identifier hs-type"
+	  >check_forceDelayT_8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span id="check_forceDelayT_8"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_forceDelayT_8 :: SimplifierStage
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_forceDelayT_8"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_forceDelayT_8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#ForceDelay"
+	><span class="hs-identifier hs-var"
+	  >ForceDelay</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_forceCaseDelayT_10"
+	><span class="hs-identifier hs-type"
+	  >check_forceCaseDelayT_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span id="check_forceCaseDelayT_10"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_forceCaseDelayT_10 :: SimplifierStage
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_forceCaseDelayT_10"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_forceCaseDelayT_10</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#ForceCaseDelay"
+	><span class="hs-identifier hs-var"
+	  >ForceCaseDelay</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_caseOfCaseT_12"
+	><span class="hs-identifier hs-type"
+	  >check_caseOfCaseT_12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="check_caseOfCaseT_12"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_caseOfCaseT_12 :: SimplifierStage
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_caseOfCaseT_12"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_caseOfCaseT_12</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CaseOfCase"
+	><span class="hs-identifier hs-var"
+	  >CaseOfCase</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_caseReduceT_14"
+	><span class="hs-identifier hs-type"
+	  >check_caseReduceT_14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span id="check_caseReduceT_14"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_caseReduceT_14 :: SimplifierStage
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_caseReduceT_14"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_caseReduceT_14</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CaseReduce"
+	><span class="hs-identifier hs-var"
+	  >CaseReduce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_inlineT_16"
+	><span class="hs-identifier hs-type"
+	  >check_inlineT_16</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span id="check_inlineT_16"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_inlineT_16 :: SimplifierStage
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_inlineT_16"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_inlineT_16</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#Inline"
+	><span class="hs-identifier hs-var"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_cseT_18"
+	><span class="hs-identifier hs-type"
+	  >check_cseT_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="check_cseT_18"
+      ><span class="annot"
+	><span class="annottext"
+	  >check_cseT_18 :: SimplifierStage
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#check_cseT_18"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >check_cseT_18</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CSE"
+	><span class="hs-identifier hs-var"
+	  >CSE</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#cover_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >cover_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierStage"
+	><span class="hs-identifier hs-type"
+	  >SimplifierStage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span id="cover_SimplifierTag_4"
+      ><span class="annot"
+	><span class="annottext"
+	  >cover_SimplifierTag_4 :: SimplifierStage -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#cover_SimplifierTag_4"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cover_SimplifierTag_4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475067"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475067"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475067"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#FloatDelay"
+	><span class="hs-identifier hs-var"
+	  >FloatDelay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#ForceDelay"
+	><span class="hs-identifier hs-var"
+	  >ForceDelay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#ForceCaseDelay"
+	><span class="hs-identifier hs-var"
+	  >ForceCaseDelay</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CaseOfCase"
+	><span class="hs-identifier hs-var"
+	  >CaseOfCase</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CaseReduce"
+	><span class="hs-identifier hs-var"
+	  >CaseReduce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#Inline"
+	><span class="hs-identifier hs-var"
+	  >Inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#CSE"
+	><span class="hs-identifier hs-var"
+	  >CSE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- VerifiedCompilation.Certificate.ProofOrCE</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span id="d_ProofOrCE_28"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_ProofOrCE_28 :: p -&gt; p -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_ProofOrCE_28"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_ProofOrCE_28</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475069"
+      ><span class="annot"
+	><span class="annottext"
+	  >p
+</span
+	  ><a href="#local-6989586621682475069"
+	  ><span class="hs-identifier hs-var"
+	    >a0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475070"
+      ><span class="annot"
+	><span class="annottext"
+	  >p
+</span
+	  ><a href="#local-6989586621682475070"
+	  ><span class="hs-identifier hs-var"
+	    >a1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="T_ProofOrCE_28"
+      ><span class="annot"
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	  ><span class="hs-identifier hs-var"
+	    >T_ProofOrCE_28</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="C_proof_34"
+      ><span class="annot"
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	  ><span class="hs-identifier hs-var"
+	    >C_proof_34</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="C_ce_42"
+      ><span class="annot"
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	  ><span class="hs-identifier hs-var"
+	    >C_ce_42</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-comment"
+      >-- VerifiedCompilation.Certificate.decToPCE</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_decToPCE_52"
+	><span class="hs-identifier hs-type"
+	  >d_decToPCE_52</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="d_decToPCE_52"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_decToPCE_52 :: ()
+-&gt; ()
+-&gt; SimplifierStage
+-&gt; T_Dec_20
+-&gt; AgdaAny
+-&gt; AgdaAny
+-&gt; T_ProofOrCE_28
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_decToPCE_52"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_decToPCE_52</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475074"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475074"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475075"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475075"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475076"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475076"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475077"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Dec_20
+</span
+	  ><a href="#local-6989586621682475077"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475078"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475078"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475079"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475079"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; T_Dec_20 -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_decToPCE_52"
+	><span class="hs-identifier hs-var"
+	  >du_decToPCE_52</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475076"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_20
+</span
+	><a href="#local-6989586621682475077"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475078"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475079"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_decToPCE_52"
+	><span class="hs-identifier hs-type"
+	  >du_decToPCE_52</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span id="du_decToPCE_52"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_decToPCE_52 :: SimplifierStage -&gt; T_Dec_20 -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_decToPCE_52"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_decToPCE_52</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475081"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475081"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475082"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Dec_20
+</span
+	  ><a href="#local-6989586621682475082"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475083"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475083"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475084"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475084"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_20 -&gt; T_Dec_20
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_20
+</span
+	><a href="#local-6989586621682475082"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#C__because__32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475086"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621682475086"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475087"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Reflects_16
+</span
+	  ><a href="#local-6989586621682475087"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621682475086"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16 -&gt; T_Reflects_16
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16
+</span
+	><a href="#local-6989586621682475087"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Reflects.html#C_of%27696%27_22"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475089"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475089"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >                      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; T_ProofOrCE_28) -&gt; AgdaAny -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	><span class="hs-identifier hs-var"
+	  >C_proof_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475089"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+-&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#seq"
+	><span class="hs-identifier hs-var"
+	  >seq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16 -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16
+</span
+	><a href="#local-6989586621682475087"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-var"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475081"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475083"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475084"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_20
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="hs-comment"
+      >-- VerifiedCompilation.Certificate.pceToDec</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_pceToDec_66"
+	><span class="hs-identifier hs-type"
+	  >d_pceToDec_66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span id="d_pceToDec_66"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_pceToDec_66 :: () -&gt; T_ProofOrCE_28 -&gt; T_Dec_20
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_pceToDec_66"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_pceToDec_66</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475092"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475092"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475093"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_ProofOrCE_28
+</span
+	  ><a href="#local-6989586621682475093"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_pceToDec_66"
+	><span class="hs-identifier hs-var"
+	  >du_pceToDec_66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+</span
+	><a href="#local-6989586621682475093"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_pceToDec_66"
+	><span class="hs-identifier hs-type"
+	  >du_pceToDec_66</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="du_pceToDec_66"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_pceToDec_66 :: T_ProofOrCE_28 -&gt; T_Dec_20
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_pceToDec_66"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_pceToDec_66</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475095"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_ProofOrCE_28
+</span
+	  ><a href="#local-6989586621682475095"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28 -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+</span
+	><a href="#local-6989586621682475095"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	><span class="hs-identifier hs-type"
+	  >C_proof_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475096"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475096"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; T_Reflects_16 -&gt; T_Dec_20)
+-&gt; AgdaAny -&gt; AgdaAny -&gt; T_Dec_20
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; T_Reflects_16 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#C__because__32"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.Bool.html#C_true_10"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.Bool.C_true_10</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; T_Reflects_16) -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_Reflects_16
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Reflects.html#C_of%27696%27_22"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475096"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-type"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475098"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475098"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475099"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475099"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475100"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475100"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; T_Reflects_16 -&gt; T_Dec_20)
+-&gt; AgdaAny -&gt; AgdaAny -&gt; T_Dec_20
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; T_Reflects_16 -&gt; T_Dec_20
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#C__because__32"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="MAlonzo.Code.Agda.Builtin.Bool.html#C_false_8"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Agda.Builtin.Bool.C_false_8</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16 -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16
+</span
+	><a href="MAlonzo.Code.Relation.Nullary.Reflects.html#C_of%278319%27_26"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_20
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-comment"
+      >-- VerifiedCompilation.Certificate.MatchOrCE</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_MatchOrCE_80"
+	><span class="hs-identifier hs-type"
+	  >d_MatchOrCE_80</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span id="d_MatchOrCE_80"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_MatchOrCE_80 :: () -&gt; () -&gt; () -&gt; (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; ()
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_MatchOrCE_80"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_MatchOrCE_80</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; () -&gt; () -&gt; (AgdaAny -&gt; AgdaAny -&gt; ()) -&gt; ()
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-comment"
+      >-- VerifiedCompilation.Certificate.matchOrCE</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_matchOrCE_100"
+	><span class="hs-identifier hs-type"
+	  >d_matchOrCE_100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span id="d_matchOrCE_100"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_matchOrCE_100 :: ()
+-&gt; ()
+-&gt; ()
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; ())
+-&gt; SimplifierStage
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; T_Dec_20)
+-&gt; AgdaAny
+-&gt; AgdaAny
+-&gt; T_ProofOrCE_28
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_matchOrCE_100"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_matchOrCE_100</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475106"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475106"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475107"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475107"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475108"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475108"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475109"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny -&gt; AgdaAny -&gt; ()
+</span
+	  ><a href="#local-6989586621682475109"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475110"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475110"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475111"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny -&gt; AgdaAny -&gt; T_Dec_20
+</span
+	  ><a href="#local-6989586621682475111"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475112"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475112"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475113"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475113"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; T_Dec_20)
+-&gt; AgdaAny
+-&gt; AgdaAny
+-&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_matchOrCE_100"
+	><span class="hs-identifier hs-var"
+	  >du_matchOrCE_100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475110"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny -&gt; T_Dec_20
+</span
+	><a href="#local-6989586621682475111"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475112"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475113"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_matchOrCE_100"
+	><span class="hs-identifier hs-type"
+	  >du_matchOrCE_100</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#T_Dec_20"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span id="du_matchOrCE_100"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_matchOrCE_100 :: SimplifierStage
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; T_Dec_20)
+-&gt; AgdaAny
+-&gt; AgdaAny
+-&gt; T_ProofOrCE_28
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_matchOrCE_100"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_matchOrCE_100</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475115"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475115"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475116"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny -&gt; AgdaAny -&gt; T_Dec_20
+</span
+	  ><a href="#local-6989586621682475116"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475117"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475117"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475118"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475118"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682475119"
+      ><span class="annot"
+	><span class="annottext"
+	  >v4 :: AgdaAny
+</span
+	  ><a href="#local-6989586621682475119"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; AgdaAny -&gt; T_Dec_20) -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny -&gt; T_Dec_20
+</span
+	><a href="#local-6989586621682475116"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475117"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475118"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_Dec_20
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475119"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Decidable.Core.html#C__because__32"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475120"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621682475120"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475121"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Reflects_16
+</span
+	  ><a href="#local-6989586621682475121"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621682475120"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16 -&gt; T_Reflects_16
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16
+</span
+	><a href="#local-6989586621682475121"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Nullary.Reflects.html#C_of%27696%27_22"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475122"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475122"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; T_ProofOrCE_28) -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	><span class="hs-identifier hs-var"
+	  >C_proof_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475122"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#seq"
+	><span class="hs-identifier hs-var"
+	  >seq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16 -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Reflects_16
+</span
+	><a href="#local-6989586621682475121"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-var"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475115"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475117"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475118"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Dec_20
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span class="hs-comment"
+      >-- VerifiedCompilation.Certificate.pcePointwise</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_pcePointwise_142"
+	><span class="hs-identifier hs-type"
+	  >d_pcePointwise_142</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span id="d_pcePointwise_142"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_pcePointwise_142 :: ()
+-&gt; ()
+-&gt; ()
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; ())
+-&gt; SimplifierStage
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; [AgdaAny]
+-&gt; [AgdaAny]
+-&gt; T_ProofOrCE_28
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#d_pcePointwise_142"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_pcePointwise_142</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475124"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475124"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475125"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475125"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475126"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621682475126"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682475127"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny -&gt; AgdaAny -&gt; ()
+</span
+	  ><a href="#local-6989586621682475127"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475128"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475128"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475129"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	  ><a href="#local-6989586621682475129"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475130"
+      ><span class="annot"
+	><span class="annottext"
+	  >[AgdaAny]
+</span
+	  ><a href="#local-6989586621682475130"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475131"
+      ><span class="annot"
+	><span class="annottext"
+	  >[AgdaAny]
+</span
+	  ><a href="#local-6989586621682475131"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; [AgdaAny]
+-&gt; [AgdaAny]
+-&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_pcePointwise_142"
+	><span class="hs-identifier hs-var"
+	  >du_pcePointwise_142</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475128"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="#local-6989586621682475129"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475130"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475131"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_pcePointwise_142"
+	><span class="hs-identifier hs-type"
+	  >du_pcePointwise_142</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_SimplifierTag_4"
+	><span class="hs-identifier hs-type"
+	  >T_SimplifierTag_4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#T_ProofOrCE_28"
+	><span class="hs-identifier hs-type"
+	  >T_ProofOrCE_28</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span id="du_pcePointwise_142"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_pcePointwise_142 :: SimplifierStage
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; [AgdaAny]
+-&gt; [AgdaAny]
+-&gt; T_ProofOrCE_28
+</span
+	  ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_pcePointwise_142"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_pcePointwise_142</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475133"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475133"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475134"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	  ><a href="#local-6989586621682475134"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475135"
+      ><span class="annot"
+	><span class="annottext"
+	  >[AgdaAny]
+</span
+	  ><a href="#local-6989586621682475135"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475136"
+      ><span class="annot"
+	><span class="annottext"
+	  >[AgdaAny]
+</span
+	  ><a href="#local-6989586621682475136"
+	  ><span class="hs-identifier hs-var"
+	    >v3</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny] -&gt; [AgdaAny]
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475135"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny] -&gt; [AgdaAny]
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475136"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; T_ProofOrCE_28) -&gt; AgdaAny -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	><span class="hs-identifier hs-var"
+	  >C_proof_34</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Pointwise_48 -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#C_%2791%27%2793%27_56"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C_'91''93'_56</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621682475138"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475138"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475139"
+      ><span class="annot"
+	><span class="annottext"
+	  >[AgdaAny]
+</span
+	  ><a href="#local-6989586621682475139"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; SimplifierStage -&gt; [AgdaAny] -&gt; [AgdaAny] -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-var"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475133"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475135"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475139"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621682475140"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475140"
+	  ><span class="hs-identifier hs-var"
+	    >v4</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475141"
+      ><span class="annot"
+	><span class="annottext"
+	  >[AgdaAny]
+</span
+	  ><a href="#local-6989586621682475141"
+	  ><span class="hs-identifier hs-var"
+	    >v5</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny] -&gt; [AgdaAny]
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475136"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; SimplifierStage -&gt; [AgdaAny] -&gt; [AgdaAny] -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-var"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475133"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475141"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475136"
+	><span class="hs-identifier hs-var"
+	  >v3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >             </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >:</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621682475142"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475142"
+	  ><span class="hs-identifier hs-var"
+	    >v6</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475143"
+      ><span class="annot"
+	><span class="annottext"
+	  >[AgdaAny]
+</span
+	  ><a href="#local-6989586621682475143"
+	  ><span class="hs-identifier hs-var"
+	    >v7</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >               </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682475144"
+      ><span class="annot"
+	><span class="annottext"
+	  >v8 :: AgdaAny
+</span
+	  ><a href="#local-6989586621682475144"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="#local-6989586621682475134"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475140"
+	><span class="hs-identifier hs-var"
+	  >v4</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475142"
+	><span class="hs-identifier hs-var"
+	  >v6</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475144"
+	><span class="hs-identifier hs-var"
+	  >v8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	><span class="hs-identifier hs-type"
+	  >C_proof_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475145"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475145"
+	  ><span class="hs-identifier hs-var"
+	    >v9</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >                         </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682475146"
+      ><span class="annot"
+	><span class="annottext"
+	  >v10 :: AgdaAny
+</span
+	  ><a href="#local-6989586621682475146"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >v10</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >                                  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierStage
+ -&gt; (AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+ -&gt; [AgdaAny]
+ -&gt; [AgdaAny]
+ -&gt; T_ProofOrCE_28)
+-&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+-&gt; (AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; [AgdaAny]
+-&gt; [AgdaAny]
+-&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#du_pcePointwise_142"
+	><span class="hs-identifier hs-var"
+	  >du_pcePointwise_142</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475133"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28) -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="#local-6989586621682475134"
+	><span class="hs-identifier hs-var"
+	  >v1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny] -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475141"
+	><span class="hs-identifier hs-var"
+	  >v5</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny] -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><a href="#local-6989586621682475143"
+	><span class="hs-identifier hs-var"
+	  >v7</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >                            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >                              </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475146"
+	><span class="hs-identifier hs-var"
+	  >v10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >                                 </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	><span class="hs-identifier hs-type"
+	  >C_proof_34</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475147"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475147"
+	  ><span class="hs-identifier hs-var"
+	    >v11</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >                                   </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; T_ProofOrCE_28) -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >                                        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_proof_34"
+	><span class="hs-identifier hs-var"
+	  >C_proof_34</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >                                        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(AgdaAny -&gt; T_Pointwise_48 -&gt; T_Pointwise_48)
+-&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >                                           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny -&gt; T_Pointwise_48 -&gt; T_Pointwise_48
+</span
+	><a href="MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.html#C__%278759%27__62"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Data.List.Relation.Binary.Pointwise.Base.C__'8759'__62</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >                                           </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475145"
+	><span class="hs-identifier hs-var"
+	  >v9</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475147"
+	><span class="hs-identifier hs-var"
+	  >v11</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >                                 </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-type"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475149"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475149"
+	  ><span class="hs-identifier hs-var"
+	    >v14</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475150"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475150"
+	  ><span class="hs-identifier hs-var"
+	    >v15</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475151"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475151"
+	  ><span class="hs-identifier hs-var"
+	    >v16</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-var"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475149"
+	><span class="hs-identifier hs-var"
+	  >v14</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475150"
+	><span class="hs-identifier hs-var"
+	  >v15</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475151"
+	><span class="hs-identifier hs-var"
+	  >v16</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >                                 </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-type"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475152"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+</span
+	  ><a href="#local-6989586621682475152"
+	  ><span class="hs-identifier hs-var"
+	    >v12</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475153"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475153"
+	  ><span class="hs-identifier hs-var"
+	    >v13</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682475154"
+      ><span class="annot"
+	><span class="annottext"
+	  >AgdaAny
+</span
+	  ><a href="#local-6989586621682475154"
+	  ><span class="hs-identifier hs-var"
+	    >v14</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28)
+-&gt; SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage -&gt; AgdaAny -&gt; AgdaAny -&gt; T_ProofOrCE_28
+</span
+	><a href="MAlonzo.Code.VerifiedCompilation.Certificate.html#C_ce_42"
+	><span class="hs-identifier hs-var"
+	  >C_ce_42</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682475152"
+	><span class="hs-identifier hs-var"
+	  >v12</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475153"
+	><span class="hs-identifier hs-var"
+	  >v13</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+</span
+	><a href="#local-6989586621682475154"
+	><span class="hs-identifier hs-var"
+	  >v14</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >                       </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AgdaAny
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >             </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AgdaAny]
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_ProofOrCE_28
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#mazUnreachableError"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.RTE.mazUnreachableError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,308 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE CPP #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module MAlonzo.RTE.Float where
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>import Prelude
+<span class="lineno">    6 </span>  ( Bool, Double, Int, Integer, Maybe(..), Ordering(..)
+<span class="lineno">    7 </span>  , Eq(..), Ord(..), Functor(..)
+<span class="lineno">    8 </span>  , Floating(..), Fractional(..), Integral(..), Num(..), Real(..), RealFloat(..), RealFrac(..)
+<span class="lineno">    9 </span>  , ($), (.), otherwise, uncurry, undefined
+<span class="lineno">   10 </span>  , (&amp;&amp;), fst, snd
+<span class="lineno">   11 </span>  , (^), even, fromIntegral
+<span class="lineno">   12 </span>  )
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Data.Bifunctor   ( bimap, second )
+<span class="lineno">   15 </span>import Data.Function    ( on )
+<span class="lineno">   16 </span>import Data.Maybe       ( fromMaybe )
+<span class="lineno">   17 </span>import Data.Ratio       ( (%), numerator, denominator )
+<span class="lineno">   18 </span>import Data.Word        ( Word64 )
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>#if __GLASGOW_HASKELL__ &gt;= 804
+<span class="lineno">   21 </span>import GHC.Float (castDoubleToWord64, castWord64ToDouble)
+<span class="lineno">   22 </span>#else
+<span class="lineno">   23 </span>import System.IO.Unsafe (unsafePerformIO)
+<span class="lineno">   24 </span>import qualified Foreign          as F
+<span class="lineno">   25 </span>import qualified Foreign.Storable as F
+<span class="lineno">   26 </span>#endif
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>#if __GLASGOW_HASKELL__ &lt; 804
+<span class="lineno">   29 </span>castDoubleToWord64 :: Double -&gt; Word64
+<span class="lineno">   30 </span>castDoubleToWord64 float = unsafePerformIO $ F.alloca $ \buf -&gt; do
+<span class="lineno">   31 </span>  F.poke (F.castPtr buf) float
+<span class="lineno">   32 </span>  F.peek buf
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>castWord64ToDouble :: Word64 -&gt; Double
+<span class="lineno">   35 </span>castWord64ToDouble word = unsafePerformIO $ F.alloca $ \buf -&gt; do
+<span class="lineno">   36 </span>  F.poke (F.castPtr buf) word
+<span class="lineno">   37 </span>  F.peek buf
+<span class="lineno">   38 </span>#endif
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>{-# INLINE doubleEq #-}
+<span class="lineno">   41 </span>doubleEq :: Double -&gt; Double -&gt; Bool
+<span class="lineno">   42 </span><span class="decl"><span class="nottickedoff">doubleEq = (==)</span></span>
+<span class="lineno">   43 </span>
+<span class="lineno">   44 </span>{-# INLINE doubleLe #-}
+<span class="lineno">   45 </span>doubleLe :: Double -&gt; Double -&gt; Bool
+<span class="lineno">   46 </span><span class="decl"><span class="nottickedoff">doubleLe = (&lt;=)</span></span>
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>{-# INLINE doubleLt #-}
+<span class="lineno">   49 </span>doubleLt :: Double -&gt; Double -&gt; Bool
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">doubleLt = (&lt;)</span></span>
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>truncateDouble :: Double -&gt; Double
+<span class="lineno">   53 </span><span class="decl"><span class="nottickedoff">truncateDouble = castWord64ToDouble . castDoubleToWord64</span></span>
+<span class="lineno">   54 </span>
+<span class="lineno">   55 </span>{-# INLINE intToDouble #-}
+<span class="lineno">   56 </span>intToDouble :: Integral a =&gt; a -&gt; Double
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">intToDouble = truncateDouble . fromIntegral</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>{-# INLINE doublePlus #-}
+<span class="lineno">   60 </span>doublePlus :: Double -&gt; Double -&gt; Double
+<span class="lineno">   61 </span><span class="decl"><span class="nottickedoff">doublePlus x y = truncateDouble (x + y)</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>{-# INLINE doubleMinus #-}
+<span class="lineno">   64 </span>doubleMinus :: Double -&gt; Double -&gt; Double
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">doubleMinus x y = truncateDouble (x - y)</span></span>
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>{-# INLINE doubleTimes #-}
+<span class="lineno">   68 </span>doubleTimes :: Double -&gt; Double -&gt; Double
+<span class="lineno">   69 </span><span class="decl"><span class="nottickedoff">doubleTimes x y = truncateDouble (x * y)</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>{-# INLINE doubleNegate #-}
+<span class="lineno">   72 </span>doubleNegate :: Double -&gt; Double
+<span class="lineno">   73 </span><span class="decl"><span class="nottickedoff">doubleNegate = negate</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>{-# INLINE doubleDiv #-}
+<span class="lineno">   76 </span>doubleDiv :: Double -&gt; Double -&gt; Double
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">doubleDiv = (/)</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span>{-# INLINE doublePow #-}
+<span class="lineno">   80 </span>doublePow :: Double -&gt; Double -&gt; Double
+<span class="lineno">   81 </span><span class="decl"><span class="nottickedoff">doublePow x y = truncateDouble (x ** y)</span></span>
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>{-# INLINE doubleSqrt #-}
+<span class="lineno">   84 </span>doubleSqrt :: Double -&gt; Double
+<span class="lineno">   85 </span><span class="decl"><span class="nottickedoff">doubleSqrt = sqrt</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>{-# INLINE doubleExp #-}
+<span class="lineno">   88 </span>doubleExp :: Double -&gt; Double
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">doubleExp x = truncateDouble (exp x)</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>{-# INLINE doubleLog #-}
+<span class="lineno">   92 </span>doubleLog :: Double -&gt; Double
+<span class="lineno">   93 </span><span class="decl"><span class="nottickedoff">doubleLog = log</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>{-# INLINE doubleSin #-}
+<span class="lineno">   96 </span>doubleSin :: Double -&gt; Double
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">doubleSin = sin</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>{-# INLINE doubleCos #-}
+<span class="lineno">  100 </span>doubleCos :: Double -&gt; Double
+<span class="lineno">  101 </span><span class="decl"><span class="nottickedoff">doubleCos = cos</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>{-# INLINE doubleTan #-}
+<span class="lineno">  104 </span>doubleTan :: Double -&gt; Double
+<span class="lineno">  105 </span><span class="decl"><span class="nottickedoff">doubleTan = tan</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>{-# INLINE doubleASin #-}
+<span class="lineno">  108 </span>doubleASin :: Double -&gt; Double
+<span class="lineno">  109 </span><span class="decl"><span class="nottickedoff">doubleASin = asin</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>{-# INLINE doubleACos #-}
+<span class="lineno">  112 </span>doubleACos :: Double -&gt; Double
+<span class="lineno">  113 </span><span class="decl"><span class="nottickedoff">doubleACos = acos</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>{-# INLINE doubleATan #-}
+<span class="lineno">  116 </span>doubleATan :: Double -&gt; Double
+<span class="lineno">  117 </span><span class="decl"><span class="nottickedoff">doubleATan = atan</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  118 </span>
+<span class="lineno">  119 </span>{-# INLINE doubleATan2 #-}
+<span class="lineno">  120 </span>doubleATan2 :: Double -&gt; Double -&gt; Double
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">doubleATan2 = atan2</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  122 </span>
+<span class="lineno">  123 </span>{-# INLINE doubleSinh #-}
+<span class="lineno">  124 </span>doubleSinh :: Double -&gt; Double
+<span class="lineno">  125 </span><span class="decl"><span class="nottickedoff">doubleSinh = sinh</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>{-# INLINE doubleCosh #-}
+<span class="lineno">  128 </span>doubleCosh :: Double -&gt; Double
+<span class="lineno">  129 </span><span class="decl"><span class="nottickedoff">doubleCosh = cosh</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>{-# INLINE doubleTanh #-}
+<span class="lineno">  132 </span>doubleTanh :: Double -&gt; Double
+<span class="lineno">  133 </span><span class="decl"><span class="nottickedoff">doubleTanh = tanh</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>{-# INLINE doubleASinh #-}
+<span class="lineno">  136 </span>doubleASinh :: Double -&gt; Double
+<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">doubleASinh = asinh</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  138 </span>
+<span class="lineno">  139 </span>{-# INLINE doubleACosh #-}
+<span class="lineno">  140 </span>doubleACosh :: Double -&gt; Double
+<span class="lineno">  141 </span><span class="decl"><span class="nottickedoff">doubleACosh = acosh</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  142 </span>
+<span class="lineno">  143 </span>{-# INLINE doubleATanh #-}
+<span class="lineno">  144 </span>doubleATanh :: Double -&gt; Double
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">doubleATanh = atanh</span></span> -- NOTE: doesn't cause underflow/overflow
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>{-# INLINE negativeZero #-}
+<span class="lineno">  148 </span>negativeZero :: Double
+<span class="lineno">  149 </span><span class="decl"><span class="nottickedoff">negativeZero = -0.0</span></span>
+<span class="lineno">  150 </span>
+<span class="lineno">  151 </span>positiveInfinity :: Double
+<span class="lineno">  152 </span><span class="decl"><span class="nottickedoff">positiveInfinity = 1.0 / 0.0</span></span>
+<span class="lineno">  153 </span>
+<span class="lineno">  154 </span>negativeInfinity :: Double
+<span class="lineno">  155 </span><span class="decl"><span class="nottickedoff">negativeInfinity = -positiveInfinity</span></span>
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>nan :: Double
+<span class="lineno">  158 </span><span class="decl"><span class="nottickedoff">nan = 0.0 / 0.0</span></span>
+<span class="lineno">  159 </span>
+<span class="lineno">  160 </span>isPosInf :: Double -&gt; Bool
+<span class="lineno">  161 </span><span class="decl"><span class="nottickedoff">isPosInf x = x &gt; 0.0 &amp;&amp; isInfinite x</span></span>
+<span class="lineno">  162 </span>
+<span class="lineno">  163 </span>isNegInf :: Double -&gt; Bool
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff">isNegInf x = x &lt; 0.0 &amp;&amp; isInfinite x</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>isPosZero :: Double -&gt; Bool
+<span class="lineno">  167 </span><span class="decl"><span class="nottickedoff">isPosZero x = doubleDenotEq x 0.0</span></span>
+<span class="lineno">  168 </span>
+<span class="lineno">  169 </span>isNegZero :: Double -&gt; Bool
+<span class="lineno">  170 </span><span class="decl"><span class="nottickedoff">isNegZero x = doubleDenotEq x (-0.0)</span></span>
+<span class="lineno">  171 </span>
+<span class="lineno">  172 </span>doubleRound :: Double -&gt; Maybe Integer
+<span class="lineno">  173 </span><span class="decl"><span class="nottickedoff">doubleRound = fmap round . asFinite</span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>doubleFloor :: Double -&gt; Maybe Integer
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">doubleFloor = fmap floor . asFinite</span></span>
+<span class="lineno">  177 </span>
+<span class="lineno">  178 </span>doubleCeiling :: Double -&gt; Maybe Integer
+<span class="lineno">  179 </span><span class="decl"><span class="nottickedoff">doubleCeiling = fmap ceiling . asFinite</span></span>
+<span class="lineno">  180 </span>
+<span class="lineno">  181 </span>normaliseNaN :: Double -&gt; Double
+<span class="lineno">  182 </span><span class="decl"><span class="nottickedoff">normaliseNaN x</span>
+<span class="lineno">  183 </span><span class="spaces">  </span><span class="nottickedoff">| isNaN x   = nan</span>
+<span class="lineno">  184 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = x</span></span>
+<span class="lineno">  185 </span>
+<span class="lineno">  186 </span>doubleToWord64 :: Double -&gt; Maybe Word64
+<span class="lineno">  187 </span><span class="decl"><span class="nottickedoff">doubleToWord64 x</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="nottickedoff">| isNaN x   = Nothing</span>
+<span class="lineno">  189 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = Just (castDoubleToWord64 x)</span></span>
+<span class="lineno">  190 </span>
+<span class="lineno">  191 </span>-- |Denotational equality for floating point numbers, checks bitwise equality.
+<span class="lineno">  192 </span>--
+<span class="lineno">  193 </span>--  NOTE: Denotational equality distinguishes NaNs, so its results may vary
+<span class="lineno">  194 </span>--        depending on the architecture and compilation flags. Unfortunately,
+<span class="lineno">  195 </span>--        this is a problem with floating-point numbers in general.
+<span class="lineno">  196 </span>--
+<span class="lineno">  197 </span>doubleDenotEq :: Double -&gt; Double -&gt; Bool
+<span class="lineno">  198 </span><span class="decl"><span class="nottickedoff">doubleDenotEq = (==) `on` doubleToWord64</span></span>
+<span class="lineno">  199 </span>
+<span class="lineno">  200 </span>-- |I guess &quot;denotational orderings&quot; are now a thing? The point is that we need
+<span class="lineno">  201 </span>--  an Ord instance which provides a total ordering, and is consistent with the
+<span class="lineno">  202 </span>--  denotational equality.
+<span class="lineno">  203 </span>--
+<span class="lineno">  204 </span>--  NOTE: The ordering induced via `doubleToWord64` is total, and is consistent
+<span class="lineno">  205 </span>--        with `doubleDenotEq`. However, it is *deeply* unintuitive. For one, it
+<span class="lineno">  206 </span>--        considers all negative numbers to be larger than positive numbers.
+<span class="lineno">  207 </span>--
+<span class="lineno">  208 </span>doubleDenotOrd :: Double -&gt; Double -&gt; Ordering
+<span class="lineno">  209 </span><span class="decl"><span class="nottickedoff">doubleDenotOrd = compare `on` doubleToWord64</span></span>
+<span class="lineno">  210 </span>
+<span class="lineno">  211 </span>-- |Return Just x if it's a finite number, otherwise return Nothing.
+<span class="lineno">  212 </span>asFinite :: Double -&gt; Maybe Double
+<span class="lineno">  213 </span><span class="decl"><span class="nottickedoff">asFinite x</span>
+<span class="lineno">  214 </span><span class="spaces">  </span><span class="nottickedoff">| isNaN      x = Nothing</span>
+<span class="lineno">  215 </span><span class="spaces">  </span><span class="nottickedoff">| isInfinite x = Nothing</span>
+<span class="lineno">  216 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise    = Just x</span></span>
+<span class="lineno">  217 </span>
+<span class="lineno">  218 </span>-- |Decode a Double to an integer ratio.
+<span class="lineno">  219 </span>doubleToRatio :: Double -&gt; (Integer, Integer)
+<span class="lineno">  220 </span><span class="decl"><span class="nottickedoff">doubleToRatio x</span>
+<span class="lineno">  221 </span><span class="spaces">  </span><span class="nottickedoff">| isNaN      x = (0, 0)</span>
+<span class="lineno">  222 </span><span class="spaces">  </span><span class="nottickedoff">| isInfinite x = (signum (floor x), 0)</span>
+<span class="lineno">  223 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise    = let r = toRational x in (numerator r, denominator r)</span></span>
+<span class="lineno">  224 </span>
+<span class="lineno">  225 </span>-- |Encode an integer ratio as a double.
+<span class="lineno">  226 </span>ratioToDouble :: Integer -&gt; Integer -&gt; Double
+<span class="lineno">  227 </span><span class="decl"><span class="nottickedoff">ratioToDouble n d</span>
+<span class="lineno">  228 </span><span class="spaces">  </span><span class="nottickedoff">| d == 0 = case compare n 0 of</span>
+<span class="lineno">  229 </span><span class="spaces">      </span><span class="nottickedoff">LT -&gt; negativeInfinity</span>
+<span class="lineno">  230 </span><span class="spaces">      </span><span class="nottickedoff">EQ -&gt; nan</span>
+<span class="lineno">  231 </span><span class="spaces">      </span><span class="nottickedoff">GT -&gt; positiveInfinity</span>
+<span class="lineno">  232 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise = fromRational (n % d)</span></span>
+<span class="lineno">  233 </span>
+<span class="lineno">  234 </span>-- |Decode a Double to its mantissa and its exponent, normalised such that the
+<span class="lineno">  235 </span>--  mantissa is the smallest possible number without loss of accuracy.
+<span class="lineno">  236 </span>doubleDecode :: Double -&gt; Maybe (Integer, Integer)
+<span class="lineno">  237 </span><span class="decl"><span class="nottickedoff">doubleDecode x</span>
+<span class="lineno">  238 </span><span class="spaces">  </span><span class="nottickedoff">| isNaN      x = Nothing</span>
+<span class="lineno">  239 </span><span class="spaces">  </span><span class="nottickedoff">| isInfinite x = Nothing</span>
+<span class="lineno">  240 </span><span class="spaces">  </span><span class="nottickedoff">| otherwise    = Just (uncurry normalise (second toInteger (decodeFloat x)))</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="nottickedoff">where</span>
+<span class="lineno">  242 </span><span class="spaces">    </span><span class="nottickedoff">normalise :: Integer -&gt; Integer -&gt; (Integer, Integer)</span>
+<span class="lineno">  243 </span><span class="spaces">    </span><span class="nottickedoff">normalise mantissa exponent</span>
+<span class="lineno">  244 </span><span class="spaces">      </span><span class="nottickedoff">| even mantissa = normalise (mantissa `div` 2) (exponent + 1)</span>
+<span class="lineno">  245 </span><span class="spaces">      </span><span class="nottickedoff">| otherwise = (mantissa, exponent)</span></span>
+<span class="lineno">  246 </span>
+<span class="lineno">  247 </span>-- |Checks whether or not the Double is within a safe range of operation.
+<span class="lineno">  248 </span>isSafeInteger :: Double -&gt; Bool
+<span class="lineno">  249 </span><span class="decl"><span class="nottickedoff">isSafeInteger x = case properFraction x of</span>
+<span class="lineno">  250 </span><span class="spaces">  </span><span class="nottickedoff">(n, f) -&gt; f == 0.0 &amp;&amp; minMantissa &lt;= n &amp;&amp; n &lt;= maxMantissa</span></span>
+<span class="lineno">  251 </span>
+<span class="lineno">  252 </span>doubleRadix :: Integer
+<span class="lineno">  253 </span><span class="decl"><span class="nottickedoff">doubleRadix = floatRadix (undefined :: Double)</span></span>
+<span class="lineno">  254 </span>
+<span class="lineno">  255 </span>doubleDigits :: Int
+<span class="lineno">  256 </span><span class="decl"><span class="nottickedoff">doubleDigits = floatDigits (undefined :: Double)</span></span>
+<span class="lineno">  257 </span>
+<span class="lineno">  258 </span>doubleRange :: (Int, Int)
+<span class="lineno">  259 </span><span class="decl"><span class="nottickedoff">doubleRange = floatRange (undefined :: Double)</span></span>
+<span class="lineno">  260 </span>
+<span class="lineno">  261 </span>-- |The smallest representable mantissa. Simultaneously, the smallest integer which can be
+<span class="lineno">  262 </span>--  represented as a Double without loss of precision.
+<span class="lineno">  263 </span>minMantissa :: Integer
+<span class="lineno">  264 </span><span class="decl"><span class="nottickedoff">minMantissa = - maxMantissa</span></span>
+<span class="lineno">  265 </span>
+<span class="lineno">  266 </span>-- |The largest representable mantissa. Simultaneously, the largest integer which can be
+<span class="lineno">  267 </span>--  represented as a Double without loss of precision.
+<span class="lineno">  268 </span>maxMantissa :: Integer
+<span class="lineno">  269 </span><span class="decl"><span class="nottickedoff">maxMantissa = (doubleRadix ^ toInteger doubleDigits) - 1</span></span>
+<span class="lineno">  270 </span>
+<span class="lineno">  271 </span>-- |The largest representable exponent.
+<span class="lineno">  272 </span>minExponent :: Integer
+<span class="lineno">  273 </span><span class="decl"><span class="nottickedoff">minExponent = toInteger $ (fst doubleRange - doubleDigits) - 1</span></span>
+<span class="lineno">  274 </span>
+<span class="lineno">  275 </span>-- |The smallest representable exponent.
+<span class="lineno">  276 </span>maxExponent :: Integer
+<span class="lineno">  277 </span><span class="decl"><span class="nottickedoff">maxExponent = toInteger $ snd doubleRange - doubleDigits</span></span>
+<span class="lineno">  278 </span>
+<span class="lineno">  279 </span>-- |Encode a mantissa and an exponent as a Double.
+<span class="lineno">  280 </span>doubleEncode :: Integer -&gt; Integer -&gt; Maybe Double
+<span class="lineno">  281 </span><span class="decl"><span class="nottickedoff">doubleEncode mantissa exponent</span>
+<span class="lineno">  282 </span><span class="spaces">  </span><span class="nottickedoff">= if minMantissa &lt;= mantissa &amp;&amp; mantissa &lt;= maxMantissa &amp;&amp;</span>
+<span class="lineno">  283 </span><span class="spaces">       </span><span class="nottickedoff">minExponent &lt;= exponent &amp;&amp; exponent &lt;= maxExponent</span>
+<span class="lineno">  284 </span><span class="spaces">    </span><span class="nottickedoff">then Just (encodeFloat mantissa (fromInteger exponent))</span>
+<span class="lineno">  285 </span><span class="spaces">    </span><span class="nottickedoff">else Nothing</span></span>
+
+</pre>
+</body>
+</html>

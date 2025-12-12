@@ -1,0 +1,641 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.ErrorCodes</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.ErrorCodes.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.ErrorCodes</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:plutusPreludeErrorCodes"
+	      >plutusPreludeErrorCodes</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:reconstructCaseError"
+	      >reconstructCaseError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:voidIsNotSupportedError"
+	      >voidIsNotSupportedError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ratioHasZeroDenominatorError"
+	      >ratioHasZeroDenominatorError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkHasFailedError"
+	      >checkHasFailedError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:negativeIndexError"
+	      >negativeIndexError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:indexTooLargeError"
+	      >indexTooLargeError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:headEmptyListError"
+	      >headEmptyListError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tailEmptyListError"
+	      >tailEmptyListError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:succVoidBadArgumentError"
+	      >succVoidBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:predVoidBadArgumentError"
+	      >predVoidBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toEnumVoidBadArgumentError"
+	      >toEnumVoidBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:succBoolBadArgumentError"
+	      >succBoolBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:predBoolBadArgumentError"
+	      >predBoolBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toEnumBoolBadArgumentError"
+	      >toEnumBoolBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:succOrderingBadArgumentError"
+	      >succOrderingBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:predOrderingBadArgumentError"
+	      >predOrderingBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toEnumOrderingBadArgumentError"
+	      >toEnumOrderingBadArgumentError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:lastEmptyListError"
+	      >lastEmptyListError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:reciprocalOfZeroError"
+	      >reciprocalOfZeroError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinListNegativeIndexError"
+	      >builtinListNegativeIndexError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:builtinListIndexTooLargeError"
+	      >builtinListIndexTooLargeError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:headEmptyBuiltinListError"
+	      >headEmptyBuiltinListError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:tailEmptyBuiltinListError"
+	      >tailEmptyBuiltinListError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:lastEmptyBuiltinListError"
+	      >lastEmptyBuiltinListError</a
+	      > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	      >BuiltinString</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plutusPreludeErrorCodes" class="def"
+	    >plutusPreludeErrorCodes</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#plutusPreludeErrorCodes" class="link"
+	    >Source</a
+	    > <a href="#v:plutusPreludeErrorCodes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >All error codes used in the plutus prelude associated with a human-readable description.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reconstructCaseError" class="def"
+	    >reconstructCaseError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#reconstructCaseError" class="link"
+	    >Source</a
+	    > <a href="#v:reconstructCaseError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The error happens in TH generation of indexed data</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:voidIsNotSupportedError" class="def"
+	    >voidIsNotSupportedError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#voidIsNotSupportedError" class="link"
+	    >Source</a
+	    > <a href="#v:voidIsNotSupportedError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Error case of <code
+	      >unsafeFromBuiltinData</code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ratioHasZeroDenominatorError" class="def"
+	    >ratioHasZeroDenominatorError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#ratioHasZeroDenominatorError" class="link"
+	    >Source</a
+	    > <a href="#v:ratioHasZeroDenominatorError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Ratio number can't have a zero denominator</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkHasFailedError" class="def"
+	    >checkHasFailedError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#checkHasFailedError" class="link"
+	    >Source</a
+	    > <a href="#v:checkHasFailedError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >check</code
+	      > input is <code
+	      >False</code
+	      ></p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:negativeIndexError" class="def"
+	    >negativeIndexError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#negativeIndexError" class="link"
+	    >Source</a
+	    > <a href="#v:negativeIndexError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.List.!!: negative index</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:indexTooLargeError" class="def"
+	    >indexTooLargeError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#indexTooLargeError" class="link"
+	    >Source</a
+	    > <a href="#v:indexTooLargeError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.List.!!: index too large</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:headEmptyListError" class="def"
+	    >headEmptyListError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#headEmptyListError" class="link"
+	    >Source</a
+	    > <a href="#v:headEmptyListError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.List.head: empty list</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tailEmptyListError" class="def"
+	    >tailEmptyListError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#tailEmptyListError" class="link"
+	    >Source</a
+	    > <a href="#v:tailEmptyListError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.List.tail: empty list</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:succVoidBadArgumentError" class="def"
+	    >succVoidBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#succVoidBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:succVoidBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.().succ: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:predVoidBadArgumentError" class="def"
+	    >predVoidBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#predVoidBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:predVoidBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.().pred: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toEnumVoidBadArgumentError" class="def"
+	    >toEnumVoidBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#toEnumVoidBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:toEnumVoidBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.().toEnum: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:succBoolBadArgumentError" class="def"
+	    >succBoolBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#succBoolBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:succBoolBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.Bool.succ: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:predBoolBadArgumentError" class="def"
+	    >predBoolBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#predBoolBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:predBoolBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.Bool.pred: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toEnumBoolBadArgumentError" class="def"
+	    >toEnumBoolBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#toEnumBoolBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:toEnumBoolBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.Bool.toEnum: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:succOrderingBadArgumentError" class="def"
+	    >succOrderingBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#succOrderingBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:succOrderingBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.Ordering.succ: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:predOrderingBadArgumentError" class="def"
+	    >predOrderingBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#predOrderingBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:predOrderingBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.Ordering.pred: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toEnumOrderingBadArgumentError" class="def"
+	    >toEnumOrderingBadArgumentError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#toEnumOrderingBadArgumentError" class="link"
+	    >Source</a
+	    > <a href="#v:toEnumOrderingBadArgumentError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Enum.Ordering.toEnum: bad argument</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lastEmptyListError" class="def"
+	    >lastEmptyListError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#lastEmptyListError" class="link"
+	    >Source</a
+	    > <a href="#v:lastEmptyListError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.List.last: empty list</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reciprocalOfZeroError" class="def"
+	    >reciprocalOfZeroError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#reciprocalOfZeroError" class="link"
+	    >Source</a
+	    > <a href="#v:reciprocalOfZeroError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.Ratio.recip: reciprocal of zero</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinListNegativeIndexError" class="def"
+	    >builtinListNegativeIndexError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#builtinListNegativeIndexError" class="link"
+	    >Source</a
+	    > <a href="#v:builtinListNegativeIndexError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.BuiltinList.!!: negative index</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:builtinListIndexTooLargeError" class="def"
+	    >builtinListIndexTooLargeError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#builtinListIndexTooLargeError" class="link"
+	    >Source</a
+	    > <a href="#v:builtinListIndexTooLargeError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.BuiltinList.!!: index too large</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:headEmptyBuiltinListError" class="def"
+	    >headEmptyBuiltinListError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#headEmptyBuiltinListError" class="link"
+	    >Source</a
+	    > <a href="#v:headEmptyBuiltinListError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.BuiltinList.head: empty list</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tailEmptyBuiltinListError" class="def"
+	    >tailEmptyBuiltinListError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#tailEmptyBuiltinListError" class="link"
+	    >Source</a
+	    > <a href="#v:tailEmptyBuiltinListError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.BuiltinList.tail: empty list</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lastEmptyBuiltinListError" class="def"
+	    >lastEmptyBuiltinListError</a
+	    > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinString" title="PlutusTx.Builtins.Internal"
+	    >BuiltinString</a
+	    > <a href="src/PlutusTx.ErrorCodes.html#lastEmptyBuiltinListError" class="link"
+	    >Source</a
+	    > <a href="#v:lastEmptyBuiltinListError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >PlutusTx.BuiltinList.last: empty list</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

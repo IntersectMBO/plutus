@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Data.FloatCast</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Data.FloatCast.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Trustworthy</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Data.FloatCast</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Primitives to convert between Float/Double and Word32/Word64.</p
+	  ><p
+	  >Code copied from <a href="https://hackage.haskell.org/package/binary"
+	    >binary</a
+	    >.</p
+	  ><p
+	  >Based on: <a href="http://hackage.haskell.org/package/reinterpret-cast-0.1.0/docs/src/Data-ReinterpretCast-Internal-ImplArray.html"
+	    >http://hackage.haskell.org/package/reinterpret-cast-0.1.0/docs/src/Data-ReinterpretCast-Internal-ImplArray.html</a
+	    >..</p
+	  ><p
+	  >Implements casting via a 1-element STUArray, as described in <a href="http://stackoverflow.com/a/7002812/263061"
+	    >http://stackoverflow.com/a/7002812/263061</a
+	    >. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:floatToWord"
+	      >floatToWord</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	      >Float</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	      >Word32</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:wordToFloat"
+	      >wordToFloat</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	      >Word32</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	      >Float</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:doubleToWord"
+	      >doubleToWord</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:wordToDouble"
+	      >wordToDouble</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	      >Word64</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	      >Double</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:runST"
+	      >runST</a
+	      > &#8759; (&#8704; s. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	      >ST</a
+	      > s a) &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:cast"
+	      >cast</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-MArray.html#t:MArray" title="Data.Array.MArray"
+	      >MArray</a
+	      > (<a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-ST.html#t:STUArray" title="Data.Array.ST"
+	      >STUArray</a
+	      > s) a (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	      >ST</a
+	      > s), <a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-MArray.html#t:MArray" title="Data.Array.MArray"
+	      >MArray</a
+	      > (<a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-ST.html#t:STUArray" title="Data.Array.ST"
+	      >STUArray</a
+	      > s) b (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	      >ST</a
+	      > s)) &#8658; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	      >ST</a
+	      > s b</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:floatToWord" class="def"
+	    >floatToWord</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	    >Float</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	    >Word32</a
+	    > <a href="src/PlutusCore.Flat.Data.FloatCast.html#floatToWord" class="link"
+	    >Source</a
+	    > <a href="#v:floatToWord" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reinterpret-casts a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+		>Float</a
+		></code
+	      > to a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+		>Word32</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:wordToFloat" class="def"
+	    >wordToFloat</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+	    >Word32</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+	    >Float</a
+	    > <a href="src/PlutusCore.Flat.Data.FloatCast.html#wordToFloat" class="link"
+	    >Source</a
+	    > <a href="#v:wordToFloat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reinterpret-casts a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word32" title="Data.Word"
+		>Word32</a
+		></code
+	      > to a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Float" title="Prelude"
+		>Float</a
+		></code
+	      >.</p
+	    ><pre
+	    >\f -&gt; wordToFloat (floatToWord f ) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>floatToWord (-0.15625)
+</code
+		></strong
+	      >3189768192
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>wordToFloat 3189768192
+</code
+		></strong
+	      >-0.15625
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>floatToWord (-5.828125) == 0xC0BA8000
+</code
+		></strong
+	      >True 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:doubleToWord" class="def"
+	    >doubleToWord</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > <a href="src/PlutusCore.Flat.Data.FloatCast.html#doubleToWord" class="link"
+	    >Source</a
+	    > <a href="#v:doubleToWord" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reinterpret-casts a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+		>Double</a
+		></code
+	      > to a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+		>Word64</a
+		></code
+	      >.</p
+	    ><pre
+	    >\f -&gt; wordToDouble (doubleToWord f ) == f</pre
+	    ><p
+	    >+++ OK, passed 100 tests.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>showHex (doubleToWord 1.0000000000000004) &quot;&quot;
+</code
+		></strong
+	      >&quot;3ff0000000000002&quot;
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>doubleToWord 1.0000000000000004 == 0x3FF0000000000002
+</code
+		></strong
+	      >True
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>showHex (doubleToWord (-0.15625)) &quot;&quot;
+</code
+		></strong
+	      >&quot;bfc4000000000000&quot;
+</pre
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>wordToDouble 0xbfc4000000000000
+</code
+		></strong
+	      >-0.15625 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:wordToDouble" class="def"
+	    >wordToDouble</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+	    >Word64</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+	    >Double</a
+	    > <a href="src/PlutusCore.Flat.Data.FloatCast.html#wordToDouble" class="link"
+	    >Source</a
+	    > <a href="#v:wordToDouble" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reinterpret-casts a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Word.html#t:Word64" title="Data.Word"
+		>Word64</a
+		></code
+	      > to a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Double" title="Prelude"
+		>Double</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runST" class="def"
+	    >runST</a
+	    > &#8759; (&#8704; s. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	    >ST</a
+	    > s a) &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+	    >Source</a
+	    > <a href="#v:runST" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the value computed by a state thread.
+ The <code
+	      >forall</code
+	      > ensures that the internal state used by the <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+		>ST</a
+		></code
+	      >
+ computation is inaccessible to the rest of the program.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:cast" class="def"
+	    >cast</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-MArray.html#t:MArray" title="Data.Array.MArray"
+	    >MArray</a
+	    > (<a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-ST.html#t:STUArray" title="Data.Array.ST"
+	    >STUArray</a
+	    > s) a (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	    >ST</a
+	    > s), <a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-MArray.html#t:MArray" title="Data.Array.MArray"
+	    >MArray</a
+	    > (<a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array-ST.html#t:STUArray" title="Data.Array.ST"
+	    >STUArray</a
+	    > s) b (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	    >ST</a
+	    > s)) &#8658; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad-ST-Safe.html#t:ST" title="Control.Monad.ST.Safe"
+	    >ST</a
+	    > s b <a href="src/PlutusCore.Flat.Data.FloatCast.html#cast" class="link"
+	    >Source</a
+	    > <a href="#v:cast" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>runST (cast (0xF0F1F2F3F4F5F6F7::Word64)) == (0xF0F1F2F3F4F5F6F7::Word64)
+</code
+		></strong
+	      >True 
+</pre
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

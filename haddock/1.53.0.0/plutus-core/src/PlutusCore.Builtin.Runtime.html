@@ -1,0 +1,2225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE CPP        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StrictData #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Builtin.Runtime</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.KnownType.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin.KnownType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier"
+	  >throwError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >-- | A 'BuiltinRuntime' represents a possibly partial builtin application, including an empty</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >-- builtin application (i.e. just the builtin with no arguments).</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-comment"
+      >-- Applying or type-instantiating a builtin peels off the corresponding constructor from its</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-comment"
+      >-- 'BuiltinRuntime'.</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- 'BuiltinCostedResult' contains the cost (an 'ExBudgetStream') and the result (a</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- @BuiltinResult (HeadSpine val)@) of the builtin application. The cost is stored strictly, since</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >-- the evaluator is going to look at it and the result is stored lazily, since it's not supposed to</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- be forced before accounting for the cost of the application. If the cost exceeds the available</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- budget, the evaluator discards the result of the builtin application without ever forcing it and</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >-- terminates with evaluation failure. Allowing the user to compute something that they don't have</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- the budget for would be a major bug.</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >-- the result of the builtin application unconditionally.</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinRuntime"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinRuntime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910761"
+      ><span class="annot"
+	><a href="#local-6989586621681910761"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="BuiltinCostedResult"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinCostedResult"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinCostedResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetStream"
+	><span class="hs-identifier hs-type"
+	  >ExBudgetStream</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681910761"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="BuiltinExpectArgument"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinExpectArgument"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinExpectArgument</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621681910761"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681910761"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="BuiltinExpectForce"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinExpectForce"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinExpectForce</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681910761"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681910712"
+      ><span id="local-6989586621681910775"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	    ><span class="hs-identifier hs-type"
+	      >NoThunks</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinRuntime</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910712"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681910786"
+      ><span class="annot"
+	><span class="annottext"
+	  >wNoThunks :: Context -&gt; BuiltinRuntime val -&gt; IO (Maybe ThunkInfo)
+</span
+	  ><a href="#local-6989586621681910786"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >wNoThunks</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910788"
+      ><span class="annot"
+	><span class="annottext"
+	  >Context
+</span
+	  ><a href="#local-6989586621681910788"
+	  ><span class="hs-identifier hs-var"
+	    >ctx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- TODO: remove the CPP when rest of IOE moves to nothunks&gt;=0.2</span
+      ><span class="hs-cpp"
+      >
+#if MIN_VERSION_nothunks(0,2,0)
+</span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinCostedResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinCostedResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetStream
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult val
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ThunkInfo -&gt; IO (Maybe ThunkInfo)
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe ThunkInfo -&gt; IO (Maybe ThunkInfo))
+-&gt; (Either Context String -&gt; Maybe ThunkInfo)
+-&gt; Either Context String
+-&gt; IO (Maybe ThunkInfo)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ThunkInfo -&gt; Maybe ThunkInfo
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ThunkInfo -&gt; Maybe ThunkInfo)
+-&gt; (Either Context String -&gt; ThunkInfo)
+-&gt; Either Context String
+-&gt; Maybe ThunkInfo
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either Context String -&gt; ThunkInfo
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#ThunkInfo"
+	><span class="hs-identifier hs-var"
+	  >ThunkInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Either Context String -&gt; IO (Maybe ThunkInfo))
+-&gt; Either Context String -&gt; IO (Maybe ThunkInfo)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context -&gt; Either Context String
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681910788"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span class="hs-cpp"
+      >
+#else
+</span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- Plutus has moved to nothunks&gt;=0.2, but some other IOE repos are using nothunks&lt;0.2.</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- As a consequence, cardano-constitution:create-json-envelope cannot be build.</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- This is a workaround to make it build (default is buildable:False). See `cabal.project`</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-identifier"
+      >BuiltinCostedResult</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >_</span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >pure</span
+      ><span
+      > </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Just</span
+      ><span
+      > </span
+      ><span class="hs-operator"
+      >$</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >ThunkInfo</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >ctx</span
+      ><span class="hs-cpp"
+      >
+#endif
+</span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- This one doesn't do much. It only checks that the function stored in the 'BuiltinArrow'</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- is in WHNF. The function may contain thunks inside of it. Not sure if it's possible to do</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- better, since the final 'BuiltinCostedResult' contains a thunk for the result of the</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- builtin application anyway.</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinExpectArgument"
+	><span class="hs-identifier hs-type"
+	  >BuiltinExpectArgument</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910791"
+      ><span class="annot"
+	><span class="annottext"
+	  >val -&gt; BuiltinRuntime val
+</span
+	  ><a href="#local-6989586621681910791"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context -&gt; (val -&gt; BuiltinRuntime val) -&gt; IO (Maybe ThunkInfo)
+forall a. NoThunks a =&gt; Context -&gt; a -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#noThunks"
+	><span class="hs-identifier hs-var"
+	  >noThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681910788"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>val -&gt; BuiltinRuntime val
+</span
+	><a href="#local-6989586621681910791"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinExpectForce"
+	><span class="hs-identifier hs-type"
+	  >BuiltinExpectForce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910793"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinRuntime val
+</span
+	  ><a href="#local-6989586621681910793"
+	  ><span class="hs-identifier hs-var"
+	    >runtime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context -&gt; BuiltinRuntime val -&gt; IO (Maybe ThunkInfo)
+forall a. NoThunks a =&gt; Context -&gt; a -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#noThunks"
+	><span class="hs-identifier hs-var"
+	  >noThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681910788"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinRuntime val
+</span
+	><a href="#local-6989586621681910793"
+	><span class="hs-identifier hs-var"
+	  >runtime</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681910794"
+      ><span class="annot"
+	><span class="annottext"
+	  >showTypeOf :: Proxy (BuiltinRuntime val) -&gt; String
+</span
+	  ><a href="#local-6989586621681910794"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showTypeOf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Proxy (BuiltinRuntime val) -&gt; String
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusCore.Builtin.Runtime.BuiltinRuntime&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681910733"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-type"
+	    >NFData</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinRuntime</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681910733"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- 'BuiltinRuntime' is strict (verified by the 'NoThunks' tests), hence we only need to force</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- this to WHNF to get it forced to NF.</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681910800"
+      ><span class="annot"
+	><span class="annottext"
+	  >rnf :: BuiltinRuntime val -&gt; ()
+</span
+	  ><a href="#local-6989586621681910800"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >rnf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinRuntime val -&gt; ()
+forall a. a -&gt; ()
+</span
+	><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#rwhnf"
+	><span class="hs-identifier hs-var"
+	  >rwhnf</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [DO NOT newtype-wrap functions]
+If you put a functional type into a @newtype@ rather than strict @data@, the GHC optimizer will be
+able to see through it and will feel compelled to rearrange lambdas and case-expressions as it sees
+fit, which it often does incorrectly due to @-fpedantic-bottoms@ not being enabled by default.
+
+We've had a very confusing case of GHC turning
+
+    case y of
+        y' -&gt; \x -&gt; z
+
+into
+
+    \x -&gt; case y of
+        y' -&gt; z
+
+and ruining carefully set up optimizations
+(see https://github.com/IntersectMBO/plutus/pull/4914#issuecomment-1396306606).
+
+Even strict @data@ is slower than @newtype@, but in practice GHC is going to
+worker-wrapper-transform such code making it as efficient as the @newtype@ version.
+
+So you should never newtype-wrap functions, use strict @data@ instead.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [DO NOT newtype-wrap functions].</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-comment"
+      >-- | A @data@ wrapper around a function returning the 'BuiltinRuntime' of a built-in function.</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-comment"
+      >-- In order for lookups to be efficient the 'BuiltinRuntime's need to be cached, i.e. pulled out</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-comment"
+      >-- of the function statically. See 'makeBuiltinMeaning' for how we achieve that.</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinsRuntime"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinsRuntime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910735"
+      ><span class="annot"
+	><a href="#local-6989586621681910735"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910736"
+      ><span class="annot"
+	><a href="#local-6989586621681910736"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="BuiltinsRuntime"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinsRuntime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unBuiltinsRuntime"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall fun val.
+BuiltinsRuntime fun val -&gt; fun -&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Runtime.html#unBuiltinsRuntime"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unBuiltinsRuntime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681910735"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681910736"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681910742"
+      ><span id="local-6989586621681910743"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-type"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910742"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+	    ><span class="hs-identifier hs-type"
+	      >Enum</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910742"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	    ><span class="hs-identifier hs-type"
+	      >NFData</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinsRuntime</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910742"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910743"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Force every 'BuiltinRuntime' stored in the environment.</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681910813"
+      ><span class="annot"
+	><span class="annottext"
+	  >rnf :: BuiltinsRuntime fun val -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#rnf"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >rnf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910814"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun -&gt; BuiltinRuntime val
+</span
+	  ><a href="#local-6989586621681910814"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(fun -&gt; () -&gt; ()) -&gt; () -&gt; [fun] -&gt; ()
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621681910816"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621681910816"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910817"
+      ><span class="annot"
+	><span class="annottext"
+	  >()
+</span
+	  ><a href="#local-6989586621681910817"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun -&gt; BuiltinRuntime val
+</span
+	><a href="#local-6989586621681910814"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621681910816"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinRuntime val -&gt; () -&gt; ()
+forall a b. a -&gt; b -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#seq"
+	><span class="hs-operator hs-var"
+	  >`seq`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>()
+</span
+	><a href="#local-6989586621681910817"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[fun]
+forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	><span class="hs-identifier hs-var"
+	  >enumerate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681910752"
+      ><span id="local-6989586621681910753"
+	><span id="local-6989586621681910822"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	      ><span class="hs-identifier hs-type"
+		>Bounded</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681910752"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+	      ><span class="hs-identifier hs-type"
+		>Enum</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681910752"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-type"
+		>NoThunks</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	      ><span class="hs-identifier hs-type"
+		>BuiltinsRuntime</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681910752"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681910753"
+	      ><span class="hs-identifier hs-type"
+		>val</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Ensure that every 'BuiltinRuntime' doesn't contain thunks after forcing it initially</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- (we can't avoid the initial forcing, because we can't lookup the 'BuiltinRuntime' without</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- forcing it, see https://stackoverflow.com/q/63441862).</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681910830"
+      ><span class="annot"
+	><span class="annottext"
+	  >wNoThunks :: Context -&gt; BuiltinsRuntime fun val -&gt; IO (Maybe ThunkInfo)
+</span
+	  ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#wNoThunks"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >wNoThunks</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910831"
+      ><span class="annot"
+	><span class="annottext"
+	  >Context
+</span
+	  ><a href="#local-6989586621681910831"
+	  ><span class="hs-identifier hs-var"
+	    >ctx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910832"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun -&gt; BuiltinRuntime val
+</span
+	  ><a href="#local-6989586621681910832"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[IO (Maybe ThunkInfo)] -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#allNoThunks"
+	><span class="hs-identifier hs-var"
+	  >allNoThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([IO (Maybe ThunkInfo)] -&gt; IO (Maybe ThunkInfo))
+-&gt; [IO (Maybe ThunkInfo)] -&gt; IO (Maybe ThunkInfo)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(fun -&gt; IO (Maybe ThunkInfo)) -&gt; [fun] -&gt; [IO (Maybe ThunkInfo)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context -&gt; BuiltinRuntime val -&gt; IO (Maybe ThunkInfo)
+forall a. NoThunks a =&gt; Context -&gt; a -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#wNoThunks"
+	><span class="hs-identifier hs-var"
+	  >wNoThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681910831"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinRuntime val -&gt; IO (Maybe ThunkInfo))
+-&gt; (fun -&gt; BuiltinRuntime val) -&gt; fun -&gt; IO (Maybe ThunkInfo)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun -&gt; BuiltinRuntime val
+</span
+	><a href="#local-6989586621681910832"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[fun]
+forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	><span class="hs-identifier hs-var"
+	  >enumerate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681910834"
+      ><span class="annot"
+	><span class="annottext"
+	  >showTypeOf :: Proxy (BuiltinsRuntime fun val) -&gt; String
+</span
+	  ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#showTypeOf"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showTypeOf</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Proxy (BuiltinsRuntime fun val) -&gt; String
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;PlutusCore.Builtin.Runtime.BuiltinsRuntime&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="local-6989586621681910757"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#builtinRuntimeFailure"
+	  ><span class="hs-identifier hs-type"
+	    >builtinRuntimeFailure</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinError</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinRuntime</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681910757"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="builtinRuntimeFailure"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinRuntimeFailure :: forall val. BuiltinError -&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Runtime.html#builtinRuntimeFailure"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinRuntimeFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudgetStream -&gt; BuiltinResult val -&gt; BuiltinRuntime val
+forall val.
+ExBudgetStream -&gt; BuiltinResult val -&gt; BuiltinRuntime val
+</span
+	><a href="PlutusCore.Builtin.Runtime.html#BuiltinCostedResult"
+	><span class="hs-identifier hs-var"
+	  >BuiltinCostedResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget -&gt; ExBudgetStream
+</span
+	><a href="PlutusCore.Evaluation.Machine.ExBudgetStream.html#ExBudgetLast"
+	><span class="hs-identifier hs-var"
+	  >ExBudgetLast</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExBudget
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinResult val -&gt; BuiltinRuntime val)
+-&gt; (BuiltinError -&gt; BuiltinResult val)
+-&gt; BuiltinError
+-&gt; BuiltinRuntime val
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError -&gt; BuiltinResult val
+forall a. BuiltinError -&gt; BuiltinResult a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [INLINE and OPAQUE on error-related definitions].</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPAQUE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#builtinRuntimeFailure"
+	><span class="hs-pragma hs-type"
+	  >builtinRuntimeFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Look up the runtime info of a built-in function during evaluation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span id="local-6989586621681910766"
+      ><span id="local-6989586621681910767"
+	><span class="annot"
+	  ><a href="PlutusCore.Builtin.Runtime.html#lookupBuiltin"
+	    ><span class="hs-identifier hs-type"
+	      >lookupBuiltin</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910766"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinsRuntime</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910766"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910767"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Runtime.html#BuiltinRuntime"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinRuntime</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621681910767"
+	    ><span class="hs-identifier hs-type"
+	      >val</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span id="lookupBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupBuiltin :: forall fun val.
+fun -&gt; BuiltinsRuntime fun val -&gt; BuiltinRuntime val
+</span
+	  ><a href="PlutusCore.Builtin.Runtime.html#lookupBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910842"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun
+</span
+	  ><a href="#local-6989586621681910842"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681910843"
+      ><span class="annot"
+	><span class="annottext"
+	  >fun -&gt; BuiltinRuntime val
+</span
+	  ><a href="#local-6989586621681910843"
+	  ><span class="hs-identifier hs-var"
+	    >env</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun -&gt; BuiltinRuntime val
+</span
+	><a href="#local-6989586621681910843"
+	><span class="hs-identifier hs-var"
+	  >env</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>fun
+</span
+	><a href="#local-6989586621681910842"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#lookupBuiltin"
+	><span class="hs-pragma hs-type"
+	  >lookupBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

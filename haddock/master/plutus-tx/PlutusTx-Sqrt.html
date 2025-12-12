@@ -1,0 +1,618 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Sqrt</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.56.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Sqrt.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Sqrt</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Sqrt"
+	      >Sqrt</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Imaginary"
+		  >Imaginary</a
+		  ></li
+		><li
+		>| <a href="#v:Exactly"
+		  >Exactly</a
+		  > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		  >Integer</a
+		  ></li
+		><li
+		>| <a href="#v:Approximately"
+		  >Approximately</a
+		  > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		  >Integer</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:rsqrt"
+	      >rsqrt</a
+	      > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	      >Rational</a
+	      > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+	      >Sqrt</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:isqrt"
+	      >isqrt</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+	      >Sqrt</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Sqrt" class="def"
+	    >Sqrt</a
+	    > <a href="src/PlutusTx.Sqrt.html#Sqrt" class="link"
+	    >Source</a
+	    > <a href="#t:Sqrt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Integer square-root representation, discarding imaginary integers.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Imaginary" class="def"
+		  >Imaginary</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The number was negative, so we don't even attempt to compute it;
+    just note that the result would be imaginary. </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Exactly" class="def"
+		  >Exactly</a
+		  > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		  >Integer</a
+		  ></td
+		><td class="doc"
+		><p
+		  >An exact integer result. The <code
+		    ><a href="PlutusTx-Sqrt.html#v:rsqrt" title="PlutusTx.Sqrt"
+		      >rsqrt</a
+		      ></code
+		    > of 4 is 'Exactly 2'.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Approximately" class="def"
+		  >Approximately</a
+		  > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		  >Integer</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The Integer component (i.e. the floor) of a non-integral result. The
+    'rsqrt 2' is 'Approximately 1'. </p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Sqrt"
+	    >Instances</h4
+	    ><details id="i:Sqrt" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sqrt:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Sqrt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sqrt:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sqrt:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Sqrt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sqrt:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sqrt:FromData:3"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:Sqrt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sqrt:FromData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sqrt:ToData:4"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:Sqrt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sqrt:ToData:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sqrt:UnsafeFromData:5"
+		      ></span
+		      > <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:Sqrt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sqrt:UnsafeFromData:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sqrt:Lift:6"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:Sqrt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sqrt:Lift:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Sqrt:Typeable:7"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+		      >Sqrt</a
+		      ></span
+		    > <a href="src/PlutusTx.Sqrt.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:Sqrt" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Sqrt:Typeable:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Sqrt.html"
+			>PlutusTx.Sqrt</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+			  >Sqrt</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rsqrt" class="def"
+	    >rsqrt</a
+	    > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+	    >Rational</a
+	    > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+	    >Sqrt</a
+	    > <a href="src/PlutusTx.Sqrt.html#rsqrt" class="link"
+	    >Source</a
+	    > <a href="#v:rsqrt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Calculates the sqrt of a ratio of integers. As x / 0 is undefined,
+calling this function with `d=0` results in an error. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:isqrt" class="def"
+	    >isqrt</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Sqrt.html#t:Sqrt" title="PlutusTx.Sqrt"
+	    >Sqrt</a
+	    > <a href="src/PlutusTx.Sqrt.html#isqrt" class="link"
+	    >Source</a
+	    > <a href="#v:isqrt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Calculates the integer-component of the sqrt of <code
+	      >n</code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

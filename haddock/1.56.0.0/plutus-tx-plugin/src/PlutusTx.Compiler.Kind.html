@@ -1,0 +1,1140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Functions for compiling GHC kinds into PlutusCore kinds.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Compiler.Kind</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Kind.html#compileKind"
+	><span class="hs-identifier"
+	  >compileKind</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Trace.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Trace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Utils</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="local-6989586621679512188"
+      ><span id="local-6989586621679512189"
+	><span id="local-6989586621679512190"
+	  ><span id="local-6989586621679512191"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Kind.html#compileKind"
+		><span class="hs-identifier hs-type"
+		  >compileKind</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679512188"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679512189"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679512190"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679512191"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.TyCo.Rep.html#Kind"
+		><span class="hs-identifier hs-type"
+		  >GHC.Kind</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679512190"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Kind"
+		><span class="hs-identifier hs-type"
+		  >PLC.Kind</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span id="compileKind"
+      ><span class="annot"
+	><span class="annottext"
+	  >compileKind :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Kind -&gt; m (Kind ())
+</span
+	  ><a href="PlutusTx.Compiler.Kind.html#compileKind"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compileKind</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679512301"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind
+</span
+	  ><a href="#local-6989586621679512301"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; SDoc -&gt; m (Kind ()) -&gt; m (Kind ())
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) e a.
+(MonadReader (CompileContext uni fun) m, MonadState CompileState m,
+ MonadError (WithContext Text e) m) =&gt;
+Int -&gt; SDoc -&gt; m a -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Trace.html#traceCompilation"
+	><span class="hs-identifier hs-var"
+	  >traceCompilation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc
+</span
+	><span class="hs-string"
+	>&quot;Compiling kind:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; SDoc -&gt; SDoc
+forall doc. IsLine doc =&gt; doc -&gt; doc -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >GHC.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; SDoc
+forall a. Outputable a =&gt; a -&gt; SDoc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#ppr"
+	><span class="hs-identifier hs-var"
+	  >GHC.ppr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind
+</span
+	><a href="#local-6989586621679512301"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m (Kind ()) -&gt; m (Kind ())) -&gt; m (Kind ()) -&gt; m (Kind ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind
+</span
+	><a href="#local-6989586621679512301"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -&gt; *' is a 'TyFun'</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Type.html#isLiftedTypeKind"
+	><span class="hs-identifier hs-var"
+	  >GHC.isLiftedTypeKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind () -&gt; m (Kind ())
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind () -&gt; m (Kind ())) -&gt; Kind () -&gt; m (Kind ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Kind ()
+forall ann. ann -&gt; Kind ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-var"
+	  >PLC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; Maybe (FunTyFlag, Kind, Kind, Kind)
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Type.html#splitFunTy_maybe"
+	><span class="hs-identifier hs-var"
+	  >GHC.splitFunTy_maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679512308"
+      ><span class="annot"
+	><span class="annottext"
+	  >(FunTyFlag, Kind, Kind, Kind)
+</span
+	  ><a href="#local-6989586621679512308"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FunTyFlag, Kind, Kind, Kind)
+</span
+	><a href="#local-6989586621679512308"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679512309"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunTyFlag
+</span
+	  ><a href="#local-6989586621679512309"
+	  ><span class="hs-identifier hs-var"
+	    >_t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679512310"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind
+</span
+	  ><a href="#local-6989586621679512310"
+	  ><span class="hs-identifier hs-var"
+	    >_m</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679512311"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind
+</span
+	  ><a href="#local-6989586621679512311"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679512312"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind
+</span
+	  ><a href="#local-6989586621679512312"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Kind () -&gt; Kind () -&gt; Kind ()
+forall ann. ann -&gt; Kind ann -&gt; Kind ann -&gt; Kind ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#KindArrow"
+	><span class="hs-identifier hs-var"
+	  >PLC.KindArrow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind () -&gt; Kind () -&gt; Kind ())
+-&gt; m (Kind ()) -&gt; m (Kind () -&gt; Kind ())
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; m (Kind ())
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Kind -&gt; m (Kind ())
+</span
+	><a href="PlutusTx.Compiler.Kind.html#compileKind"
+	><span class="hs-identifier hs-var"
+	  >compileKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind
+</span
+	><a href="#local-6989586621679512311"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Kind () -&gt; Kind ()) -&gt; m (Kind ()) -&gt; m (Kind ())
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; m (Kind ())
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Kind -&gt; m (Kind ())
+</span
+	><a href="PlutusTx.Compiler.Kind.html#compileKind"
+	><span class="hs-identifier hs-var"
+	  >compileKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind
+</span
+	><a href="#local-6989586621679512312"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Ignore type binders for runtime rep variables, see Note [Runtime reps]</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; Maybe (TyCoVar, Kind)
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Type.html#splitForAllTyCoVar_maybe"
+	><span class="hs-identifier hs-var"
+	  >GHC.splitForAllTyCoVar_maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679512316"
+      ><span class="annot"
+	><span class="annottext"
+	  >TyCoVar
+</span
+	  ><a href="#local-6989586621679512316"
+	  ><span class="hs-identifier hs-var"
+	    >tvar</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679512317"
+      ><span class="annot"
+	><span class="annottext"
+	  >Kind
+</span
+	  ><a href="#local-6989586621679512317"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Type.html#isRuntimeRepTy"
+	><span class="hs-identifier hs-var"
+	  >GHC.isRuntimeRepTy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind -&gt; Bool) -&gt; (TyCoVar -&gt; Kind) -&gt; TyCoVar -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyCoVar -&gt; Kind
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Var.html#varType"
+	><span class="hs-identifier hs-var"
+	  >GHC.varType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TyCoVar
+</span
+	><a href="#local-6989586621679512316"
+	><span class="hs-identifier hs-var"
+	  >tvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; m (Kind ())
+forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+Kind -&gt; m (Kind ())
+</span
+	><a href="PlutusTx.Compiler.Kind.html#compileKind"
+	><span class="hs-identifier hs-var"
+	  >compileKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind
+</span
+	><a href="#local-6989586621679512317"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Interpret 'TYPE rep' as 'TYPE LiftedRep', for any rep, see Note [Runtime reps]</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.Type.html#isTypeLikeKind"
+	><span class="hs-identifier hs-var"
+	  >GHC.isTypeLikeKind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind () -&gt; m (Kind ())
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Kind () -&gt; m (Kind ())) -&gt; Kind () -&gt; m (Kind ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; Kind ()
+forall ann. ann -&gt; Kind ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier hs-var"
+	  >PLC.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Error uni fun ann) -&gt; SDoc -&gt; m (Kind ())
+forall (uni :: * -&gt; *) fun ann (m :: * -&gt; *) a.
+(MonadError (CompileError uni fun ann) m,
+ MonadReader (CompileContext uni fun) m) =&gt;
+(Text -&gt; Error uni fun ann) -&gt; SDoc -&gt; m a
+</span
+	><a href="PlutusTx.Compiler.Utils.html#throwSd"
+	><span class="hs-identifier hs-var"
+	  >throwSd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Error uni fun ann
+forall (uni :: * -&gt; *) fun a. Text -&gt; Error uni fun a
+</span
+	><a href="PlutusTx.Compiler.Error.html#UnsupportedError"
+	><span class="hs-identifier hs-var"
+	  >UnsupportedError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(SDoc -&gt; m (Kind ())) -&gt; SDoc -&gt; m (Kind ())
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc
+</span
+	><span class="hs-string"
+	>&quot;Kind:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SDoc -&gt; SDoc -&gt; SDoc
+forall doc. IsLine doc =&gt; doc -&gt; doc -&gt; doc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >GHC.&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind -&gt; SDoc
+forall a. Outputable a =&gt; a -&gt; SDoc
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Utils.Outputable.html#ppr"
+	><span class="hs-identifier hs-var"
+	  >GHC.ppr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind
+</span
+	><a href="#local-6989586621679512301"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

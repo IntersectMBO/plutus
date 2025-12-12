@@ -1,0 +1,131 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    3 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>{-|
+<span class="lineno">    6 </span>Perform the case-of-case transformation. This pushes
+<span class="lineno">    7 </span>case expressions into the case branches of other case
+<span class="lineno">    8 </span>expressions, which can often yield optimization opportunities.
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>Example:
+<span class="lineno">   11 </span>@
+<span class="lineno">   12 </span>    case (case s of { C1 a -&gt; x; C2 b -&gt; y; }) of
+<span class="lineno">   13 </span>      D1 -&gt; w
+<span class="lineno">   14 </span>      D2 -&gt; z
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>    --&gt;
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>    case s of
+<span class="lineno">   19 </span>      C1 a -&gt; case x of { D1 -&gt; w; D2 -&gt; z; }
+<span class="lineno">   20 </span>      C2 b -&gt; case y of { D1 -&gt; w; D2 -&gt; z; }
+<span class="lineno">   21 </span>@
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>We also transform
+<span class="lineno">   24 </span>
+<span class="lineno">   25 </span>@
+<span class="lineno">   26 </span>    case ((force ifThenElse) b (constr t) (constr f)) alts
+<span class="lineno">   27 </span>@
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>into
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>@
+<span class="lineno">   32 </span>    force (force ifThenElse b (delay (case (constr t) alts)) (delay (case (constr f) alts)))
+<span class="lineno">   33 </span>@
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>This is always an improvement. -}
+<span class="lineno">   36 </span>module UntypedPlutusCore.Transform.CaseOfCase (caseOfCase) where
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>import PlutusPrelude
+<span class="lineno">   39 </span>
+<span class="lineno">   40 </span>import PlutusCore qualified as PLC
+<span class="lineno">   41 </span>import PlutusCore.Builtin (CaseBuiltin (..))
+<span class="lineno">   42 </span>import PlutusCore.MkPlc (mkIterApp)
+<span class="lineno">   43 </span>import UntypedPlutusCore.Core
+<span class="lineno">   44 </span>import UntypedPlutusCore.Transform.CaseReduce qualified as CaseReduce
+<span class="lineno">   45 </span>import UntypedPlutusCore.Transform.Simplifier
+<span class="lineno">   46 </span>  ( SimplifierStage (CaseOfCase)
+<span class="lineno">   47 </span>  , SimplifierT
+<span class="lineno">   48 </span>  , recordSimplification
+<span class="lineno">   49 </span>  )
+<span class="lineno">   50 </span>
+<span class="lineno">   51 </span>import Control.Lens
+<span class="lineno">   52 </span>import Data.List (nub)
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>caseOfCase
+<span class="lineno">   55 </span>  :: ( fun ~ PLC.DefaultFun
+<span class="lineno">   56 </span>     , Monad m
+<span class="lineno">   57 </span>     , CaseBuiltin uni
+<span class="lineno">   58 </span>     , PLC.GEq uni
+<span class="lineno">   59 </span>     , PLC.Closed uni
+<span class="lineno">   60 </span>     , uni `PLC.Everywhere` Eq
+<span class="lineno">   61 </span>     )
+<span class="lineno">   62 </span>  =&gt; Term name uni fun a
+<span class="lineno">   63 </span>  -&gt; SimplifierT name uni fun a m (Term name uni fun a)
+<span class="lineno">   64 </span><span class="decl"><span class="istickedoff">caseOfCase term = do</span>
+<span class="lineno">   65 </span><span class="spaces">  </span><span class="istickedoff">let result = transformOf termSubterms processTerm term</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">recordSimplification term CaseOfCase result</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">return result</span></span>
+<span class="lineno">   68 </span>
+<span class="lineno">   69 </span>processTerm
+<span class="lineno">   70 </span>  :: ( fun ~ PLC.DefaultFun
+<span class="lineno">   71 </span>     , CaseBuiltin uni
+<span class="lineno">   72 </span>     , PLC.GEq uni
+<span class="lineno">   73 </span>     , PLC.Closed uni
+<span class="lineno">   74 </span>     , uni `PLC.Everywhere` Eq
+<span class="lineno">   75 </span>     )
+<span class="lineno">   76 </span>  =&gt; Term name uni fun a -&gt; Term name uni fun a
+<span class="lineno">   77 </span><span class="decl"><span class="istickedoff">processTerm = \case</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="istickedoff">Case ann scrut alts</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">| ( ite@(Force a (Builtin _ PLC.IfThenElse))</span>
+<span class="lineno">   80 </span><span class="spaces">        </span><span class="istickedoff">, [cond, (trueAnn, true@Constr {}), (falseAnn, false@Constr {})]</span>
+<span class="lineno">   81 </span><span class="spaces">        </span><span class="istickedoff">) &lt;-</span>
+<span class="lineno">   82 </span><span class="spaces">        </span><span class="istickedoff">splitApplication scrut -&gt;</span>
+<span class="lineno">   83 </span><span class="spaces">        </span><span class="istickedoff">Force a $</span>
+<span class="lineno">   84 </span><span class="spaces">          </span><span class="istickedoff">mkIterApp</span>
+<span class="lineno">   85 </span><span class="spaces">            </span><span class="istickedoff">ite</span>
+<span class="lineno">   86 </span><span class="spaces">            </span><span class="istickedoff">[ cond</span>
+<span class="lineno">   87 </span><span class="spaces">            </span><span class="istickedoff">, -- Here we call a single step of case-reduce in order to immediately clean up the</span>
+<span class="lineno">   88 </span><span class="spaces">              </span><span class="istickedoff">-- duplication of @alts@. Otherwise optimizing case-of-case-of-case-of... would create</span>
+<span class="lineno">   89 </span><span class="spaces">              </span><span class="istickedoff">-- exponential blowup of the case branches, which would eventually get deduplicated</span>
+<span class="lineno">   90 </span><span class="spaces">              </span><span class="istickedoff">-- with case-reduce, but only after that exponential blowup has already slowed the</span>
+<span class="lineno">   91 </span><span class="spaces">              </span><span class="istickedoff">-- optimizer down unnecessarily.</span>
+<span class="lineno">   92 </span><span class="spaces">              </span><span class="istickedoff">(trueAnn, Delay trueAnn . CaseReduce.processTerm $ Case ann true alts)</span>
+<span class="lineno">   93 </span><span class="spaces">            </span><span class="istickedoff">, (falseAnn, Delay falseAnn . CaseReduce.processTerm $ Case ann false alts)</span>
+<span class="lineno">   94 </span><span class="spaces">            </span><span class="istickedoff">]</span>
+<span class="lineno">   95 </span><span class="spaces">  </span><span class="istickedoff">original@(Case annOuter (Case annInner scrut altsInner) altsOuter) -&gt;</span>
+<span class="lineno">   96 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">maybe</span></span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">original</span></span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">(Case annInner scrut)</span></span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">( do</span></span>
+<span class="lineno">  100 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">constrs &lt;- for altsInner $ \case</span></span>
+<span class="lineno">  101 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">c@(Constr _ i _) -&gt; Just (Left i, c)</span></span>
+<span class="lineno">  102 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">c@(Constant _ val) -&gt; Just (Right val, c)</span></span>
+<span class="lineno">  103 </span><span class="spaces">            </span><span class="istickedoff"><span class="nottickedoff">_ -&gt; Nothing</span></span>
+<span class="lineno">  104 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">-- See Note [Case-of-case and duplicating code].</span></span>
+<span class="lineno">  105 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">guard $ length (nub . toList $ fmap fst constrs) == length constrs</span></span>
+<span class="lineno">  106 </span><span class="spaces">          </span><span class="istickedoff"><span class="nottickedoff">pure $ constrs &lt;&amp;&gt; \(_, c) -&gt; CaseReduce.processTerm $ Case annOuter c altsOuter</span></span>
+<span class="lineno">  107 </span><span class="spaces">      </span><span class="istickedoff"><span class="nottickedoff">)</span></span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="istickedoff">other -&gt; other</span></span>
+
+</pre>
+</body>
+</html>

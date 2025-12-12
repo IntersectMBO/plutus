@@ -1,0 +1,2508 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Compiler.Provenance</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Compiler.Provenance.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Compiler.Provenance</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Module handling provenances of terms.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Provenance"
+	      >Provenance</a
+	      > a<ul class="subs"
+	      ><li
+		>= <a href="#v:Original"
+		  >Original</a
+		  > a</li
+		><li
+		>| <a href="#v:LetBinding"
+		  >LetBinding</a
+		  > <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+		  >Recursivity</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</li
+		><li
+		>| <a href="#v:TermBinding"
+		  >TermBinding</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</li
+		><li
+		>| <a href="#v:TypeBinding"
+		  >TypeBinding</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</li
+		><li
+		>| <a href="#v:DatatypeComponent"
+		  >DatatypeComponent</a
+		  > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		  >DatatypeComponent</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</li
+		><li
+		>| <a href="#v:MultipleSources"
+		  >MultipleSources</a
+		  > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+		  >Set</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a))</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:noProvenance"
+	      >noProvenance</a
+	      > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DatatypeComponent"
+	      >DatatypeComponent</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Constructor"
+		  >Constructor</a
+		  ></li
+		><li
+		>| <a href="#v:ConstructorType"
+		  >ConstructorType</a
+		  ></li
+		><li
+		>| <a href="#v:Destructor"
+		  >Destructor</a
+		  ></li
+		><li
+		>| <a href="#v:DestructorType"
+		  >DestructorType</a
+		  ></li
+		><li
+		>| <a href="#v:DatatypeType"
+		  >DatatypeType</a
+		  ></li
+		><li
+		>| <a href="#v:PatternFunctor"
+		  >PatternFunctor</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:GeneratedKind"
+	      >GeneratedKind</a
+	      > = <a href="#v:RecursiveLet"
+	      >RecursiveLet</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:setProvenance"
+	      >setProvenance</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	      >Functor</a
+	      > f &#8658; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > b &#8594; f a &#8594; f (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > b)</li
+	    ><li class="src short"
+	    ><a href="#v:original"
+	      >original</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	      >Functor</a
+	      > f &#8658; f a &#8594; f (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Provenance" class="def"
+	    >Provenance</a
+	    > a <a href="src/PlutusIR.Compiler.Provenance.html#Provenance" class="link"
+	    >Source</a
+	    > <a href="#t:Provenance" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Indicates where a value comes from.</p
+	    ><p
+	    >This is either an original annotation or a pieces of context explaining how the term
+ relates to a previous <code
+	      ><a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		>Provenance</a
+		></code
+	      >. We also provide <code
+	      ><a href="PlutusIR-Compiler-Provenance.html#v:noProvenance" title="PlutusIR.Compiler.Provenance"
+		>noProvenance</a
+		></code
+	      > for convenience.</p
+	    ><p
+	    >The provenance should always be just the original annotation, if we have one. It should only be another
+ kind of provenance if we're in the process of generating some term that doesn't correspond directly to a term in
+ the original AST.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Original" class="def"
+		  >Original</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LetBinding" class="def"
+		  >LetBinding</a
+		  > <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+		  >Recursivity</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TermBinding" class="def"
+		  >TermBinding</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TypeBinding" class="def"
+		  >TypeBinding</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DatatypeComponent" class="def"
+		  >DatatypeComponent</a
+		  > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		  >DatatypeComponent</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MultipleSources" class="def"
+		  >MultipleSources</a
+		  > (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+		  >Set</a
+		  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a))</td
+		><td class="doc"
+		><p
+		  >Added for accumulating difference provenances when floating lets</p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Provenance"
+	    >Instances</h4
+	    ><details id="i:Provenance" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Foldable:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+		      >Foldable</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Foldable:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fold"
+			  >fold</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > m &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap"
+			  >foldMap</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldMap-39-"
+			  >foldMap'</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+			  >Monoid</a
+			  > m &#8658; (a &#8594; m) &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldMap-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr-39-"
+			  >foldr'</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl"
+			  >foldl</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl-39-"
+			  >foldl'</a
+			  > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl-39-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldr1"
+			  >foldr1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldr1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:foldl1"
+			  >foldl1</a
+			  > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:foldl1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toList"
+			  >toList</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:null"
+			  >null</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:null" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:length"
+			  >length</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:length" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:elem"
+			  >elem</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+			  >Eq</a
+			  > a &#8658; a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:elem" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maximum"
+			  >maximum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maximum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:minimum"
+			  >minimum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+			  >Ord</a
+			  > a &#8658; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minimum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sum"
+			  >sum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:product"
+			  >product</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+			  >Num</a
+			  > a &#8658; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:product" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Monoid:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-45" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Monoid:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a] &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Semigroup:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-38" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Semigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a) &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Generic:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Generic:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a) x &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Show:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Show:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Eq:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Eq:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Ord:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Ord:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Hashable:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		      >Hashable</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		      >Hashable</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Hashable:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:hashWithSalt"
+			  >hashWithSalt</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hashWithSalt" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:hash"
+			  >hash</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hash" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:AnnInline:9"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		      >AnnInline</a
+		      > a &#8658; <a href="../plutus-core/PlutusCore-Annotation.html#t:AnnInline" title="PlutusCore.Annotation"
+		      >AnnInline</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-52" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:AnnInline:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:annAlwaysInline"
+			  >annAlwaysInline</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:annAlwaysInline" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:annSafeToInline"
+			  >annSafeToInline</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:annSafeToInline" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:annMayInline"
+			  >annMayInline</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:annMayInline" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Pretty:10"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > a &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-90" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Pretty:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			  >Provenance</a
+			  > a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Provenance:Rep:11"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		      >Provenance</a
+		      > a)</span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-35" class="link"
+		    >Source</a
+		    > <a href="#t:Provenance" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Provenance:Rep:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			>Provenance</a
+			> a) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;Provenance&quot; &quot;PlutusIR.Compiler.Provenance&quot; &quot;plutus-core-1.53.0.0-inplace-plutus-ir&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Original&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> a)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;LetBinding&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+			>Recursivity</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			>Provenance</a
+			> a))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TermBinding&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			>String</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			>Provenance</a
+			> a))))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;TypeBinding&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			>String</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			>Provenance</a
+			> a))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;DatatypeComponent&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			>DatatypeComponent</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			>Provenance</a
+			> a))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;MultipleSources&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+			>Set</a
+			> (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+			>Provenance</a
+			> a)))))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:noProvenance" class="def"
+	    >noProvenance</a
+	    > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a <a href="src/PlutusIR.Compiler.Provenance.html#noProvenance" class="link"
+	    >Source</a
+	    > <a href="#v:noProvenance" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DatatypeComponent" class="def"
+	    >DatatypeComponent</a
+	    > <a href="src/PlutusIR.Compiler.Provenance.html#DatatypeComponent" class="link"
+	    >Source</a
+	    > <a href="#t:DatatypeComponent" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Constructor" class="def"
+		  >Constructor</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ConstructorType" class="def"
+		  >ConstructorType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Destructor" class="def"
+		  >Destructor</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DestructorType" class="def"
+		  >DestructorType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DatatypeType" class="def"
+		  >DatatypeType</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PatternFunctor" class="def"
+		  >PatternFunctor</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DatatypeComponent"
+	    >Instances</h4
+	    ><details id="i:DatatypeComponent" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeComponent:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		      >DatatypeComponent</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeComponent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeComponent:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > x &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeComponent:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		      >DatatypeComponent</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeComponent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeComponent:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeComponent:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		      >DatatypeComponent</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeComponent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeComponent:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeComponent:Ord:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		      >DatatypeComponent</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeComponent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeComponent:Ord:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeComponent:Hashable:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/Data-Hashable.html#t:Hashable" title="Data.Hashable"
+		      >Hashable</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		      >DatatypeComponent</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeComponent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeComponent:Hashable:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:hashWithSalt"
+			  >hashWithSalt</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hashWithSalt" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:hash"
+			  >hash</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hash" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeComponent:Pretty:6"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		      >DatatypeComponent</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-66" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeComponent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeComponent:Pretty:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			  >DatatypeComponent</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DatatypeComponent:Rep:7"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+		      >DatatypeComponent</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:DatatypeComponent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DatatypeComponent:Rep:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusIR-Compiler-Provenance.html#t:DatatypeComponent" title="PlutusIR.Compiler.Provenance"
+			>DatatypeComponent</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;DatatypeComponent&quot; &quot;PlutusIR.Compiler.Provenance&quot; &quot;plutus-core-1.53.0.0-inplace-plutus-ir&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Constructor&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ConstructorType&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Destructor&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;DestructorType&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;DatatypeType&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;PatternFunctor&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:GeneratedKind" class="def"
+	    >GeneratedKind</a
+	    > <a href="src/PlutusIR.Compiler.Provenance.html#GeneratedKind" class="link"
+	    >Source</a
+	    > <a href="#t:GeneratedKind" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:RecursiveLet" class="def"
+		  >RecursiveLet</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:GeneratedKind"
+	    >Instances</h4
+	    ><details id="i:GeneratedKind" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GeneratedKind:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+		      >GeneratedKind</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:GeneratedKind" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GeneratedKind:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GeneratedKind:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+		      >GeneratedKind</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-76" class="link"
+		    >Source</a
+		    > <a href="#t:GeneratedKind" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GeneratedKind:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  > &#8594; <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:GeneratedKind:Pretty:3"
+		      ></span
+		      > <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+		      >GeneratedKind</a
+		      ></span
+		    > <a href="src/PlutusIR.Compiler.Provenance.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:GeneratedKind" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:GeneratedKind:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Provenance.html"
+			>PlutusIR.Compiler.Provenance</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusIR-Compiler-Provenance.html#t:GeneratedKind" title="PlutusIR.Compiler.Provenance"
+			  >GeneratedKind</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:setProvenance" class="def"
+	    >setProvenance</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	    >Functor</a
+	    > f &#8658; <a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > b &#8594; f a &#8594; f (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > b) <a href="src/PlutusIR.Compiler.Provenance.html#setProvenance" class="link"
+	    >Source</a
+	    > <a href="#v:setProvenance" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Set the provenance on a term to the given value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:original" class="def"
+	    >original</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+	    >Functor</a
+	    > f &#8658; f a &#8594; f (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) <a href="src/PlutusIR.Compiler.Provenance.html#original" class="link"
+	    >Source</a
+	    > <a href="#v:original" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Mark all the annotations on a term as original. Useful for preparing terms for the PIR compiler.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

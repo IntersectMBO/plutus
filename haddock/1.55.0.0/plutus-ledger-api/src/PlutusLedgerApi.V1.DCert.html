@@ -1,0 +1,2849 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingVia          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-specialise #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Digests of certificates that are included in transactions.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.V1.DCert</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCert"
+	><span class="hs-identifier"
+	  >DCert</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Credential</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#StakingCredential"
+	><span class="hs-identifier"
+	  >StakingCredential</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1.Crypto</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Definition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	><span class="hs-identifier"
+	  >HasBlueprintDefinition</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Derive.html#definitionRef"
+	><span class="hs-identifier"
+	  >definitionRef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Schema.Annotation</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-identifier"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-identifier"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.TH.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.TH</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.TH.html#makeIsDataSchemaIndexed"
+	><span class="hs-identifier"
+	  >makeIsDataSchemaIndexed</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Lift.TH.html#makeLift"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>P</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Show.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Show.TH.html#deriveShow"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html"
+	><span class="hs-identifier"
+	  >Prettyprinter.Extras</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	><span class="hs-identifier"
+	  >Pretty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html#PrettyShow"
+	><span class="hs-identifier"
+	  >PrettyShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html#PrettyShow"
+	><span class="hs-identifier"
+	  >PrettyShow</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegRegKey"
+	><span class="hs-pragma hs-type"
+	  >DCertDelegRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-pragma hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;DCertDelegRegKey&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegRegKey"
+	><span class="hs-pragma hs-type"
+	  >DCertDelegRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-pragma hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;Delegation key registration certificate&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDeRegKey"
+	><span class="hs-pragma hs-type"
+	  >DCertDelegDeRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-pragma hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;DCertDelegDeRegKey&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDeRegKey"
+	><span class="hs-pragma hs-type"
+	  >DCertDelegDeRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-pragma hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;Delegation key deregistration certificate&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDelegate"
+	><span class="hs-pragma hs-type"
+	  >DCertDelegDelegate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-pragma hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;DCertDelegDelegate&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDelegate"
+	><span class="hs-pragma hs-type"
+	  >DCertDelegDelegate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-pragma hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;Delegation certificate&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRegister"
+	><span class="hs-pragma hs-type"
+	  >DCertPoolRegister</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-pragma hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;DCertPoolRegister&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRegister"
+	><span class="hs-pragma hs-type"
+	  >DCertPoolRegister</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-pragma hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;Pool registration certificate&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRetire"
+	><span class="hs-pragma hs-type"
+	  >DCertPoolRetire</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-pragma hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;DCertPoolRetire&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRetire"
+	><span class="hs-pragma hs-type"
+	  >DCertPoolRetire</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-pragma hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;Pool retirement certificate&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertGenesis"
+	><span class="hs-pragma hs-type"
+	  >DCertGenesis</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-pragma hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;DCertGenesis&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertGenesis"
+	><span class="hs-pragma hs-type"
+	  >DCertGenesis</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-pragma hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;Genesis key&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertMir"
+	><span class="hs-pragma hs-type"
+	  >DCertMir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaTitle"
+	><span class="hs-pragma hs-type"
+	  >SchemaTitle</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;DCertMir&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-pragma"
+      >{-# ANN</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertMir"
+	><span class="hs-pragma hs-type"
+	  >DCertMir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Schema.Annotation.html#SchemaDescription"
+	><span class="hs-pragma hs-type"
+	  >SchemaDescription</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-pragma"
+	>&quot;MIR key&quot;</span
+	></span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- | A representation of the ledger DCert. Some information is digested, and</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >--   not included</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="DCert"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCert"
+	  ><span class="hs-identifier hs-var"
+	    >DCert</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="DCertDelegRegKey"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegRegKey"
+	  ><span class="hs-identifier hs-var"
+	    >DCertDelegRegKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#StakingCredential"
+	><span class="hs-identifier hs-type"
+	  >StakingCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="DCertDelegDeRegKey"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDeRegKey"
+	  ><span class="hs-identifier hs-var"
+	    >DCertDelegDeRegKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#StakingCredential"
+	><span class="hs-identifier hs-type"
+	  >StakingCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="DCertDelegDelegate"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDelegate"
+	  ><span class="hs-identifier hs-var"
+	    >DCertDelegDelegate</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Credential.html#StakingCredential"
+	><span class="hs-identifier hs-type"
+	  >StakingCredential</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ delegator</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ delegatee</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A digest of the PoolParams</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span id="DCertPoolRegister"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRegister"
+	  ><span class="hs-identifier hs-var"
+	    >DCertPoolRegister</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ poolId</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ pool VFR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The retirement certificate and the Epoch in which the retirement will take place</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >    </span
+      ><span id="DCertPoolRetire"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRetire"
+	  ><span class="hs-identifier hs-var"
+	    >DCertPoolRetire</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.Crypto.html#PubKeyHash"
+	><span class="hs-identifier hs-type"
+	  >PubKeyHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- NB: Should be Word64 but we only have Integer on-chain</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A really terse Digest</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span id="DCertGenesis"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertGenesis"
+	  ><span class="hs-identifier hs-var"
+	    >DCertGenesis</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Another really terse Digest</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span id="DCertMir"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertMir"
+	  ><span class="hs-identifier hs-var"
+	    >DCertMir</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681222636"
+      ><span id="local-6989586621681222649"
+	><span class="annot"
+	  ><span class="annottext"
+	    >DCert -&gt; DCert -&gt; Bool
+(DCert -&gt; DCert -&gt; Bool) -&gt; (DCert -&gt; DCert -&gt; Bool) -&gt; Eq DCert
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: DCert -&gt; DCert -&gt; Bool
+== :: DCert -&gt; DCert -&gt; Bool
+$c/= :: DCert -&gt; DCert -&gt; Bool
+/= :: DCert -&gt; DCert -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681222656"
+      ><span id="local-6989586621681222669"
+	><span id="local-6989586621681222673"
+	  ><span id="local-6989586621681222676"
+	    ><span id="local-6989586621681222679"
+	      ><span id="local-6989586621681222682"
+		><span id="local-6989586621681222685"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq DCert
+Eq DCert =&gt;
+(DCert -&gt; DCert -&gt; Ordering)
+-&gt; (DCert -&gt; DCert -&gt; Bool)
+-&gt; (DCert -&gt; DCert -&gt; Bool)
+-&gt; (DCert -&gt; DCert -&gt; Bool)
+-&gt; (DCert -&gt; DCert -&gt; Bool)
+-&gt; (DCert -&gt; DCert -&gt; DCert)
+-&gt; (DCert -&gt; DCert -&gt; DCert)
+-&gt; Ord DCert
+DCert -&gt; DCert -&gt; Bool
+DCert -&gt; DCert -&gt; Ordering
+DCert -&gt; DCert -&gt; DCert
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: DCert -&gt; DCert -&gt; Ordering
+compare :: DCert -&gt; DCert -&gt; Ordering
+$c&lt; :: DCert -&gt; DCert -&gt; Bool
+&lt; :: DCert -&gt; DCert -&gt; Bool
+$c&lt;= :: DCert -&gt; DCert -&gt; Bool
+&lt;= :: DCert -&gt; DCert -&gt; Bool
+$c&gt; :: DCert -&gt; DCert -&gt; Bool
+&gt; :: DCert -&gt; DCert -&gt; Bool
+$c&gt;= :: DCert -&gt; DCert -&gt; Bool
+&gt;= :: DCert -&gt; DCert -&gt; Bool
+$cmax :: DCert -&gt; DCert -&gt; DCert
+max :: DCert -&gt; DCert -&gt; DCert
+$cmin :: DCert -&gt; DCert -&gt; DCert
+min :: DCert -&gt; DCert -&gt; DCert
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681222689"
+      ><span id="local-6989586621681222708"
+	><span id="local-6989586621681222712"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; DCert -&gt; ShowS
+[DCert] -&gt; ShowS
+DCert -&gt; String
+(Int -&gt; DCert -&gt; ShowS)
+-&gt; (DCert -&gt; String) -&gt; ([DCert] -&gt; ShowS) -&gt; Show DCert
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; DCert -&gt; ShowS
+showsPrec :: Int -&gt; DCert -&gt; ShowS
+$cshow :: DCert -&gt; String
+show :: DCert -&gt; String
+$cshowList :: [DCert] -&gt; ShowS
+showList :: [DCert] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681222716"
+      ><span id="local-6989586621681222718"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. DCert -&gt; Rep DCert x)
+-&gt; (forall x. Rep DCert x -&gt; DCert) -&gt; Generic DCert
+forall x. Rep DCert x -&gt; DCert
+forall x. DCert -&gt; Rep DCert x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. DCert -&gt; Rep DCert x
+from :: forall x. DCert -&gt; Rep DCert x
+$cto :: forall x. Rep DCert x -&gt; DCert
+to :: forall x. Rep DCert x -&gt; DCert
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681222722"
+      ><span class="annot"
+	><span class="annottext"
+	  >DCert -&gt; ()
+(DCert -&gt; ()) -&gt; NFData DCert
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: DCert -&gt; ()
+rnf :: DCert -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681222764"
+      ><span class="annot"
+	><span class="annottext"
+	  >DefinitionId
+DefinitionId -&gt; HasBlueprintDefinition DCert
+forall t. DefinitionId -&gt; HasBlueprintDefinition t
+$cdefinitionId :: DefinitionId
+definitionId :: DefinitionId
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Blueprint.Definition.Unroll.html#HasBlueprintDefinition"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >HasBlueprintDefinition</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span id="local-6989586621681222770"
+      ><span id="local-6989586621681222776"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall ann. DCert -&gt; Doc ann)
+-&gt; (forall ann. [DCert] -&gt; Doc ann) -&gt; Pretty DCert
+forall ann. [DCert] -&gt; Doc ann
+forall ann. DCert -&gt; Doc ann
+forall a.
+(forall ann. a -&gt; Doc ann)
+-&gt; (forall ann. [a] -&gt; Doc ann) -&gt; Pretty a
+$cpretty :: forall ann. DCert -&gt; Doc ann
+pretty :: forall ann. DCert -&gt; Doc ann
+$cprettyList :: forall ann. [DCert] -&gt; Doc ann
+prettyList :: forall ann. [DCert] -&gt; Doc ann
+</span
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >via</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Prettyprinter.Extras.html#PrettyShow"
+	><span class="hs-identifier hs-type"
+	  >PrettyShow</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCert"
+	><span class="hs-identifier hs-type"
+	  >DCert</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#Eq"
+	><span class="hs-identifier hs-type"
+	  >P.Eq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCert"
+	><span class="hs-identifier hs-type"
+	  >DCert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >==</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegRegKey"
+	><span class="hs-identifier hs-type"
+	  >DCertDelegRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222797"
+      ><span class="annot"
+	><span class="annottext"
+	  >StakingCredential
+</span
+	  ><a href="#local-6989586621681222797"
+	  ><span class="hs-identifier hs-var"
+	    >sc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222798"
+      ><span class="annot"
+	><span class="annottext"
+	  >== :: DCert -&gt; DCert -&gt; Bool
+</span
+	  ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >==</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegRegKey"
+	><span class="hs-identifier hs-type"
+	  >DCertDelegRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222799"
+      ><span class="annot"
+	><span class="annottext"
+	  >StakingCredential
+</span
+	  ><a href="#local-6989586621681222799"
+	  ><span class="hs-identifier hs-var"
+	    >sc'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential
+</span
+	><a href="#local-6989586621681222797"
+	><span class="hs-identifier hs-var"
+	  >sc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential -&gt; StakingCredential -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential
+</span
+	><a href="#local-6989586621681222799"
+	><span class="hs-identifier hs-var"
+	  >sc'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDeRegKey"
+	><span class="hs-identifier hs-type"
+	  >DCertDelegDeRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222800"
+      ><span class="annot"
+	><span class="annottext"
+	  >StakingCredential
+</span
+	  ><a href="#local-6989586621681222800"
+	  ><span class="hs-identifier hs-var"
+	    >sc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDeRegKey"
+	><span class="hs-identifier hs-type"
+	  >DCertDelegDeRegKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222801"
+      ><span class="annot"
+	><span class="annottext"
+	  >StakingCredential
+</span
+	  ><a href="#local-6989586621681222801"
+	  ><span class="hs-identifier hs-var"
+	    >sc'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential
+</span
+	><a href="#local-6989586621681222800"
+	><span class="hs-identifier hs-var"
+	  >sc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential -&gt; StakingCredential -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential
+</span
+	><a href="#local-6989586621681222801"
+	><span class="hs-identifier hs-var"
+	  >sc'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDelegate"
+	><span class="hs-identifier hs-type"
+	  >DCertDelegDelegate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222802"
+      ><span class="annot"
+	><span class="annottext"
+	  >StakingCredential
+</span
+	  ><a href="#local-6989586621681222802"
+	  ><span class="hs-identifier hs-var"
+	    >sc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222803"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222803"
+	  ><span class="hs-identifier hs-var"
+	    >pkh</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertDelegDelegate"
+	><span class="hs-identifier hs-type"
+	  >DCertDelegDelegate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222804"
+      ><span class="annot"
+	><span class="annottext"
+	  >StakingCredential
+</span
+	  ><a href="#local-6989586621681222804"
+	  ><span class="hs-identifier hs-var"
+	    >sc'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222805"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222805"
+	  ><span class="hs-identifier hs-var"
+	    >pkh'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential
+</span
+	><a href="#local-6989586621681222802"
+	><span class="hs-identifier hs-var"
+	  >sc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential -&gt; StakingCredential -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StakingCredential
+</span
+	><a href="#local-6989586621681222804"
+	><span class="hs-identifier hs-var"
+	  >sc'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222803"
+	><span class="hs-identifier hs-var"
+	  >pkh</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; PubKeyHash -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222805"
+	><span class="hs-identifier hs-var"
+	  >pkh'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRegister"
+	><span class="hs-identifier hs-type"
+	  >DCertPoolRegister</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222807"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222807"
+	  ><span class="hs-identifier hs-var"
+	    >pid</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222808"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222808"
+	  ><span class="hs-identifier hs-var"
+	    >pvfr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRegister"
+	><span class="hs-identifier hs-type"
+	  >DCertPoolRegister</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222809"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222809"
+	  ><span class="hs-identifier hs-var"
+	    >pid'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222810"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222810"
+	  ><span class="hs-identifier hs-var"
+	    >pvfr'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222807"
+	><span class="hs-identifier hs-var"
+	  >pid</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; PubKeyHash -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222809"
+	><span class="hs-identifier hs-var"
+	  >pid'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222808"
+	><span class="hs-identifier hs-var"
+	  >pvfr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; PubKeyHash -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222810"
+	><span class="hs-identifier hs-var"
+	  >pvfr'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRetire"
+	><span class="hs-identifier hs-type"
+	  >DCertPoolRetire</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222811"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222811"
+	  ><span class="hs-identifier hs-var"
+	    >pkh</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222812"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681222812"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.V1.DCert.html#DCertPoolRetire"
+	><span class="hs-identifier hs-type"
+	  >DCertPoolRetire</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222813"
+      ><span class="annot"
+	><span class="annottext"
+	  >PubKeyHash
+</span
+	  ><a href="#local-6989586621681222813"
+	  ><span class="hs-identifier hs-var"
+	    >pkh'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681222814"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621681222814"
+	  ><span class="hs-identifier hs-var"
+	    >i'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222811"
+	><span class="hs-identifier hs-var"
+	  >pkh</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash -&gt; PubKeyHash -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PubKeyHash
+</span
+	><a href="#local-6989586621681222813"
+	><span class="hs-identifier hs-var"
+	  >pkh'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681222812"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >P.==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621681222814"
+	><span class="hs-identifier hs-var"
+	  >i'</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DCert
+</span
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertGenesis"
+	><span class="hs-identifier hs-var"
+	  >DCertGenesis</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DCert
+</span
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertGenesis"
+	><span class="hs-identifier hs-var"
+	  >DCertGenesis</span
+	  ></a
+	></span
+      ><span
+      >                               </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DCert
+</span
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertMir"
+	><span class="hs-identifier hs-var"
+	  >DCertMir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DCert
+</span
+	><a href="PlutusLedgerApi.V1.DCert.html#DCertMir"
+	><span class="hs-identifier hs-var"
+	  >DCertMir</span
+	  ></a
+	></span
+      ><span
+      >                                       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DCert
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DCert
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                                                     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#False"
+	><span class="hs-identifier hs-var"
+	  >False</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="hs-comment"
+      >----------------------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span class="hs-comment"
+      >-- TH Splices --------------------------------------------------------------------------------------</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="local-6989586621681222816"
+      ><span id="local-6989586621681222818"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >DCert</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span id="local-6989586621681222590"
+      ><span id="local-6989586621681223497"
+	><span id="local-6989586621681223510"
+	  ><span id="local-6989586621681223512"
+	    ><span id="local-6989586621681223528"
+	      ><span class="hs-identifier"
+		>makeIsDataSchemaIndexed</span
+		><span
+		>
+</span
+		><span id="line-93"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-identifier"
+		>DCert</span
+		><span
+		>
+</span
+		><span id="line-94"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>[</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>DCertDelegRegKey</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>0</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-95"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>DCertDelegDeRegKey</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>1</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-96"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>DCertDelegDelegate</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>2</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-97"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>DCertPoolRegister</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>3</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-98"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>DCertPoolRetire</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>4</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-99"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>DCertGenesis</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>5</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-100"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>'</span
+		><span class="hs-identifier"
+		>DCertMir</span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="hs-number"
+		>6</span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-101"
+		></span
+		><span
+		>  </span
+		><span class="hs-special"
+		>]</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span id="local-6989586621681223648"
+      ><span id="local-6989586621681223669"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-identifier"
+	  >DCert</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

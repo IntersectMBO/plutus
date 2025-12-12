@@ -1,0 +1,2798 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Common.SerialisedScript</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.56.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Common.SerialisedScript.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Common.SerialisedScript</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:SerialisedScript"
+	      >SerialisedScript</a
+	      > = <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Short.html#t:ShortByteString" title="Data.ByteString.Short"
+	      >ShortByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:serialiseCompiledCode"
+	      >serialiseCompiledCode</a
+	      > &#8759; &#8704; a. <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >SerialisedScript</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:serialiseUPLC"
+	      >serialiseUPLC</a
+	      > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > () &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >SerialisedScript</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:uncheckedDeserialiseUPLC"
+	      >uncheckedDeserialiseUPLC</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >SerialisedScript</a
+	      > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >DeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:scriptCBORDecoder"
+	      >scriptCBORDecoder</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+	      >Decoder</a
+	      > s <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptNamedDeBruijn</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ScriptNamedDeBruijn"
+	      >ScriptNamedDeBruijn</a
+	      > = <a href="#v:ScriptNamedDeBruijn"
+	      >ScriptNamedDeBruijn</a
+	      > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	      >Program</a
+	      > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+	      >NamedDeBruijn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > ())</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptForEvaluation"
+	      >ScriptForEvaluation</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptDecodeError"
+	      >ScriptDecodeError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CBORDeserialiseError"
+		  >CBORDeserialiseError</a
+		  > !<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >DeserialiseFailureInfo</a
+		  ></li
+		><li
+		>| <a href="#v:RemainderError"
+		  >RemainderError</a
+		  > !<a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		  >ByteString</a
+		  ></li
+		><li
+		>| <a href="#v:LedgerLanguageNotAvailableError"
+		  >LedgerLanguageNotAvailableError</a
+		  > { <ul class="subs"
+		  ><li
+		    ><a href="#v:sdeAffectedLang"
+		      >sdeAffectedLang</a
+		      > &#8759; !<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></li
+		    ><li
+		    ><a href="#v:sdeIntroPv"
+		      >sdeIntroPv</a
+		      > &#8759; !<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		      >MajorProtocolVersion</a
+		      ></li
+		    ><li
+		    ><a href="#v:sdeThisPv"
+		      >sdeThisPv</a
+		      > &#8759; !<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		      >MajorProtocolVersion</a
+		      ></li
+		    ></ul
+		  > }</li
+		><li
+		>| <a href="#v:PlutusCoreLanguageNotAvailableError"
+		  >PlutusCoreLanguageNotAvailableError</a
+		  > { <ul class="subs"
+		  ><li
+		    ><a href="#v:sdeAffectedVersion"
+		      >sdeAffectedVersion</a
+		      > &#8759; !<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		      >Version</a
+		      ></li
+		    ><li
+		    ><a href="#v:sdeThisLang"
+		      >sdeThisLang</a
+		      > &#8759; !<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		      >PlutusLedgerLanguage</a
+		      ></li
+		    ><li
+		    ><a href="#v:sdeThisPv"
+		      >sdeThisPv</a
+		      > &#8759; !<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		      >MajorProtocolVersion</a
+		      ></li
+		    ></ul
+		  > }</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:AsScriptDecodeError"
+	      >AsScriptDecodeError</a
+	      > r <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:_ScriptDecodeError"
+		  >_ScriptDecodeError</a
+		  > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptDecodeError</a
+		  ></li
+		><li
+		><a href="#v:_CBORDeserialiseError"
+		  >_CBORDeserialiseError</a
+		  > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >DeserialiseFailureInfo</a
+		  ></li
+		><li
+		><a href="#v:_RemainderError"
+		  >_RemainderError</a
+		  > &#8759; Prism' r <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		  >ByteString</a
+		  ></li
+		><li
+		><a href="#v:_LedgerLanguageNotAvailableError"
+		  >_LedgerLanguageNotAvailableError</a
+		  > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  >)</li
+		><li
+		><a href="#v:_PlutusCoreLanguageNotAvailableError"
+		  >_PlutusCoreLanguageNotAvailableError</a
+		  > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+		  >Version</a
+		  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  >)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DeserialiseFailureInfo"
+	      >DeserialiseFailureInfo</a
+	      > = <a href="#v:DeserialiseFailureInfo"
+	      >DeserialiseFailureInfo</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:dfOffset"
+		  >dfOffset</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:ByteOffset" title="Codec.CBOR.Decoding"
+		  >ByteOffset</a
+		  ></li
+		><li
+		><a href="#v:dfReason"
+		  >dfReason</a
+		  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >DeserialiseFailureReason</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DeserialiseFailureReason"
+	      >DeserialiseFailureReason</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:EndOfInput"
+		  >EndOfInput</a
+		  ></li
+		><li
+		>| <a href="#v:ExpectedBytes"
+		  >ExpectedBytes</a
+		  ></li
+		><li
+		>| <a href="#v:OtherReason"
+		  >OtherReason</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:deserialiseScript"
+	      >deserialiseScript</a
+	      > &#8759; &#8704; m. <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+	      >MonadError</a
+	      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptDecodeError</a
+	      > m &#8658; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >SerialisedScript</a
+	      > &#8594; m <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptForEvaluation</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:serialisedScript"
+	      >serialisedScript</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptForEvaluation</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >SerialisedScript</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:deserialisedScript"
+	      >deserialisedScript</a
+	      > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptForEvaluation</a
+	      > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptNamedDeBruijn</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:SerialisedScript" class="def"
+	    >SerialisedScript</a
+	    > = <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Short.html#t:ShortByteString" title="Data.ByteString.Short"
+	    >ShortByteString</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#SerialisedScript" class="link"
+	    >Source</a
+	    > <a href="#t:SerialisedScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Scripts to the ledger are serialised bytestrings.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:serialiseCompiledCode" class="def"
+	    >serialiseCompiledCode</a
+	    > &#8759; &#8704; a. <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >SerialisedScript</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseCompiledCode" class="link"
+	    >Source</a
+	    > <a href="#v:serialiseCompiledCode" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Turns a program which was compiled using the 'PlutusTx' toolchain into
+a binary format that is understood by the network and can be stored on-chain. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:serialiseUPLC" class="def"
+	    >serialiseUPLC</a
+	    > &#8759; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >SerialisedScript</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#serialiseUPLC" class="link"
+	    >Source</a
+	    > <a href="#v:serialiseUPLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Turns a program's AST (most likely manually constructed)
+into a binary format that is understood by the network and can be stored on-chain. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:uncheckedDeserialiseUPLC" class="def"
+	    >uncheckedDeserialiseUPLC</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >SerialisedScript</a
+	    > &#8594; <a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+	    >DeBruijn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > () <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#uncheckedDeserialiseUPLC" class="link"
+	    >Source</a
+	    > <a href="#v:uncheckedDeserialiseUPLC" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Deserialises a <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+		>SerialisedScript</a
+		></code
+	      > back into an AST. Does *not* do
+ledger-language-version-specific checks like for allowable builtins. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:scriptCBORDecoder" class="def"
+	    >scriptCBORDecoder</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	    >PlutusLedgerLanguage</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	    >MajorProtocolVersion</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+	    >Decoder</a
+	    > s <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >ScriptNamedDeBruijn</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#scriptCBORDecoder" class="link"
+	    >Source</a
+	    > <a href="#v:scriptCBORDecoder" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This decoder decodes the names directly into <code
+	      ><a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		>NamedDeBruijn</a
+		></code
+	      >s rather than <code
+	      ><a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:DeBruijn" title="PlutusCore.DeBruijn.Internal"
+		>DeBruijn</a
+		></code
+	      >s.
+This is needed because the CEK machine expects <code
+	      >NameDeBruijn</code
+	      >s, but there are obviously no
+names in the serialised form of a <code
+	      >Script</code
+	      >. Rather than traversing the term and inserting
+fake names after deserialising, this lets us do at the same time as deserialising. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ScriptNamedDeBruijn" class="def"
+	    >ScriptNamedDeBruijn</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#ScriptNamedDeBruijn" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptNamedDeBruijn" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A script with named de-bruijn indices.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ScriptNamedDeBruijn" class="def"
+		  >ScriptNamedDeBruijn</a
+		  > (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		  >Program</a
+		  > <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+		  >NamedDeBruijn</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+		  >DefaultFun</a
+		  > ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptNamedDeBruijn"
+	    >Instances</h4
+	    ><details id="i:ScriptNamedDeBruijn" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptNamedDeBruijn:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptNamedDeBruijn</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-170" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptNamedDeBruijn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptNamedDeBruijn:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > x &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptNamedDeBruijn:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptNamedDeBruijn</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-170" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptNamedDeBruijn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptNamedDeBruijn:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptNamedDeBruijn:NFData:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptNamedDeBruijn</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-171" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptNamedDeBruijn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptNamedDeBruijn:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptNamedDeBruijn:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptNamedDeBruijn</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-170" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptNamedDeBruijn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptNamedDeBruijn:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptNamedDeBruijn</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptNamedDeBruijn:Rep:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptNamedDeBruijn</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-170" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptNamedDeBruijn" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptNamedDeBruijn:Rep:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			>ScriptNamedDeBruijn</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ScriptNamedDeBruijn&quot; &quot;PlutusLedgerApi.Common.SerialisedScript&quot; &quot;plutus-ledger-api-1.56.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ScriptNamedDeBruijn&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="../plutus-core/UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			>Program</a
+			> <a href="../plutus-core/PlutusCore-DeBruijn-Internal.html#t:NamedDeBruijn" title="PlutusCore.DeBruijn.Internal"
+			>NamedDeBruijn</a
+			> <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			>DefaultUni</a
+			> <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+			>DefaultFun</a
+			> ()))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptForEvaluation" class="def"
+	    >ScriptForEvaluation</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#ScriptForEvaluation" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptForEvaluation" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A Plutus script ready to be evaluated on-chain, via <code
+	      >evaluateScriptRestricting</code
+	      >.</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptForEvaluation"
+	    >Instances</h4
+	    ><details id="i:ScriptForEvaluation" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptForEvaluation:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptForEvaluation</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-175" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptForEvaluation" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptForEvaluation:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > x &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptForEvaluation:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptForEvaluation</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-175" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptForEvaluation" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptForEvaluation:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptForEvaluation:NFData:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptForEvaluation</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-176" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptForEvaluation" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptForEvaluation:NFData:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptForEvaluation:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptForEvaluation</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-175" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptForEvaluation" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptForEvaluation:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptForEvaluation:NoThunks:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:NoThunks" title="NoThunks.Class"
+		      >NoThunks</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptForEvaluation</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-180" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptForEvaluation" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptForEvaluation:NoThunks:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:noThunks"
+			  >noThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:noThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:wNoThunks"
+			  >wNoThunks</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:Context" title="NoThunks.Class"
+			  >Context</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/System-IO.html#t:IO" title="System.IO"
+			  >IO</a
+			  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/NoThunks-Class.html#t:ThunkInfo" title="NoThunks.Class"
+			  >ThunkInfo</a
+			  >) <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:wNoThunks" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showTypeOf"
+			  >showTypeOf</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptForEvaluation</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/nothunks-0.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptForEvaluation:Rep:6"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptForEvaluation</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-175" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptForEvaluation" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptForEvaluation:Rep:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+			>ScriptForEvaluation</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ScriptForEvaluation&quot; &quot;PlutusLedgerApi.Common.SerialisedScript&quot; &quot;plutus-ledger-api-1.56.0.0-inplace&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;UnsafeScriptForEvaluation&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+			>SerialisedScript</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:SourceStrict" title="GHC.Generics"
+			>SourceStrict</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedStrict" title="GHC.Generics"
+			>DecidedStrict</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+			>ScriptNamedDeBruijn</a
+			>)))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptDecodeError" class="def"
+	    >ScriptDecodeError</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#ScriptDecodeError" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptDecodeError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An error that occurred during script deserialization.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CBORDeserialiseError" class="def"
+		  >CBORDeserialiseError</a
+		  > !<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >DeserialiseFailureInfo</a
+		  ></td
+		><td class="doc"
+		><p
+		  >an error from the underlying CBOR/serialise library</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:RemainderError" class="def"
+		  >RemainderError</a
+		  > !<a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+		  >ByteString</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Script was successfully parsed, but more (runaway) bytes encountered
+    after script's position </p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:LedgerLanguageNotAvailableError" class="def"
+		  >LedgerLanguageNotAvailableError</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the plutus version of the given script is not enabled yet</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:sdeAffectedLang" class="def"
+			  >sdeAffectedLang</a
+			  > &#8759; !<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >the script's ledger language</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:sdeIntroPv" class="def"
+			  >sdeIntroPv</a
+			  > &#8759; !<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >the major protocol version that will first introduce/enable the ledger language</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:sdeThisPv" class="def"
+			  >sdeThisPv</a
+			  > &#8759; !<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >the current protocol version</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PlutusCoreLanguageNotAvailableError" class="def"
+		  >PlutusCoreLanguageNotAvailableError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:sdeAffectedVersion" class="def"
+			  >sdeAffectedVersion</a
+			  > &#8759; !<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >the Plutus Core language of the script under execution.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:sdeThisLang" class="def"
+			  >sdeThisLang</a
+			  > &#8759; !<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >the Plutus ledger language of the script under execution.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:sdeThisPv" class="def"
+			  >sdeThisPv</a
+			  > &#8759; !<a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >the current protocol version</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptDecodeError"
+	    >Instances</h4
+	    ><details id="i:ScriptDecodeError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptDecodeError:Exception:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+		      >Exception</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptDecodeError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-78" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptDecodeError:Exception:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptDecodeError:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptDecodeError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptDecodeError:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptDecodeError:Eq:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptDecodeError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-77" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptDecodeError:Eq:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptDecodeError:AsScriptDecodeError:4"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:AsScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >AsScriptDecodeError</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptDecodeError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-80" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptDecodeError:AsScriptDecodeError:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_ScriptDecodeError"
+			  >_ScriptDecodeError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+			  >Source</a
+			  > <a href="#v:_ScriptDecodeError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CBORDeserialiseError"
+			  >_CBORDeserialiseError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+			  >Source</a
+			  > <a href="#v:_CBORDeserialiseError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_RemainderError"
+			  >_RemainderError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+			  >ByteString</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+			  >Source</a
+			  > <a href="#v:_RemainderError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_LedgerLanguageNotAvailableError"
+			  >_LedgerLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PlutusCoreLanguageNotAvailableError"
+			  >_PlutusCoreLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptDecodeError:Pretty:5"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptDecodeError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-82" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptDecodeError:Pretty:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:AsScriptDecodeError" class="def"
+	    >AsScriptDecodeError</a
+	    > r <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#AsScriptDecodeError" class="link"
+	    >Source</a
+	    > <a href="#t:AsScriptDecodeError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    ><a href="PlutusLedgerApi-Common-SerialisedScript.html#v:_ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >_ScriptDecodeError</a
+	      ></p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:_ScriptDecodeError" class="def"
+	      >_ScriptDecodeError</a
+	      > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >ScriptDecodeError</a
+	      > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+	      >Source</a
+	      > <a href="#v:_ScriptDecodeError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_CBORDeserialiseError" class="def"
+	      >_CBORDeserialiseError</a
+	      > &#8759; Prism' r <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+	      >DeserialiseFailureInfo</a
+	      > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+	      >Source</a
+	      > <a href="#v:_CBORDeserialiseError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_RemainderError" class="def"
+	      >_RemainderError</a
+	      > &#8759; Prism' r <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+	      >ByteString</a
+	      > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+	      >Source</a
+	      > <a href="#v:_RemainderError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_LedgerLanguageNotAvailableError" class="def"
+	      >_LedgerLanguageNotAvailableError</a
+	      > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+	      >Source</a
+	      > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+	      >#</a
+	      ></p
+	    ><p class="src"
+	    ><a id="v:_PlutusCoreLanguageNotAvailableError" class="def"
+	      >_PlutusCoreLanguageNotAvailableError</a
+	      > &#8759; Prism' r (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+	      >Version</a
+	      >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+	      >MajorProtocolVersion</a
+	      >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+	      >Source</a
+	      > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsScriptDecodeError"
+	    >Instances</h4
+	    ><details id="i:AsScriptDecodeError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AsScriptDecodeError:AsScriptDecodeError:1"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:AsScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >AsScriptDecodeError</a
+		      > <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		      >EvaluationError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.Eval.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:AsScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AsScriptDecodeError:AsScriptDecodeError:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-Eval.html"
+			>PlutusLedgerApi.Common.Eval</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_ScriptDecodeError"
+			  >_ScriptDecodeError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+			  >Source</a
+			  > <a href="#v:_ScriptDecodeError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CBORDeserialiseError"
+			  >_CBORDeserialiseError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+			  >Source</a
+			  > <a href="#v:_CBORDeserialiseError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_RemainderError"
+			  >_RemainderError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+			  >ByteString</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+			  >Source</a
+			  > <a href="#v:_RemainderError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_LedgerLanguageNotAvailableError"
+			  >_LedgerLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PlutusCoreLanguageNotAvailableError"
+			  >_PlutusCoreLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AsScriptDecodeError:AsScriptDecodeError:2"
+		      ></span
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:AsScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >AsScriptDecodeError</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >ScriptDecodeError</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#line-80" class="link"
+		    >Source</a
+		    > <a href="#t:AsScriptDecodeError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AsScriptDecodeError:AsScriptDecodeError:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Common-SerialisedScript.html"
+			>PlutusLedgerApi.Common.SerialisedScript</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:_ScriptDecodeError"
+			  >_ScriptDecodeError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_ScriptDecodeError" class="link"
+			  >Source</a
+			  > <a href="#v:_ScriptDecodeError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_CBORDeserialiseError"
+			  >_CBORDeserialiseError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_CBORDeserialiseError" class="link"
+			  >Source</a
+			  > <a href="#v:_CBORDeserialiseError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_RemainderError"
+			  >_RemainderError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString-Lazy.html#t:ByteString" title="Data.ByteString.Lazy"
+			  >ByteString</a
+			  > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_RemainderError" class="link"
+			  >Source</a
+			  > <a href="#v:_RemainderError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_LedgerLanguageNotAvailableError"
+			  >_LedgerLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_LedgerLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_LedgerLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:_PlutusCoreLanguageNotAvailableError"
+			  >_PlutusCoreLanguageNotAvailableError</a
+			  > &#8759; Prism' <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >ScriptDecodeError</a
+			  > (<a href="PlutusLedgerApi-Common-Versions.html#t:Version" title="PlutusLedgerApi.Common.Versions"
+			  >Version</a
+			  >, <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			  >PlutusLedgerLanguage</a
+			  >, <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  >) <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#_PlutusCoreLanguageNotAvailableError" class="link"
+			  >Source</a
+			  > <a href="#v:_PlutusCoreLanguageNotAvailableError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DeserialiseFailureInfo" class="def"
+	    >DeserialiseFailureInfo</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:DeserialiseFailureInfo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Similar to <code
+	      ><a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Read.html#t:DeserialiseFailure" title="Codec.CBOR.Read"
+		>DeserialiseFailure</a
+		></code
+	      >, with the difference that plain
+string reason messages are turned into the datatype: <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+		>DeserialiseFailureReason</a
+		></code
+	      >. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:DeserialiseFailureInfo" class="def"
+		  >DeserialiseFailureInfo</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:dfOffset" class="def"
+			  >dfOffset</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:ByteOffset" title="Codec.CBOR.Decoding"
+			  >ByteOffset</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:dfReason" class="def"
+			  >dfReason</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DeserialiseFailureInfo"
+	    >Instances</h4
+	    ><details id="i:DeserialiseFailureInfo" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DeserialiseFailureInfo:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >DeserialiseFailureInfo</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DeserialiseFailureInfo:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/Codec-Extras-SerialiseViaFlat.html"
+			>Codec.Extras.SerialiseViaFlat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DeserialiseFailureInfo:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >DeserialiseFailureInfo</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DeserialiseFailureInfo:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/Codec-Extras-SerialiseViaFlat.html"
+			>Codec.Extras.SerialiseViaFlat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DeserialiseFailureInfo:Pretty:3"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >DeserialiseFailureInfo</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DeserialiseFailureInfo:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/Codec-Extras-SerialiseViaFlat.html"
+			>Codec.Extras.SerialiseViaFlat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureInfo" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureInfo</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DeserialiseFailureReason" class="def"
+	    >DeserialiseFailureReason</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:DeserialiseFailureReason" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The reason of the cbor failure as a datatype, not as a plain string.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:EndOfInput" class="def"
+		  >EndOfInput</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Not enough input provided</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ExpectedBytes" class="def"
+		  >ExpectedBytes</a
+		  ></td
+		><td class="doc"
+		><p
+		  >The bytes inside the input are malformed.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:OtherReason" class="def"
+		  >OtherReason</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc"
+		><p
+		  >This is either a cbor failure that we (plutus) are not aware of,
+    or an underlying flat failure. We use whatever message <code
+		    >cborg</code
+		    > or flat returns. </p
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DeserialiseFailureReason"
+	    >Instances</h4
+	    ><details id="i:DeserialiseFailureReason" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DeserialiseFailureReason:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >DeserialiseFailureReason</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DeserialiseFailureReason:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/Codec-Extras-SerialiseViaFlat.html"
+			>Codec.Extras.SerialiseViaFlat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DeserialiseFailureReason:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >DeserialiseFailureReason</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DeserialiseFailureReason:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/Codec-Extras-SerialiseViaFlat.html"
+			>Codec.Extras.SerialiseViaFlat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DeserialiseFailureReason:Pretty:3"
+		      ></span
+		      > <a href="Prettyprinter-Extras.html#t:Pretty" title="Prettyprinter.Extras"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+		      >DeserialiseFailureReason</a
+		      ></span
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DeserialiseFailureReason:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="../plutus-core/Codec-Extras-SerialiseViaFlat.html"
+			>Codec.Extras.SerialiseViaFlat</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Common-SerialisedScript.html#t:DeserialiseFailureReason" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >DeserialiseFailureReason</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deserialiseScript" class="def"
+	    >deserialiseScript</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#deserialiseScript" class="link"
+	    >Source</a
+	    > <a href="#v:deserialiseScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; &#8704; m. <a href="PlutusLedgerApi-Common.html#t:MonadError" title="PlutusLedgerApi.Common"
+		  >MonadError</a
+		  > <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptDecodeError</a
+		  > m</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the Plutus ledger language of the script.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  ></td
+		><td class="doc"
+		><p
+		  >which major protocol version the script was submitted in.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >SerialisedScript</a
+		  ></td
+		><td class="doc"
+		><p
+		  >the script to deserialise.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; m <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptForEvaluation</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >The deserialization from a serialised script into a <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		>ScriptForEvaluation</a
+		></code
+	      >,
+ready to be evaluated on-chain.
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:serialisedScript" class="def"
+	    >serialisedScript</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >ScriptForEvaluation</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >SerialisedScript</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#serialisedScript" class="link"
+	    >Source</a
+	    > <a href="#v:serialisedScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+		>SerialisedScript</a
+		></code
+	      > from a <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		>ScriptForEvaluation</a
+		></code
+	      >. <em
+	      >O(1)</em
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deserialisedScript" class="def"
+	    >deserialisedScript</a
+	    > &#8759; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >ScriptForEvaluation</a
+	    > &#8594; <a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+	    >ScriptNamedDeBruijn</a
+	    > <a href="src/PlutusLedgerApi.Common.SerialisedScript.html#deserialisedScript" class="link"
+	    >Source</a
+	    > <a href="#v:deserialisedScript" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptNamedDeBruijn" title="PlutusLedgerApi.Common.SerialisedScript"
+		>ScriptNamedDeBruijn</a
+		></code
+	      > from a <code
+	      ><a href="PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptForEvaluation" title="PlutusLedgerApi.Common.SerialisedScript"
+		>ScriptForEvaluation</a
+		></code
+	      >. <em
+	      >O(1)</em
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

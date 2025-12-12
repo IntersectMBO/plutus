@@ -1,0 +1,3085 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| This module exports all available examples via a data type which allows to test
+various procedures (pretty-printing, type checking, etc) over the entire set of examples
+in a convenient way: each time a function / data type is added to examples, none of the
+tests is required to be adapted, instead you just add the new definition to 'examples'
+defined below and all the tests see it automatically. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Examples.Everything</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Everything.html#examples"
+	><span class="hs-identifier"
+	  >examples</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Everything.html#builtins"
+	><span class="hs-identifier"
+	  >builtins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html"
+	><span class="hs-identifier"
+	  >PlutusCore.FsTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.StdLib.Type.html"
+	><span class="hs-identifier"
+	  >PlutusCore.StdLib.Type</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Builtins</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.Data.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.Data</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.Function.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.Function</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.InterList.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.InterList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.List.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.List</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.Pair.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.Pair</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.Shad.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.Shad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.TreeForest.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.TreeForest</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Data.Vec.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Examples.Data.Vec</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | All examples exported as a single value.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Everything.html#examples"
+	><span class="hs-identifier hs-type"
+	  >examples</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcFolderContents"
+	><span class="hs-identifier hs-type"
+	  >PlcFolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier hs-type"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >DefaultFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Builtins.html#ExtensionFun"
+	><span class="hs-identifier hs-type"
+	  >ExtensionFun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="examples"
+      ><span class="annot"
+	><span class="annottext"
+	  >examples :: PlcFolderContents DefaultUni (Either DefaultFun ExtensionFun)
+</span
+	  ><a href="PlutusCore.Examples.Everything.html#examples"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >examples</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; PlcFolderContents DefaultUni (Either DefaultFun ExtensionFun)
+forall a. [FsTree a] -&gt; FolderContents a
+</span
+	><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier hs-var"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Examples&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Data&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+ -&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun)))
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;exampleData&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall tyname.
+Term tyname Name DefaultUni (Either DefaultFun ExtensionFun) ()
+</span
+	><a href="PlutusCore.Examples.Data.Data.html#exampleData"
+	><span class="hs-identifier hs-var"
+	  >exampleData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621682068823"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+</span
+	><a href="#local-6989586621682068825"
+	><span class="hs-identifier hs-var"
+	  >optMatch</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+ -&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun)))
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+</span
+	><a href="#local-6989586621682068826"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+</span
+	><a href="#local-6989586621682068825"
+	><span class="hs-identifier hs-var"
+	  >optMatch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="local-6989586621682068825"
+      ><span class="annot"
+	><span class="annottext"
+	  >MatchOption
+</span
+	  ><a href="#local-6989586621682068825"
+	  ><span class="hs-identifier hs-var"
+	    >optMatch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[MatchOption]
+forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	><span class="hs-identifier hs-var"
+	  >enumerate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682068823"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621682068823"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682068826"
+      ><span class="annot"
+	><span class="annottext"
+	  >MatchOption
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+</span
+	  ><a href="#local-6989586621682068826"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ofoldrData&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+</span
+	><a href="PlutusCore.Examples.Data.Data.html#ofoldrData"
+	><span class="hs-identifier hs-var"
+	  >ofoldrData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Function&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;unsafeCoerce&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Function.html#unsafeCoerce"
+	><span class="hs-identifier hs-var"
+	  >unsafeCoerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;InterList&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;InterList&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni ()
+ -&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun)))
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RecursiveType DefaultUni Any () -&gt; Type TyName DefaultUni ()
+forall (uni :: * -&gt; *) fun ann.
+RecursiveType uni fun ann -&gt; Type TyName uni ann
+</span
+	><a href="PlutusCore.StdLib.Type.html#_recursiveType"
+	><span class="hs-identifier hs-var"
+	  >_recursiveType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RecursiveType DefaultUni Any ()
+forall (uni :: * -&gt; *) fun. RecursiveType uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.InterList.html#interListData"
+	><span class="hs-identifier hs-var"
+	  >interListData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;InterNil&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.InterList.html#interNil"
+	><span class="hs-identifier hs-var"
+	  >interNil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;InterCons&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.InterList.html#interCons"
+	><span class="hs-identifier hs-var"
+	  >interCons</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;FoldrInterList&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun.
+HasTypeAndTermLevel uni () =&gt;
+Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.InterList.html#foldrInterList"
+	><span class="hs-identifier hs-var"
+	  >foldrInterList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;List&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621682068836"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2B%2B"
+	><span class="hs-operator hs-var"
+	  >++</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+</span
+	><a href="#local-6989586621682068837"
+	><span class="hs-identifier hs-var"
+	  >optMatch</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+ -&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun)))
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+</span
+	><a href="#local-6989586621682068838"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+</span
+	><a href="#local-6989586621682068837"
+	><span class="hs-identifier hs-var"
+	  >optMatch</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="local-6989586621682068837"
+      ><span class="annot"
+	><span class="annottext"
+	  >MatchOption
+</span
+	  ><a href="#local-6989586621682068837"
+	  ><span class="hs-identifier hs-var"
+	    >optMatch</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[MatchOption]
+forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	><span class="hs-identifier hs-var"
+	  >enumerate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682068836"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621682068836"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682068838"
+      ><span class="annot"
+	><span class="annottext"
+	  >MatchOption
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+</span
+	  ><a href="#local-6989586621682068838"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;omapList&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MatchOption
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+</span
+	><a href="PlutusCore.Examples.Data.List.html#omapList"
+	><span class="hs-identifier hs-var"
+	  >omapList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Pair&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;obothPair&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (term :: * -&gt; *).
+TermLike
+  term TyName Name DefaultUni (Either DefaultFun ExtensionFun) =&gt;
+term ()
+</span
+	><a href="PlutusCore.Examples.Data.Pair.html#obothPair"
+	><span class="hs-identifier hs-var"
+	  >obothPair</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;TreeForest&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Tree&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni ()
+ -&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun)))
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RecursiveType DefaultUni Any () -&gt; Type TyName DefaultUni ()
+forall (uni :: * -&gt; *) fun ann.
+RecursiveType uni fun ann -&gt; Type TyName uni ann
+</span
+	><a href="PlutusCore.StdLib.Type.html#_recursiveType"
+	><span class="hs-identifier hs-var"
+	  >_recursiveType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RecursiveType DefaultUni Any ()
+forall (uni :: * -&gt; *) fun. RecursiveType uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.TreeForest.html#treeData"
+	><span class="hs-identifier hs-var"
+	  >treeData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Forest&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Type TyName DefaultUni ()
+ -&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun)))
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RecursiveType DefaultUni Any () -&gt; Type TyName DefaultUni ()
+forall (uni :: * -&gt; *) fun ann.
+RecursiveType uni fun ann -&gt; Type TyName uni ann
+</span
+	><a href="PlutusCore.StdLib.Type.html#_recursiveType"
+	><span class="hs-identifier hs-var"
+	  >_recursiveType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>RecursiveType DefaultUni Any ()
+forall (uni :: * -&gt; *) fun. RecursiveType uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.TreeForest.html#forestData"
+	><span class="hs-identifier hs-var"
+	  >forestData</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;TreeNode&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun.
+HasUniApply uni =&gt;
+Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.TreeForest.html#treeNode"
+	><span class="hs-identifier hs-var"
+	  >treeNode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ForestNil&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun.
+HasUniApply uni =&gt;
+Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.TreeForest.html#forestNil"
+	><span class="hs-identifier hs-var"
+	  >forestNil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;ForestCons&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun.
+HasUniApply uni =&gt;
+Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.TreeForest.html#forestCons"
+	><span class="hs-identifier hs-var"
+	  >forestCons</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Vec&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;zeroT&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+forall (uni :: * -&gt; *). Type TyName uni ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#zeroT"
+	><span class="hs-identifier hs-var"
+	  >zeroT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;succT&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+forall (uni :: * -&gt; *). Type TyName uni ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#succT"
+	><span class="hs-identifier hs-var"
+	  >succT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;plusT&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+forall (uni :: * -&gt; *). Type TyName uni ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#plusT"
+	><span class="hs-identifier hs-var"
+	  >plusT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;churchVec&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+forall (uni :: * -&gt; *). Type TyName uni ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#churchVec"
+	><span class="hs-identifier hs-var"
+	  >churchVec</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;churchNil&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#churchNil"
+	><span class="hs-identifier hs-var"
+	  >churchNil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;churchCons&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#churchCons"
+	><span class="hs-identifier hs-var"
+	  >churchCons</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;churchConcat&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#churchConcat"
+	><span class="hs-identifier hs-var"
+	  >churchConcat</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;scottVec&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+forall (uni :: * -&gt; *). Type TyName uni ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#scottVec"
+	><span class="hs-identifier hs-var"
+	  >scottVec</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;scottNil&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#scottNil"
+	><span class="hs-identifier hs-var"
+	  >scottNil</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;scottCons&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun. Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#scottCons"
+	><span class="hs-identifier hs-var"
+	  >scottCons</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;scottHead&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun.
+HasTypeAndTermLevel uni () =&gt;
+Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#scottHead"
+	><span class="hs-identifier hs-var"
+	  >scottHead</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;scottSumHeadsOr0&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+ -&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun)))
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(DefaultFun -&gt; Either DefaultFun ExtensionFun)
+-&gt; Term TyName Name DefaultUni DefaultFun ()
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall fun fun' tyname name (uni :: * -&gt; *) ann.
+(fun -&gt; fun')
+-&gt; Term tyname name uni fun ann -&gt; Term tyname name uni fun' ann
+</span
+	><a href="PlutusCore.Core.Type.html#mapFun"
+	><span class="hs-identifier hs-var"
+	  >mapFun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefaultFun -&gt; Either DefaultFun ExtensionFun
+forall a b. a -&gt; Either a b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-var"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni DefaultFun ()
+forall (uni :: * -&gt; *).
+(HasTypeAndTermLevel uni Integer, HasTypeAndTermLevel uni ()) =&gt;
+Term TyName Name uni DefaultFun ()
+</span
+	><a href="PlutusCore.Examples.Data.Vec.html#scottSumHeadsOr0"
+	><span class="hs-identifier hs-var"
+	  >scottSumHeadsOr0</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Shad&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;shad&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+forall (uni :: * -&gt; *).
+HasTypeLevel uni Integer =&gt;
+Type TyName uni ()
+</span
+	><a href="PlutusCore.Examples.Data.Shad.html#shad"
+	><span class="hs-identifier hs-var"
+	  >shad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;mkShad&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun.
+HasTypeAndTermLevel uni Integer =&gt;
+Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Shad.html#mkShad"
+	><span class="hs-identifier hs-var"
+	  >mkShad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))]
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;RecUnit&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Type TyName DefaultUni ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Type TyName uni () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTypeFile"
+	><span class="hs-identifier hs-var"
+	  >plcTypeFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;recUnit&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName DefaultUni ()
+forall (uni :: * -&gt; *). HasTypeLevel uni () =&gt; Type TyName uni ()
+</span
+	><a href="PlutusCore.Examples.Data.Shad.html#recUnit"
+	><span class="hs-identifier hs-var"
+	  >recUnit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+-&gt; FsTree (PlcEntity DefaultUni (Either DefaultFun ExtensionFun))
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;runRecUnit&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+forall (uni :: * -&gt; *) fun.
+HasTypeAndTermLevel uni () =&gt;
+Term TyName Name uni fun ()
+</span
+	><a href="PlutusCore.Examples.Data.Shad.html#runRecUnit"
+	><span class="hs-identifier hs-var"
+	  >runRecUnit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Everything.html#builtins"
+	><span class="hs-identifier hs-type"
+	  >builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.FsTree.html#PlcFolderContents"
+	><span class="hs-identifier hs-type"
+	  >PlcFolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >DefaultUni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Examples.Builtins.html#ExtensionFun"
+	><span class="hs-identifier hs-type"
+	  >ExtensionFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span id="builtins"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtins :: PlcFolderContents DefaultUni ExtensionFun
+</span
+	  ><a href="PlutusCore.Examples.Everything.html#builtins"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtins</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[FsTree (PlcEntity DefaultUni ExtensionFun)]
+-&gt; PlcFolderContents DefaultUni ExtensionFun
+forall a. [FsTree a] -&gt; FolderContents a
+</span
+	><a href="PlutusCore.FsTree.html#FolderContents"
+	><span class="hs-identifier hs-var"
+	  >FolderContents</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; [FsTree (PlcEntity DefaultUni ExtensionFun)]
+-&gt; FsTree (PlcEntity DefaultUni ExtensionFun)
+forall a. String -&gt; [FsTree a] -&gt; FsTree a
+</span
+	><a href="PlutusCore.FsTree.html#treeFolderContents"
+	><span class="hs-identifier hs-var"
+	  >treeFolderContents</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><span class="hs-string"
+	>&quot;Builtins&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([FsTree (PlcEntity DefaultUni ExtensionFun)]
+ -&gt; FsTree (PlcEntity DefaultUni ExtensionFun))
+-&gt; [FsTree (PlcEntity DefaultUni ExtensionFun)]
+-&gt; FsTree (PlcEntity DefaultUni ExtensionFun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ExtensionFun -&gt; FsTree (PlcEntity DefaultUni ExtensionFun))
+-&gt; [ExtensionFun] -&gt; [FsTree (PlcEntity DefaultUni ExtensionFun)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682068863"
+      ><span class="annot"
+	><span class="annottext"
+	  >ExtensionFun
+</span
+	  ><a href="#local-6989586621682068863"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+-&gt; Term TyName Name DefaultUni ExtensionFun ()
+-&gt; FsTree (PlcEntity DefaultUni ExtensionFun)
+forall (uni :: * -&gt; *) fun.
+String -&gt; Term TyName Name uni fun () -&gt; PlcFsTree uni fun
+</span
+	><a href="PlutusCore.FsTree.html#plcTermFile"
+	><span class="hs-identifier hs-var"
+	  >plcTermFile</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExtensionFun -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExtensionFun
+</span
+	><a href="#local-6989586621682068863"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name DefaultUni ExtensionFun ()
+ -&gt; FsTree (PlcEntity DefaultUni ExtensionFun))
+-&gt; Term TyName Name DefaultUni ExtensionFun ()
+-&gt; FsTree (PlcEntity DefaultUni ExtensionFun)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; ExtensionFun -&gt; Term TyName Name DefaultUni ExtensionFun ()
+forall ann.
+ann -&gt; ExtensionFun -&gt; Term TyName Name DefaultUni ExtensionFun ann
+forall (term :: * -&gt; *) tyname name (uni :: * -&gt; *) fun ann.
+TermLike term tyname name uni fun =&gt;
+ann -&gt; fun -&gt; term ann
+</span
+	><a href="PlutusCore.MkPlc.html#builtin"
+	><span class="hs-identifier hs-var"
+	  >builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ExtensionFun
+</span
+	><a href="#local-6989586621682068863"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ExtensionFun]
+forall a. (Enum a, Bounded a) =&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/extra-1.8/docs/src/Data.List.Extra.html#enumerate"
+	><span class="hs-identifier hs-var"
+	  >enumerate</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

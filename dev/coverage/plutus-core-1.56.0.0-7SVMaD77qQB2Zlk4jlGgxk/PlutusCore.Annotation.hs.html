@@ -1,0 +1,181 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    2 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    3 </span>
+<span class="lineno">    4 </span>module PlutusCore.Annotation
+<span class="lineno">    5 </span>  ( Ann (..)
+<span class="lineno">    6 </span>  , SrcSpan (..)
+<span class="lineno">    7 </span>  , SrcSpans (..)
+<span class="lineno">    8 </span>  , InlineHints (..)
+<span class="lineno">    9 </span>  , Inline (..)
+<span class="lineno">   10 </span>  , AnnInline (..)
+<span class="lineno">   11 </span>  , Megaparsec.SourcePos (..)
+<span class="lineno">   12 </span>  , Megaparsec.Pos
+<span class="lineno">   13 </span>  , addSrcSpan
+<span class="lineno">   14 </span>  , lineInSrcSpan
+<span class="lineno">   15 </span>  ) where
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Control.DeepSeq
+<span class="lineno">   18 </span>import Data.Default.Class
+<span class="lineno">   19 </span>import Data.Hashable
+<span class="lineno">   20 </span>import Data.List qualified as List
+<span class="lineno">   21 </span>import Data.MonoTraversable
+<span class="lineno">   22 </span>import Data.Set (Set)
+<span class="lineno">   23 </span>import Data.Set qualified as Set
+<span class="lineno">   24 </span>import GHC.Generics
+<span class="lineno">   25 </span>import PlutusCore.Flat (Flat (..))
+<span class="lineno">   26 </span>import Prettyprinter
+<span class="lineno">   27 </span>import Text.Megaparsec.Pos as Megaparsec
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>newtype InlineHints name a = InlineHints {<span class="istickedoff"><span class="decl"><span class="istickedoff">shouldInline</span></span></span> :: a -&gt; name -&gt; Inline}
+<span class="lineno">   30 </span>
+<span class="lineno">   31 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show (InlineHints name a)</span></span></span></span> where
+<span class="lineno">   32 </span>  <span class="decl"><span class="nottickedoff">show _ = &quot;&lt;inline hints&gt;&quot;</span></span>
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>instance Default (InlineHints name a) where
+<span class="lineno">   35 </span>  <span class="decl"><span class="istickedoff">def = InlineHints (\_ _ -&gt; MayInline)</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- | An annotation type used during the compilation.
+<span class="lineno">   38 </span>data Ann = Ann
+<span class="lineno">   39 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">annInline</span></span></span> :: Inline
+<span class="lineno">   40 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">annSrcSpans</span></span></span> :: SrcSpans
+<span class="lineno">   41 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">annIsAsDataMatcher</span></span></span> :: Bool
+<span class="lineno">   42 </span>  }
+<span class="lineno">   43 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   44 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>instance Default Ann where
+<span class="lineno">   47 </span>  <span class="decl"><span class="nottickedoff">def =</span>
+<span class="lineno">   48 </span><span class="spaces">    </span><span class="nottickedoff">Ann</span>
+<span class="lineno">   49 </span><span class="spaces">      </span><span class="nottickedoff">{ annInline = MayInline</span>
+<span class="lineno">   50 </span><span class="spaces">      </span><span class="nottickedoff">, annSrcSpans = mempty</span>
+<span class="lineno">   51 </span><span class="spaces">      </span><span class="nottickedoff">, annIsAsDataMatcher = False</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">}</span></span>
+<span class="lineno">   53 </span>
+<span class="lineno">   54 </span>data Inline
+<span class="lineno">   55 </span>  = {-| When calling @PlutusIR.Compiler.Definitions.defineTerm@ to add a new term definition,
+<span class="lineno">   56 </span>    if we annotation the var on the LHS of the definition with `AlwaysInline`, the inliner will
+<span class="lineno">   57 </span>    always inline that var.
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>    This is currently used to ensure builtin functions such as @trace@ (when the @remove-trace@
+<span class="lineno">   60 </span>    flag is on and @trace@ is rewritten to @const@) are inlined, because the inliner would
+<span class="lineno">   61 </span>    otherwise not inline them. To achieve that, we annotate the definition with `AlwaysInline`
+<span class="lineno">   62 </span>    when defining @trace@, i.e., @trace &lt;AlwaysInline&gt; = \_ a -&gt; a@. -}
+<span class="lineno">   63 </span>    AlwaysInline
+<span class="lineno">   64 </span>  | {-| Signaling to the compiler that a binding is safe to inline. This is useful for
+<span class="lineno">   65 </span>    annotating strict bindings that aren't obviously safe to inline. -}
+<span class="lineno">   66 </span>    SafeToInline
+<span class="lineno">   67 </span>  | MayInline
+<span class="lineno">   68 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   69 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>)
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>instance <span class="decl"><span class="nottickedoff">Pretty Ann</span></span> where
+<span class="lineno">   72 </span>  <span class="decl"><span class="nottickedoff">pretty = viaShow</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>class AnnInline a where
+<span class="lineno">   75 </span>  -- | An annotation instructing the inliner to always inline a binding.
+<span class="lineno">   76 </span>  annAlwaysInline :: a
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>  {-| An annotation signaling to the inliner that a binding is safe to inline.
+<span class="lineno">   79 </span>  The inlining decision is left to the inliner. This is useful for
+<span class="lineno">   80 </span>  annotating strict bindings that aren't obviously safe to inline. -}
+<span class="lineno">   81 </span>  annSafeToInline :: a
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span>  -- | An annotation that leaves the inlining decision to the inliner.
+<span class="lineno">   84 </span>  annMayInline :: a
+<span class="lineno">   85 </span>
+<span class="lineno">   86 </span>instance AnnInline () where
+<span class="lineno">   87 </span>  <span class="decl"><span class="nottickedoff">annAlwaysInline = ()</span></span>
+<span class="lineno">   88 </span>  <span class="decl"><span class="nottickedoff">annSafeToInline = ()</span></span>
+<span class="lineno">   89 </span>  <span class="decl"><span class="nottickedoff">annMayInline = ()</span></span>
+<span class="lineno">   90 </span>
+<span class="lineno">   91 </span>instance AnnInline Ann where
+<span class="lineno">   92 </span>  <span class="decl"><span class="nottickedoff">annAlwaysInline = def {annInline = AlwaysInline}</span></span>
+<span class="lineno">   93 </span>  <span class="decl"><span class="nottickedoff">annSafeToInline = def {annInline = SafeToInline}</span></span>
+<span class="lineno">   94 </span>  <span class="decl"><span class="nottickedoff">annMayInline = def {annInline = MayInline}</span></span>
+<span class="lineno">   95 </span>
+<span class="lineno">   96 </span>{-| The span between two source locations.
+<span class="lineno">   97 </span>
+<span class="lineno">   98 </span>This corresponds roughly to the `SrcSpan` used by GHC,
+<span class="lineno">   99 </span>but we define our own version so we don't have to depend on `ghc` to use it.
+<span class="lineno">  100 </span>
+<span class="lineno">  101 </span>The line and column numbers are 1-based, and the unit is Unicode code point (or `Char`). -}
+<span class="lineno">  102 </span>data SrcSpan = SrcSpan
+<span class="lineno">  103 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">srcSpanFile</span></span></span> :: FilePath
+<span class="lineno">  104 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">srcSpanSLine</span></span></span> :: Int
+<span class="lineno">  105 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">srcSpanSCol</span></span></span> :: Int
+<span class="lineno">  106 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">srcSpanELine</span></span></span> :: Int
+<span class="lineno">  107 </span>  , <span class="istickedoff"><span class="decl"><span class="istickedoff">srcSpanECol</span></span></span> :: Int
+<span class="lineno">  108 </span>  {-^ Same as GHC's @SrcSpan@, @srcSpanECol@ is usually one more than the column of
+<span class="lineno">  109 </span>  the last character of the thing this @SrcSpan@ is for (unless the last character
+<span class="lineno">  110 </span>  is the line break). -}
+<span class="lineno">  111 </span>  }
+<span class="lineno">  112 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Generic</span></span></span></span>)
+<span class="lineno">  113 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Flat</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show SrcSpan</span></span></span></span> where
+<span class="lineno">  116 </span>  <span class="decl"><span class="istickedoff">showsPrec _ s =</span>
+<span class="lineno">  117 </span><span class="spaces">    </span><span class="istickedoff">showString (srcSpanFile s)</span>
+<span class="lineno">  118 </span><span class="spaces">      </span><span class="istickedoff">. showChar ':'</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="istickedoff">. showsPrec 0 (srcSpanSLine s)</span>
+<span class="lineno">  120 </span><span class="spaces">      </span><span class="istickedoff">. showChar ':'</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="istickedoff">. showsPrec 0 (srcSpanSCol s)</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="istickedoff">. showChar '-'</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="istickedoff">. showsPrec 0 (srcSpanELine s)</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="istickedoff">. showChar ':'</span>
+<span class="lineno">  125 </span><span class="spaces">      </span><span class="istickedoff">. showsPrec 0 (if <span class="tickonlyfalse">srcSpanECol s == 0</span> then <span class="nottickedoff">0</span> else srcSpanECol s - 1)</span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>instance <span class="decl"><span class="nottickedoff">Pretty SrcSpan</span></span> where
+<span class="lineno">  128 </span>  <span class="decl"><span class="istickedoff">pretty = viaShow</span></span>
+<span class="lineno">  129 </span>
+<span class="lineno">  130 </span>newtype SrcSpans = SrcSpans {<span class="nottickedoff"><span class="decl"><span class="nottickedoff">unSrcSpans</span></span></span> :: Set SrcSpan}
+<span class="lineno">  131 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Ord</span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Hashable</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">MonoFoldable</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">  132 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">Generic</span></span></span></span>)
+<span class="lineno">  133 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Flat</span></span></span></span></span></span>)
+<span class="lineno">  134 </span>
+<span class="lineno">  135 </span>type instance Element SrcSpans = SrcSpan
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>instance <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show SrcSpans</span></span></span></span> where
+<span class="lineno">  138 </span>  <span class="decl"><span class="istickedoff">showsPrec _ (SrcSpans xs) =</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="istickedoff">showString &quot;{ &quot;</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="istickedoff">. showString</span>
+<span class="lineno">  141 </span><span class="spaces">        </span><span class="istickedoff">( case Set.toList xs of</span>
+<span class="lineno">  142 </span><span class="spaces">            </span><span class="istickedoff">[] -&gt; &quot;no-src-span&quot;</span>
+<span class="lineno">  143 </span><span class="spaces">            </span><span class="istickedoff">ys -&gt; List.intercalate &quot;, &quot; (show &lt;$&gt; ys)</span>
+<span class="lineno">  144 </span><span class="spaces">        </span><span class="istickedoff">)</span>
+<span class="lineno">  145 </span><span class="spaces">      </span><span class="istickedoff">. showString &quot; }&quot;</span></span>
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>instance <span class="decl"><span class="nottickedoff">Pretty SrcSpans</span></span> where
+<span class="lineno">  148 </span>  <span class="decl"><span class="istickedoff">pretty = viaShow</span></span>
+<span class="lineno">  149 </span>
+<span class="lineno">  150 </span>-- | Add an extra SrcSpan to existing 'SrcSpans' of 'Ann'
+<span class="lineno">  151 </span>addSrcSpan :: SrcSpan -&gt; Ann -&gt; Ann
+<span class="lineno">  152 </span><span class="decl"><span class="nottickedoff">addSrcSpan s (Ann i (SrcSpans ss) b) = Ann i (SrcSpans $ Set.insert s ss) b</span></span>
+<span class="lineno">  153 </span>
+<span class="lineno">  154 </span>-- | Tells if a line (positive integer) falls inside a SrcSpan.
+<span class="lineno">  155 </span>lineInSrcSpan :: Pos -&gt; SrcSpan -&gt; Bool
+<span class="lineno">  156 </span><span class="decl"><span class="nottickedoff">lineInSrcSpan pos spn =</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="nottickedoff">let i = Megaparsec.unPos pos</span>
+<span class="lineno">  158 </span><span class="spaces">   </span><span class="nottickedoff">in i &gt;= srcSpanSLine spn &amp;&amp; i &lt;= srcSpanELine spn</span></span>
+
+</pre>
+</body>
+</html>

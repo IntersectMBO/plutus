@@ -1,0 +1,897 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Integer.Common</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Integer.Common.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Integer.Common</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:arbitraryBigInteger" class="def"
+	    >arbitraryBigInteger</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#arbitraryBigInteger" class="link"
+	    >Source</a
+	    > <a href="#v:arbitraryBigInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:BigInteger" class="def"
+	    >BigInteger</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#BigInteger" class="link"
+	    >Source</a
+	    > <a href="#t:BigInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BigInteger" class="def"
+		  >BigInteger</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+		  >Integer</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:BigInteger"
+	    >Instances</h4
+	    ><details id="i:BigInteger" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BigInteger:Arbitrary:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Arbitrary</a
+		      > <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+		      >BigInteger</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Integer.Common.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:BigInteger" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BigInteger:Arbitrary:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Integer-Common.html"
+			>Evaluation.Builtins.Integer.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:arbitrary"
+			  >arbitrary</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+			  >Gen</a
+			  > <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="#v:arbitrary" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:shrink"
+			  >shrink</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; [<a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  >] <a href="#v:shrink" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BigInteger:Num:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+		      >BigInteger</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Integer.Common.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:BigInteger" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BigInteger:Num:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Integer-Common.html"
+			>Evaluation.Builtins.Integer.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:negate"
+			  >negate</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:negate" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:abs"
+			  >abs</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:abs" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:signum"
+			  >signum</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:signum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromInteger"
+			  >fromInteger</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+			  >Integer</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromInteger" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BigInteger:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+		      >BigInteger</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Integer.Common.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:BigInteger" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BigInteger:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Integer-Common.html"
+			>Evaluation.Builtins.Integer.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BigInteger:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+		      >BigInteger</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Integer.Common.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:BigInteger" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BigInteger:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Integer-Common.html"
+			>Evaluation.Builtins.Integer.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:BigInteger:Ord:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+		      >BigInteger</a
+		      ></span
+		    > <a href="src/Evaluation.Builtins.Integer.Common.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:BigInteger" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:BigInteger:Ord:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="Evaluation-Builtins-Integer-Common.html"
+			>Evaluation.Builtins.Integer.Common</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > &#8594; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+			  >BigInteger</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:biginteger" class="def"
+	    >biginteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Integer-Common.html#t:BigInteger" title="Evaluation.Builtins.Integer.Common"
+	    >BigInteger</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#biginteger" class="link"
+	    >Source</a
+	    > <a href="#v:biginteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:addInteger" class="def"
+	    >addInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#addInteger" class="link"
+	    >Source</a
+	    > <a href="#v:addInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:subtractInteger" class="def"
+	    >subtractInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#subtractInteger" class="link"
+	    >Source</a
+	    > <a href="#v:subtractInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:divideInteger" class="def"
+	    >divideInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#divideInteger" class="link"
+	    >Source</a
+	    > <a href="#v:divideInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:modInteger" class="def"
+	    >modInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#modInteger" class="link"
+	    >Source</a
+	    > <a href="#v:modInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:multiplyInteger" class="def"
+	    >multiplyInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#multiplyInteger" class="link"
+	    >Source</a
+	    > <a href="#v:multiplyInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:quotientInteger" class="def"
+	    >quotientInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#quotientInteger" class="link"
+	    >Source</a
+	    > <a href="#v:quotientInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:remainderInteger" class="def"
+	    >remainderInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#remainderInteger" class="link"
+	    >Source</a
+	    > <a href="#v:remainderInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:equalsInteger" class="def"
+	    >equalsInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#equalsInteger" class="link"
+	    >Source</a
+	    > <a href="#v:equalsInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lessThanInteger" class="def"
+	    >lessThanInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#lessThanInteger" class="link"
+	    >Source</a
+	    > <a href="#v:lessThanInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lessThanEqualsInteger" class="def"
+	    >lessThanEqualsInteger</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#lessThanEqualsInteger" class="link"
+	    >Source</a
+	    > <a href="#v:lessThanEqualsInteger" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:le0" class="def"
+	    >le0</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#le0" class="link"
+	    >Source</a
+	    > <a href="#v:le0" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ge0" class="def"
+	    >ge0</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#ge0" class="link"
+	    >Source</a
+	    > <a href="#v:ge0" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ite" class="def"
+	    >ite</a
+	    > &#8759; &#8704; a. <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeLevel`</a
+	    > a &#8658; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#ite" class="link"
+	    >Source</a
+	    > <a href="#v:ite" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:abs" class="def"
+	    >abs</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#abs" class="link"
+	    >Source</a
+	    > <a href="#v:abs" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:not" class="def"
+	    >not</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#not" class="link"
+	    >Source</a
+	    > <a href="#v:not" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:and" class="def"
+	    >and</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#and" class="link"
+	    >Source</a
+	    > <a href="#v:and" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:or" class="def"
+	    >or</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#or" class="link"
+	    >Source</a
+	    > <a href="#v:or" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:xor" class="def"
+	    >xor</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#xor" class="link"
+	    >Source</a
+	    > <a href="#v:xor" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:implies" class="def"
+	    >implies</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#implies" class="link"
+	    >Source</a
+	    > <a href="#v:implies" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:iff" class="def"
+	    >iff</a
+	    > &#8759; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > &#8594; <a href="Evaluation-Builtins-Common.html#t:PlcTerm" title="Evaluation.Builtins.Common"
+	    >PlcTerm</a
+	    > <a href="src/Evaluation.Builtins.Integer.Common.html#iff" class="link"
+	    >Source</a
+	    > <a href="#v:iff" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,467 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DefaultSignatures #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PolyKinds #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Lift.Instances</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Either.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Either"
+	><span class="hs-identifier"
+	  >Either</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Lift.TH.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Lift.TH</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Maybe.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >-- Standard types</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- These need to be in a separate file for TH staging reasons</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="local-6989586621680043786"
+      ><span id="local-6989586621680044204"
+	><span id="local-6989586621680044206"
+	  ><span class="hs-identifier"
+	    >makeLift</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-identifier"
+	    >Maybe</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="local-6989586621680043991"
+      ><span id="local-6989586621680043992"
+	><span id="local-6989586621680044487"
+	  ><span id="local-6989586621680044489"
+	    ><span class="hs-identifier"
+	      >makeLift</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >''</span
+	      ><span class="hs-identifier"
+	      >Either</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span id="local-6989586621680043786"
+      ><span id="local-6989586621680044730"
+	><span id="local-6989586621680044732"
+	  ><span class="hs-identifier"
+	    >makeLift</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-special"
+	    >[</span
+	    ><span class="hs-special"
+	    >]</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621680044971"
+      ><span id="local-6989586621680044973"
+	><span class="hs-identifier"
+	  >makeLift</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >''</span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >-- include a few tuple instances for convenience</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span id="local-6989586621680043786"
+      ><span id="local-6989586621680044075"
+	><span id="local-6989586621680045084"
+	  ><span id="local-6989586621680045086"
+	    ><span class="hs-identifier"
+	      >makeLift</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >''</span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span id="local-6989586621680043786"
+      ><span id="local-6989586621680044075"
+	><span id="local-6989586621680044099"
+	  ><span id="local-6989586621680045251"
+	    ><span id="local-6989586621680045253"
+	      ><span class="hs-identifier"
+		>makeLift</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>,</span
+		><span class="hs-special"
+		>,</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="local-6989586621680043786"
+      ><span id="local-6989586621680044075"
+	><span id="local-6989586621680044099"
+	  ><span id="local-6989586621680044129"
+	    ><span id="local-6989586621680045446"
+	      ><span id="local-6989586621680045448"
+		><span class="hs-identifier"
+		  >makeLift</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >''</span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="local-6989586621680043786"
+      ><span id="local-6989586621680044075"
+	><span id="local-6989586621680044099"
+	  ><span id="local-6989586621680044129"
+	    ><span id="local-6989586621680044165"
+	      ><span id="local-6989586621680045669"
+		><span id="local-6989586621680045671"
+		  ><span class="hs-identifier"
+		    >makeLift</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,2411 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.AssocMap</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.51.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.AssocMap.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.AssocMap</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >A map represented as an &quot;association list&quot; of key-value pairs.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Map"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:singleton"
+	      >singleton</a
+	      > &#8759; k &#8594; v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:empty"
+	      >empty</a
+	      > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:null"
+	      >null</a
+	      > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:unsafeFromList"
+	      >unsafeFromList</a
+	      > &#8759; [(k, v)] &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:safeFromList"
+	      >safeFromList</a
+	      > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > k &#8658; [(k, v)] &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:toList"
+	      >toList</a
+	      > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; [(k, v)]</li
+	    ><li class="src short"
+	    ><a href="#v:keys"
+	      >keys</a
+	      > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; [k]</li
+	    ><li class="src short"
+	    ><a href="#v:elems"
+	      >elems</a
+	      > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; [v]</li
+	    ><li class="src short"
+	    ><a href="#v:lookup"
+	      >lookup</a
+	      > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > k &#8658; k &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > v</li
+	    ><li class="src short"
+	    ><a href="#v:member"
+	      >member</a
+	      > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > k &#8658; k &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:insert"
+	      >insert</a
+	      > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > k &#8658; k &#8594; v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:delete"
+	      >delete</a
+	      > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > k &#8658; k &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:union"
+	      >union</a
+	      > &#8759; &#8704; k v r. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > k &#8658; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k r &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	      >These</a
+	      > v r)</li
+	    ><li class="src short"
+	    ><a href="#v:unionWith"
+	      >unionWith</a
+	      > &#8759; &#8704; k a. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	      >Eq</a
+	      > k &#8658; (a &#8594; a &#8594; a) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a</li
+	    ><li class="src short"
+	    ><a href="#v:filter"
+	      >filter</a
+	      > &#8759; (v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v</li
+	    ><li class="src short"
+	    ><a href="#v:mapWithKey"
+	      >mapWithKey</a
+	      > &#8759; (k &#8594; a &#8594; b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k b</li
+	    ><li class="src short"
+	    ><a href="#v:mapMaybe"
+	      >mapMaybe</a
+	      > &#8759; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k b</li
+	    ><li class="src short"
+	    ><a href="#v:mapMaybeWithKey"
+	      >mapMaybeWithKey</a
+	      > &#8759; (k &#8594; a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	      >Maybe</a
+	      > b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k b</li
+	    ><li class="src short"
+	    ><a href="#v:all"
+	      >all</a
+	      > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      >) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:mapThese"
+	      >mapThese</a
+	      > &#8759; (v &#8594; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	      >These</a
+	      > a b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k v &#8594; (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k a, <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	      >Map</a
+	      > k b)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Map" class="def"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#Map" class="link"
+	    >Source</a
+	    > <a href="#t:Map" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > of key-value pairs.
+A <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > is considered well-defined if there are no key collisions, meaning that each value
+is uniquely identified by a key.</p
+	    ><p
+	    >Use <code
+	      ><a href="PlutusTx-AssocMap.html#v:safeFromList" title="PlutusTx.AssocMap"
+		>safeFromList</a
+		></code
+	      > to create well-defined <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >s from arbitrary lists of pairs.</p
+	    ><p
+	    >If cost minimisation is required, then you can use <code
+	      ><a href="PlutusTx-AssocMap.html#v:unsafeFromList" title="PlutusTx.AssocMap"
+		>unsafeFromList</a
+		></code
+	      > but you must
+be certain that the list you are converting to a <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > abides by the well-definedness condition.</p
+	    ><p
+	    >Most operations on <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >s are definedness-preserving, meaning that for the resulting <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > to be
+well-defined then the input <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >(s) have to also be well-defined. This is not checked explicitly
+unless mentioned in the documentation.</p
+	    ><p
+	    >Take care when using <code
+	      ><a href="PlutusTx-IsData-Class.html#v:fromBuiltinData" title="PlutusTx.IsData.Class"
+		>fromBuiltinData</a
+		></code
+	      > and <code
+	      ><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+		>unsafeFromBuiltinData</a
+		></code
+	      >, as neither function performs
+deduplication of the input collection and may create invalid <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >s!</p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Map"
+	    >Instances</h4
+	    ><details id="i:Map" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Lift:1"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > [(k, v)] &#8658; <a href="PlutusTx-Lift-Class.html#t:Lift" title="PlutusTx.Lift.Class"
+		      >Lift</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-404" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Lift:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+			  >Name</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun ()) <a href="src/PlutusTx.Lift.Class.html#lift" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Lift:2"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > k, <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > v) &#8658; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Lift" title="Language.Haskell.TH.Syntax"
+		      >Lift</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Lift:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; m <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Exp" title="Language.Haskell.TH.Syntax"
+			  >Exp</a
+			  > <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftTyped"
+			  >liftTyped</a
+			  > &#8759; &#8704; (m &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >). <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Quote" title="Language.Haskell.TH.Syntax"
+			  >Quote</a
+			  > m &#8658; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Code" title="Language.Haskell.TH.Syntax"
+			  >Code</a
+			  > m (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftTyped" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Foldable:3"
+		      ></span
+		      > <a href="PlutusTx-Foldable.html#t:Foldable" title="PlutusTx.Foldable"
+		      >Foldable</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-204" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Foldable:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:foldr"
+			  >foldr</a
+			  > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k a &#8594; b <a href="src/PlutusTx.Foldable.html#foldr" class="link"
+			  >Source</a
+			  > <a href="#v:foldr" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Functor:4"
+		      ></span
+		      > <a href="PlutusTx-Functor.html#t:Functor" title="PlutusTx.Functor"
+		      >Functor</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-200" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Functor:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k b <a href="src/PlutusTx.Functor.html#fmap" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Traversable:5"
+		      ></span
+		      > <a href="PlutusTx-Traversable.html#t:Traversable" title="PlutusTx.Traversable"
+		      >Traversable</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-208" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Traversable:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:traverse"
+			  >traverse</a
+			  > &#8759; <a href="PlutusTx-Applicative.html#t:Applicative" title="PlutusTx.Applicative"
+			  >Applicative</a
+			  > f &#8658; (a &#8594; f b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k a &#8594; f (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k b) <a href="src/PlutusTx.Traversable.html#traverse" class="link"
+			  >Source</a
+			  > <a href="#v:traverse" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Data:6"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > v) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+		      >Data</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Data:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:gfoldl"
+			  >gfoldl</a
+			  > &#8759; (&#8704; d b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (d &#8594; b) &#8594; d &#8594; c b) &#8594; (&#8704; g. g &#8594; c g) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; c (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gfoldl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gunfold"
+			  >gunfold</a
+			  > &#8759; (&#8704; b r. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; c (b &#8594; r) &#8594; c r) &#8594; (&#8704; r. r &#8594; c r) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > &#8594; c (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gunfold" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toConstr"
+			  >toConstr</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Constr" title="Data.Data"
+			  >Constr</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toConstr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataTypeOf"
+			  >dataTypeOf</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:DataType" title="Data.Data"
+			  >DataType</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataTypeOf" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast1"
+			  >dataCast1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; c (t d)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast1" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:dataCast2"
+			  >dataCast2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:Typeable" title="Type.Reflection"
+			  >Typeable</a
+			  > t &#8658; (&#8704; d e. (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > e) &#8658; c (t d e)) &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (c (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:dataCast2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapT"
+			  >gmapT</a
+			  > &#8759; (&#8704; b. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > b &#8658; b &#8594; b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapT" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQl"
+			  >gmapQl</a
+			  > &#8759; (r &#8594; r' &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQl" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQr"
+			  >gmapQr</a
+			  > &#8759; &#8704; r r'. (r' &#8594; r &#8594; r) &#8594; r &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; r') &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; r <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQr" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQ"
+			  >gmapQ</a
+			  > &#8759; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; [u] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapQi"
+			  >gmapQi</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; u) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; u <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapQi" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapM"
+			  >gmapM</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; m (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapM" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMp"
+			  >gmapMp</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; m (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMp" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:gmapMo"
+			  >gmapMo</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:MonadPlus" title="Control.Monad"
+			  >MonadPlus</a
+			  > m &#8658; (&#8704; d. <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			  >Data</a
+			  > d &#8658; d &#8594; m d) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; m (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:gmapMo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Generic:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Generic:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) x &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Show:8"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > v) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Show:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:NFData:9"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > k, <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > v) &#8658; <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/Control-DeepSeq.html#t:NFData" title="Control.DeepSeq"
+		      >NFData</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-90" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:NFData:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rnf"
+			  >rnf</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; () <a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:rnf" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Eq:10"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > v) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-92" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Eq:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Ord:11"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > k, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > v) &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Ord:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Ord.html#t:Ordering" title="PlutusTx.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:HasBlueprintDefinition:12"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > k, <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > v) &#8658; <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:HasBlueprintDefinition" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >HasBlueprintDefinition</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-175" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:HasBlueprintDefinition:12"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			  >Unroll</a
+			  > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) &#8759; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  >] <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#Unroll" class="link"
+			  >Source</a
+			  > <a href="#t:Unroll" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:definitionId"
+			  >definitionId</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Definition-Id.html#t:DefinitionId" title="PlutusTx.Blueprint.Definition.Id"
+			  >DefinitionId</a
+			  > <a href="src/PlutusTx.Blueprint.Definition.Unroll.html#definitionId" class="link"
+			  >Source</a
+			  > <a href="#v:definitionId" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:FromData:13"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > k, <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > v) &#8658; <a href="PlutusTx-IsData-Class.html#t:FromData" title="PlutusTx.IsData.Class"
+		      >FromData</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-120" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >A hand-written transformation from <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > to <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      >. Compared to <code
+		      ><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+			>unsafeFromBuiltinData</a
+			></code
+		      >,
+it is safe to call when it is unknown if the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is built with <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      >s <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      > constructor.
+Note that it is, however, unsafe in the sense that it assumes that any map
+encoded in the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is well-formed, i.e. <code
+		      ><a href="PlutusTx-IsData-Class.html#v:fromBuiltinData" title="PlutusTx.IsData.Class"
+			>fromBuiltinData</a
+			></code
+		      > does not perform any
+deduplication of keys or of key-value pairs!</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:FromData:13"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fromBuiltinData"
+			  >fromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+			  >Maybe</a
+			  > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v) <a href="src/PlutusTx.IsData.Class.html#fromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:fromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:ToData:14"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > k, <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > v) &#8658; <a href="PlutusTx-IsData-Class.html#t:ToData" title="PlutusTx.IsData.Class"
+		      >ToData</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-103" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >Hand-written instances to use the underlying <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      > type in <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      >, and
+to be reasonably efficient.</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:ToData:14"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toBuiltinData"
+			  >toBuiltinData</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > <a href="src/PlutusTx.IsData.Class.html#toBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:toBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:UnsafeFromData:15"
+		      ></span
+		      > (<a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > k, <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > v) &#8658; <a href="PlutusTx-IsData-Class.html#t:UnsafeFromData" title="PlutusTx.IsData.Class"
+		      >UnsafeFromData</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-154" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc"
+		  ><p
+		    >A hand-written transformation from <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > to <code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      >. It is unsafe because the
+caller must provide the guarantee that the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is constructed using the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      >s
+<code
+		      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			></code
+		      > constructor.
+Note that it assumes, like the <code
+		      ><a href="PlutusTx-IsData-Class.html#v:fromBuiltinData" title="PlutusTx.IsData.Class"
+			>fromBuiltinData</a
+			></code
+		      > transformation, that the map
+encoded in the <code
+		      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Data.html#t:Data" title="Data.Data"
+			>Data</a
+			></code
+		      > is well-formed, i.e. <code
+		      ><a href="PlutusTx-IsData-Class.html#v:unsafeFromBuiltinData" title="PlutusTx.IsData.Class"
+			>unsafeFromBuiltinData</a
+			></code
+		      > does not perform
+any deduplication of keys or of key-value pairs!</p
+		    ></td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:UnsafeFromData:15"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:unsafeFromBuiltinData"
+			  >unsafeFromBuiltinData</a
+			  > &#8759; <a href="PlutusTx-Builtins-Internal.html#t:BuiltinData" title="PlutusTx.Builtins.Internal"
+			  >BuiltinData</a
+			  > &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData" class="link"
+			  >Source</a
+			  > <a href="#v:unsafeFromBuiltinData" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Monoid:16"
+		      ></span
+		      > (<a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > k, <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > v) &#8658; <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-218" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Monoid:16"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="src/PlutusTx.Monoid.html#mempty" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Semigroup:17"
+		      ></span
+		      > (<a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+		      >Eq</a
+		      > k, <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > v) &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-215" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Semigroup:17"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Pretty:18"
+		      ></span
+		      > (<a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > k, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > v) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-221" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Pretty:18"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > k v] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:HasBlueprintSchema:19"
+		      ></span
+		      > (<a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > k referencedTypes, <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > v referencedTypes) &#8658; <a href="PlutusTx-Blueprint-Class.html#t:HasBlueprintSchema" title="PlutusTx.Blueprint.Class"
+		      >HasBlueprintSchema</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v) referencedTypes</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-185" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:HasBlueprintSchema:19"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:schema"
+			  >schema</a
+			  > &#8759; <a href="PlutusTx-Blueprint-Schema.html#t:Schema" title="PlutusTx.Blueprint.Schema"
+			  >Schema</a
+			  > referencedTypes <a href="src/PlutusTx.Blueprint.Class.html#schema" class="link"
+			  >Source</a
+			  > <a href="#v:schema" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Typeable:20"
+		      ></span
+		      > <a href="PlutusTx-Lift-Class.html#t:Typeable" title="PlutusTx.Lift.Class"
+		      >Typeable</a
+		      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		      >DefaultUni</a
+		      > <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      ></span
+		    > <a href="src/PlutusTx.AssocMap.html#line-404" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Typeable:20"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeRep"
+			  >typeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Proxy.html#t:Proxy" title="Data.Proxy"
+			  >Proxy</a
+			  > <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			  >Map</a
+			  > &#8594; <a href="PlutusTx-Lift-Class.html#t:RTCompile" title="PlutusTx.Lift.Class"
+			  >RTCompile</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > fun (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+			  >TyName</a
+			  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+			  >DefaultUni</a
+			  > ()) <a href="src/PlutusTx.Lift.Class.html#typeRep" class="link"
+			  >Source</a
+			  > <a href="#v:typeRep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Rep:21"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-89" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Rep:21"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			> k v) = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;Map&quot; &quot;PlutusTx.AssocMap&quot; &quot;plutus-tx-1.51.0.0-inplace&quot; '<a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;Map&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="PlutusTx-Bool.html#v:True" title="PlutusTx.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+			>Just</a
+			> &quot;unMap&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> [(k, v)])))</div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Map:Unroll:22"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+		      >Unroll</a
+		      > (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		      >Map</a
+		      > k v)</span
+		    > <a href="src/PlutusTx.AssocMap.html#line-178" class="link"
+		    >Source</a
+		    > <a href="#t:Map" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Map:Unroll:22"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-AssocMap.html"
+			>PlutusTx.AssocMap</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="PlutusTx-Blueprint-Definition-Unroll.html#t:Unroll" title="PlutusTx.Blueprint.Definition.Unroll"
+			>Unroll</a
+			> (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			> k v) = '[<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+			>Map</a
+			> k v, k, v]</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:singleton" class="def"
+	    >singleton</a
+	    > &#8759; k &#8594; v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#singleton" class="link"
+	    >Source</a
+	    > <a href="#v:singleton" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A singleton map.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:empty" class="def"
+	    >empty</a
+	    > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#empty" class="link"
+	    >Source</a
+	    > <a href="#v:empty" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An empty <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:null" class="def"
+	    >null</a
+	    > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.AssocMap.html#null" class="link"
+	    >Source</a
+	    > <a href="#v:null" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is the map empty?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unsafeFromList" class="def"
+	    >unsafeFromList</a
+	    > &#8759; [(k, v)] &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#unsafeFromList" class="link"
+	    >Source</a
+	    > <a href="#v:unsafeFromList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unsafely create a <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > from a list of pairs. This should _only_ be applied to lists which
+have been checked to not contain duplicate keys, otherwise the resulting <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > will contain
+conflicting entries (two entries sharing the same key).
+As usual, the &quot;keys&quot; are considered to be the first element of the pair.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:safeFromList" class="def"
+	    >safeFromList</a
+	    > &#8759; <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > k &#8658; [(k, v)] &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#safeFromList" class="link"
+	    >Source</a
+	    > <a href="#v:safeFromList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >In case of duplicates, this function will keep only one entry (the one that precedes).
+In other words, this function de-duplicates the input list.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toList" class="def"
+	    >toList</a
+	    > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; [(k, v)] <a href="src/PlutusTx.AssocMap.html#toList" class="link"
+	    >Source</a
+	    > <a href="#v:toList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:keys" class="def"
+	    >keys</a
+	    > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; [k] <a href="src/PlutusTx.AssocMap.html#keys" class="link"
+	    >Source</a
+	    > <a href="#v:keys" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The keys of a <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >. Semantically, the resulting list is only a set if the <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >
+didn't contain duplicate keys.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:elems" class="def"
+	    >elems</a
+	    > &#8759; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; [v] <a href="src/PlutusTx.AssocMap.html#elems" class="link"
+	    >Source</a
+	    > <a href="#v:elems" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return all elements of the map.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookup" class="def"
+	    >lookup</a
+	    > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > k &#8658; k &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > v <a href="src/PlutusTx.AssocMap.html#lookup" class="link"
+	    >Source</a
+	    > <a href="#v:lookup" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Find an entry in a <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >. If the <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > is not well-formed (it contains duplicate keys)
+then this will return the value of the left-most pair in the underlying list of pairs.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:member" class="def"
+	    >member</a
+	    > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > k &#8658; k &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.AssocMap.html#member" class="link"
+	    >Source</a
+	    > <a href="#v:member" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Is the key a member of the map?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:insert" class="def"
+	    >insert</a
+	    > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > k &#8658; k &#8594; v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#insert" class="link"
+	    >Source</a
+	    > <a href="#v:insert" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If a key already exists in the map, its entry will be replaced with the new value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:delete" class="def"
+	    >delete</a
+	    > &#8759; &#8704; k v. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > k &#8658; k &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#delete" class="link"
+	    >Source</a
+	    > <a href="#v:delete" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Delete an entry from the <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >. Assumes that the <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      > is well-formed, i.e. if the
+underlying list of pairs contains pairs with duplicate keys then only the left-most
+pair will be removed.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:union" class="def"
+	    >union</a
+	    > &#8759; &#8704; k v r. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > k &#8658; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k r &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k (<a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	    >These</a
+	    > v r) <a href="src/PlutusTx.AssocMap.html#union" class="link"
+	    >Source</a
+	    > <a href="#v:union" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Combine two <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >s. Keeps both values on key collisions.
+Note that well-formedness is only preserved if the two input maps
+are also well-formed.
+Also, as an implementation detail, in the case that the right map contains
+duplicate keys, and there exists a collision between the two maps,
+then only the left-most value of the right map will be kept.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unionWith" class="def"
+	    >unionWith</a
+	    > &#8759; &#8704; k a. <a href="PlutusTx-Eq.html#t:Eq" title="PlutusTx.Eq"
+	    >Eq</a
+	    > k &#8658; (a &#8594; a &#8594; a) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a <a href="src/PlutusTx.AssocMap.html#unionWith" class="link"
+	    >Source</a
+	    > <a href="#v:unionWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Combine two <code
+	      ><a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+		>Map</a
+		></code
+	      >s with the given combination function.
+Note that well-formedness of the resulting map depends on the two input maps
+being well-formed.
+Also, as an implementation detail, in the case that the right map contains
+duplicate keys, and there exists a collision between the two maps,
+then only the left-most value of the right map will be kept.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:filter" class="def"
+	    >filter</a
+	    > &#8759; (v &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v <a href="src/PlutusTx.AssocMap.html#filter" class="link"
+	    >Source</a
+	    > <a href="#v:filter" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Filter all values that satisfy the predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapWithKey" class="def"
+	    >mapWithKey</a
+	    > &#8759; (k &#8594; a &#8594; b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k b <a href="src/PlutusTx.AssocMap.html#mapWithKey" class="link"
+	    >Source</a
+	    > <a href="#v:mapWithKey" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map a function over all values in the map.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapMaybe" class="def"
+	    >mapMaybe</a
+	    > &#8759; (a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k b <a href="src/PlutusTx.AssocMap.html#mapMaybe" class="link"
+	    >Source</a
+	    > <a href="#v:mapMaybe" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map keys/values and collect the <code
+	      ><a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+		>Just</a
+		></code
+	      > results.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapMaybeWithKey" class="def"
+	    >mapMaybeWithKey</a
+	    > &#8759; (k &#8594; a &#8594; <a href="PlutusTx-Maybe.html#t:Maybe" title="PlutusTx.Maybe"
+	    >Maybe</a
+	    > b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k b <a href="src/PlutusTx.AssocMap.html#mapMaybeWithKey" class="link"
+	    >Source</a
+	    > <a href="#v:mapMaybeWithKey" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Map keys/values and collect the <code
+	      ><a href="PlutusTx-Maybe.html#v:Just" title="PlutusTx.Maybe"
+		>Just</a
+		></code
+	      > results.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:all" class="def"
+	    >all</a
+	    > &#8759; (a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    >) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.AssocMap.html#all" class="link"
+	    >Source</a
+	    > <a href="#v:all" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Determines whether all elements in the map satisfy the predicate.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mapThese" class="def"
+	    >mapThese</a
+	    > &#8759; (v &#8594; <a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+	    >These</a
+	    > a b) &#8594; <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k v &#8594; (<a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k a, <a href="PlutusTx-AssocMap.html#t:Map" title="PlutusTx.AssocMap"
+	    >Map</a
+	    > k b) <a href="src/PlutusTx.AssocMap.html#mapThese" class="link"
+	    >Source</a
+	    > <a href="#v:mapThese" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A version of <code
+	      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Lazy.html#v:mapEither" title="Data.Map.Lazy"
+		>mapEither</a
+		></code
+	      > that works with <code
+	      ><a href="PlutusTx-These.html#t:These" title="PlutusTx.These"
+		>These</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

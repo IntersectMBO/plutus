@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Declarative Term Examples</title>
+    <link rel="stylesheet" href="./Agda.css">
+  </head>
+  <body>
+    <h1>Declarative Term Examples</h1>
+    <section>
+      <p>This file contains some examples of plutus core terms such as Church
+and Scott numerals and their respective addition operations.</p>
+
+<pre class="Agda"><a id="191" class="Keyword">module</a> <a id="198" href="Declarative.Examples.html" class="Module">Declarative.Examples</a> <a id="219" class="Keyword">where</a>
+</pre>
+<h2 id="imports">Imports</h2>
+
+<pre class="Agda"><a id="246" class="Keyword">open</a> <a id="251" class="Keyword">import</a> <a id="258" href="Agda.Builtin.Int.html" class="Module">Agda.Builtin.Int</a> <a id="275" class="Keyword">using</a> <a id="281" class="Symbol">(</a><a id="282" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">pos</a><a id="285" class="Symbol">)</a>
+<a id="287" class="Keyword">open</a> <a id="292" class="Keyword">import</a> <a id="299" href="Relation.Binary.PropositionalEquality.html" class="Module">Relation.Binary.PropositionalEquality</a> <a id="337" class="Keyword">using</a> <a id="343" class="Symbol">(</a><a id="344" href="Agda.Builtin.Equality.html#207" class="InductiveConstructor">refl</a><a id="348" class="Symbol">)</a>
+
+<a id="351" class="Keyword">open</a> <a id="356" class="Keyword">import</a> <a id="363" href="Type.html" class="Module">Type</a> <a id="368" class="Keyword">using</a> <a id="374" class="Symbol">(</a><a id="375" href="Type.html#1704" class="Datatype Operator">_⊢⋆_</a><a id="379" class="Symbol">;</a><a id="380" href="Type.html#887" class="Datatype Operator">_∋⋆_</a><a id="384" class="Symbol">;</a><a id="385" href="Type.html#921" class="InductiveConstructor">Z</a><a id="386" class="Symbol">;</a><a id="387" href="Type.html#960" class="InductiveConstructor">S</a><a id="388" class="Symbol">)</a>
+<a id="390" class="Keyword">open</a> <a id="395" href="Type.html#1704" class="Module Operator">_⊢⋆_</a>
+<a id="400" class="Keyword">import</a> <a id="407" href="Type.RenamingSubstitution.html" class="Module">Type.RenamingSubstitution</a> <a id="433" class="Symbol">as</a> <a id="436" class="Module">⋆</a>
+<a id="438" class="Keyword">open</a> <a id="443" class="Keyword">import</a> <a id="450" href="Type.Equality.html" class="Module">Type.Equality</a> <a id="464" class="Keyword">using</a> <a id="470" class="Symbol">(</a><a id="471" href="Type.Equality.html#2608" class="InductiveConstructor">β≡β</a><a id="474" class="Symbol">)</a>
+<a id="476" class="Keyword">open</a> <a id="481" class="Keyword">import</a> <a id="488" href="Declarative.html" class="Module">Declarative</a> <a id="500" class="Keyword">using</a> <a id="506" class="Symbol">(</a><a id="507" href="Declarative.html#1477" class="Datatype">Ctx</a><a id="510" class="Symbol">;</a><a id="511" href="Declarative.html#3131" class="Datatype Operator">_⊢_</a><a id="514" class="Symbol">;</a><a id="515" href="Declarative.html#1798" class="Datatype Operator">_∋_</a><a id="518" class="Symbol">)</a>
+<a id="520" class="Keyword">open</a> <a id="525" href="Declarative.html#1477" class="Module">Ctx</a>
+<a id="529" class="Keyword">open</a> <a id="534" href="Declarative.html#3131" class="Module Operator">_⊢_</a>
+<a id="538" class="Keyword">open</a> <a id="543" href="Declarative.html#1798" class="Module Operator">_∋_</a>
+<a id="547" class="Keyword">open</a> <a id="552" class="Keyword">import</a> <a id="559" href="Builtin.html" class="Module">Builtin</a> <a id="567" class="Keyword">using</a> <a id="573" class="Symbol">(</a><a id="574" href="Builtin.html#1453" class="InductiveConstructor">addInteger</a><a id="584" class="Symbol">)</a>
+<a id="586" class="Keyword">open</a> <a id="591" class="Keyword">import</a> <a id="598" href="Builtin.Constant.Type.html" class="Module">Builtin.Constant.Type</a> <a id="620" class="Keyword">using</a> <a id="626" class="Symbol">(</a><a id="627" href="Builtin.Constant.Type.html#855" class="Datatype">TyCon</a><a id="632" class="Symbol">;</a><a id="633" href="Builtin.Constant.AtomicType.html#596" class="InductiveConstructor">aInteger</a><a id="641" class="Symbol">)</a>
+<a id="643" class="Keyword">open</a> <a id="648" href="Builtin.Constant.Type.html#855" class="Module">TyCon</a>
+<a id="654" class="Keyword">open</a> <a id="659" class="Keyword">import</a> <a id="666" href="Declarative.Examples.StdLib.Function.html" class="Module">Declarative.Examples.StdLib.Function</a> <a id="703" class="Keyword">using</a> <a id="709" class="Symbol">(</a><a id="710" href="Declarative.Examples.StdLib.Function.html#869" class="Function">unwrap0</a><a id="717" class="Symbol">;</a><a id="718" href="Declarative.Examples.StdLib.Function.html#1386" class="Function">Z-comb</a><a id="724" class="Symbol">)</a>
+<a id="726" class="Keyword">import</a> <a id="733" href="Declarative.Examples.StdLib.ChurchNat.html" class="Module">Declarative.Examples.StdLib.ChurchNat</a> <a id="771" class="Keyword">using</a> <a id="777" class="Symbol">(</a><a id="778" href="Declarative.Examples.StdLib.ChurchNat.html#1290" class="Function">inc</a><a id="781" class="Symbol">;</a><a id="782" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a><a id="783" class="Symbol">;</a><a id="784" href="Declarative.Examples.StdLib.ChurchNat.html#838" class="Function">Succ</a><a id="788" class="Symbol">;</a><a id="789" href="Declarative.Examples.StdLib.ChurchNat.html#727" class="Function">Zero</a><a id="793" class="Symbol">;</a><a id="794" href="Declarative.Examples.StdLib.ChurchNat.html#934" class="Function">Iter</a><a id="798" class="Symbol">)</a>
+<a id="800" class="Keyword">open</a> <a id="805" class="Keyword">import</a> <a id="812" href="Type.Equality.html" class="Module">Type.Equality</a> <a id="826" class="Keyword">using</a> <a id="832" class="Symbol">(</a><a id="833" href="Type.Equality.html#1679" class="Datatype Operator">_≡β_</a><a id="837" class="Symbol">)</a>
+<a id="839" class="Keyword">open</a> <a id="844" href="Type.Equality.html#1679" class="Module Operator">_≡β_</a>
+</pre>
+<h2 id="examples">Examples</h2>
+
+<pre class="Agda"><a id="integer"></a><a id="871" href="Declarative.Examples.html#871" class="Function">integer</a> <a id="879" class="Symbol">=</a> <a id="881" href="Builtin.Constant.Type.html#882" class="InductiveConstructor">atomic</a> <a id="888" href="Builtin.Constant.AtomicType.html#596" class="InductiveConstructor">aInteger</a>
+
+<a id="898" class="Keyword">module</a> <a id="Builtins"></a><a id="905" href="Declarative.Examples.html#905" class="Module">Builtins</a> <a id="914" class="Keyword">where</a>
+  <a id="922" class="Keyword">open</a> <a id="927" href="Declarative.Examples.StdLib.ChurchNat.html" class="Module">Declarative.Examples.StdLib.ChurchNat</a>
+
+  <a id="Builtins.con2"></a><a id="968" href="Declarative.Examples.html#968" class="Function">con2</a> <a id="973" class="Symbol">:</a> <a id="975" class="Symbol">∀{</a><a id="977" href="Declarative.Examples.html#977" class="Bound">Φ</a><a id="978" class="Symbol">}{</a><a id="980" href="Declarative.Examples.html#980" class="Bound">Γ</a> <a id="982" class="Symbol">:</a> <a id="984" href="Declarative.html#1477" class="Datatype">Ctx</a> <a id="988" href="Declarative.Examples.html#977" class="Bound">Φ</a><a id="989" class="Symbol">}</a> <a id="991" class="Symbol">→</a> <a id="993" href="Declarative.Examples.html#980" class="Bound">Γ</a> <a id="995" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="997" href="Type.html#2193" class="InductiveConstructor">con</a> <a id="1001" class="Symbol">(</a><a id="1002" href="Type.html#2151" class="InductiveConstructor">^</a> <a id="1004" href="Declarative.Examples.html#871" class="Function">integer</a><a id="1011" class="Symbol">)</a>
+  <a id="1015" href="Declarative.Examples.html#968" class="Function">con2</a> <a id="1020" class="Symbol">=</a> <a id="1022" href="Declarative.html#4149" class="InductiveConstructor">con</a> <a id="1026" class="Symbol">{</a><a id="1027" class="Argument">A</a> <a id="1029" class="Symbol">=</a> <a id="1031" href="Type.html#2151" class="InductiveConstructor">^</a> <a id="1033" href="Declarative.Examples.html#871" class="Function">integer</a><a id="1040" class="Symbol">}</a> <a id="1042" class="Symbol">(</a><a id="1043" href="Agda.Builtin.Int.html#263" class="InductiveConstructor">pos</a> <a id="1047" class="Number">2</a><a id="1048" class="Symbol">)</a> <a id="1050" class="Symbol">(</a><a id="1051" href="Type.Equality.html#1739" class="InductiveConstructor">refl≡β</a> <a id="1058" class="Symbol">(</a><a id="1059" href="Type.html#2151" class="InductiveConstructor">^</a> <a id="1061" class="Symbol">(</a><a id="1062" href="Builtin.Constant.Type.html#882" class="InductiveConstructor">atomic</a> <a id="1069" href="Builtin.Constant.AtomicType.html#596" class="InductiveConstructor">aInteger</a><a id="1077" class="Symbol">)))</a>
+
+  <a id="Builtins.builtin2plus2"></a><a id="1084" href="Declarative.Examples.html#1084" class="Function">builtin2plus2</a> <a id="1098" class="Symbol">:</a> <a id="1100" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="1102" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="1104" href="Type.html#2193" class="InductiveConstructor">con</a> <a id="1108" class="Symbol">(</a><a id="1109" href="Type.html#2151" class="InductiveConstructor">^</a> <a id="1111" href="Declarative.Examples.html#871" class="Function">integer</a><a id="1118" class="Symbol">)</a>
+  <a id="1122" href="Declarative.Examples.html#1084" class="Function">builtin2plus2</a> <a id="1136" class="Symbol">=</a> <a id="1138" href="Declarative.html#4254" class="InductiveConstructor">builtin</a> <a id="1146" href="Builtin.html#1453" class="InductiveConstructor">addInteger</a> <a id="1157" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="1159" href="Declarative.Examples.html#968" class="Function">con2</a> <a id="1164" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="1166" href="Declarative.Examples.html#968" class="Function">con2</a>
+
+  <a id="Builtins.builtininc2"></a><a id="1174" href="Declarative.Examples.html#1174" class="Function">builtininc2</a> <a id="1186" class="Symbol">:</a> <a id="1188" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="1190" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="1192" href="Type.html#2193" class="InductiveConstructor">con</a> <a id="1196" class="Symbol">(</a><a id="1197" href="Type.html#2151" class="InductiveConstructor">^</a> <a id="1199" href="Declarative.Examples.html#871" class="Function">integer</a><a id="1206" class="Symbol">)</a>
+  <a id="1210" href="Declarative.Examples.html#1174" class="Function">builtininc2</a> <a id="1222" class="Symbol">=</a> <a id="1224" href="Declarative.Examples.StdLib.ChurchNat.html#1290" class="Function">inc</a> <a id="1228" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="1230" href="Declarative.Examples.html#968" class="Function">con2</a>
+</pre>
+
+<h3 id="scott-numerals">Scott Numerals</h3>
+
+<p>From <a href="http://lucacardelli.name/Papers/Notes/scott2.pdf">http://lucacardelli.name/Papers/Notes/scott2.pdf</a></p>
+
+<pre class="Agda"><a id="1322" class="Comment">{-
+    M = μ X . G X
+    G X = ∀ R. R → (X → R) → R)
+    μ X . G X = ∀ X . (G X → X) → X -- what is the status of this?
+    N = G M
+    in  : N → M
+    out : M → N
+
+    0    = Λ R . λ x : R . λ y : M → R . x
+         : N
+    succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
+         : N → N
+    mycase = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+         : N → ∀ R . R → (N → R) → R
+-}</a>
+
+</pre>
+<pre class="Agda"><a id="1741" class="Comment">{-
+module ScottE where
+  G : ∀{Γ} → Γ ,⋆  * ⊢⋆ *
+  G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
+
+  M : ∀{Γ} → Γ ⊢⋆ *
+  M = μ G
+
+  N : ∀{Γ} → Γ ⊢⋆ *
+  N  =  G ⋆.[ M ]
+
+  Zero : ∀{Γ} → Γ ⊢ N
+  Zero = Λ (ƛ (ƛ (` (S (Z )))))
+
+  Succ : ∀{Γ} → Γ ⊢ N ⇒ N
+  Succ = ƛ (Λ (ƛ (ƛ (` Z · wrap G • (` (S (S (T Z)))) refl))))
+
+  One : ∀{Γ} → Γ ⊢ N
+  One = Succ · Zero
+
+  Two : ∀{Γ} → Γ ⊢ N
+  Two = Succ · One
+
+  Three : ∅ ⊢ N
+  Three = Succ · Two
+
+  Four : ∅ ⊢ N
+  Four = Succ · Three
+
+  mycase : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  mycase = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
+
+  -- Y : (a -&gt; a) -&gt; a
+  -- Y f = (\x. f (x x)) (\x. f (x x))
+  -- Y f = (\x : mu x. x -&gt; a. f (x x)) (\x : mu x. x -&gt; a. f (x x))
+
+  Y-comb : ∀{Γ} → Γ ⊢ Π ((` Z ⇒ ` Z) ⇒ ` Z)
+  Y-comb = Λ (ƛ ((ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) · wrap (` Z ⇒ ` (S Z)) • (ƛ (` (S Z) · (unwrap • refl (` Z) · (` Z)))) refl ))
+
+  -- Z : ((a -&gt; b) -&gt; a -&gt; b) -&gt; a -&gt; b
+  -- Z f = (\r. f (\x. r r x)) (\r. f (\x. r r x))
+  -- Z f = (\r : mu x. x -&gt; a -&gt; b. (\x : a. r r x)) (\r : mu x. x -&gt; a -&gt; b. (\x : a. r r x))
+
+  Z-comb : ∀{Γ} →
+    Γ ⊢ Π {- a -} (Π {- b -} (((` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z) ⇒ ` (S Z) ⇒ ` Z))
+  Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z)) · wrap (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z)) • (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z))) refl)))
+
+  TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
+  TwoPlus = ƛ (ƛ ((((mycase · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+
+  TwoPlusOne : ∅ ⊢ N
+  -- TwoPlusTwo = Y-comb ·⋆ (N ⇒ N) · TwoPlus · Two
+  TwoPlusOne = (Z-comb ·⋆ N) ·⋆ N · TwoPlus · One
+
+
+  -- Roman&#39;s more efficient version
+  Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((mycase · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+
+  TwoPlusTwo : ∅ ⊢ N
+  TwoPlusTwo = (Plus · Two) · Two
+-}</a>
+</pre>
+<pre class="Agda"><a id="3734" class="Comment">{-
+eval (gas 10000000) Scott.Four
+
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    ((` Z) ·
+     wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+     (Λ
+      (ƛ
+       (ƛ
+        ((` Z) ·
+         wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+         (Λ
+          (ƛ
+           (ƛ
+            ((` Z) ·
+             wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+             (Λ
+              (ƛ
+               (ƛ
+                ((` Z) ·
+                 wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+                 (Λ (ƛ (ƛ (` (S Z)))))))))))))))))))))
+ .Term.Reduction.Value.V-Λ_)
+
+eval (gas 10000000) Scott.Two
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    ((` Z) ·
+     wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+     (Λ
+      (ƛ
+       (ƛ
+        ((` Z) ·
+         wrap (Π (` Z) ⇒ ((` (S Z)) ⇒ (` Z)) ⇒ (` Z))
+         (Λ (ƛ (ƛ (` (S Z)))))))))))))
+ .Term.Reduction.Value.V-Λ_)
+-}</a>
+</pre>
+
+<pre class="Agda"><a id="4585" class="Keyword">module</a> <a id="Scott1"></a><a id="4592" href="Declarative.Examples.html#4592" class="Module">Scott1</a> <a id="4599" class="Keyword">where</a>
+  <a id="4607" class="Keyword">open</a> <a id="4612" class="Keyword">import</a> <a id="4619" href="Declarative.Examples.StdLib.Nat.html" class="Module">Declarative.Examples.StdLib.Nat</a>
+
+  <a id="Scott1.One"></a><a id="4654" href="Declarative.Examples.html#4654" class="Function">One</a> <a id="4658" class="Symbol">:</a> <a id="4660" class="Symbol">∀{</a><a id="4662" href="Declarative.Examples.html#4662" class="Bound">Φ</a><a id="4663" class="Symbol">}{</a><a id="4665" href="Declarative.Examples.html#4665" class="Bound">Γ</a> <a id="4667" class="Symbol">:</a> <a id="4669" href="Declarative.html#1477" class="Datatype">Ctx</a> <a id="4673" href="Declarative.Examples.html#4662" class="Bound">Φ</a><a id="4674" class="Symbol">}</a> <a id="4676" class="Symbol">→</a> <a id="4678" href="Declarative.Examples.html#4665" class="Bound">Γ</a> <a id="4680" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="4682" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="4686" href="Declarative.Examples.html#4654" class="Function">One</a> <a id="4690" class="Symbol">=</a> <a id="4692" href="Declarative.Examples.StdLib.Nat.html#651" class="Function">Succ</a> <a id="4697" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="4699" href="Declarative.Examples.StdLib.Nat.html#518" class="Function">Zero</a>
+
+  <a id="Scott1.Two"></a><a id="4707" href="Declarative.Examples.html#4707" class="Function">Two</a> <a id="4711" class="Symbol">:</a> <a id="4713" class="Symbol">∀{</a><a id="4715" href="Declarative.Examples.html#4715" class="Bound">Φ</a><a id="4716" class="Symbol">}{</a><a id="4718" href="Declarative.Examples.html#4718" class="Bound">Γ</a> <a id="4720" class="Symbol">:</a> <a id="4722" href="Declarative.html#1477" class="Datatype">Ctx</a> <a id="4726" href="Declarative.Examples.html#4715" class="Bound">Φ</a><a id="4727" class="Symbol">}</a> <a id="4729" class="Symbol">→</a> <a id="4731" href="Declarative.Examples.html#4718" class="Bound">Γ</a> <a id="4733" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="4735" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="4739" href="Declarative.Examples.html#4707" class="Function">Two</a> <a id="4743" class="Symbol">=</a> <a id="4745" href="Declarative.Examples.StdLib.Nat.html#651" class="Function">Succ</a> <a id="4750" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="4752" href="Declarative.Examples.html#4654" class="Function">One</a>
+
+  <a id="Scott1.Three"></a><a id="4759" href="Declarative.Examples.html#4759" class="Function">Three</a> <a id="4765" class="Symbol">:</a> <a id="4767" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="4769" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="4771" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="4775" href="Declarative.Examples.html#4759" class="Function">Three</a> <a id="4781" class="Symbol">=</a> <a id="4783" href="Declarative.Examples.StdLib.Nat.html#651" class="Function">Succ</a> <a id="4788" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="4790" href="Declarative.Examples.html#4707" class="Function">Two</a>
+
+  <a id="Scott1.Four"></a><a id="4797" href="Declarative.Examples.html#4797" class="Function">Four</a> <a id="4802" class="Symbol">:</a> <a id="4804" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="4806" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="4808" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="4812" href="Declarative.Examples.html#4797" class="Function">Four</a> <a id="4817" class="Symbol">=</a> <a id="4819" href="Declarative.Examples.StdLib.Nat.html#651" class="Function">Succ</a> <a id="4824" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="4826" href="Declarative.Examples.html#4759" class="Function">Three</a>
+
+  <a id="Scott1.mycase"></a><a id="4835" href="Declarative.Examples.html#4835" class="Function">mycase</a> <a id="4842" class="Symbol">:</a> <a id="4844" class="Symbol">∀{</a><a id="4846" href="Declarative.Examples.html#4846" class="Bound">Φ</a><a id="4847" class="Symbol">}{</a><a id="4849" href="Declarative.Examples.html#4849" class="Bound">Γ</a> <a id="4851" class="Symbol">:</a> <a id="4853" href="Declarative.html#1477" class="Datatype">Ctx</a> <a id="4857" href="Declarative.Examples.html#4846" class="Bound">Φ</a><a id="4858" class="Symbol">}</a> <a id="4860" class="Symbol">→</a> <a id="4862" href="Declarative.Examples.html#4849" class="Bound">Γ</a> <a id="4864" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="4866" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="4868" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="4870" class="Symbol">(</a><a id="4871" href="Type.html#1839" class="InductiveConstructor">Π</a> <a id="4873" class="Symbol">(</a><a id="4874" href="Type.html#1797" class="InductiveConstructor">`</a> <a id="4876" href="Type.html#921" class="InductiveConstructor">Z</a> <a id="4878" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="4880" class="Symbol">(</a><a id="4881" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="4883" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="4885" href="Type.html#1797" class="InductiveConstructor">`</a> <a id="4887" href="Type.html#921" class="InductiveConstructor">Z</a><a id="4888" class="Symbol">)</a> <a id="4890" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="4892" href="Type.html#1797" class="InductiveConstructor">`</a> <a id="4894" href="Type.html#921" class="InductiveConstructor">Z</a><a id="4895" class="Symbol">))</a>
+  <a id="4900" href="Declarative.Examples.html#4835" class="Function">mycase</a> <a id="4907" class="Symbol">=</a> <a id="4909" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="4911" class="Symbol">(</a><a id="4912" href="Declarative.html#3325" class="InductiveConstructor">Λ</a> <a id="4914" class="Symbol">(</a><a id="4915" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="4917" class="Symbol">(</a><a id="4918" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="4920" class="Symbol">(</a><a id="4921" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="4923" class="Symbol">(</a><a id="4924" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="4926" class="Symbol">(</a><a id="4927" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="4929" class="Symbol">(</a><a id="4930" href="Declarative.html#1919" class="InductiveConstructor">T</a> <a id="4932" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="4933" class="Symbol">)))</a> <a id="4937" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="4940" href="Type.html#1797" class="InductiveConstructor">`</a> <a id="4942" href="Type.html#921" class="InductiveConstructor">Z</a> <a id="4944" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="4946" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="4948" class="Symbol">(</a><a id="4949" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="4951" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="4952" class="Symbol">)</a> <a id="4954" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="4956" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="4958" class="Symbol">(</a><a id="4959" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="4961" class="Symbol">(</a><a id="4962" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="4964" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="4965" class="Symbol">)</a> <a id="4967" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="4969" href="Declarative.html#4087" class="InductiveConstructor">conv</a> <a id="4974" class="Symbol">(</a><a id="4975" href="Type.Equality.html#2608" class="InductiveConstructor">β≡β</a> <a id="4979" class="Symbol">_</a> <a id="4981" class="Symbol">_)</a> <a id="4984" class="Symbol">(</a><a id="4985" href="Declarative.Examples.StdLib.Function.html#869" class="Function">unwrap0</a> <a id="4993" class="Symbol">_</a> <a id="4995" class="Symbol">(</a><a id="4996" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="4998" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="4999" class="Symbol">)))))))</a>
+
+  <a id="Scott1.TwoPlus"></a><a id="5010" href="Declarative.Examples.html#5010" class="Function">TwoPlus</a> <a id="5018" class="Symbol">:</a> <a id="5020" class="Symbol">∀{</a><a id="5022" href="Declarative.Examples.html#5022" class="Bound">Φ</a><a id="5023" class="Symbol">}{</a><a id="5025" href="Declarative.Examples.html#5025" class="Bound">Γ</a> <a id="5027" class="Symbol">:</a> <a id="5029" href="Declarative.html#1477" class="Datatype">Ctx</a> <a id="5033" href="Declarative.Examples.html#5022" class="Bound">Φ</a><a id="5034" class="Symbol">}</a> <a id="5036" class="Symbol">→</a> <a id="5038" href="Declarative.Examples.html#5025" class="Bound">Γ</a> <a id="5040" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5042" class="Symbol">(</a><a id="5043" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="5045" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="5047" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a><a id="5048" class="Symbol">)</a> <a id="5050" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="5052" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="5054" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="5056" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="5060" href="Declarative.Examples.html#5010" class="Function">TwoPlus</a> <a id="5068" class="Symbol">=</a> <a id="5070" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5072" class="Symbol">(</a><a id="5073" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5075" class="Symbol">((((</a><a id="5079" href="Declarative.Examples.html#4835" class="Function">mycase</a> <a id="5086" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5088" class="Symbol">(</a><a id="5089" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5091" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5092" class="Symbol">))</a> <a id="5095" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5098" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a><a id="5099" class="Symbol">)</a> <a id="5101" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5103" href="Declarative.Examples.html#4707" class="Function">Two</a><a id="5106" class="Symbol">)</a> <a id="5108" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5110" class="Symbol">(</a><a id="5111" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5113" class="Symbol">(</a><a id="5114" href="Declarative.Examples.StdLib.Nat.html#651" class="Function">Succ</a> <a id="5119" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5121" class="Symbol">(</a><a id="5122" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5124" class="Symbol">(</a><a id="5125" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5127" class="Symbol">(</a><a id="5128" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5130" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5131" class="Symbol">))</a> <a id="5134" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5136" class="Symbol">(</a><a id="5137" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5139" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5140" class="Symbol">))))))</a>
+
+  <a id="Scott1.TwoPlusOne"></a><a id="5150" href="Declarative.Examples.html#5150" class="Function">TwoPlusOne</a> <a id="5161" class="Symbol">:</a> <a id="5163" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5165" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5167" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="5171" href="Declarative.Examples.html#5150" class="Function">TwoPlusOne</a> <a id="5182" class="Symbol">=</a> <a id="5184" class="Symbol">(</a><a id="5185" href="Declarative.Examples.StdLib.Function.html#1386" class="Function">Z-comb</a> <a id="5192" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5195" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a><a id="5196" class="Symbol">)</a> <a id="5198" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5201" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="5203" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5205" href="Declarative.Examples.html#5010" class="Function">TwoPlus</a> <a id="5213" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5215" href="Declarative.Examples.html#4654" class="Function">One</a>
+
+  <a id="5222" class="Comment">-- Roman&#39;s more efficient version</a>
+  <a id="Scott1.Plus"></a><a id="5258" href="Declarative.Examples.html#5258" class="Function">Plus</a> <a id="5263" class="Symbol">:</a> <a id="5265" class="Symbol">∀{</a><a id="5267" href="Declarative.Examples.html#5267" class="Bound">Φ</a><a id="5268" class="Symbol">}{</a><a id="5270" href="Declarative.Examples.html#5270" class="Bound">Γ</a> <a id="5272" class="Symbol">:</a> <a id="5274" href="Declarative.html#1477" class="Datatype">Ctx</a> <a id="5278" href="Declarative.Examples.html#5267" class="Bound">Φ</a><a id="5279" class="Symbol">}</a> <a id="5281" class="Symbol">→</a> <a id="5283" href="Declarative.Examples.html#5270" class="Bound">Γ</a> <a id="5285" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5287" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="5289" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="5291" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="5293" href="Type.html#1889" class="InductiveConstructor Operator">⇒</a> <a id="5295" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="5299" href="Declarative.Examples.html#5258" class="Function">Plus</a> <a id="5304" class="Symbol">=</a> <a id="5306" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5308" class="Symbol">(</a><a id="5309" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5311" class="Symbol">((</a><a id="5313" href="Declarative.Examples.StdLib.Function.html#1386" class="Function">Z-comb</a> <a id="5320" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5323" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a><a id="5324" class="Symbol">)</a> <a id="5326" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5329" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a> <a id="5331" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5333" class="Symbol">(</a><a id="5334" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5336" class="Symbol">(</a><a id="5337" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5339" class="Symbol">((((</a><a id="5343" href="Declarative.Examples.html#4835" class="Function">mycase</a> <a id="5350" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5352" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5354" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5355" class="Symbol">)</a> <a id="5357" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5360" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a><a id="5361" class="Symbol">)</a> <a id="5363" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5365" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5367" class="Symbol">(</a><a id="5368" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5370" class="Symbol">(</a><a id="5371" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5373" class="Symbol">(</a><a id="5374" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5376" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5377" class="Symbol">))))</a> <a id="5382" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5384" class="Symbol">(</a><a id="5385" href="Declarative.html#3209" class="InductiveConstructor">ƛ</a> <a id="5387" class="Symbol">(</a><a id="5388" href="Declarative.Examples.StdLib.Nat.html#651" class="Function">Succ</a> <a id="5393" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5395" class="Symbol">(</a><a id="5396" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5398" class="Symbol">(</a><a id="5399" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5401" class="Symbol">(</a><a id="5402" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5404" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5405" class="Symbol">))</a> <a id="5408" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5410" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5412" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5413" class="Symbol">))))))</a> <a id="5420" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5422" href="Declarative.html#3171" class="InductiveConstructor">`</a> <a id="5424" class="Symbol">(</a><a id="5425" href="Declarative.html#1873" class="InductiveConstructor">S</a> <a id="5427" href="Declarative.html#1839" class="InductiveConstructor">Z</a><a id="5428" class="Symbol">)))</a>
+
+  <a id="Scott1.TwoPlusTwo"></a><a id="5435" href="Declarative.Examples.html#5435" class="Function">TwoPlusTwo</a> <a id="5446" class="Symbol">:</a> <a id="5448" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5450" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5452" href="Declarative.Examples.StdLib.Nat.html#483" class="Function">N</a>
+  <a id="5456" href="Declarative.Examples.html#5435" class="Function">TwoPlusTwo</a> <a id="5467" class="Symbol">=</a> <a id="5469" class="Symbol">(</a><a id="5470" href="Declarative.Examples.html#5258" class="Function">Plus</a> <a id="5475" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5477" href="Declarative.Examples.html#4707" class="Function">Two</a><a id="5480" class="Symbol">)</a> <a id="5482" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5484" href="Declarative.Examples.html#4707" class="Function">Two</a>
+</pre>
+<h3 id="church-numerals">Church Numerals</h3>
+
+<pre class="Agda"><a id="5518" class="Keyword">module</a> <a id="Church"></a><a id="5525" href="Declarative.Examples.html#5525" class="Module">Church</a> <a id="5532" class="Keyword">where</a>
+  <a id="5540" class="Keyword">open</a> <a id="5545" href="Declarative.Examples.StdLib.ChurchNat.html" class="Module">Declarative.Examples.StdLib.ChurchNat</a>
+
+  <a id="5586" class="Comment">-- two plus two</a>
+  <a id="Church.One"></a><a id="5604" href="Declarative.Examples.html#5604" class="Function">One</a> <a id="5608" class="Symbol">:</a> <a id="5610" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5612" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5614" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a>
+  <a id="5618" href="Declarative.Examples.html#5604" class="Function">One</a> <a id="5622" class="Symbol">=</a> <a id="5624" href="Declarative.Examples.StdLib.ChurchNat.html#838" class="Function">Succ</a> <a id="5629" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5631" href="Declarative.Examples.StdLib.ChurchNat.html#727" class="Function">Zero</a>
+
+  <a id="Church.Two"></a><a id="5639" href="Declarative.Examples.html#5639" class="Function">Two</a> <a id="5643" class="Symbol">:</a> <a id="5645" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5647" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5649" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a>
+  <a id="5653" href="Declarative.Examples.html#5639" class="Function">Two</a> <a id="5657" class="Symbol">=</a> <a id="5659" href="Declarative.Examples.StdLib.ChurchNat.html#838" class="Function">Succ</a> <a id="5664" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5666" href="Declarative.Examples.html#5604" class="Function">One</a>
+
+  <a id="Church.Three"></a><a id="5673" href="Declarative.Examples.html#5673" class="Function">Three</a> <a id="5679" class="Symbol">:</a> <a id="5681" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5683" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5685" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a>
+  <a id="5689" href="Declarative.Examples.html#5673" class="Function">Three</a> <a id="5695" class="Symbol">=</a> <a id="5697" href="Declarative.Examples.StdLib.ChurchNat.html#838" class="Function">Succ</a> <a id="5702" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5704" href="Declarative.Examples.html#5639" class="Function">Two</a>
+
+  <a id="Church.Four"></a><a id="5711" href="Declarative.Examples.html#5711" class="Function">Four</a> <a id="5716" class="Symbol">:</a> <a id="5718" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5720" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5722" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a>
+  <a id="5726" href="Declarative.Examples.html#5711" class="Function">Four</a> <a id="5731" class="Symbol">=</a> <a id="5733" href="Declarative.Examples.StdLib.ChurchNat.html#838" class="Function">Succ</a> <a id="5738" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5740" href="Declarative.Examples.html#5673" class="Function">Three</a>
+
+  <a id="Church.Plus"></a><a id="5749" href="Declarative.Examples.html#5749" class="Function">Plus</a> <a id="5754" class="Symbol">:</a> <a id="5756" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5758" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5760" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a> <a id="5762" class="Symbol">→</a> <a id="5764" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5766" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5768" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a> <a id="5770" class="Symbol">→</a> <a id="5772" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5774" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5776" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a>
+  <a id="5780" href="Declarative.Examples.html#5749" class="Function">Plus</a> <a id="5785" href="Declarative.Examples.html#5785" class="Bound">x</a> <a id="5787" href="Declarative.Examples.html#5787" class="Bound">y</a> <a id="5789" class="Symbol">=</a> <a id="5791" href="Declarative.Examples.StdLib.ChurchNat.html#934" class="Function">Iter</a> <a id="5796" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5799" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a> <a id="5801" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5803" href="Declarative.Examples.html#5785" class="Bound">x</a> <a id="5805" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5807" href="Declarative.Examples.StdLib.ChurchNat.html#838" class="Function">Succ</a> <a id="5812" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5814" href="Declarative.Examples.html#5787" class="Bound">y</a> <a id="5816" class="Comment">-- by induction on the second y</a>
+
+  <a id="Church.TwoPlusTwo"></a><a id="5851" href="Declarative.Examples.html#5851" class="Function">TwoPlusTwo</a> <a id="5862" class="Symbol">=</a> <a id="5864" href="Declarative.Examples.html#5749" class="Function">Plus</a> <a id="5869" href="Declarative.Examples.html#5639" class="Function">Two</a> <a id="5873" href="Declarative.Examples.html#5639" class="Function">Two</a>
+
+  <a id="Church.TwoPlusTwo&#39;"></a><a id="5880" href="Declarative.Examples.html#5880" class="Function">TwoPlusTwo&#39;</a> <a id="5892" class="Symbol">:</a> <a id="5894" href="Declarative.html#1502" class="InductiveConstructor">∅</a> <a id="5896" href="Declarative.html#3131" class="Datatype Operator">⊢</a> <a id="5898" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a>
+  <a id="5902" href="Declarative.Examples.html#5880" class="Function">TwoPlusTwo&#39;</a> <a id="5914" class="Symbol">=</a> <a id="5916" href="Declarative.Examples.html#5639" class="Function">Two</a> <a id="5920" href="Declarative.html#3374" class="InductiveConstructor Operator">·⋆</a> <a id="5923" href="Declarative.Examples.StdLib.ChurchNat.html#632" class="Function">N</a> <a id="5925" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5927" href="Declarative.Examples.html#5639" class="Function">Two</a> <a id="5931" href="Declarative.html#3259" class="InductiveConstructor Operator">·</a> <a id="5933" href="Declarative.Examples.StdLib.ChurchNat.html#838" class="Function">Succ</a>
+</pre>
+<pre class="Agda"><a id="5947" class="Comment">{-
+-- Church &quot;4&quot;
+eval (gas 100000000) Four
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    (` Z) ·
+    (((Λ
+       (ƛ
+        (ƛ
+         (` Z) ·
+         (((Λ
+            (ƛ
+             (ƛ
+              (` Z) ·
+              (((Λ
+                 (ƛ
+                  (ƛ
+                   (` Z) · (((Λ (ƛ (ƛ (` (S Z))))) ·⋆ (` Z)) · (` (S Z)) · (` Z)))))
+                ·⋆ (` Z))
+               · (` (S Z))
+               · (` Z)))))
+           ·⋆ (` Z))
+          · (` (S Z))
+          · (` Z)))))
+      ·⋆ (` Z))
+     · (` (S Z))
+     · (` Z)))))
+ V-Λ_)
+
+-- Church &quot;2 + 2&quot; using iterator
+eval (gas 100000000) (Plus Two Two)
+
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    (` Z) ·
+    (((Λ
+       (ƛ
+        (ƛ
+         (` Z) ·
+         (((Λ
+            (ƛ
+             (ƛ
+              (` Z) ·
+              (((Λ
+                 (ƛ
+                  (ƛ
+                   (` Z) · (((Λ (ƛ (ƛ (` (S Z))))) ·⋆ (` Z)) · (` (S Z)) · (` Z)))))
+                ·⋆ (` Z))
+               · (` (S Z))
+               · (` Z)))))
+           ·⋆ (` Z))
+          · (` (S Z))
+          · (` Z)))))
+      ·⋆ (` Z))
+     · (` (S Z))
+     · (` Z)))))
+ V-Λ_)
+
+-- Church &quot;2 + 2&quot; using the numerals directly
+eval (gas 10000000) (Two ·⋆ N · Two · Succ)
+
+(done
+ (Λ
+  (ƛ
+   (ƛ
+    ((` Z) ·
+     ((((Λ
+         (ƛ
+          (ƛ
+           ((` Z) ·
+            ((((Λ
+                (ƛ
+                 (ƛ
+                  ((` Z) ·
+                   ((((Λ
+                       (ƛ
+                        (ƛ
+                         ((` Z) ·
+                          ((((Λ (ƛ (ƛ (` (S Z))))) ·⋆ (` Z)) · (` (S Z))) · (` Z))))))
+                      ·⋆ (` Z))
+                     · (` (S Z)))
+                    · (` Z))))))
+               ·⋆ (` Z))
+              · (` (S Z)))
+             · (` Z))))))
+        ·⋆ (` Z))
+       · (` (S Z)))
+      · (` Z))))))
+ V-Λ_)
+-}</a>
+</pre>
+
+    </section>
+  </body>
+</html>

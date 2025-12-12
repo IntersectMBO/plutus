@@ -1,0 +1,1483 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Compiler.Error</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Error.html#Error"
+	><span class="hs-identifier"
+	  >Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Exception.html"
+	><span class="hs-identifier"
+	  >Control.Exception</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>T</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.html"
+	><span class="hs-identifier"
+	  >Data.Typeable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator"
+	  >(&lt;+&gt;)</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PP</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Error"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Error.html#Error"
+	  ><span class="hs-identifier hs-var"
+	    >Error</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679461975"
+      ><span class="annot"
+	><a href="#local-6989586621679461975"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679461976"
+      ><span class="annot"
+	><a href="#local-6989586621679461976"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679461977"
+      ><span class="annot"
+	><a href="#local-6989586621679461977"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A generic compilation error.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span id="CompilationError"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Error.html#CompilationError"
+	  ><span class="hs-identifier hs-var"
+	    >CompilationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="#local-6989586621679461977"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | An error relating specifically to an unsupported feature.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >    </span
+      ><span id="UnsupportedError"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Error.html#UnsupportedError"
+	  ><span class="hs-identifier hs-var"
+	    >UnsupportedError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="#local-6989586621679461977"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >T.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| An error from running some PLC function, lifted into
+    this error type for convenience. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span id="PLCError"
+      ><span class="annot"
+	><a href="PlutusIR.Compiler.Error.html#PLCError"
+	  ><span class="hs-identifier hs-var"
+	    >PLCError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Error.html#Error"
+	><span class="hs-identifier hs-type"
+	  >PLC.Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679461975"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679461976"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679461977"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679461924"
+      ><span id="local-6989586621679461925"
+	><span id="local-6989586621679461926"
+	  ><span id="local-6989586621679461985"
+	    ><span id="local-6989586621679461990"
+	      ><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyUni"
+		  ><span class="hs-identifier hs-type"
+		    >PLC.PrettyUni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679461924"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		  ><span class="hs-identifier hs-type"
+		    >PP.Pretty</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679461925"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		  ><span class="hs-identifier hs-type"
+		    >PP.Pretty</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679461926"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+		  ><span class="hs-identifier hs-type"
+		    >Show</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusIR.Compiler.Error.html#Error"
+		  ><span class="hs-identifier hs-type"
+		    >Error</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679461924"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679461925"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679461926"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679461997"
+      ><span class="annot"
+	><span class="annottext"
+	  >show :: Error uni fun ann -&gt; String
+</span
+	  ><a href="#local-6989586621679461997"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >show</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; String)
+-&gt; (Error uni fun ann -&gt; Doc Any) -&gt; Error uni fun ann -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Error uni fun ann -&gt; Doc Any
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#prettyPlcClassicSimple"
+	><span class="hs-identifier hs-var"
+	  >PLC.prettyPlcClassicSimple</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679461931"
+      ><span id="local-6989586621679461932"
+	><span id="local-6989586621679461933"
+	  ><span id="local-6989586621679462006"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#PrettyUni"
+		><span class="hs-identifier hs-type"
+		  >PLC.PrettyUni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679461931"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >PP.Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679461932"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+		><span class="hs-identifier hs-type"
+		  >PP.Pretty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679461933"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-37"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PLC.PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Pretty.Plc.html#PrettyConfigPlc"
+		><span class="hs-identifier hs-type"
+		  >PLC.PrettyConfigPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Error.html#Error"
+		><span class="hs-identifier hs-type"
+		  >Error</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679461931"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679461932"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679461933"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679462030"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann. PrettyConfigPlc -&gt; Error uni fun ann -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679462030"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679462032"
+      ><span class="annot"
+	><span class="annottext"
+	  >PrettyConfigPlc
+</span
+	  ><a href="#local-6989586621679462032"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Error.html#CompilationError"
+	><span class="hs-identifier hs-type"
+	  >CompilationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679462033"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679462033"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679462034"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621679462034"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Error during compilation:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621679462034"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;(&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; Doc ann
+forall ann. ann -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679462033"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;)&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Error.html#UnsupportedError"
+	><span class="hs-identifier hs-type"
+	  >UnsupportedError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679462036"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621679462036"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679462037"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621679462037"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Unsupported construct:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621679462037"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;(&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann -&gt; Doc ann
+forall ann. ann -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >PP.pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621679462036"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;)&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Error.html#PLCError"
+	><span class="hs-identifier hs-type"
+	  >PLCError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679462038"
+      ><span class="annot"
+	><span class="annottext"
+	  >Error uni fun ann
+</span
+	  ><a href="#local-6989586621679462038"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#vsep"
+	><span class="hs-identifier hs-var"
+	  >PP.vsep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Error from the PLC compiler:&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlc -&gt; Error uni fun ann -&gt; Doc ann
+forall ann. PrettyConfigPlc -&gt; Error uni fun ann -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >PLC.prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PrettyConfigPlc
+</span
+	><a href="#local-6989586621679462032"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Error uni fun ann
+</span
+	><a href="#local-6989586621679462038"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span id="local-6989586621679462051"
+      ><span id="local-6989586621679462055"
+	><span id="local-6989586621679462058"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621679461971"
+	    ><span id="local-6989586621679461972"
+	      ><span id="local-6989586621679461973"
+		><span class="annot"
+		  ><a href="#local-6989586621679461971"
+		    ><span class="hs-keyword hs-type hs-type hs-type"
+		      >anyclass</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    >
+</span
+	    ><span id="line-45"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="../../plutus-core/src/PlutusCore.Pretty.PrettyConst.html#ThrowableBuiltins"
+	      ><span class="hs-identifier hs-type"
+		>PLC.ThrowableBuiltins</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679461971"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679461972"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>PP.Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679461973"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	      ><span class="hs-identifier hs-type"
+		>Typeable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679461973"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.Type.html#Exception"
+	      ><span class="hs-identifier hs-type"
+		>Exception</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusIR.Compiler.Error.html#Error"
+	      ><span class="hs-identifier hs-type"
+		>Error</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679461971"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679461972"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679461973"
+	      ><span class="hs-identifier hs-type"
+		>ann</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

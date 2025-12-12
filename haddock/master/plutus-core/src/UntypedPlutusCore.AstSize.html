@@ -1,0 +1,628 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >UntypedPlutusCore.AstSize</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.AstSize.html#termAstSize"
+	><span class="hs-identifier"
+	  >termAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.AstSize.html#programAstSize"
+	><span class="hs-identifier"
+	  >programAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html"
+	><span class="hs-identifier"
+	  >PlutusCore.AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Core</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html"
+	><span class="hs-identifier"
+	  >Data.Foldable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Count the number of AST nodes in a term.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span id="local-6989586621682073508"
+      ><span id="local-6989586621682073509"
+	><span id="local-6989586621682073510"
+	  ><span id="local-6989586621682073511"
+	    ><span class="annot"
+	      ><a href="UntypedPlutusCore.AstSize.html#termAstSize"
+		><span class="hs-identifier hs-type"
+		  >termAstSize</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Term"
+		><span class="hs-identifier hs-type"
+		  >Term</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073508"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073509"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073510"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073511"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.AstSize.html#AstSize"
+		><span class="hs-identifier hs-type"
+		  >AstSize</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="termAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >termAstSize :: forall name (uni :: * -&gt; *) fun ann.
+Term name uni fun ann -&gt; AstSize
+</span
+	  ><a href="UntypedPlutusCore.AstSize.html#termAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682073563"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682073563"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[AstSize] -&gt; AstSize
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; AstSize
+</span
+	><a href="PlutusCore.AstSize.html#AstSize"
+	><span class="hs-identifier hs-var"
+	  >AstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682073563"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+-&gt; Getting AstSize (Term name uni fun ann) AstSize -&gt; AstSize
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term name uni fun ann -&gt; Const AstSize (Term name uni fun ann))
+-&gt; Term name uni fun ann -&gt; Const AstSize (Term name uni fun ann)
+forall name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+Applicative f =&gt;
+(Term name uni fun ann -&gt; f (Term name uni fun ann))
+-&gt; Term name uni fun ann -&gt; f (Term name uni fun ann)
+</span
+	><a href="UntypedPlutusCore.Core.Plated.html#termSubterms"
+	><span class="hs-identifier hs-var"
+	  >termSubterms</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term name uni fun ann -&gt; Const AstSize (Term name uni fun ann))
+ -&gt; Term name uni fun ann -&gt; Const AstSize (Term name uni fun ann))
+-&gt; Getting AstSize (Term name uni fun ann) AstSize
+-&gt; Getting AstSize (Term name uni fun ann) AstSize
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term name uni fun ann -&gt; AstSize)
+-&gt; Getting AstSize (Term name uni fun ann) AstSize
+forall (p :: * -&gt; * -&gt; *) (f :: * -&gt; *) s a.
+(Profunctor p, Contravariant f) =&gt;
+(s -&gt; a) -&gt; Optic' p f s a
+</span
+	><span class="hs-identifier hs-var"
+	>to</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann -&gt; AstSize
+forall name (uni :: * -&gt; *) fun ann.
+Term name uni fun ann -&gt; AstSize
+</span
+	><a href="UntypedPlutusCore.AstSize.html#termAstSize"
+	><span class="hs-identifier hs-var"
+	  >termAstSize</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Count the number of AST nodes in a program.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="local-6989586621682073541"
+      ><span id="local-6989586621682073542"
+	><span id="local-6989586621682073543"
+	  ><span id="local-6989586621682073544"
+	    ><span class="annot"
+	      ><a href="UntypedPlutusCore.AstSize.html#programAstSize"
+		><span class="hs-identifier hs-type"
+		  >programAstSize</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="UntypedPlutusCore.Core.Type.html#Program"
+		><span class="hs-identifier hs-type"
+		  >Program</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073541"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073542"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073543"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621682073544"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.AstSize.html#AstSize"
+		><span class="hs-identifier hs-type"
+		  >AstSize</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span id="programAstSize"
+      ><span class="annot"
+	><span class="annottext"
+	  >programAstSize :: forall name (uni :: * -&gt; *) fun ann.
+Program name uni fun ann -&gt; AstSize
+</span
+	  ><a href="UntypedPlutusCore.AstSize.html#programAstSize"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >programAstSize</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Core.Type.html#Program"
+	><span class="hs-identifier hs-type"
+	  >Program</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Version
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682073571"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term name uni fun ann
+</span
+	  ><a href="#local-6989586621682073571"
+	  ><span class="hs-identifier hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann -&gt; AstSize
+forall name (uni :: * -&gt; *) fun ann.
+Term name uni fun ann -&gt; AstSize
+</span
+	><a href="UntypedPlutusCore.AstSize.html#termAstSize"
+	><span class="hs-identifier hs-var"
+	  >termAstSize</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term name uni fun ann
+</span
+	><a href="#local-6989586621682073571"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

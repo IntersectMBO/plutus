@@ -1,0 +1,810 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Flat instances for the vector package.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Instances.Vector</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Mono</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Util.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Util</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html"
+	><span class="hs-identifier"
+	  >Data.Vector</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>V</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Storable.html"
+	><span class="hs-identifier"
+	  >Data.Vector.Storable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>S</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Unboxed.html"
+	><span class="hs-identifier"
+	  >Data.Vector.Unboxed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>U</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-comment"
+      >-- $setup</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import PlutusCore.Flat.Instances.Test</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import PlutusCore.Flat.Instances.Base()</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import qualified Data.Vector                   as V</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import qualified Data.Vector.Unboxed           as U</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-comment"
+      >-- &gt;&gt;&gt; import qualified Data.Vector.Storable          as S</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Vectors are encoded as arrays.
+
+&gt;&gt;&gt; tst (V.fromList [11::Word8,22,33])
+(True,40,[3,11,22,33,0])
+
+All Vectors are encoded in the same way:
+
+&gt;&gt;&gt; let l = [11::Word8,22,33] in all (tst (V.fromList l) ==) [tst (U.fromList l),tst (S.fromList l)]
+True
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104847"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104847"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.html#Vector"
+	  ><span class="hs-identifier hs-type"
+	    >V.Vector</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104847"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104877"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: Vector a -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="#local-6989586621679104877"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; NumBits -&gt; NumBits
+forall mono.
+(IsSequence mono, Flat (Element mono)) =&gt;
+mono -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	><span class="hs-identifier hs-var"
+	  >sizeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104883"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Vector a -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679104883"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	><span class="hs-identifier hs-var"
+	  >encodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104888"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (Vector a)
+</span
+	  ><a href="#local-6989586621679104888"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Vector a)
+forall b. (Flat (Element b), IsSequence b) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	><span class="hs-identifier hs-var"
+	  >decodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104859"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Unboxed.Base.html#Unbox"
+	  ><span class="hs-identifier hs-type"
+	    >U.Unbox</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104859"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104859"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Unboxed.Base.html#Vector"
+	  ><span class="hs-identifier hs-type"
+	    >U.Vector</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104859"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104900"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: Vector a -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; NumBits -&gt; NumBits
+forall mono.
+(IsSequence mono, Flat (Element mono)) =&gt;
+mono -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	><span class="hs-identifier hs-var"
+	  >sizeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104904"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Vector a -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	><span class="hs-identifier hs-var"
+	  >encodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104907"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (Vector a)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Vector a)
+forall b. (Flat (Element b), IsSequence b) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	><span class="hs-identifier hs-var"
+	  >decodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104865"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Foreign.Storable.html#Storable"
+	  ><span class="hs-identifier hs-type"
+	    >S.Storable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104865"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104865"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/vector-0.13.2.0/docs/src/Data.Vector.Storable.html#Vector"
+	  ><span class="hs-identifier hs-type"
+	    >S.Vector</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104865"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104917"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: Vector a -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; NumBits -&gt; NumBits
+forall mono.
+(IsSequence mono, Flat (Element mono)) =&gt;
+mono -&gt; NumBits -&gt; NumBits
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	><span class="hs-identifier hs-var"
+	  >sizeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104921"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: Vector a -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Vector a -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	><span class="hs-identifier hs-var"
+	  >encodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104924"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (Vector a)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Vector a)
+forall b. (Flat (Element b), IsSequence b) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	><span class="hs-identifier hs-var"
+	  >decodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Transform.Rename</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Transform.Rename.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Transform.Rename</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Renaming of PIR terms. Import this module to bring the <code
+	    >PLC.Rename (Term tyname name uni fun ann)</code
+	    >
+ instance in scope.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:renameTermM"
+	      >renameTermM</a
+	      > &#8759; (MonadRename m, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)) &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:renameProgramM"
+	      >renameProgramM</a
+	      > &#8759; (MonadRename m, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	      >HasUniques</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann)) &#8658; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > tyname name uni fun ann)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renameTermM" class="def"
+	    >renameTermM</a
+	    > &#8759; (MonadRename m, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann)) &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Transform.Rename.html#renameTermM" class="link"
+	    >Source</a
+	    > <a href="#v:renameTermM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rename a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      > in the <code
+	      >ScopedRenameM</code
+	      > monad.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renameProgramM" class="def"
+	    >renameProgramM</a
+	    > &#8759; (MonadRename m, <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+	    >HasUniques</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann)) &#8658; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Transform.Rename.html#renameProgramM" class="link"
+	    >Source</a
+	    > <a href="#v:renameProgramM" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rename a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      > in the <code
+	      >ScopedRenameM</code
+	      > monad.</p
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Rename:Rename:1"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		  >HasUniques</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann) &#8658; <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+		  >Rename</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		  >Program</a
+		  > tyname name uni fun ann)</span
+		> <a href="src/PlutusIR.Transform.Rename.html#line-203" class="link"
+		>Source</a
+		> <a href="#v:-36-fRenameProgram" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Rename:Rename:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:rename"
+		      >rename</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > tyname name uni fun ann) <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:rename" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Rename:Rename:2"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		  >HasUniques</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann) &#8658; <a href="../plutus-core/PlutusCore-Rename.html#t:Rename" title="PlutusCore.Rename"
+		  >Rename</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann)</span
+		> <a href="src/PlutusIR.Transform.Rename.html#line-199" class="link"
+		>Source</a
+		> <a href="#v:-36-fRenameTerm" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Rename:Rename:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:rename"
+		      >rename</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun ann) <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:rename" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

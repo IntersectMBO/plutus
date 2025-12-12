@@ -1,0 +1,6424 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiWayIf #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Show</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#Show"
+	><span class="hs-identifier"
+	  >Show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.html#toDigits"
+	><span class="hs-identifier"
+	  >toDigits</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showSpace"
+	><span class="hs-identifier"
+	  >showSpace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showCommaSpace"
+	><span class="hs-identifier"
+	  >showCommaSpace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showParen"
+	><span class="hs-identifier"
+	  >showParen</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#appPrec"
+	><span class="hs-identifier"
+	  >appPrec</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#appPrec1"
+	><span class="hs-identifier"
+	  >appPrec1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#deriveShow"
+	><span class="hs-identifier"
+	  >deriveShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Base.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Base</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Bool.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Builtins</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Either.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Either</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.List.html"
+	><span class="hs-identifier"
+	  >PlutusTx.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.List.html#foldr"
+	><span class="hs-identifier"
+	  >foldr</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Maybe.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Maybe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Show.TH</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680054144"
+      ><span class="annot"
+	><a href="PlutusTx.Show.TH.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	  ><span class="hs-identifier hs-type"
+	    >Builtins.Integer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-pragma hs-type"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054190"
+      ><span class="annot"
+	><span class="annottext"
+	  >showsPrec :: Integer -&gt; Integer -&gt; ShowS
+</span
+	  ><a href="PlutusTx.Show.TH.html#showsPrec"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showsPrec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054191"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054191"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054192"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054192"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054192"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Ord.html#%3C"
+	><span class="hs-operator hs-var"
+	  >&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; ShowS
+forall a. Show a =&gt; Integer -&gt; a -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-identifier hs-var"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054191"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer
+forall a. AdditiveGroup a =&gt; a -&gt; a
+</span
+	><a href="PlutusTx.Numeric.html#negate"
+	><span class="hs-identifier hs-var"
+	  >negate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054192"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; ShowS -&gt; ShowS) -&gt; ShowS -&gt; [Integer] -&gt; ShowS
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+</span
+	><a href="PlutusTx.List.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; ShowS -&gt; ShowS
+</span
+	><a href="#local-6989586621680054196"
+	><span class="hs-identifier hs-var"
+	  >alg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS
+forall a. a -&gt; a
+</span
+	><a href="PlutusTx.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; [Integer]
+</span
+	><a href="PlutusTx.Show.html#toDigits"
+	><span class="hs-identifier hs-var"
+	  >toDigits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054192"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621680054196"
+	><span class="hs-identifier hs-type"
+	  >alg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Builtins.Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621680054196"
+      ><span class="annot"
+	><span class="annottext"
+	  >alg :: Integer -&gt; ShowS -&gt; ShowS
+</span
+	  ><a href="#local-6989586621680054196"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >alg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054198"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054198"
+	  ><span class="hs-identifier hs-var"
+	    >digit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054199"
+      ><span class="annot"
+	><span class="annottext"
+	  >ShowS
+</span
+	  ><a href="#local-6989586621680054199"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;0&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;1&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;2&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>3</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;3&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>4</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;4&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>5</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;5&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>6</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;6&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>7</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;7&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>8</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;8&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054198"
+	><span class="hs-identifier hs-var"
+	  >digit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>9</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;9&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;&lt;invalid digit&gt;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS
+</span
+	><a href="#local-6989586621680054199"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a non-negative integer to individual digits.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.html#toDigits"
+	><span class="hs-identifier hs-type"
+	  >toDigits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Builtins.Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Builtins.Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span id="toDigits"
+      ><span class="annot"
+	><span class="annottext"
+	  >toDigits :: Integer -&gt; [Integer]
+</span
+	  ><a href="PlutusTx.Show.html#toDigits"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toDigits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Integer] -&gt; Integer -&gt; [Integer]
+</span
+	><a href="#local-6989586621680054201"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621680054201"
+      ><span class="annot"
+	><span class="annottext"
+	  >go :: [Integer] -&gt; Integer -&gt; [Integer]
+</span
+	  ><a href="#local-6989586621680054201"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >go</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054204"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Integer]
+</span
+	  ><a href="#local-6989586621680054204"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054205"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054205"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054205"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; (Integer, Integer)
+</span
+	><a href="PlutusTx.Numeric.html#quotRem"
+	><span class="hs-operator hs-var"
+	  >`quotRem`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>10</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680054207"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054207"
+	  ><span class="hs-identifier hs-var"
+	    >q</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680054208"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054208"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054207"
+	><span class="hs-identifier hs-var"
+	  >q</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054208"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; [Integer] -&gt; [Integer]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Integer]
+</span
+	><a href="#local-6989586621680054204"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Integer] -&gt; Integer -&gt; [Integer]
+</span
+	><a href="#local-6989586621680054201"
+	><span class="hs-identifier hs-var"
+	  >go</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054208"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; [Integer] -&gt; [Integer]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Integer]
+</span
+	><a href="#local-6989586621680054204"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054207"
+	><span class="hs-identifier hs-var"
+	  >q</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.html#toDigits"
+	><span class="hs-pragma hs-type"
+	  >toDigits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680054211"
+      ><span class="annot"
+	><a href="PlutusTx.Show.TH.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinByteString"
+	  ><span class="hs-identifier hs-type"
+	    >Builtins.BuiltinByteString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-pragma hs-type"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Base16-encode the ByteString and show the result.</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054241"
+      ><span class="annot"
+	><span class="annottext"
+	  >showsPrec :: Integer -&gt; BuiltinByteString -&gt; ShowS
+</span
+	  ><a href="PlutusTx.Show.TH.html#showsPrec"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showsPrec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054242"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinByteString
+</span
+	  ><a href="#local-6989586621680054242"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; ShowS -&gt; ShowS) -&gt; ShowS -&gt; [Integer] -&gt; ShowS
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+</span
+	><a href="PlutusTx.List.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; ShowS -&gt; ShowS
+</span
+	><a href="#local-6989586621680054243"
+	><span class="hs-identifier hs-var"
+	  >alg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS
+forall a. a -&gt; a
+</span
+	><a href="PlutusTx.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; [Integer]
+forall a. Enum a =&gt; a -&gt; a -&gt; [a]
+</span
+	><a href="PlutusTx.Enum.Class.html#enumFromTo"
+	><span class="hs-identifier hs-var"
+	  >enumFromTo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054245"
+	><span class="hs-identifier hs-var"
+	  >len</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+forall a. AdditiveGroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="PlutusTx.Numeric.html#-"
+	><span class="hs-glyph hs-var"
+	  >-</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621680054245"
+      ><span class="annot"
+	><span class="annottext"
+	  >len :: Integer
+</span
+	  ><a href="#local-6989586621680054245"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >len</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; Integer
+</span
+	><a href="PlutusTx.Builtins.html#lengthOfByteString"
+	><span class="hs-identifier hs-var"
+	  >Builtins.lengthOfByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString
+</span
+	><a href="#local-6989586621680054242"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621680054248"
+	><span class="hs-identifier hs-type"
+	  >showWord8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Builtins.Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621680054248"
+      ><span class="annot"
+	><span class="annottext"
+	  >showWord8 :: Integer -&gt; ShowS
+</span
+	  ><a href="#local-6989586621680054248"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >showWord8</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054249"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054249"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; ShowS
+</span
+	><a href="#local-6989586621680054250"
+	><span class="hs-identifier hs-var"
+	  >toHex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054249"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+</span
+	><a href="PlutusTx.Builtins.html#divideInteger"
+	><span class="hs-operator hs-var"
+	  >`Builtins.divideInteger`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>16</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; ShowS
+</span
+	><a href="#local-6989586621680054250"
+	><span class="hs-identifier hs-var"
+	  >toHex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054249"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Integer
+</span
+	><a href="PlutusTx.Builtins.html#modInteger"
+	><span class="hs-operator hs-var"
+	  >`Builtins.modInteger`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>16</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621680054250"
+	><span class="hs-identifier hs-type"
+	  >toHex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621680054250"
+      ><span class="annot"
+	><span class="annottext"
+	  >toHex :: Integer -&gt; ShowS
+</span
+	  ><a href="#local-6989586621680054250"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toHex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054253"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054253"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Ord.html#%3C%3D"
+	><span class="hs-operator hs-var"
+	  >&lt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>9</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; ShowS
+forall a. Show a =&gt; Integer -&gt; a -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-identifier hs-var"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>10</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;a&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>11</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;b&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>12</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;c&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>13</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;d&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>14</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;e&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054253"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="PlutusTx.Eq.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>15</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;f&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#otherwise"
+	><span class="hs-identifier hs-var"
+	  >otherwise</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;&lt;invalid byte&gt;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621680054243"
+	><span class="hs-identifier hs-type"
+	  >alg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Builtins.Integer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621680054243"
+      ><span class="annot"
+	><span class="annottext"
+	  >alg :: Integer -&gt; ShowS -&gt; ShowS
+</span
+	  ><a href="#local-6989586621680054243"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >alg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054255"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054255"
+	  ><span class="hs-identifier hs-var"
+	    >i</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054256"
+      ><span class="annot"
+	><span class="annottext"
+	  >ShowS
+</span
+	  ><a href="#local-6989586621680054256"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; ShowS
+</span
+	><a href="#local-6989586621680054248"
+	><span class="hs-identifier hs-var"
+	  >showWord8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; Integer -&gt; Integer
+</span
+	><a href="PlutusTx.Builtins.html#indexByteString"
+	><span class="hs-identifier hs-var"
+	  >Builtins.indexByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString
+</span
+	><a href="#local-6989586621680054242"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054255"
+	><span class="hs-identifier hs-var"
+	  >i</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS
+</span
+	><a href="#local-6989586621680054256"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680054260"
+      ><span class="annot"
+	><a href="PlutusTx.Show.TH.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinString"
+	  ><span class="hs-identifier hs-type"
+	    >Builtins.BuiltinString</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-pragma hs-type"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- Add quotes to the given string. `Prelude.show @String` uses @showLitChar@ to process</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- non-ascii characters and escape characters, in additional to adding quotes. We have</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- no builtin that operates on `Char`, so we cannot implement the same behavior.</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054265"
+      ><span class="annot"
+	><span class="annottext"
+	  >showsPrec :: Integer -&gt; BuiltinString -&gt; ShowS
+</span
+	  ><a href="PlutusTx.Show.TH.html#showsPrec"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showsPrec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054266"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinString
+</span
+	  ><a href="#local-6989586621680054266"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;\&quot;&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><a href="#local-6989586621680054266"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;\&quot;&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680054269"
+      ><span class="annot"
+	><a href="PlutusTx.Show.TH.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	  ><span class="hs-identifier hs-type"
+	    >Builtins.BuiltinData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-pragma hs-type"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054273"
+      ><span class="annot"
+	><span class="annottext"
+	  >showsPrec :: Integer -&gt; BuiltinData -&gt; ShowS
+</span
+	  ><a href="PlutusTx.Show.TH.html#showsPrec"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showsPrec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054274"
+      ><span class="annot"
+	><span class="annottext"
+	  >Integer
+</span
+	  ><a href="#local-6989586621680054274"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054275"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinData
+</span
+	  ><a href="#local-6989586621680054275"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; BuiltinByteString -&gt; ShowS
+forall a. Show a =&gt; Integer -&gt; a -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-identifier hs-var"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621680054274"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinByteString
+</span
+	><a href="PlutusTx.Builtins.html#serialiseData"
+	><span class="hs-identifier hs-var"
+	  >Builtins.serialiseData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData
+</span
+	><a href="#local-6989586621680054275"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680054278"
+      ><span class="annot"
+	><a href="PlutusTx.Show.TH.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	  ><span class="hs-identifier hs-type"
+	    >Bool</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#show"
+	><span class="hs-pragma hs-type"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054285"
+      ><span class="annot"
+	><span class="annottext"
+	  >show :: Bool -&gt; BuiltinString
+</span
+	  ><a href="PlutusTx.Show.TH.html#show"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >show</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054286"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621680054286"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621680054286"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;True&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;False&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680054288"
+      ><span class="annot"
+	><a href="PlutusTx.Show.TH.html#Show"
+	  ><span class="hs-identifier hs-type"
+	    >Show</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#show"
+	><span class="hs-pragma hs-type"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054293"
+      ><span class="annot"
+	><span class="annottext"
+	  >show :: () -&gt; BuiltinString
+</span
+	  ><a href="PlutusTx.Show.TH.html#show"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >show</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;()&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="hs-comment"
+      >-- It is possible to make it so that when `a` is a builtin type, `show (xs :: [a])`</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-comment"
+      >-- is compiled into a single `showConstant` call, rathern than `length xs` calls.</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="hs-comment"
+      >-- To do so the plugin would need to try to solve the @uni `HasTermLevel` [a]@ constraint,</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span class="hs-comment"
+      >-- and branch based on whether it is solvable. But the complexity doesn't seem to</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span class="hs-comment"
+      >-- be worth it: the saving in budget is likely small, and on mainnet the trace messages</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span class="hs-comment"
+      >-- are often erased anyway.</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span class="hs-comment"
+      >-- Same for the `Show (a, b)` instance.</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680053722"
+      ><span id="local-6989586621680054297"
+	><span class="annot"
+	  ><a href="PlutusTx.Show.TH.html#Show"
+	    ><span class="hs-identifier hs-type"
+	      >Show</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680053722"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Show.TH.html#Show"
+	    ><span class="hs-identifier hs-type"
+	      >Show</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >[</span
+	  ><span class="annot"
+	  ><a href="#local-6989586621680053722"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >]</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-pragma hs-type"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054301"
+      ><span class="annot"
+	><span class="annottext"
+	  >showsPrec :: Integer -&gt; [a] -&gt; ShowS
+</span
+	  ><a href="PlutusTx.Show.TH.html#showsPrec"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >showsPrec</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; ShowS) -&gt; [a] -&gt; ShowS
+forall a. (a -&gt; ShowS) -&gt; [a] -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.html#showList"
+	><span class="hs-identifier hs-var"
+	  >showList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; a -&gt; ShowS
+forall a. Show a =&gt; Integer -&gt; a -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showsPrec"
+	><span class="hs-identifier hs-var"
+	  >showsPrec</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.html#showList"
+	><span class="hs-identifier hs-type"
+	  >showList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621680053723"
+      ><span class="annot"
+	><a href="#local-6989586621680053723"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="#local-6989586621680053723"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="#local-6989586621680053723"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span id="showList"
+      ><span class="annot"
+	><span class="annottext"
+	  >showList :: forall a. (a -&gt; ShowS) -&gt; [a] -&gt; ShowS
+</span
+	  ><a href="PlutusTx.Show.html#showList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >showList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054307"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; ShowS
+</span
+	  ><a href="#local-6989586621680054307"
+	  ><span class="hs-identifier hs-var"
+	    >showElem</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;[]&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680054308"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680054308"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054309"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621680054309"
+	  ><span class="hs-identifier hs-var"
+	    >xs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;[&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; ShowS
+</span
+	><a href="#local-6989586621680054307"
+	><span class="hs-identifier hs-var"
+	  >showElem</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680054308"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; ShowS -&gt; ShowS) -&gt; ShowS -&gt; [a] -&gt; ShowS
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+</span
+	><a href="PlutusTx.List.html#foldr"
+	><span class="hs-identifier hs-var"
+	  >foldr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; ShowS -&gt; ShowS
+</span
+	><a href="#local-6989586621680054310"
+	><span class="hs-identifier hs-var"
+	  >alg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS
+forall a. a -&gt; a
+</span
+	><a href="PlutusTx.Base.html#id"
+	><span class="hs-identifier hs-var"
+	  >id</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621680054309"
+	><span class="hs-identifier hs-var"
+	  >xs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;]&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621680054310"
+	><span class="hs-identifier hs-type"
+	  >alg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680053723"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.TH.html#ShowS"
+	><span class="hs-identifier hs-type"
+	  >ShowS</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621680054310"
+      ><span class="annot"
+	><span class="annottext"
+	  >alg :: a -&gt; ShowS -&gt; ShowS
+</span
+	  ><a href="#local-6989586621680054310"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >alg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054311"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621680054311"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680054312"
+      ><span class="annot"
+	><span class="annottext"
+	  >ShowS
+</span
+	  ><a href="#local-6989586621680054312"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ShowS
+</span
+	><a href="PlutusTx.Show.TH.html#showString"
+	><span class="hs-identifier hs-var"
+	  >showString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;,&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; ShowS
+</span
+	><a href="#local-6989586621680054307"
+	><span class="hs-identifier hs-var"
+	  >showElem</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621680054311"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS -&gt; ShowS -&gt; ShowS
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ShowS
+</span
+	><a href="#local-6989586621680054312"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINEABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Show.html#showList"
+	><span class="hs-pragma hs-type"
+	  >showList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680054316"
+	  ><span id="local-6989586621680054323"
+	    ><span class="hs-identifier"
+	      >deriveShow</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >''</span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680054335"
+	    ><span id="local-6989586621680054344"
+	      ><span class="hs-identifier"
+		>deriveShow</span
+		><span
+		> </span
+		><span class="hs-special"
+		>''</span
+		><span class="hs-special"
+		>(</span
+		><span class="hs-special"
+		>,</span
+		><span class="hs-special"
+		>,</span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680054357"
+	      ><span id="local-6989586621680054368"
+		><span class="hs-identifier"
+		  >deriveShow</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >''</span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680054383"
+		><span id="local-6989586621680054396"
+		  ><span class="hs-identifier"
+		    >deriveShow</span
+		    ><span
+		    > </span
+		    ><span class="hs-special"
+		    >''</span
+		    ><span class="hs-special"
+		    >(</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >,</span
+		    ><span class="hs-special"
+		    >)</span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680054413"
+		  ><span id="local-6989586621680054428"
+		    ><span class="hs-identifier"
+		      >deriveShow</span
+		      ><span
+		      > </span
+		      ><span class="hs-special"
+		      >''</span
+		      ><span class="hs-special"
+		      >(</span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span class="hs-special"
+		      >,</span
+		      ><span class="hs-special"
+		      >)</span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680054447"
+		    ><span id="local-6989586621680054464"
+		      ><span class="hs-identifier"
+			>deriveShow</span
+			><span
+			> </span
+			><span class="hs-special"
+			>''</span
+			><span class="hs-special"
+			>(</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>,</span
+			><span class="hs-special"
+			>)</span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680054485"
+		      ><span id="local-6989586621680054504"
+			><span class="hs-identifier"
+			  >deriveShow</span
+			  ><span
+			  > </span
+			  ><span class="hs-special"
+			  >''</span
+			  ><span class="hs-special"
+			  >(</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >,</span
+			  ><span class="hs-special"
+			  >)</span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680054527"
+			><span id="local-6989586621680054548"
+			  ><span class="hs-identifier"
+			    >deriveShow</span
+			    ><span
+			    > </span
+			    ><span class="hs-special"
+			    >''</span
+			    ><span class="hs-special"
+			    >(</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >,</span
+			    ><span class="hs-special"
+			    >)</span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680054573"
+			  ><span id="local-6989586621680054596"
+			    ><span class="hs-identifier"
+			      >deriveShow</span
+			      ><span
+			      > </span
+			      ><span class="hs-special"
+			      >''</span
+			      ><span class="hs-special"
+			      >(</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >,</span
+			      ><span class="hs-special"
+			      >)</span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680054623"
+			    ><span id="local-6989586621680054648"
+			      ><span class="hs-identifier"
+				>deriveShow</span
+				><span
+				> </span
+				><span class="hs-special"
+				>''</span
+				><span class="hs-special"
+				>(</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>,</span
+				><span class="hs-special"
+				>)</span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680054677"
+			      ><span id="local-6989586621680054704"
+				><span class="hs-identifier"
+				  >deriveShow</span
+				  ><span
+				  > </span
+				  ><span class="hs-special"
+				  >''</span
+				  ><span class="hs-special"
+				  >(</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >,</span
+				  ><span class="hs-special"
+				  >)</span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680054735"
+				><span id="local-6989586621680054764"
+				  ><span class="hs-identifier"
+				    >deriveShow</span
+				    ><span
+				    > </span
+				    ><span class="hs-special"
+				    >''</span
+				    ><span class="hs-special"
+				    >(</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >,</span
+				    ><span class="hs-special"
+				    >)</span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680054797"
+				  ><span id="local-6989586621680054828"
+				    ><span class="hs-identifier"
+				      >deriveShow</span
+				      ><span
+				      > </span
+				      ><span class="hs-special"
+				      >''</span
+				      ><span class="hs-special"
+				      >(</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >,</span
+				      ><span class="hs-special"
+				      >)</span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680054863"
+				    ><span id="local-6989586621680054896"
+				      ><span class="hs-identifier"
+					>deriveShow</span
+					><span
+					> </span
+					><span class="hs-special"
+					>''</span
+					><span class="hs-special"
+					>(</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>,</span
+					><span class="hs-special"
+					>)</span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680054933"
+				      ><span id="local-6989586621680054968"
+					><span class="hs-identifier"
+					  >deriveShow</span
+					  ><span
+					  > </span
+					  ><span class="hs-special"
+					  >''</span
+					  ><span class="hs-special"
+					  >(</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >,</span
+					  ><span class="hs-special"
+					  >)</span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680055007"
+					><span id="local-6989586621680055044"
+					  ><span class="hs-identifier"
+					    >deriveShow</span
+					    ><span
+					    > </span
+					    ><span class="hs-special"
+					    >''</span
+					    ><span class="hs-special"
+					    >(</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >,</span
+					    ><span class="hs-special"
+					    >)</span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680055085"
+					  ><span id="local-6989586621680055124"
+					    ><span class="hs-identifier"
+					      >deriveShow</span
+					      ><span
+					      > </span
+					      ><span class="hs-special"
+					      >''</span
+					      ><span class="hs-special"
+					      >(</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >,</span
+					      ><span class="hs-special"
+					      >)</span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680055167"
+					    ><span id="local-6989586621680055208"
+					      ><span class="hs-identifier"
+						>deriveShow</span
+						><span
+						> </span
+						><span class="hs-special"
+						>''</span
+						><span class="hs-special"
+						>(</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>,</span
+						><span class="hs-special"
+						>)</span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680055253"
+					      ><span id="local-6989586621680055296"
+						><span class="hs-identifier"
+						  >deriveShow</span
+						  ><span
+						  > </span
+						  ><span class="hs-special"
+						  >''</span
+						  ><span class="hs-special"
+						  >(</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >,</span
+						  ><span class="hs-special"
+						  >)</span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680053974"
+					      ><span id="local-6989586621680055343"
+						><span id="local-6989586621680055388"
+						  ><span class="hs-identifier"
+						    >deriveShow</span
+						    ><span
+						    > </span
+						    ><span class="hs-special"
+						    >''</span
+						    ><span class="hs-special"
+						    >(</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >,</span
+						    ><span class="hs-special"
+						    >)</span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680053974"
+					      ><span id="local-6989586621680053997"
+						><span id="local-6989586621680055437"
+						  ><span id="local-6989586621680055484"
+						    ><span class="hs-identifier"
+						      >deriveShow</span
+						      ><span
+						      > </span
+						      ><span class="hs-special"
+						      >''</span
+						      ><span class="hs-special"
+						      >(</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >,</span
+						      ><span class="hs-special"
+						      >)</span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680053974"
+					      ><span id="local-6989586621680053997"
+						><span id="local-6989586621680054021"
+						  ><span id="local-6989586621680055535"
+						    ><span id="local-6989586621680055584"
+						      ><span class="hs-identifier"
+							>deriveShow</span
+							><span
+							> </span
+							><span class="hs-special"
+							>''</span
+							><span class="hs-special"
+							>(</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>,</span
+							><span class="hs-special"
+							>)</span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680053974"
+					      ><span id="local-6989586621680053997"
+						><span id="local-6989586621680054021"
+						  ><span id="local-6989586621680054046"
+						    ><span id="local-6989586621680055637"
+						      ><span id="local-6989586621680055688"
+							><span class="hs-identifier"
+							  >deriveShow</span
+							  ><span
+							  > </span
+							  ><span class="hs-special"
+							  >''</span
+							  ><span class="hs-special"
+							  >(</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >,</span
+							  ><span class="hs-special"
+							  >)</span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680053974"
+					      ><span id="local-6989586621680053997"
+						><span id="local-6989586621680054021"
+						  ><span id="local-6989586621680054046"
+						    ><span id="local-6989586621680054072"
+						      ><span id="local-6989586621680055743"
+							><span id="local-6989586621680055796"
+							  ><span class="hs-identifier"
+							    >deriveShow</span
+							    ><span
+							    > </span
+							    ><span class="hs-special"
+							    >''</span
+							    ><span class="hs-special"
+							    >(</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >,</span
+							    ><span class="hs-special"
+							    >)</span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680053974"
+					      ><span id="local-6989586621680053997"
+						><span id="local-6989586621680054021"
+						  ><span id="local-6989586621680054046"
+						    ><span id="local-6989586621680054072"
+						      ><span id="local-6989586621680054099"
+							><span id="local-6989586621680055853"
+							  ><span id="local-6989586621680055908"
+							    ><span class="hs-identifier"
+							      >deriveShow</span
+							      ><span
+							      > </span
+							      ><span class="hs-special"
+							      >''</span
+							      ><span class="hs-special"
+							      >(</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >,</span
+							      ><span class="hs-special"
+							      >)</span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680053727"
+	><span id="local-6989586621680053731"
+	  ><span id="local-6989586621680053736"
+	    ><span id="local-6989586621680053742"
+	      ><span id="local-6989586621680053749"
+		><span id="local-6989586621680053757"
+		  ><span id="local-6989586621680053766"
+		    ><span id="local-6989586621680053776"
+		      ><span id="local-6989586621680053787"
+			><span id="local-6989586621680053799"
+			  ><span id="local-6989586621680053812"
+			    ><span id="local-6989586621680053826"
+			      ><span id="local-6989586621680053841"
+				><span id="local-6989586621680053857"
+				  ><span id="local-6989586621680053874"
+				    ><span id="local-6989586621680053892"
+				      ><span id="local-6989586621680053911"
+					><span id="local-6989586621680053931"
+					  ><span id="local-6989586621680053952"
+					    ><span id="local-6989586621680053974"
+					      ><span id="local-6989586621680053997"
+						><span id="local-6989586621680054021"
+						  ><span id="local-6989586621680054046"
+						    ><span id="local-6989586621680054072"
+						      ><span id="local-6989586621680054099"
+							><span id="local-6989586621680054127"
+							  ><span id="local-6989586621680055967"
+							    ><span id="local-6989586621680056024"
+							      ><span class="hs-identifier"
+								>deriveShow</span
+								><span
+								> </span
+								><span class="hs-special"
+								>''</span
+								><span class="hs-special"
+								>(</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>,</span
+								><span class="hs-special"
+								>)</span
+								></span
+							      ></span
+							    ></span
+							  ></span
+							></span
+						      ></span
+						    ></span
+						  ></span
+						></span
+					      ></span
+					    ></span
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span id="local-6989586621680053715"
+      ><span id="local-6989586621680056058"
+	><span id="local-6989586621680056063"
+	  ><span class="hs-identifier"
+	    >deriveShow</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >''</span
+	    ><span class="hs-identifier"
+	    >Maybe</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span id="local-6989586621680054131"
+      ><span id="local-6989586621680054132"
+	><span id="local-6989586621680056073"
+	  ><span id="local-6989586621680056079"
+	    ><span class="hs-identifier"
+	      >deriveShow</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >''</span
+	      ><span class="hs-identifier"
+	      >Either</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

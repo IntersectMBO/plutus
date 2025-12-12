@@ -1,0 +1,698 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Generators.QuickCheck.Substitutions</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Generators.QuickCheck.Substitutions</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Generators for substitutions</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TypeSub"
+	      >TypeSub</a
+	      > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ())</li
+	    ><li class="src short"
+	    ><a href="#v:substTypeCustomGo"
+	      >substTypeCustomGo</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:substEscape"
+	      >substEscape</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:substTypeCustom"
+	      >substTypeCustom</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:substType"
+	      >substType</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	      >HasCallStack</a
+	      > &#8658; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:substTypeParallel"
+	      >substTypeParallel</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:renameVar"
+	      >renameVar</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > ()</li
+	    ><li class="src short"
+	    ><a href="#v:fvTypeR"
+	      >fvTypeR</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fvTypeBag"
+	      >fvTypeBag</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > () &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genSubst"
+	      >genSubst</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:shrinkSubst"
+	      >shrinkSubst</a
+	      > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	      >TypeCtx</a
+	      > &#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      > &#8594; [<a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	      >TypeSub</a
+	      >]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TypeSub" class="def"
+	    >TypeSub</a
+	    > = <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > (<a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > ()) <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#TypeSub" class="link"
+	    >Source</a
+	    > <a href="#t:TypeSub" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substTypeCustomGo" class="def"
+	    >substTypeCustomGo</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#substTypeCustomGo" class="link"
+	    >Source</a
+	    > <a href="#v:substTypeCustomGo" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+		  >HasCallStack</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Nested (<code
+		    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+		      >True</a
+		      ></code
+		    >) or parallel (<code
+		    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+		      >False</a
+		      ></code
+		    >)</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+		  >Set</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Variables that are considered free.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+		  >TypeSub</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Type substitution to use.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > ()</td
+		><td class="doc"
+		><p
+		  >Type to substitute in.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >The most general substitution worker.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substEscape" class="def"
+	    >substEscape</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	    >TypeSub</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#substEscape" class="link"
+	    >Source</a
+	    > <a href="#v:substEscape" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substTypeCustom" class="def"
+	    >substTypeCustom</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#substTypeCustom" class="link"
+	    >Source</a
+	    > <a href="#v:substTypeCustom" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+		  >HasCallStack</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></td
+		><td class="doc"
+		><p
+		  >Nested (True) or parallel (False)</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+		  >TypeSub</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+		  >DefaultUni</a
+		  > ()</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Generalized substitution algorithm.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substType" class="def"
+	    >substType</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Stack.html#t:HasCallStack" title="GHC.Stack"
+	    >HasCallStack</a
+	    > &#8658; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	    >TypeSub</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#substType" class="link"
+	    >Source</a
+	    > <a href="#v:substType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Regular (i.e. nested type substitution).</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:substTypeParallel" class="def"
+	    >substTypeParallel</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	    >TypeSub</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#substTypeParallel" class="link"
+	    >Source</a
+	    > <a href="#v:substTypeParallel" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parallel substitution.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renameVar" class="def"
+	    >renameVar</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#renameVar" class="link"
+	    >Source</a
+	    > <a href="#v:renameVar" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rename one variable to another.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fvTypeR" class="def"
+	    >fvTypeR</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	    >TypeSub</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#fvTypeR" class="link"
+	    >Source</a
+	    > <a href="#v:fvTypeR" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Find all free type variables of type <code
+	      >a</code
+	      > given substitution <code
+	      >sub</code
+	      >. If variable <code
+	      >x</code
+	      > is
+free in <code
+	      >a</code
+	      > but in the domain of <code
+	      >sub</code
+	      > we look up <code
+	      >x</code
+	      > in <code
+	      >sub</code
+	      > and get all the free type
+variables of the result - up to the substitution. </p
+	    ></div
+	  ></div
+	><a href="#g:1" id="g:1"
+	><h1
+	  >Generators for substitutions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fvTypeBag" class="def"
+	    >fvTypeBag</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > () &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#fvTypeBag" class="link"
+	    >Source</a
+	    > <a href="#v:fvTypeBag" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the free type variables in a type along with how many
+times they occur. The elements of the map are guaranteed to be
+non-zero. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genSubst" class="def"
+	    >genSubst</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	    >TypeSub</a
+	    > <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#genSubst" class="link"
+	    >Source</a
+	    > <a href="#v:genSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a type substitution mapping some of the variables in the given context to some
+arbitrary types (valid in the context). </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shrinkSubst" class="def"
+	    >shrinkSubst</a
+	    > &#8759; <a href="PlutusCore-Generators-QuickCheck-Common.html#t:TypeCtx" title="PlutusCore.Generators.QuickCheck.Common"
+	    >TypeCtx</a
+	    > &#8594; <a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	    >TypeSub</a
+	    > &#8594; [<a href="PlutusCore-Generators-QuickCheck-Substitutions.html#t:TypeSub" title="PlutusCore.Generators.QuickCheck.Substitutions"
+	    >TypeSub</a
+	    >] <a href="src/PlutusCore.Generators.QuickCheck.Substitutions.html#shrinkSubst" class="link"
+	    >Source</a
+	    > <a href="#v:shrinkSubst" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,603 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Bitwise.CIP0122</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Bitwise.CIP0122.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Bitwise.CIP0122</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Tests for <a href="https://cips.cardano.org/cip/CIP-0122"
+	    >CIP-0122</a
+	    > (the first
+batch of bitwise builtins) </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:abelianSemigroupLaws"
+	      >abelianSemigroupLaws</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:abelianMonoidLaws"
+	      >abelianMonoidLaws</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:idempotenceLaw"
+	      >idempotenceLaw</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:absorbtionLaw"
+	      >absorbtionLaw</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:leftDistributiveLaw"
+	      >leftDistributiveLaw</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:distributiveLaws"
+	      >distributiveLaws</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:xorInvoluteLaw"
+	      >xorInvoluteLaw</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:complementSelfInverse"
+	      >complementSelfInverse</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:deMorgan"
+	      >deMorgan</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getSet"
+	      >getSet</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:setGet"
+	      >setGet</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:setSet"
+	      >setSet</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:writeBitsHomomorphismLaws"
+	      >writeBitsHomomorphismLaws</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:replicateHomomorphismLaws"
+	      >replicateHomomorphismLaws</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:replicateIndex"
+	      >replicateIndex</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:abelianSemigroupLaws" class="def"
+	    >abelianSemigroupLaws</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#abelianSemigroupLaws" class="link"
+	    >Source</a
+	    > <a href="#v:abelianSemigroupLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that the given <code
+	      >DefaultFun</code
+	      >, under the given semantics, forms an
+abelian semigroup: that is, the operation both commutes and associates. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:abelianMonoidLaws" class="def"
+	    >abelianMonoidLaws</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#abelianMonoidLaws" class="link"
+	    >Source</a
+	    > <a href="#v:abelianMonoidLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >As <code
+	      ><a href="Evaluation-Builtins-Bitwise-CIP0122.html#v:abelianSemigroupLaws" title="Evaluation.Builtins.Bitwise.CIP0122"
+		>abelianSemigroupLaws</a
+		></code
+	      >, but also checks that the provided <code
+	      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		>ByteString</a
+		></code
+	      >
+is both a left and right identity. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:idempotenceLaw" class="def"
+	    >idempotenceLaw</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#idempotenceLaw" class="link"
+	    >Source</a
+	    > <a href="#v:idempotenceLaw" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that the provided <code
+	      >DefaultFun</code
+	      >, under the given semantics, is
+idempotent; namely, that <code
+	      >f x x = x</code
+	      > for any <code
+	      >x</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:absorbtionLaw" class="def"
+	    >absorbtionLaw</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#absorbtionLaw" class="link"
+	    >Source</a
+	    > <a href="#v:absorbtionLaw" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that the provided <code
+	      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		>ByteString</a
+		></code
+	      > is an absorbing element for the
+given <code
+	      >DefaultFun</code
+	      >, under the given semantics. Specifically, given <code
+	      >f</code
+	      >
+as the operation and <code
+	      >0</code
+	      > as the absorbing element, for any <code
+	      >x</code
+	      >,
+<code
+	      >f x 0 = f 0 x = 0</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:leftDistributiveLaw" class="def"
+	    >leftDistributiveLaw</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#leftDistributiveLaw" class="link"
+	    >Source</a
+	    > <a href="#v:leftDistributiveLaw" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that the first <code
+	      >DefaultFun</code
+	      > distributes over the second from the
+left, given the specified semantics (as a <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		>Bool</a
+		></code
+	      >). More precisely, for
+<code
+	      >DefaultFun</code
+	      >s <code
+	      >f</code
+	      > and <code
+	      >g</code
+	      >, checks that <code
+	      >f x (g y z) = g (f x y) (f x z)</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:distributiveLaws" class="def"
+	    >distributiveLaws</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#distributiveLaws" class="link"
+	    >Source</a
+	    > <a href="#v:distributiveLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that the given function self-distributes both left and right.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:xorInvoluteLaw" class="def"
+	    >xorInvoluteLaw</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#xorInvoluteLaw" class="link"
+	    >Source</a
+	    > <a href="#v:xorInvoluteLaw" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If you XOR any <code
+	      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		>ByteString</a
+		></code
+	      > with itself twice, nothing should change.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:complementSelfInverse" class="def"
+	    >complementSelfInverse</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#complementSelfInverse" class="link"
+	    >Source</a
+	    > <a href="#v:complementSelfInverse" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If you complement a <code
+	      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		>ByteString</a
+		></code
+	      > twice, nothing should change.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:deMorgan" class="def"
+	    >deMorgan</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#deMorgan" class="link"
+	    >Source</a
+	    > <a href="#v:deMorgan" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that:</p
+	    ><ul
+	    ><li
+	      >The complement of an AND is an OR of complements; and</li
+	      ><li
+	      >The complement of an OR is an AND of complements. </li
+	      ></ul
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getSet" class="def"
+	    >getSet</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#getSet" class="link"
+	    >Source</a
+	    > <a href="#v:getSet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If you retrieve a bit value at an index, then write that same value to
+the same index, nothing should happen. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:setGet" class="def"
+	    >setGet</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#setGet" class="link"
+	    >Source</a
+	    > <a href="#v:setGet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If you write a bit value to an index, then retrieve the bit value at the
+same index, you should get back what you wrote. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:setSet" class="def"
+	    >setSet</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#setSet" class="link"
+	    >Source</a
+	    > <a href="#v:setSet" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If you write twice to the same bit index, the second write should win.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:writeBitsHomomorphismLaws" class="def"
+	    >writeBitsHomomorphismLaws</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#writeBitsHomomorphismLaws" class="link"
+	    >Source</a
+	    > <a href="#v:writeBitsHomomorphismLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that:</p
+	    ><ul
+	    ><li
+	      >Writing with an empty list of positions does nothing; and if you write a</li
+	      ><li
+	      >boolean b with one list of positions, then a second, it is the same as</li
+	      ><li
+	      >writing b with their concatenation. </li
+	      ></ul
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:replicateHomomorphismLaws" class="def"
+	    >replicateHomomorphismLaws</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#replicateHomomorphismLaws" class="link"
+	    >Source</a
+	    > <a href="#v:replicateHomomorphismLaws" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Checks that:</p
+	    ><ul
+	    ><li
+	      >Replicating any byte 0 times produces the empty <code
+		><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+		  >ByteString</a
+		  ></code
+		>; and</li
+	      ><li
+	      >Replicating a byte <code
+		>n</code
+		> times, then replicating a byte <code
+		>m</code
+		> times and
+  concatenating the results, is the same as replicating that byte <code
+		>n + m</code
+		>
+  times. </li
+	      ></ul
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:replicateIndex" class="def"
+	    >replicateIndex</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0122.html#replicateIndex" class="link"
+	    >Source</a
+	    > <a href="#v:replicateIndex" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Any call to <code
+	      >replicateByteString</code
+	      > must produce the same byte at
+every valid index, namely the byte specified. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
