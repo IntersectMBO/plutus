@@ -25,6 +25,7 @@ import Criterion.Main (Benchmark, bench, bgroup, whnf)
 import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
+import Data.Vector.Strict qualified as Vector
 
 type PlainTerm uni fun = UPLC.Term Name uni fun ()
 
@@ -64,6 +65,7 @@ copyData =
     Constr n l -> Constr (copyInteger n) (map copyData l)
     Map l -> Map $ map (bimap copyData copyData) l
     List l -> List (map copyData l)
+    Array v -> Array $ Vector.map copyData v
     I n -> I $ copyInteger n
     B b -> B $ copyByteString b
 {-# OPAQUE copyData #-}
@@ -221,6 +223,39 @@ mkApp6 fun tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force ->
       , mkConstant () t
       , mkConstant () u
       , mkConstant () v
+      ]
+  where
+    instantiated = mkIterInstNoAnn (builtin () fun) tys
+
+-- Create a term instantiating a builtin and applying it to seven arguments
+mkApp7
+  :: ( uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , uni `HasTermLevel` d
+     , uni `HasTermLevel` e
+     , uni `HasTermLevel` f
+     , uni `HasTermLevel` g
+     , NFData a
+     , NFData b
+     , NFData c
+     , NFData d
+     , NFData e
+     , NFData f
+     , NFData g
+     )
+  => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f -> g -> PlainTerm uni fun
+mkApp7 fun tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v) (force -> !w) =
+  eraseTerm $
+    mkIterAppNoAnn
+      instantiated
+      [ mkConstant () x
+      , mkConstant () y
+      , mkConstant () z
+      , mkConstant () t
+      , mkConstant () u
+      , mkConstant () v
+      , mkConstant () w
       ]
   where
     instantiated = mkIterInstNoAnn (builtin () fun) tys

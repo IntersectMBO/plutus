@@ -97,7 +97,7 @@ arity <- function(name) {
         "HeadList" = 1,
         "TailList" = 1,
         "NullList" = 1,
-        "ChooseData" = 6,
+        "ChooseData" = 7,
         "ConstrData" = 2,
         "MapData" = 1,
         "ListData" = 1,
@@ -106,6 +106,8 @@ arity <- function(name) {
         "UnConstrData" = 1,
         "UnMapData" = 1,
         "UnListData" = 1,
+        "ArrayData" = 1,
+        "UnArrayData" = 1,
         "UnIData" = 1,
         "UnBData" = 1,
         "EqualsData" = 2,
@@ -363,7 +365,7 @@ modelFun <- function(path) {
     ## appears to give a good trade-off between including the overhead in the
     ## cost of calling the benchmark and absorbing it in the cost of a CEK
     ## machine step.
-    nops <- c("Nop1o", "Nop2o", "Nop3o", "Nop4o", "Nop5o", "Nop6o")
+    nops <- c("Nop1o", "Nop2o", "Nop3o", "Nop4o", "Nop5o", "Nop6o", "Nop7o")
     overhead <- sapply(nops, get.mean.time)
 
     ## The next function discards the overhead for calling a builtin, as
@@ -679,6 +681,9 @@ modelFun <- function(path) {
     unConstrDataModel <- constantModel ("UnConstrData")
     unMapDataModel    <- constantModel ("UnMapData")
     unListDataModel   <- constantModel ("UnListData")
+    ## ArrayData and UnArrayData don't have benchmark data yet, use placeholders
+    arrayDataModel    <- list(type = "constant_cost", model = list(coefficients = c("(Intercept)" = 1)))
+    unArrayDataModel  <- list(type = "constant_cost", model = list(coefficients = c("(Intercept)" = 1)))
     unIDataModel      <- constantModel ("UnIData")
     unBDataModel      <- constantModel ("UnBData")
 
@@ -882,6 +887,8 @@ modelFun <- function(path) {
         unConstrDataModel                    = unConstrDataModel,
         unMapDataModel                       = unMapDataModel,
         unListDataModel                      = unListDataModel,
+        arrayDataModel                       = arrayDataModel,
+        unArrayDataModel                     = unArrayDataModel,
         unIDataModel                         = unIDataModel,
         unBDataModel                         = unBDataModel,
         equalsDataModel                      = equalsDataModel,

@@ -4,11 +4,16 @@ module Data.Vector.Orphans () where
 
 import Data.Hashable (Hashable (hashWithSalt))
 import Data.Vector.Strict qualified as Strict
+import NoThunks.Class (NoThunks (..))
 import PlutusCore.Flat (Flat (..))
 import PlutusCore.Flat.Instances.Vector ()
 
 instance Hashable a => Hashable (Strict.Vector a) where
   hashWithSalt = Strict.foldl' hashWithSalt
+
+instance NoThunks a => NoThunks (Strict.Vector a) where
+  wNoThunks ctx = wNoThunks ctx . Strict.toList
+  showTypeOf _proxy = "Strict.Vector"
 
 {- The `flat` library does not provide a `Flat` instance for
 `Vector.Strict.Vector`.  We could encode and decode strict vectors by converting

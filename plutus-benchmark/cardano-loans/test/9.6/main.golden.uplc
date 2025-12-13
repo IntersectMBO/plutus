@@ -171,6 +171,9 @@
                                                                                                                                                                                                              [  ])
                                                                                                                                                                                                         (\ds ->
                                                                                                                                                                                                            constr 1
+                                                                                                                                                                                                             [  ])
+                                                                                                                                                                                                        (\ds ->
+                                                                                                                                                                                                           constr 1
                                                                                                                                                                                                              [  ]))
                                                                                                                                                                                                    ds)
                                                                                                                                                                                                 [ (\arg ->
@@ -249,6 +252,9 @@
                                                                                                                                                                                                                                                           [  ]) ]) ])
                                                                                                                                                                                                                                        , (constr 1
                                                                                                                                                                                                                                             [  ]) ]) ])
+                                                                                                                                                                                                                             (\ds ->
+                                                                                                                                                                                                                                constr 1
+                                                                                                                                                                                                                                  [  ])
                                                                                                                                                                                                                              (\ds ->
                                                                                                                                                                                                                                 constr 1
                                                                                                                                                                                                                                   [  ])
@@ -483,6 +489,9 @@
                                                                                                                                                                                                                                                                                                                                                                                       [  ])
                                                                                                                                                                                                                                                                                                                                                                                  (\ds ->
                                                                                                                                                                                                                                                                                                                                                                                     constr 1
+                                                                                                                                                                                                                                                                                                                                                                                      [  ])
+                                                                                                                                                                                                                                                                                                                                                                                 (\ds ->
+                                                                                                                                                                                                                                                                                                                                                                                    constr 1
                                                                                                                                                                                                                                                                                                                                                                                       [  ]))
                                                                                                                                                                                                                                                                                                                                                                               [ (\arg ->
                                                                                                                                                                                                                                                                                                                                                                                    case
@@ -564,6 +573,9 @@
                                                                                                                                                                                                                                                                                                                                                                                                     [  ])
                                                                                                                                                                                                                                                                                                                                                                                                (\ds ->
                                                                                                                                                                                                                                                                                                                                                                                                   constr 1
+                                                                                                                                                                                                                                                                                                                                                                                                    [  ])
+                                                                                                                                                                                                                                                                                                                                                                                               (\ds ->
+                                                                                                                                                                                                                                                                                                                                                                                                  constr 1
                                                                                                                                                                                                                                                                                                                                                                                                     [  ]))
                                                                                                                                                                                                                                                                                                                                                                                             [ (\arg ->
                                                                                                                                                                                                                                                                                                                                                                                                  constr 0
@@ -578,6 +590,9 @@
                                                                                                                                                                                                                                                                                                                                                                                    [  ]) ]) ])
                                                                                                                                                                                                                                                                                                                                                                 , (constr 1
                                                                                                                                                                                                                                                                                                                                                                      [  ]) ]) ])
+                                                                                                                                                                                                                                                                                                                                                      (\ds ->
+                                                                                                                                                                                                                                                                                                                                                         constr 1
+                                                                                                                                                                                                                                                                                                                                                           [  ])
                                                                                                                                                                                                                                                                                                                                                       (\ds ->
                                                                                                                                                                                                                                                                                                                                                          constr 1
                                                                                                                                                                                                                                                                                                                                                            [  ])
@@ -883,6 +898,9 @@
                                                                                                                                                                                                                                                                                                                                                                                                           [  ])
                                                                                                                                                                                                                                                                                                                                                                                                      (\ds ->
                                                                                                                                                                                                                                                                                                                                                                                                         constr 1
+                                                                                                                                                                                                                                                                                                                                                                                                          [  ])
+                                                                                                                                                                                                                                                                                                                                                                                                     (\ds ->
+                                                                                                                                                                                                                                                                                                                                                                                                        constr 1
                                                                                                                                                                                                                                                                                                                                                                                                           [  ]))
                                                                                                                                                                                                                                                                                                                                                                                                 `$fFromDataBuiltinData_$cfromBuiltinData`
                                                                                                                                                                                                                                                                                                                                                                                                 ds)
@@ -978,6 +996,9 @@
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             , (constr 0
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  [ (constr 1
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       [  ]) ]) ])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                       (\ds ->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                          constr 1
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            [  ])
                                                                                                                                                                                                                                                                                                                                                                                                                                                                        (\ds ->
                                                                                                                                                                                                                                                                                                                                                                                                                                                                           constr 1
                                                                                                                                                                                                                                                                                                                                                                                                                                                                             [  ])
@@ -1131,6 +1152,9 @@
                                                                                                                                                                                                      [  ]) ]) ])
                                                                                                                                                                                   , (constr 1
                                                                                                                                                                                        [  ]) ]) ])
+                                                                                                                                                                        (\ds ->
+                                                                                                                                                                           constr 1
+                                                                                                                                                                             [  ])
                                                                                                                                                                         (\ds ->
                                                                                                                                                                            constr 1
                                                                                                                                                                              [  ])
@@ -1449,6 +1473,9 @@
                                                                                                                                                                                                          [  ])
                                                                                                                                                                                                     (\ds ->
                                                                                                                                                                                                        constr 1
+                                                                                                                                                                                                         [  ])
+                                                                                                                                                                                                    (\ds ->
+                                                                                                                                                                                                       constr 1
                                                                                                                                                                                                          [  ]))
                                                                                                                                                                                                  [ (\arg ->
                                                                                                                                                                                                       constr 0
@@ -1466,6 +1493,9 @@
                                                                                                                                                                           [  ]) ]) ])
                                                                                                                                                        , (constr 1
                                                                                                                                                             [  ]) ]) ])
+                                                                                                                                             (\ds ->
+                                                                                                                                                constr 1
+                                                                                                                                                  [  ])
                                                                                                                                              (\ds ->
                                                                                                                                                 constr 1
                                                                                                                                                   [  ])
@@ -1668,43 +1698,41 @@
                                                                                                                                                                                                                                                 (\cse ->
                                                                                                                                                                                                                                                    (\cse ->
                                                                                                                                                                                                                                                       (\cse ->
-                                                                                                                                                                                                                                                         (\cse ->
-                                                                                                                                                                                                                                                            case
-                                                                                                                                                                                                                                                              (case
-                                                                                                                                                                                                                                                                 (equalsInteger
+                                                                                                                                                                                                                                                         case
+                                                                                                                                                                                                                                                           (case
+                                                                                                                                                                                                                                                              (equalsInteger
+                                                                                                                                                                                                                                                                 (cse
+                                                                                                                                                                                                                                                                    cse)
+                                                                                                                                                                                                                                                                 (cse
                                                                                                                                                                                                                                                                     (cse
-                                                                                                                                                                                                                                                                       cse)
-                                                                                                                                                                                                                                                                    (cse
-                                                                                                                                                                                                                                                                       (cse
-                                                                                                                                                                                                                                                                          cse)))
-                                                                                                                                                                                                                                                                 [ (force
-                                                                                                                                                                                                                                                                      trace
-                                                                                                                                                                                                                                                                      "Offer beacons not burned"
-                                                                                                                                                                                                                                                                      False)
-                                                                                                                                                                                                                                                                 , True ])
-                                                                                                                                                                                                                                                              [ False
-                                                                                                                                                                                                                                                              , (case
-                                                                                                                                                                                                                                                                   (equalsInteger
+                                                                                                                                                                                                                                                                       cse)))
+                                                                                                                                                                                                                                                              [ (force
+                                                                                                                                                                                                                                                                   trace
+                                                                                                                                                                                                                                                                   "Offer beacons not burned"
+                                                                                                                                                                                                                                                                   False)
+                                                                                                                                                                                                                                                              , True ])
+                                                                                                                                                                                                                                                           [ False
+                                                                                                                                                                                                                                                           , (case
+                                                                                                                                                                                                                                                                (equalsInteger
+                                                                                                                                                                                                                                                                   (cse
+                                                                                                                                                                                                                                                                      cse)
+                                                                                                                                                                                                                                                                   (cse
                                                                                                                                                                                                                                                                       (cse
-                                                                                                                                                                                                                                                                         cse)
-                                                                                                                                                                                                                                                                      (cse
-                                                                                                                                                                                                                                                                         (cse
-                                                                                                                                                                                                                                                                            cse)))
-                                                                                                                                                                                                                                                                   [ (force
-                                                                                                                                                                                                                                                                        trace
-                                                                                                                                                                                                                                                                        "Lender IDs not burned"
-                                                                                                                                                                                                                                                                        False)
-                                                                                                                                                                                                                                                                   , True ]) ])
-                                                                                                                                                                                                                                                           (uncurry
-                                                                                                                                                                                                                                                              cse))
+                                                                                                                                                                                                                                                                         cse)))
+                                                                                                                                                                                                                                                                [ (force
+                                                                                                                                                                                                                                                                     trace
+                                                                                                                                                                                                                                                                     "Lender IDs not burned"
+                                                                                                                                                                                                                                                                     False)
+                                                                                                                                                                                                                                                                , True ]) ])
                                                                                                                                                                                                                                                         (uncurry
                                                                                                                                                                                                                                                            cse))
-                                                                                                                                                                                                                                                     (negate
-                                                                                                                                                                                                                                                        `$fAdditiveGroupInteger`))
+                                                                                                                                                                                                                                                     (uncurry
+                                                                                                                                                                                                                                                        (valueOf
+                                                                                                                                                                                                                                                           nt)))
                                                                                                                                                                                                                                                   (valueOf
                                                                                                                                                                                                                                                      nt))
-                                                                                                                                                                                                                                               (valueOf
-                                                                                                                                                                                                                                                  nt)) ])
+                                                                                                                                                                                                                                               (negate
+                                                                                                                                                                                                                                                  `$fAdditiveGroupInteger`)) ])
                                                                                                                                                                                                                                        (case
                                                                                                                                                                                                                                           loanDatum
                                                                                                                                                                                                                                           [ (\ds
@@ -2857,6 +2885,9 @@
                                                                                                                                                                            (\ds ->
                                                                                                                                                                               constr 1
                                                                                                                                                                                 [  ])
+                                                                                                                                                                           (\ds ->
+                                                                                                                                                                              constr 1
+                                                                                                                                                                                [  ])
                                                                                                                                                                            (constr 0
                                                                                                                                                                               [  ]))
                                                                                                                                                                         [ (\r ->
@@ -2914,6 +2945,9 @@
                                                                                                                                                                                 , (constr 0
                                                                                                                                                                                      [ (constr 2
                                                                                                                                                                                           [  ]) ]) ]) ])
+                                                                                                                                                                    (\ds ->
+                                                                                                                                                                       constr 1
+                                                                                                                                                                         [  ])
                                                                                                                                                                     (\ds ->
                                                                                                                                                                        constr 1
                                                                                                                                                                          [  ])
@@ -3141,6 +3175,9 @@
                                                                                                                     (\ds ->
                                                                                                                        constr 1
                                                                                                                          [  ])
+                                                                                                                    (\ds ->
+                                                                                                                       constr 1
+                                                                                                                         [  ])
                                                                                                                     (constr 0
                                                                                                                        [  ])))
                                                                                                             (\`$dFromData`
@@ -3204,6 +3241,9 @@
                                                                                                                       , (constr 0
                                                                                                                            [ (constr 1
                                                                                                                                 [  ]) ]) ])
+                                                                                                                 (\ds ->
+                                                                                                                    constr 1
+                                                                                                                      [  ])
                                                                                                                  (\ds ->
                                                                                                                     constr 1
                                                                                                                       [  ])
@@ -3458,6 +3498,9 @@
                                                                                                                                                                                                                                                                    [  ]) ]) ])
                                                                                                                                                                                                                                                 , (constr 1
                                                                                                                                                                                                                                                      [  ]) ]) ])
+                                                                                                                                                                                                                                      (\ds ->
+                                                                                                                                                                                                                                         constr 1
+                                                                                                                                                                                                                                           [  ])
                                                                                                                                                                                                                                       (\ds ->
                                                                                                                                                                                                                                          constr 1
                                                                                                                                                                                                                                            [  ])
@@ -3775,6 +3818,9 @@
                                                                                                                                                                                                                                                                   [  ])
                                                                                                                                                                                                                                                              (\ds ->
                                                                                                                                                                                                                                                                 constr 1
+                                                                                                                                                                                                                                                                  [  ])
+                                                                                                                                                                                                                                                             (\ds ->
+                                                                                                                                                                                                                                                                constr 1
                                                                                                                                                                                                                                                                   [  ]))
                                                                                                                                                                                                                                                           [ (\arg ->
                                                                                                                                                                                                                                                                constr 0
@@ -3828,6 +3874,9 @@
                                                                                                                                                                                  [  ])
                                                                                                                                                                             (\ds ->
                                                                                                                                                                                constr 1
+                                                                                                                                                                                 [  ])
+                                                                                                                                                                            (\ds ->
+                                                                                                                                                                               constr 1
                                                                                                                                                                                  [  ]))
                                                                                                                                                                          [ (\arg ->
                                                                                                                                                                               constr 0
@@ -3847,6 +3896,9 @@
                                                                                                                                            [  ]) ]) ])
                                                                                                                         , (constr 1
                                                                                                                              [  ]) ]) ])
+                                                                                                              (\ds ->
+                                                                                                                 constr 1
+                                                                                                                   [  ])
                                                                                                               (\ds ->
                                                                                                                  constr 1
                                                                                                                    [  ])
@@ -3950,6 +4002,9 @@
                                                                                                              [  ])
                                                                                                         (\ds ->
                                                                                                            constr 1
+                                                                                                             [  ])
+                                                                                                        (\ds ->
+                                                                                                           constr 1
                                                                                                              [  ])))
                                                                                                 (\`$dFromData` ->
                                                                                                    (\go
@@ -3974,6 +4029,12 @@
                                                                                                         (\ds ->
                                                                                                            go
                                                                                                              (unListData
+                                                                                                                d))
+                                                                                                        (\ds ->
+                                                                                                           (\ds ->
+                                                                                                              constr 1
+                                                                                                                [  ])
+                                                                                                             (unArrayData
                                                                                                                 d))
                                                                                                         (\ds ->
                                                                                                            (\ds ->
@@ -4813,6 +4874,9 @@
                                                                                                                                                          [  ])
                                                                                                                                                     (\ds ->
                                                                                                                                                        constr 1
+                                                                                                                                                         [  ])
+                                                                                                                                                    (\ds ->
+                                                                                                                                                       constr 1
                                                                                                                                                          [  ]))))))
                                                                                                                                (\ds ->
                                                                                                                                   constr 1
@@ -4825,7 +4889,13 @@
                                                                                                                                     [  ])
                                                                                                                                (\ds ->
                                                                                                                                   constr 1
+                                                                                                                                    [  ])
+                                                                                                                               (\ds ->
+                                                                                                                                  constr 1
                                                                                                                                     [  ]))))))))
+                                                                                                  (\ds ->
+                                                                                                     constr 1
+                                                                                                       [  ])
                                                                                                   (\ds ->
                                                                                                      constr 1
                                                                                                        [  ])
@@ -4945,6 +5015,9 @@
                                                                                                     [  ])
                                                                                                (\ds ->
                                                                                                   constr 1
+                                                                                                    [  ])
+                                                                                               (\ds ->
+                                                                                                  constr 1
                                                                                                     [  ])))
                                                                                        (\d ->
                                                                                           matchData'
@@ -5003,6 +5076,9 @@
                                                                                                                          [  ]) ]) ])
                                                                                                       , (constr 1
                                                                                                            [  ]) ]) ])
+                                                                                            (\ds ->
+                                                                                               constr 1
+                                                                                                 [  ])
                                                                                             (\ds ->
                                                                                                constr 1
                                                                                                  [  ])
@@ -5210,6 +5286,9 @@
                                                                                                                                                                        [  ])
                                                                                                                                                                   (\ds ->
                                                                                                                                                                      constr 1
+                                                                                                                                                                       [  ])
+                                                                                                                                                                  (\ds ->
+                                                                                                                                                                     constr 1
                                                                                                                                                                        [  ]))
                                                                                                                                                              ds)
                                                                                                                                                           [ (\arg ->
@@ -5225,6 +5304,9 @@
                                                                                                                                                  [  ]) ]) ])
                                                                                                                               , (constr 1
                                                                                                                                    [  ]) ]) ])
+                                                                                                                    (\ds ->
+                                                                                                                       constr 1
+                                                                                                                         [  ])
                                                                                                                     (\ds ->
                                                                                                                        constr 1
                                                                                                                          [  ])
@@ -5354,6 +5436,9 @@
                                                                                                                                                                    [  ])
                                                                                                                                                               (\ds ->
                                                                                                                                                                  constr 1
+                                                                                                                                                                   [  ])
+                                                                                                                                                              (\ds ->
+                                                                                                                                                                 constr 1
                                                                                                                                                                    [  ]))
                                                                                                                                                            [ (\arg ->
                                                                                                                                                                 case
@@ -5393,6 +5478,9 @@
                                                                                                                       [  ]) ]) ])
                                                                                                    , (constr 1
                                                                                                         [  ]) ]) ])
+                                                                                         (\ds ->
+                                                                                            constr 1
+                                                                                              [  ])
                                                                                          (\ds ->
                                                                                             constr 1
                                                                                               [  ])
@@ -5480,11 +5568,15 @@
                                                                                            [  ])
                                                                                       (\ds ->
                                                                                          constr 1
+                                                                                           [  ])
+                                                                                      (\ds ->
+                                                                                         constr 1
                                                                                            [  ])))
                                                                               (\d
                                                                                 constrCase
                                                                                 mapCase
                                                                                 listCase
+                                                                                arrayCase
                                                                                 iCase
                                                                                 bCase ->
                                                                                  force
@@ -5506,6 +5598,10 @@
                                                                                    (\ds ->
                                                                                       listCase
                                                                                         (unListData
+                                                                                           d))
+                                                                                   (\ds ->
+                                                                                      arrayCase
+                                                                                        (unArrayData
                                                                                            d))
                                                                                    (\ds ->
                                                                                       iCase
@@ -5574,6 +5670,9 @@
                                                                                 (\ds ->
                                                                                    constr 1
                                                                                      [  ])
+                                                                                (\ds ->
+                                                                                   constr 1
+                                                                                     [  ])
                                                                                 (constr 0
                                                                                    [  ])))
                                                                         (\`$dFromData`
@@ -5606,6 +5705,12 @@
                                                                                       constr 1
                                                                                         [  ])
                                                                                      (unListData
+                                                                                        d))
+                                                                                (\ds ->
+                                                                                   (\ds ->
+                                                                                      constr 1
+                                                                                        [  ])
+                                                                                     (unArrayData
                                                                                         d))
                                                                                 (\ds ->
                                                                                    (\ds ->
@@ -5770,6 +5875,12 @@
                                                                     (\ds ->
                                                                        constr 1
                                                                          [])
+                                                                      (unArrayData
+                                                                         d))
+                                                                 (\ds ->
+                                                                    (\ds ->
+                                                                       constr 1
+                                                                         [])
                                                                       (unIData
                                                                          d))
                                                                  (\ds ->
@@ -5849,6 +5960,8 @@
                                                                  constr 1 [])
                                                               (\ds ->
                                                                  constr 1 [])
+                                                              (\ds ->
+                                                                 constr 1 [])
                                                               (constr 0 [])))
                                                       (\d ->
                                                          force chooseData
@@ -5867,6 +5980,10 @@
                                                               (\ds ->
                                                                  constr 1 [])
                                                                 (unListData d))
+                                                           (\ds ->
+                                                              (\ds ->
+                                                                 constr 1 [])
+                                                                (unArrayData d))
                                                            (\ds ->
                                                               constr 0
                                                                 [(unIData d)])

@@ -14,6 +14,7 @@ module Main (main) where
 
 import LoadScriptEvents (eventsOf, loadEvents)
 
+import Data.Vector.Strict qualified as Vector
 import PlutusCore.Data as Data (Data (..))
 import PlutusCore.Default (DefaultUni (DefaultUniData), Some (..), ValueOf (..))
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
@@ -256,6 +257,7 @@ getDataInfo d =
           I n -> i & numInodes +~ 1 & maxIsize %~ max s & totalIsize +~ s where s = memU n
           B b -> i & numBnodes +~ 1 & maxBsize %~ max s & totalBsize +~ s where s = memU b
           List l -> foldr go i' l where i' = i & numLnodes +~ 1 & maxLlen %~ max (ilen l)
+          Data.Array v -> foldr go i' (Vector.toList v) where i' = i & numLnodes +~ 1 & maxLlen %~ max (ilen (Vector.toList v))
           Data.Constr _ l -> foldr go i' l where i' = i & numCnodes %~ (+ 1) & maxClen %~ max (ilen l)
           Map l ->
             let (a, b) = unzip l
@@ -266,6 +268,7 @@ getDataInfo d =
         I _ -> 1
         B _ -> 1
         List l -> 1 + depthList l
+        Data.Array v -> 1 + depthList (Vector.toList v)
         Data.Constr _ l -> 1 + depthList l
         Map l ->
           let (a, b) = unzip l

@@ -1,6 +1,7 @@
 (integer -> list data -> data) ->
 (list (pair data data) -> data) ->
 (list data -> data) ->
+(array data -> data) ->
 (integer -> data) ->
 (bytestring -> data) ->
 data ->

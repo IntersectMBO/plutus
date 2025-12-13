@@ -191,6 +191,7 @@ genDataFromSpine [] =
   oneof
     [ Constr <$> genConstrTag <*> pure []
     , pure $ List []
+    , pure $ Array Strict.empty
     , pure $ Map []
     ]
 genDataFromSpine [()] = oneof [I <$> arbitraryBuiltin, B <$> arbitraryBuiltin]
@@ -198,6 +199,7 @@ genDataFromSpine els =
   oneof
     [ Constr <$> genConstrTag <*> (multiSplit0 0.1 els >>= traverse genDataFromSpine)
     , List <$> (multiSplit0 0.1 els >>= traverse genDataFromSpine)
+    , Array . Strict.fromList <$> (multiSplit0 0.1 els >>= traverse genDataFromSpine)
     , do
         elss <- multiSplit1 els
         Map
@@ -263,6 +265,12 @@ instance ArbitraryBuiltin Data where
       concat
         [ ds
         , map List $ shrinkBuiltin ds
+        ]
+  shrinkBuiltin (Array v) =
+    pureIfNull (I 0) $
+      concat
+        [ Strict.toList v
+        , map (Array . Strict.fromList) $ shrinkBuiltin (Strict.toList v)
         ]
   shrinkBuiltin (B b) = pureIfNull (I 0) . map B $ shrinkBuiltin b
   shrinkBuiltin (I i) = map I $ shrinkBuiltin i

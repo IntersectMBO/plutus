@@ -9,6 +9,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module MAlonzo.Code.Utils where
 
@@ -34,10 +35,14 @@ import Raw
 import qualified Data.ByteString as BS
 import qualified Data.Vector.Strict as Strict
 import PlutusCore.Data as D
+import qualified Data.Vector.Strict as SV
 import qualified PlutusCore.Crypto.BLS12_381.G1 as G1
 import qualified PlutusCore.Crypto.BLS12_381.G2 as G2
 import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing
 type Pair a b = (a , b)
+pattern ArrayDATA :: [D.Data] -> D.Data
+pattern ArrayDATA xs <- D.Array (SV.toList -> xs) where
+  ArrayDATA xs = D.Array (SV.fromList xs)
 -- Utils.Either
 d_Either_6 a0 a1 = ()
 type T_Either_6 a0 a1 = Either a0 a1
@@ -549,8 +554,9 @@ type T_DATA_494 = Data
 pattern C_ConstrDATA_496 a0 a1 = D.Constr a0 a1
 pattern C_MapDATA_498 a0 = D.Map a0
 pattern C_ListDATA_500 a0 = D.List a0
-pattern C_iDATA_502 a0 = D.I a0
-pattern C_bDATA_504 a0 = D.B a0
+pattern C_ArrayDATA_502 a0 = ArrayDATA a0
+pattern C_iDATA_504 a0 = D.I a0
+pattern C_bDATA_506 a0 = D.B a0
 check_ConstrDATA_496 ::
   Integer -> T_List_384 T_DATA_494 -> T_DATA_494
 check_ConstrDATA_496 = D.Constr
@@ -559,65 +565,68 @@ check_MapDATA_498 ::
 check_MapDATA_498 = D.Map
 check_ListDATA_500 :: T_List_384 T_DATA_494 -> T_DATA_494
 check_ListDATA_500 = D.List
-check_iDATA_502 :: Integer -> T_DATA_494
-check_iDATA_502 = D.I
-check_bDATA_504 :: T_ByteString_356 -> T_DATA_494
-check_bDATA_504 = D.B
+check_ArrayDATA_502 :: T_List_384 T_DATA_494 -> T_DATA_494
+check_ArrayDATA_502 = ArrayDATA
+check_iDATA_504 :: Integer -> T_DATA_494
+check_iDATA_504 = D.I
+check_bDATA_506 :: T_ByteString_356 -> T_DATA_494
+check_bDATA_506 = D.B
 cover_DATA_494 :: Data -> ()
 cover_DATA_494 x
   = case x of
       D.Constr _ _ -> ()
       D.Map _ -> ()
       D.List _ -> ()
+      ArrayDATA _ -> ()
       D.I _ -> ()
       D.B _ -> ()
 -- Utils.eqDATA
-d_eqDATA_506 :: T_DATA_494 -> T_DATA_494 -> Bool
-d_eqDATA_506 = (==)
+d_eqDATA_508 :: T_DATA_494 -> T_DATA_494 -> Bool
+d_eqDATA_508 = (==)
 -- Utils.Bls12-381-G1-Element
-type T_Bls12'45'381'45'G1'45'Element_640 = G1.Element
-d_Bls12'45'381'45'G1'45'Element_640
+type T_Bls12'45'381'45'G1'45'Element_690 = G1.Element
+d_Bls12'45'381'45'G1'45'Element_690
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-G1-Element"
 -- Utils.eqBls12-381-G1-Element
-d_eqBls12'45'381'45'G1'45'Element_642 ::
-  T_Bls12'45'381'45'G1'45'Element_640 ->
-  T_Bls12'45'381'45'G1'45'Element_640 -> Bool
-d_eqBls12'45'381'45'G1'45'Element_642 = (==)
+d_eqBls12'45'381'45'G1'45'Element_692 ::
+  T_Bls12'45'381'45'G1'45'Element_690 ->
+  T_Bls12'45'381'45'G1'45'Element_690 -> Bool
+d_eqBls12'45'381'45'G1'45'Element_692 = (==)
 -- Utils.Bls12-381-G2-Element
-type T_Bls12'45'381'45'G2'45'Element_644 = G2.Element
-d_Bls12'45'381'45'G2'45'Element_644
+type T_Bls12'45'381'45'G2'45'Element_694 = G2.Element
+d_Bls12'45'381'45'G2'45'Element_694
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-G2-Element"
 -- Utils.eqBls12-381-G2-Element
-d_eqBls12'45'381'45'G2'45'Element_646 ::
-  T_Bls12'45'381'45'G2'45'Element_644 ->
-  T_Bls12'45'381'45'G2'45'Element_644 -> Bool
-d_eqBls12'45'381'45'G2'45'Element_646 = (==)
+d_eqBls12'45'381'45'G2'45'Element_696 ::
+  T_Bls12'45'381'45'G2'45'Element_694 ->
+  T_Bls12'45'381'45'G2'45'Element_694 -> Bool
+d_eqBls12'45'381'45'G2'45'Element_696 = (==)
 -- Utils.Bls12-381-MlResult
-type T_Bls12'45'381'45'MlResult_648 = Pairing.MlResult
-d_Bls12'45'381'45'MlResult_648
+type T_Bls12'45'381'45'MlResult_698 = Pairing.MlResult
+d_Bls12'45'381'45'MlResult_698
   = error
       "MAlonzo Runtime Error: postulate evaluated: Utils.Bls12-381-MlResult"
 -- Utils.eqBls12-381-MlResult
-d_eqBls12'45'381'45'MlResult_650 ::
-  T_Bls12'45'381'45'MlResult_648 ->
-  T_Bls12'45'381'45'MlResult_648 -> Bool
-d_eqBls12'45'381'45'MlResult_650 = (==)
+d_eqBls12'45'381'45'MlResult_700 ::
+  T_Bls12'45'381'45'MlResult_698 ->
+  T_Bls12'45'381'45'MlResult_698 -> Bool
+d_eqBls12'45'381'45'MlResult_700 = (==)
 -- Utils.Kind
-d_Kind_652 = ()
-type T_Kind_652 = KIND
-pattern C_'42'_654 = Star
-pattern C_'9839'_656 = Sharp
-pattern C__'8658'__658 a0 a1 = Arrow a0 a1
-check_'42'_654 :: T_Kind_652
-check_'42'_654 = Star
-check_'9839'_656 :: T_Kind_652
-check_'9839'_656 = Sharp
-check__'8658'__658 :: T_Kind_652 -> T_Kind_652 -> T_Kind_652
-check__'8658'__658 = Arrow
-cover_Kind_652 :: KIND -> ()
-cover_Kind_652 x
+d_Kind_702 = ()
+type T_Kind_702 = KIND
+pattern C_'42'_704 = Star
+pattern C_'9839'_706 = Sharp
+pattern C__'8658'__708 a0 a1 = Arrow a0 a1
+check_'42'_704 :: T_Kind_702
+check_'42'_704 = Star
+check_'9839'_706 :: T_Kind_702
+check_'9839'_706 = Sharp
+check__'8658'__708 :: T_Kind_702 -> T_Kind_702 -> T_Kind_702
+check__'8658'__708 = Arrow
+cover_Kind_702 :: KIND -> ()
+cover_Kind_702 x
   = case x of
       Star -> ()
       Sharp -> ()

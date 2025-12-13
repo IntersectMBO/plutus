@@ -926,7 +926,7 @@ du_decEq'45''8866'_54 v0 v1 v2
                     (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
              MAlonzo.Code.Untyped.C_builtin_44 v4
                -> let v5
-                        = MAlonzo.Code.Builtin.d_decBuiltin_426 (coe v3) (coe v4) in
+                        = MAlonzo.Code.Builtin.d_decBuiltin_430 (coe v3) (coe v4) in
                   coe
                     (case coe v5 of
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v6 v7
@@ -1178,7 +1178,7 @@ d_DecEq'45'Builtin_172 :: T_DecEq_6
 d_DecEq'45'Builtin_172
   = coe
       C_DecEq'46'constructor_11
-      (coe MAlonzo.Code.Builtin.d_decBuiltin_426)
+      (coe MAlonzo.Code.Builtin.d_decBuiltin_430)
 -- Untyped.Equality.DecEq-ℕ
 d_DecEq'45'ℕ_174 :: T_DecEq_6
 d_DecEq'45'ℕ_174
@@ -1525,24 +1525,24 @@ d_HsEqBlsG1_396 :: T_HsEq_26
 d_HsEqBlsG1_396
   = coe
       C_HsEq'46'constructor_57
-      (coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G1'45'Element_642)
+      (coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G1'45'Element_692)
 -- Untyped.Equality.HsEqBlsG2
 d_HsEqBlsG2_398 :: T_HsEq_26
 d_HsEqBlsG2_398
   = coe
       C_HsEq'46'constructor_57
-      (coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G2'45'Element_646)
+      (coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'G2'45'Element_696)
 -- Untyped.Equality.HsEqBlsMlResult
 d_HsEqBlsMlResult_400 :: T_HsEq_26
 d_HsEqBlsMlResult_400
   = coe
       C_HsEq'46'constructor_57
-      (coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'MlResult_650)
+      (coe MAlonzo.Code.Utils.d_eqBls12'45'381'45'MlResult_700)
 -- Untyped.Equality.HsEqDATA
 d_HsEqDATA_402 :: T_HsEq_26
 d_HsEqDATA_402
   = coe
-      C_HsEq'46'constructor_57 (coe MAlonzo.Code.Utils.d_eqDATA_506)
+      C_HsEq'46'constructor_57 (coe MAlonzo.Code.Utils.d_eqDATA_508)
 -- Untyped.Equality.HsEq-⟦_⟧tag
 d_HsEq'45''10214'_'10215'tag_406 ::
   MAlonzo.Code.Builtin.Signature.T__'8866''9839'_4 -> T_HsEq_26

@@ -276,11 +276,19 @@ data DATA : Set where
   ConstrDATA :  I.ℤ → List DATA → DATA
   MapDATA : List (DATA × DATA) → DATA
   ListDATA : List DATA → DATA
+  ArrayDATA : List DATA → DATA
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
 {-# FOREIGN GHC import PlutusCore.Data as D #-}
-{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
+{-# FOREIGN GHC import qualified Data.Vector.Strict as SV #-}
+{-# FOREIGN GHC {-# LANGUAGE ViewPatterns #-} #-}
+{-# FOREIGN GHC
+  pattern ArrayDATA :: [D.Data] -> D.Data
+  pattern ArrayDATA xs <- D.Array (SV.toList -> xs) where
+    ArrayDATA xs = D.Array (SV.fromList xs)
+  #-}
+{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | ArrayDATA | D.I | D.B)   #-}
 
 -- Agda implementation should only be used as part of deciding builtin equality.
 -- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".
@@ -292,6 +300,7 @@ eqDATA (ConstrDATA i₁ l₁) (ConstrDATA i₂ l₂) =
     L.and (L.zipWith eqDATA (toList l₁) (toList l₂))
 eqDATA (ConstrDATA x x₁) (MapDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (ListDATA x₂) = Bool.false
+eqDATA (ConstrDATA x x₁) (ArrayDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (iDATA x₂) = Bool.false
 eqDATA (ConstrDATA x x₁) (bDATA x₂) = Bool.false
 eqDATA (MapDATA x) (ConstrDATA x₁ x₂) = Bool.false
@@ -303,21 +312,31 @@ eqDATA (MapDATA m₁) (MapDATA m₂) =
       (toList m₂)
     )
 eqDATA (MapDATA x) (ListDATA x₁) = Bool.false
+eqDATA (MapDATA x) (ArrayDATA x₁) = Bool.false
 eqDATA (MapDATA x) (iDATA x₁) = Bool.false
 eqDATA (MapDATA x) (bDATA x₁) = Bool.false
 eqDATA (ListDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (ListDATA x) (MapDATA x₁) = Bool.false
 eqDATA (ListDATA x) (ListDATA x₁) = L.and (L.zipWith eqDATA (toList x) (toList x₁))
+eqDATA (ListDATA x) (ArrayDATA x₁) = Bool.false
 eqDATA (ListDATA x) (iDATA x₁) = Bool.false
 eqDATA (ListDATA x) (bDATA x₁) = Bool.false
+eqDATA (ArrayDATA x) (ConstrDATA x₁ x₂) = Bool.false
+eqDATA (ArrayDATA x) (MapDATA x₁) = Bool.false
+eqDATA (ArrayDATA x) (ListDATA x₁) = Bool.false
+eqDATA (ArrayDATA x) (ArrayDATA x₁) = L.and (L.zipWith eqDATA (toList x) (toList x₁))
+eqDATA (ArrayDATA x) (iDATA x₁) = Bool.false
+eqDATA (ArrayDATA x) (bDATA x₁) = Bool.false
 eqDATA (iDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (iDATA x) (MapDATA x₁) = Bool.false
 eqDATA (iDATA x) (ListDATA x₁) = Bool.false
+eqDATA (iDATA x) (ArrayDATA x₁) = Bool.false
 eqDATA (iDATA i₁) (iDATA i₂) = Relation.Nullary.isYes (i₁ Data.Integer.≟ i₂)
 eqDATA (iDATA x) (bDATA x₁) = Bool.false
 eqDATA (bDATA x) (ConstrDATA x₁ x₂) = Bool.false
 eqDATA (bDATA x) (MapDATA x₁) = Bool.false
 eqDATA (bDATA x) (ListDATA x₁) = Bool.false
+eqDATA (bDATA x) (ArrayDATA x₁) = Bool.false
 eqDATA (bDATA x) (iDATA x₁) = Bool.false
 -- Warning: eqByteString is always trivially true at the Agda level.
 -- See "Decidable Equality of Builtins" in "VerifiedCompilation.Equality".

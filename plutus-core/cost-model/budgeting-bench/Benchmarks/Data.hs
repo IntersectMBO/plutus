@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Benchmarks.Data (makeBenchmarks) where
 
@@ -6,9 +7,11 @@ import Common
 import Generators
 
 import PlutusCore hiding (Constr)
+import PlutusCore.Builtin (mkTyBuiltin)
 import PlutusCore.Data
 
 import Criterion.Main
+import Data.Vector.Strict (Vector)
 import System.Random (StdGen)
 
 {-| Benchmarks for builtins operating on Data.  Recall that Data is defined by
@@ -17,6 +20,7 @@ import System.Random (StdGen)
            Constr Integer [Data]
          | Map [(Data, Data)]
          | List [Data]
+         | Array (Vector Data)
          | I Integer
          | B ByteString -}
 isConstr :: Data -> Bool
@@ -33,6 +37,9 @@ isI = \case I {} -> True; _ -> False
 
 isB :: Data -> Bool
 isB = \case B {} -> True; _ -> False
+
+isArray :: Data -> Bool
+isArray = \case Array {} -> True; _ -> False
 
 ---------------- ChooseData ----------------
 
@@ -72,13 +79,19 @@ benchMapData = createOneTermBuiltinBench MapData [] pairs
     pairs = take 50 . map unMap $ filter isMap dataSample
     unMap = \case Map l -> l; _ -> error "Expected Map"
 
---
 -- Apply List
 benchListData :: Benchmark
 benchListData = createOneTermBuiltinBench ListData [] lists
   where
     lists = take 50 . map unList $ filter isList dataSample
     unList = \case List l -> l; _ -> error "Expected List"
+
+-- Apply Array - wraps a typed builtin array into Data.Array
+benchArrayData :: Benchmark
+benchArrayData = createOneTermBuiltinBench ArrayData [tyArrayOfData] arrays
+  where
+    arrays = take 50 . map unArray $ filter isArray dataSample
+    unArray = \case Array v -> v; _ -> error "Expected Array"
 
 -- Apply I
 benchIData :: Benchmark
@@ -116,6 +129,12 @@ benchUnListData = createOneTermBuiltinBench UnListData [] listData
   where
     listData = take 100 $ filter isList dataSample
 
+-- Match against Array, failing otherwise
+benchUnArrayData :: Benchmark
+benchUnArrayData = createOneTermBuiltinBench UnArrayData [] arrayData
+  where
+    arrayData = take 100 $ filter isArray dataSample
+
 -- Match against I, failing otherwise
 benchUnIData :: Benchmark
 benchUnIData = createOneTermBuiltinBench UnIData [] idata
@@ -149,17 +168,28 @@ benchSerialiseData =
 -- does the internal structure of a Data object influence serialisation
 -- time?  What causes a Data object to be quick or slow to serialise?
 
+--------------------------------------------------------------------------------
+-- Helpers ---------------------------------------------------------------------
+
+tyArrayOfData :: Type TyName DefaultUni ()
+tyArrayOfData = mkTyBuiltin @_ @(Vector Data) ()
+
+--------------------------------------------------------------------------------
+-- Main Benchmark Suite --------------------------------------------------------
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
   [ benchChooseData
   , benchConstrData gen
   , benchMapData
   , benchListData
+  , benchArrayData
   , benchIData
   , benchBData
   , benchUnConstrData
   , benchUnMapData
   , benchUnListData
+  , benchUnArrayData
   , benchUnIData
   , benchUnBData
   , benchEqualsData

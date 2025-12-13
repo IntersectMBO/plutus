@@ -58,11 +58,13 @@ module PlutusTx.Builtins
   , mkConstr
   , mkMap
   , mkList
+  , mkArray
   , mkI
   , mkB
   , unsafeDataAsConstr
   , unsafeDataAsMap
   , unsafeDataAsList
+  , unsafeDataAsArray
   , unsafeDataAsI
   , unsafeDataAsB
   , BI.builtinDataToData
@@ -173,7 +175,8 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.HasBuiltin
 import PlutusTx.Builtins.HasOpaque
 import PlutusTx.Builtins.Internal
-  ( BuiltinBLS12_381_G1_Element (..)
+  ( BuiltinArray
+  , BuiltinBLS12_381_G1_Element (..)
   , BuiltinBLS12_381_G2_Element (..)
   , BuiltinBLS12_381_MlResult (..)
   , BuiltinByteString (..)
@@ -503,9 +506,9 @@ sopListToArray :: (HasToOpaque a arep, MkNil arep) => [a] -> BI.BuiltinArray are
 sopListToArray l = BI.listToArray (toOpaque l)
 {-# INLINEABLE sopListToArray #-}
 
-{-| Given five values for the five different constructors of 'BuiltinData', selects
+{-| Given six values for the six different constructors of 'BuiltinData', selects
 one depending on which corresponds to the actual constructor of the given value. -}
-chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a
+chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a -> a
 chooseData = BI.chooseData
 {-# INLINEABLE chooseData #-}
 
@@ -528,6 +531,11 @@ mkMap es = BI.mkMap (toOpaque es)
 mkList :: [BuiltinData] -> BuiltinData
 mkList l = BI.mkList (toOpaque l)
 {-# INLINEABLE mkList #-}
+
+-- | Constructs a 'BuiltinData' value with the @Array@ constructor.
+mkArray :: BuiltinArray BuiltinData -> BuiltinData
+mkArray = BI.mkArray
+{-# INLINEABLE mkArray #-}
 
 -- | Constructs a 'BuiltinData' value with the @I@ constructor.
 mkI :: Integer -> BuiltinData
@@ -554,6 +562,11 @@ unsafeDataAsList :: BuiltinData -> [BuiltinData]
 unsafeDataAsList d = fromOpaque (BI.unsafeDataAsList d)
 {-# INLINEABLE unsafeDataAsList #-}
 
+-- | Deconstructs a 'BuiltinData' as an @Array@, or fails if it is not one.
+unsafeDataAsArray :: BuiltinData -> BuiltinArray BuiltinData
+unsafeDataAsArray = BI.unsafeDataAsArray
+{-# INLINEABLE unsafeDataAsArray #-}
+
 -- | Deconstructs a 'BuiltinData' as an @I@, or fails if it is not one.
 unsafeDataAsI :: BuiltinData -> Integer
 unsafeDataAsI d = fromOpaque (BI.unsafeDataAsI d)
@@ -569,43 +582,53 @@ equalsData :: BuiltinData -> BuiltinData -> Bool
 equalsData d1 d2 = fromOpaque (BI.equalsData d1 d2)
 {-# INLINEABLE equalsData #-}
 
+{-| Given a 'BuiltinData' value and matching functions for the six constructors,
+applies the appropriate matcher to the arguments of the constructor and returns the result.
+
+Note: This function uses 'chooseData' with thunk-wrapped branches to ensure lazy evaluation
+in off-chain Haskell code. The thunks (@(\() -> ...)@) prevent eager evaluation of all
+branches - only the selected branch is forced when the final @()@ is applied. On-chain,
+the PlutusTx plugin compiles this to use the 'ChooseData' builtin which is inherently lazy. -}
 matchData'
   :: BuiltinData
   -> (Integer -> BI.BuiltinList BuiltinData -> r)
   -> (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> r)
   -> (BI.BuiltinList BuiltinData -> r)
+  -> (BI.BuiltinArray BuiltinData -> r)
   -> (Integer -> r)
   -> (BuiltinByteString -> r)
   -> r
--- See Note [Making arguments non-strict in case and match functions]
-matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+matchData' d ~constrCase ~mapCase ~listCase ~arrayCase ~iCase ~bCase =
   chooseData
     d
     (\_ -> BI.casePair (BI.unsafeDataAsConstr d) (\l r -> constrCase l r))
     (\_ -> mapCase (BI.unsafeDataAsMap d))
     (\_ -> listCase (BI.unsafeDataAsList d))
+    (\_ -> arrayCase (BI.unsafeDataAsArray d))
     (\_ -> iCase (unsafeDataAsI d))
     (\_ -> bCase (unsafeDataAsB d))
     ()
 {-# INLINEABLE matchData' #-}
 
-{-| Given a 'BuiltinData' value and matching functions for the five constructors,
+{-| Given a 'BuiltinData' value and matching functions for the six constructors,
 applies the appropriate matcher to the arguments of the constructor and returns the result. -}
 matchData
   :: BuiltinData
   -> (Integer -> [BuiltinData] -> r)
   -> ([(BuiltinData, BuiltinData)] -> r)
   -> ([BuiltinData] -> r)
+  -> (BuiltinArray BuiltinData -> r)
   -> (Integer -> r)
   -> (BuiltinByteString -> r)
   -> r
 -- See Note [Making arguments non-strict in case and match functions]
-matchData d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+matchData d ~constrCase ~mapCase ~listCase ~arrayCase ~iCase ~bCase =
   matchData'
     d
     (\i ds -> constrCase i (fromOpaque ds))
     (\ps -> mapCase (fromOpaque ps))
     (\ds -> listCase (fromOpaque ds))
+    arrayCase
     iCase
     bCase
 {-# INLINEABLE matchData #-}

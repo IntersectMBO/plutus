@@ -72,6 +72,10 @@ data NopFun
   | Nop4o
   | Nop5o
   | Nop6o
+  | Nop7b -- 7-argument nops
+  | Nop7i
+  | Nop7c
+  | Nop7o
   deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
   deriving anyclass (PrettyBy PrettyConfigPlc)
 
@@ -86,6 +90,7 @@ data NopCostModel
   , paramNop4 :: CostingFun ModelFourArguments
   , paramNop5 :: CostingFun ModelFiveArguments
   , paramNop6 :: CostingFun ModelSixArguments
+  , paramNop7 :: CostingFun ModelSevenArguments
   }
 
 {-| A fake cost model for nops.  This is just to make sure that the overhead of
@@ -119,6 +124,10 @@ nopCostModel =
         CostingFun
           (ModelSixArgumentsConstantCost 2250000)
           (ModelSixArgumentsConstantCost 600)
+    , paramNop7 =
+        CostingFun
+          (ModelSevenArgumentsConstantCost 2500000)
+          (ModelSevenArgumentsConstantCost 700)
     }
 
 nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
@@ -298,6 +307,34 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
        )
       (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
       (runCostingFunSixArguments . paramNop6)
+  -- 7-argument nops
+  toBuiltinMeaning _semvar Nop7b =
+    makeBuiltinMeaning
+      @(Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool -> Bool)
+      (\_ _ _ _ _ _ _ -> True)
+      (runCostingFunSevenArguments . paramNop7)
+  toBuiltinMeaning _semvar Nop7i =
+    makeBuiltinMeaning
+      @(Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer -> Integer)
+      (\_ _ _ _ _ _ _ -> 77)
+      (runCostingFunSevenArguments . paramNop7)
+  toBuiltinMeaning _semvar Nop7c =
+    makeBuiltinMeaning
+      (\c1 c2 c3 c4 c5 c6 c7 -> c1 >: c2 >: c3 >: c4 >: c5 >: c6 >: c7 >: BuiltinSuccess 77)
+      (runCostingFunSevenArguments . paramNop7)
+  toBuiltinMeaning _semvar Nop7o =
+    makeBuiltinMeaning
+      @( Opaque val Integer
+         -> Opaque val Integer
+         -> Opaque val Integer
+         -> Opaque val Integer
+         -> Opaque val Integer
+         -> Opaque val Integer
+         -> Opaque val Integer
+         -> Opaque val Integer
+       )
+      (\_ _ _ _ _ _ _ -> fromValueOf DefaultUniInteger 77)
+      (runCostingFunSevenArguments . paramNop7)
 
 instance Default (BuiltinSemanticsVariant NopFun) where
   def = NopFunSemanticsVariantX
@@ -452,25 +489,66 @@ benchNop6 nop rand gen =
             ]
         ]
 
+benchNop7
+  :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
+  => NopFun
+  -> (StdGen -> (a, StdGen))
+  -> StdGen
+  -> Benchmark
+benchNop7 nop rand gen =
+  let (x, gen1) = rand gen
+      (y, gen2) = rand gen1
+      (z, gen3) = rand gen2
+      (t, gen4) = rand gen3
+      (u, gen5) = rand gen4
+      (v, gen6) = rand gen5
+      (w, _) = rand gen6
+   in bgroup
+        (show nop)
+        [ bgroup
+            (showMemoryUsage x)
+            [ bgroup
+                (showMemoryUsage y)
+                [ bgroup
+                    (showMemoryUsage z)
+                    [ bgroup
+                        (showMemoryUsage t)
+                        [ bgroup
+                            (showMemoryUsage u)
+                            [ bgroup
+                                (showMemoryUsage v)
+                                [ benchWith
+                                    nopCostParameters
+                                    (showMemoryUsage w)
+                                    $ mkApp7 nop [] x y z t u v w
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
 -- | The actual benchmarks
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
   [benchUnitTerm]
-    ++ mkBMs mkBmB (Nop1b, Nop2b, Nop3b, Nop4b, Nop5b, Nop6b)
-    ++ mkBMs mkBmI (Nop1i, Nop2i, Nop3i, Nop4i, Nop5i, Nop6i)
-    ++ mkBMs mkBmI (Nop1c, Nop2c, Nop3c, Nop4c, Nop5c, Nop6c)
-    ++ mkBMs mkBmI (Nop1o, Nop2o, Nop3o, Nop4o, Nop5o, Nop6o)
+    ++ mkBMs mkBmB (Nop1b, Nop2b, Nop3b, Nop4b, Nop5b, Nop6b, Nop7b)
+    ++ mkBMs mkBmI (Nop1i, Nop2i, Nop3i, Nop4i, Nop5i, Nop6i, Nop7i)
+    ++ mkBMs mkBmI (Nop1c, Nop2c, Nop3c, Nop4c, Nop5c, Nop6c, Nop7c)
+    ++ mkBMs mkBmI (Nop1o, Nop2o, Nop3o, Nop4o, Nop5o, Nop6o, Nop7o)
   where
     -- The subsidiary functions below make it a lot easier to see that we're
     -- benchmarking the right things with the right benchmarking functions.
     -- Maybe we could use some TH instead.
-    mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6) =
+    mkBMs mkBM (nop1, nop2, nop3, nop4, nop5, nop6, nop7) =
       [ mkBM benchNop1 nop1
       , mkBM benchNop2 nop2
       , mkBM benchNop3 nop3
       , mkBM benchNop4 nop4
       , mkBM benchNop5 nop5
       , mkBM benchNop6 nop6
+      , mkBM benchNop7 nop7
       ]
     mkBmB benchfn nop = benchfn nop randBool gen
     mkBmI benchfn nop = benchfn nop (randNwords 1) gen

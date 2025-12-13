@@ -9,9 +9,12 @@ module PlutusLedgerApi.Test.V2.Data.EvaluationContext
   , clearBuiltinCostModel
   ) where
 
+import PlutusCore.Default qualified as PLC
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLCE
 import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusLedgerApi.Common (showParamName)
 import PlutusLedgerApi.Data.V2 qualified as V2
 import PlutusLedgerApi.Test.Common.EvaluationContext as Common
 import PlutusLedgerApi.Test.V3.Data.EvaluationContext qualified as V3
@@ -25,9 +28,15 @@ import GHC.Stack (HasCallStack)
 Suitable to be used in testing. -}
 costModelParamsForTesting :: HasCallStack => [(V2.ParamName, Int64)]
 costModelParamsForTesting =
-  case Common.extractCostModelParamsLedgerOrder mCostModel of
-    Nothing -> error "extractCostModelParamsLedgerOrder (V2): nothing extracted"
-    Just xs -> Map.toList xs
+  let params =
+        fromMaybe (error "defaultCostModelParamsForVariant (V2): nothing extracted") $
+          PLCE.defaultCostModelParamsForVariant PLC.DefaultFunSemanticsVariantB
+      lookupParam :: V2.ParamName -> (V2.ParamName, Int64)
+      lookupParam name =
+        case Map.lookup (showParamName name) params of
+          Nothing -> error $ "No entry for " ++ show (showParamName name) ++ " in cost model"
+          Just n -> (name, n)
+   in fmap lookupParam ([minBound .. maxBound] :: [V2.ParamName])
 
 -- | The PlutusV2 "cost model" is constructed by the v3 "cost model", by clearing v3 introductions.
 mCostModel :: MCostModel

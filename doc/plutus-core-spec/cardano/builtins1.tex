@@ -81,6 +81,7 @@ Haskell as
       Constr Integer [Data]
       | Map [(Data, Data)]
       | List [Data]
+      | Array (Vector Data)
       | I Integer
       | B ByteString
 \end{alltt}
@@ -88,9 +89,10 @@ Haskell as
 \noindent In set-theoretic terms the denotation of $\ty{data}$ is
 defined to be the least fixed point of the endofunctor $F$ on the category of
 sets given by $F(X) = (\denote{\ty{integer}} \times X^*) \disj (X \times X)^* \disj
-X^* \disj \denote{\ty{integer}} \disj \denote{\ty{bytestring}}$, so that
+X^* \disj X^* \disj \denote{\ty{integer}} \disj \denote{\ty{bytestring}}$, so that
 $$ \denote{\ty{data}} = (\denote{\ty{integer}} \times \denote{\ty{data}}^*)
                \disj (\denote{\ty{data}} \times \denote{\ty{data}})^*
+               \disj \denote{\ty{data}}^*
                \disj \denote{\ty{data}}^*
                \disj \denote{\ty{integer}}
                \disj \denote{\ty{bytestring}}.
@@ -100,6 +102,7 @@ We have injections
   \inj_C: \denote{\ty{integer}} \times \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
   \inj_M: (\denote{\ty{data}} \times \denote{\ty{data}})^*  & \to \denote{\ty{data}} \\
   \inj_L: \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
+  \inj_A: \denote{\ty{data}}^* & \to \denote{\ty{data}} \\
   \inj_I: \denote{\ty{integer}} & \to \denote{\ty{data}} \\
   inj_B: \denote{\ty{bytestring}} & \to \denote{\ty{data}} \\
 \end{align*}
@@ -108,6 +111,7 @@ We have injections
   \proj_C: \denote{\ty{data}} & \to \withError{(\denote{\ty{integer}} \times \denote{\ty{data}}^*)}\\
   \proj_M: \denote{\ty{data}} & \to \withError{(\denote{\ty{data}} \times \denote{\ty{data}})^*}\\
   \proj_L: \denote{\ty{data}} & \to \withError{\denote{\ty{data}}^* }\\
+  \proj_A: \denote{\ty{data}} & \to \withError{\denote{\ty{data}}^* }\\
   \proj_I: \denote{\ty{data}} & \to \withError{\denote{\ty{integer}}}\\
   \proj_B: \denote{\ty{data}} & \to \withError{\denote{\ty{bytestring}} }\\
 \end{align*}
@@ -115,7 +119,7 @@ We have injections
 $D$, returning $\errorX$ if $D$ does not lie in the expected component of the
 disjoint union; also there are functions
 $$
-\is_C, \is_M, \is_L, \is_I, \is_B: \denote{\ty{data}} \to \denote{\ty{bool}}
+\is_C, \is_M, \is_L, \is_A, \is_I, \is_B: \denote{\ty{data}} \to \denote{\ty{bool}}
 $$
 \noindent which determine whether a $\ty{data}$ value lies in the relevant component.
 
@@ -149,6 +153,7 @@ The concrete syntax for $\ty{data}$ is given by
     \syn{data} & ::= & \texttt{(Constr} \ \syn{integer} \ \syn{list(data)} \texttt{)}\\
                &  & \texttt{(Map} \ \syn{list(pair(data,data))} \texttt{)}\\
                &  & \texttt{(List} \ \syn{list(data)} \texttt{)}\\
+               &  & \texttt{(Array} \ \syn{list(data)} \texttt{)}\\
                &  & \texttt{(I} \ \syn{integer} \texttt{)}\\
                &  & \texttt{(B} \ \syn{bytestring} \texttt{)}.
     \end{array}\]
@@ -274,8 +279,8 @@ it applies at each possible monomorphisation in an obvious way.
                                         &  \text{$[] \mapsto \errorX$,} \text{$ [x_1,x_2, \ldots, x_n] \mapsto [x_2, \ldots, x_n]$} & Yes & \ref{note:list-semantics}\\[2mm]
     \TT{nullList}                 & $[\forall a_\#, \listOf{a_\#}] \to \ty{bool}$            & $ [] \mapsto \true,
                                                                                                     [x_1,\ldots, x_n] \mapsto \false$ & No & \ref{note:list-semantics} \\[2mm]
-    \TT{chooseData}               & $[\forall\star, \ty{data}, \star, \star, \star, \star, \star] \to \star$
-    & $ (d,t_C, t_M, t_L, t_I, t_B) $
+    \TT{chooseData}               & $[\forall\star, \ty{data}, \star, \star, \star, \star, \star, \star] \to \star$
+    & $ (d,t_C, t_M, t_L, t_A, t_I, t_B) $
     \smallskip
     \newline  % The big \{ was abutting the text above
     \text{$\;\;\mapsto
@@ -283,17 +288,20 @@ it applies at each possible monomorphisation in an obvious way.
                  t_C  & \text{if $\is_C(d)$} \\
                  t_M  & \text{if $\is_M(d)$} \\
                  t_L  & \text{if $\is_L(d)$} \\
+                 t_A  & \text{if $\is_A(d)$} \\
                  t_I  & \text{if $\is_I(d)$} \\
                  t_B  & \text{if $\is_B(d)$} \\
                \end{array}\right.$}  & No & \\
     \TT{constrData}               & $[\ty{integer}, \listOf{\ty{data}}] \to \ty{data}$          & $\inj_C$ & No & \\[2mm]
-    \TT{mapData}                  & $[\listOf{\pairOf{\ty{data}}{\ty{data}}}$ \text{$\;\; \to \ty{data}$}     & $\inj_M$ & No & \\[2mm]
+    \TT{mapData}                  & $[\listOf{\pairOf{\ty{data}}{\ty{data}}}] \to \ty{data}$     & $\inj_M$ & No & \\[2mm]
     \TT{listData}                 & $[\listOf{\ty{data}}] \to \ty{data} $      & $\inj_L$ & No & \\[2mm]
+    \TT{arrayData}                & $[\arrayOf{\ty{data}}] \to \ty{data} $      & $\inj_A$ & No & \\[2mm]
     \TT{iData}                    & $[\ty{integer}] \to \ty{data} $            & $\inj_I$ & No & \\[2mm]
     \TT{bData}                    & $[\ty{bytestring}] \to \ty{data} $         & $\inj_B$& No & \\[2mm]
     \TT{unConstrData}             & $[\ty{data}]$ \text{$\;\; \to \pairOf{\ty{integer}}{\listOf{\ty{data}}}$} & $\proj_C$ & Yes & \\[2mm]
     \TT{unMapData}                & $[\ty{data}]$ \text{$\;\; \to \listOf{\pairOf{\ty{data}}{\ty{data}}}$}  & $\proj_M$ & Yes & \\[2mm]
     \TT{unListData}               & $[\ty{data}] \to \listOf{\ty{data}} $                          & $\proj_L$ & Yes & \\[2mm]
+    \TT{unArrayData}              & $[\ty{data}] \to \arrayOf{\ty{data}} $                          & $\proj_A$ & Yes & \\[2mm]
     \TT{unIData}                  & $[\ty{data}] \to \ty{integer} $                                & $\proj_I$ & Yes & \\[2mm]
     \TT{unBData}                  & $[\ty{data}] \to \ty{bytestring} $                             & $\proj_B$ & Yes & \\[2mm]
     \TT{equalsData}               & $[\ty{data}, \ty{data}] \to \ty{bool} $                        & $ = $ & & \\[2mm]

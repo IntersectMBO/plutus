@@ -42,6 +42,7 @@ import Data.Map qualified as Map
 import Data.Stream qualified as Stream
 import Data.Text qualified as Text
 import Data.Text.Encoding (decodeUtf8)
+import Data.Vector.Strict qualified as Vector
 import PlutusCore
 import PlutusCore.Data
 import PlutusCore.Default
@@ -116,6 +117,10 @@ data TermConstantG
   | TmUnitG ()
   | TmDataG Data
   deriving stock (Show, Eq)
+
+-- | Enumerate vectors by converting from lists
+instance Enumerable a => Enumerable (Vector.Vector a) where
+  enumerate = share $ Vector.fromList <$> access
 
 deriveEnumerable ''Data
 

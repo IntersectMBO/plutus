@@ -134,6 +134,7 @@ conDataNoParens =
     [ symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
     , symbol "Map" *> (Map <$> conList knownUni)
     , symbol "List" *> (List <$> conList knownUni)
+    , symbol "Array" *> (Array <$> conArray knownUni)
     , symbol "I" *> (I <$> conInteger)
     , symbol "B" *> (B <$> conBS)
     ]

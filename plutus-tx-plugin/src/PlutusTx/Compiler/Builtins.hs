@@ -245,11 +245,13 @@ builtinNames =
   , 'Builtins.mkConstr
   , 'Builtins.mkMap
   , 'Builtins.mkList
+  , 'Builtins.mkArray
   , 'Builtins.mkI
   , 'Builtins.mkB
   , 'Builtins.unsafeDataAsConstr
   , 'Builtins.unsafeDataAsMap
   , 'Builtins.unsafeDataAsList
+  , 'Builtins.unsafeDataAsArray
   , 'Builtins.unsafeDataAsB
   , 'Builtins.unsafeDataAsI
   , ''Builtins.BuiltinBLS12_381_G1_Element
@@ -706,6 +708,8 @@ defineBuiltinTerms = do
           PLC.UnConstrData -> defineBuiltinInl 'Builtins.unsafeDataAsConstr
           PLC.UnMapData -> defineBuiltinInl 'Builtins.unsafeDataAsMap
           PLC.UnListData -> defineBuiltinInl 'Builtins.unsafeDataAsList
+          PLC.ArrayData -> defineBuiltinInl 'Builtins.mkArray
+          PLC.UnArrayData -> defineBuiltinInl 'Builtins.unsafeDataAsArray
           PLC.UnBData -> defineBuiltinInl 'Builtins.unsafeDataAsB
           PLC.UnIData -> defineBuiltinInl 'Builtins.unsafeDataAsI
           PLC.SerialiseData -> defineBuiltinInl 'Builtins.serialiseData

@@ -46,10 +46,10 @@ check_'96'_6 = RTyVar
 check__'8658'__8 :: T_RawTy_2 -> T_RawTy_2 -> T_RawTy_2
 check__'8658'__8 = RTyFun
 check_Π_10 ::
-  MAlonzo.Code.Utils.T_Kind_652 -> T_RawTy_2 -> T_RawTy_2
+  MAlonzo.Code.Utils.T_Kind_702 -> T_RawTy_2 -> T_RawTy_2
 check_Π_10 = RTyPi
 check_ƛ_12 ::
-  MAlonzo.Code.Utils.T_Kind_652 -> T_RawTy_2 -> T_RawTy_2
+  MAlonzo.Code.Utils.T_Kind_702 -> T_RawTy_2 -> T_RawTy_2
 check_ƛ_12 = RTyLambda
 check__'183'__14 :: T_RawTy_2 -> T_RawTy_2 -> T_RawTy_2
 check__'183'__14 = RTyApp
@@ -115,7 +115,7 @@ pattern C_case_68 a0 a1 a2 = RCase a0 a1 a2
 check_'96'_34 :: Integer -> T_RawTm_32
 check_'96'_34 = RVar
 check_Λ_36 ::
-  MAlonzo.Code.Utils.T_Kind_652 -> T_RawTm_32 -> T_RawTm_32
+  MAlonzo.Code.Utils.T_Kind_702 -> T_RawTm_32 -> T_RawTm_32
 check_Λ_36 = RTLambda
 check__'183''8902'__38 :: T_RawTm_32 -> T_RawTy_2 -> T_RawTm_32
 check__'183''8902'__38 = RTApp
@@ -187,29 +187,29 @@ d_decRTyCon_74 v0 v1
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- Raw.decRKi
 d_decRKi_84 ::
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 -> Bool
+  MAlonzo.Code.Utils.T_Kind_702 ->
+  MAlonzo.Code.Utils.T_Kind_702 -> Bool
 d_decRKi_84 v0 v1
   = case coe v0 of
-      MAlonzo.Code.Utils.C_'42'_654
+      MAlonzo.Code.Utils.C_'42'_704
         -> let v2 = coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8 in
            coe
              (case coe v1 of
-                MAlonzo.Code.Utils.C_'42'_654
+                MAlonzo.Code.Utils.C_'42'_704
                   -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
                 _ -> coe v2)
-      MAlonzo.Code.Utils.C_'9839'_656
+      MAlonzo.Code.Utils.C_'9839'_706
         -> let v2 = coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8 in
            coe
              (case coe v1 of
-                MAlonzo.Code.Utils.C_'9839'_656
+                MAlonzo.Code.Utils.C_'9839'_706
                   -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
                 _ -> coe v2)
-      MAlonzo.Code.Utils.C__'8658'__658 v2 v3
+      MAlonzo.Code.Utils.C__'8658'__708 v2 v3
         -> let v4 = coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8 in
            coe
              (case coe v1 of
-                MAlonzo.Code.Utils.C__'8658'__658 v5 v6
+                MAlonzo.Code.Utils.C__'8658'__708 v5 v6
                   -> coe
                        MAlonzo.Code.Data.Bool.Base.d__'8743'__24
                        (coe d_decRKi_84 (coe v2) (coe v5))
@@ -386,7 +386,7 @@ d_decRTm_188 v0 v1
                 C_builtin_48 v4
                   -> coe
                        MAlonzo.Code.Relation.Nullary.Decidable.Core.d_does_28
-                       (coe MAlonzo.Code.Builtin.d_decBuiltin_426 (coe v3) (coe v4))
+                       (coe MAlonzo.Code.Builtin.d_decBuiltin_430 (coe v3) (coe v4))
                 _ -> coe v2
          C_wrap_50 v3 v4 v5
            -> case coe v1 of

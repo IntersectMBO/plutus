@@ -4,6 +4,7 @@ module Generators.QuickCheck.Utils where
 
 import PlutusPrelude
 
+import Data.Vector.Strict qualified as Vector
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Utils
@@ -39,6 +40,7 @@ countIandBs = go 0
     go acc (Constr _ ds) = foldl' go acc ds
     go acc (Map ps) = foldl' (\acc' (d1, d2) -> go (go acc' d1) d2) acc ps
     go acc (List ds) = foldl' go acc ds
+    go acc (Array v) = Vector.foldl' go acc v
     go acc (I _) = acc + 1
     go acc (B _) = acc + 1
 

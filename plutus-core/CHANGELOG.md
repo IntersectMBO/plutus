@@ -15,9 +15,13 @@
 
 - Implementations of `ScaleValue` primitives.
 
+- Added `Array (Vector Data)` constructor to the `Data` type with CBOR tag 128 encoding, matching CIP-0138's array representation. Added `ArrayData` and `UnArrayData` builtins to construct and deconstruct Array data values.
+
 ## Changed
 
 - Renamed 'Size' types functions to AstSize
+
+- `ChooseData` builtin now returns `BuiltinResult a` instead of `a` and fails gracefully when encountering an `Array` value (requires protocol change to add 6th branch for Array support).
 
 - In #7323 made the `Constr`, `List` and `Map` builtins 7+% faster.
 

@@ -16,7 +16,7 @@ instance PlutusTx.IsData.Class.FromData Plugin.Data.Spec.MyMonoData
                                                                                                (((PlutusTx.Eq.==) (2 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_11))) -> GHC.Maybe.Just (Plugin.Data.Spec.Mono3 arg_11);
                                                                                                _ -> GHC.Maybe.Nothing}
-                                                        in PlutusTx.Builtins.matchData' d_4 constrFun_5 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}
+                                                        in PlutusTx.Builtins.matchData' d_4 constrFun_5 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}
 instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoData
     where {{-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-};
            PlutusTx.IsData.Class.unsafeFromBuiltinData d_12 = PlutusTx.Builtins.Internal.casePair (PlutusTx.Builtins.Internal.unsafeDataAsConstr d_12) GHC.Base.$ (\index_13 args_14 -> PlutusTx.Builtins.Internal.caseInteger index_13 [\case

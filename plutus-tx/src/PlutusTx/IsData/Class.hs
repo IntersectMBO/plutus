@@ -92,7 +92,14 @@ instance ToData Integer where
 instance FromData Integer where
   {-# INLINEABLE fromBuiltinData #-}
   fromBuiltinData d =
-    matchData' d (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just (\_ -> Nothing)
+    matchData'
+      d
+      (\_ _ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      Just
+      (\_ -> Nothing)
 instance UnsafeFromData Integer where
   {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = BI.unsafeDataAsI
@@ -103,7 +110,14 @@ instance ToData Builtins.BuiltinByteString where
 instance FromData Builtins.BuiltinByteString where
   {-# INLINEABLE fromBuiltinData #-}
   fromBuiltinData d =
-    matchData' d (\_ _ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) (\_ -> Nothing) Just
+    matchData'
+      d
+      (\_ _ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
+      Just
 instance UnsafeFromData Builtins.BuiltinByteString where
   {-# INLINEABLE unsafeFromBuiltinData #-}
   unsafeFromBuiltinData = BI.unsafeDataAsB
@@ -127,6 +141,7 @@ instance FromData a => FromData [a] where
       (\_ _ -> Nothing)
       (\_ -> Nothing)
       traverseFromBuiltin
+      (\_ -> Nothing)
       (\_ -> Nothing)
       (\_ -> Nothing)
     where

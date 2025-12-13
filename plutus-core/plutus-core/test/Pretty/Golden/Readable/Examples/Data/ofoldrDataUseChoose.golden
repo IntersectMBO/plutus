@@ -1,6 +1,7 @@
 \(fConstr : integer -> list data -> data)
  (fMap : list (pair data data) -> data)
  (fList : list data -> data)
+ (fArray : array data -> data)
  (fI : integer -> data)
  (fB : bytestring -> data) ->
   (/\a b ->
@@ -33,6 +34,7 @@
             \(fConstr : integer -> list data -> r)
              (fMap : list (pair data data) -> r)
              (fList : list data -> r)
+             (fArray : array data -> r)
              (fI : integer -> r)
              (fB : bytestring -> r) ->
               (Left chooseData)
@@ -49,6 +51,7 @@
                      ((Left unConstrData) d))
                 (\(u : unit) -> fMap ((Left unMapData) d))
                 (\(u : unit) -> fList ((Left unListData) d))
+                (\(u : unit) -> fArray ((Left unArrayData) d))
                 (\(u : unit) -> fI ((Left unIData) d))
                 (\(u : unit) -> fB ((Left unBData) d))
                 ())
@@ -249,5 +252,6 @@
                  {data}
                  rec
                  ds))
+         (\(ds : array data) -> fArray ds)
          fI
          fB)

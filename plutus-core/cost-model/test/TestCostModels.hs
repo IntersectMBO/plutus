@@ -349,6 +349,73 @@ makeProp6
 makeProp6 name getField modelsH modelsR =
   (fromString name, testPredictSix (getField modelsH) (getConst $ getField modelsR))
 
+testPredictSeven
+  :: CostingFun ModelSevenArguments
+  -> SomeSEXP s
+  -> Property
+testPredictSeven costingFunH modelR =
+  propertyR $
+    let predictR
+          :: MonadR m
+          => CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> m CostingInteger
+        predictR x y z u v w p =
+          let
+            xD = fromSatInt x :: Double
+            yD = fromSatInt y :: Double
+            zD = fromSatInt z :: Double
+            uD = fromSatInt u :: Double
+            vD = fromSatInt v :: Double
+            wD = fromSatInt w :: Double
+            pD = fromSatInt p :: Double
+           in
+            microToPico . fromSomeSEXP
+              <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,
+                                          u_mem=uD_hs, v_mem=vD_hs, w_mem=wD_hs, p_mem=pD_hs))[[1]]|]
+        predictH
+          :: CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+        predictH x y z u v w p =
+          coerce $
+            exBudgetCPU $
+              sumExBudgetStream $
+                runCostingFunSevenArguments costingFunH (ExM x) (ExM y) (ExM z) (ExM u) (ExM v) (ExM w) (ExM p)
+        sizeGen =
+          (,,,,,,)
+            <$> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+            <*> memUsageGen
+     in do
+          (x, y, z, u, v, w, p) <- forAll sizeGen
+          byR <- lift $ predictR x y z u v w p
+          diff byR (>=) 0
+          diff byR (~=) (predictH x y z u v w p)
+
+makeProp7
+  :: String
+  -> (forall f. BuiltinCostModelBase f -> f ModelSevenArguments)
+  -> HModels
+  -> RModels s
+  -> (PropertyName, Property)
+makeProp7 name getField modelsH modelsR =
+  (fromString name, testPredictSeven (getField modelsH) (getConst $ getField modelsR))
+
 main :: IO ()
 main =
   withEmbeddedR defaultConfig $ runRegion $ do
@@ -418,7 +485,7 @@ main =
       , $(genTest 1 "valueData")
       , $(genTest 1 "unValueData")
       , -- Data
-        $(genTest 6 "chooseData")
+        $(genTest 7 "chooseData")
       , $(genTest 2 "constrData") Everywhere
       , $(genTest 1 "mapData")
       , $(genTest 1 "listData")

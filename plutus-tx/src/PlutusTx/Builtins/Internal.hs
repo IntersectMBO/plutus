@@ -554,11 +554,12 @@ dataToBuiltinData = BuiltinData
 {-# OPAQUE dataToBuiltinData #-}
 
 -- | Branches out depending on the structure of given data and never fails.
-chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a
-chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
+chooseData :: forall a. BuiltinData -> a -> a -> a -> a -> a -> a -> a
+chooseData (BuiltinData d) constrCase mapCase listCase arrayCase iCase bCase = case d of
   PLC.Constr {} -> constrCase
   PLC.Map {} -> mapCase
   PLC.List {} -> listCase
+  PLC.Array {} -> arrayCase
   PLC.I {} -> iCase
   PLC.B {} -> bCase
 {-# OPAQUE chooseData #-}
@@ -579,6 +580,11 @@ mkMap (BuiltinList es) = BuiltinData (PLC.Map (fmap p2p es))
 mkList :: BuiltinList BuiltinData -> BuiltinData
 mkList (BuiltinList l) = BuiltinData (PLC.List (fmap builtinDataToData l))
 {-# OPAQUE mkList #-}
+
+-- | Creates 'Array' data value with the given array and never fails.
+mkArray :: BuiltinArray BuiltinData -> BuiltinData
+mkArray (BuiltinArray v) = BuiltinData (PLC.Array (fmap builtinDataToData v))
+{-# OPAQUE mkArray #-}
 
 -- | Creates 'I' data value with the given integer and never fails.
 mkI :: BuiltinInteger -> BuiltinData
@@ -609,6 +615,12 @@ unsafeDataAsList :: BuiltinData -> BuiltinList BuiltinData
 unsafeDataAsList (BuiltinData (PLC.List l)) = BuiltinList (fmap dataToBuiltinData l)
 unsafeDataAsList _ = Haskell.error "not a List"
 {-# OPAQUE unsafeDataAsList #-}
+
+-- | Deconstructs the given data as an 'Array', failing if it is not an 'Array'.
+unsafeDataAsArray :: BuiltinData -> BuiltinArray BuiltinData
+unsafeDataAsArray (BuiltinData (PLC.Array v)) = BuiltinArray (fmap dataToBuiltinData v)
+unsafeDataAsArray _nonArrayData = Haskell.error "not an Array"
+{-# OPAQUE unsafeDataAsArray #-}
 
 -- | Deconstructs the given data as a 'I', failing if it is not a 'I'.
 unsafeDataAsI :: BuiltinData -> BuiltinInteger

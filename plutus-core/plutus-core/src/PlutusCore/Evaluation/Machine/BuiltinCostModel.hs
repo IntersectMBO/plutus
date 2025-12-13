@@ -41,12 +41,14 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
   , ModelFourArguments (..)
   , ModelFiveArguments (..)
   , ModelSixArguments (..)
+  , ModelSevenArguments (..)
   , runCostingFunOneArgument
   , runCostingFunTwoArguments
   , runCostingFunThreeArguments
   , runCostingFunFourArguments
   , runCostingFunFiveArguments
   , runCostingFunSixArguments
+  , runCostingFunSevenArguments
   , Hashable
   , MCostingFun (..)
   )
@@ -127,7 +129,7 @@ data BuiltinCostModelBase f
   , paramTailList :: f ModelOneArgument
   , paramNullList :: f ModelOneArgument
   , -- Data
-    paramChooseData :: f ModelSixArguments
+    paramChooseData :: f ModelSevenArguments
   , paramConstrData :: f ModelTwoArguments
   , paramMapData :: f ModelOneArgument
   , paramListData :: f ModelOneArgument
@@ -136,6 +138,8 @@ data BuiltinCostModelBase f
   , paramUnConstrData :: f ModelOneArgument
   , paramUnMapData :: f ModelOneArgument
   , paramUnListData :: f ModelOneArgument
+  , paramArrayData :: f ModelOneArgument
+  , paramUnArrayData :: f ModelOneArgument
   , paramUnIData :: f ModelOneArgument
   , paramUnBData :: f ModelOneArgument
   , paramEqualsData :: f ModelTwoArguments
@@ -234,6 +238,7 @@ type AllArgumentModels (constraint :: Kind.Type -> Kind.Constraint) f =
   , constraint (f ModelFourArguments)
   , constraint (f ModelFiveArguments)
   , constraint (f ModelSixArguments)
+  , constraint (f ModelSevenArguments)
   )
 
 -- HLS doesn't like the AllBF from Barbies.

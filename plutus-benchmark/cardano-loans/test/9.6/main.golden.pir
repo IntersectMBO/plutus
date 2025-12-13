@@ -1141,6 +1141,11 @@
                Nothing {bytestring})
             (\(ds : Unit) ->
                let
+                 !ds : list data = unArrayData d
+               in
+               Nothing {bytestring})
+            (\(ds : Unit) ->
+               let
                  !ds : integer = unIData d
                in
                Nothing {bytestring})
@@ -1238,6 +1243,7 @@
               (\(ds : Unit) -> Nothing {Tuple2 a b})
               (\(ds : Unit) -> Nothing {Tuple2 a b})
               (\(ds : Unit) -> Nothing {Tuple2 a b})
+              (\(ds : Unit) -> Nothing {Tuple2 a b})
               Unit
     ~`$dFromData` : data -> Maybe (Tuple2 bytestring bytestring)
       = `$fFromDataTuple2_$cfromBuiltinData`
@@ -1265,6 +1271,11 @@
             (\(ds : Unit) ->
                let
                  !ds : list data = unListData d
+               in
+               Nothing {integer})
+            (\(ds : Unit) ->
+               let
+                 !ds : list data = unArrayData d
                in
                Nothing {integer})
             (\(ds : Unit) -> Just {integer} (unIData d))
@@ -1387,12 +1398,14 @@
             (\(ds : Unit) -> Nothing {bool})
             (\(ds : Unit) -> Nothing {bool})
             (\(ds : Unit) -> Nothing {bool})
+            (\(ds : Unit) -> Nothing {bool})
             Unit
     !matchData' :
        all r.
          data ->
          (integer -> list data -> r) ->
          (list (pair data data) -> r) ->
+         (list data -> r) ->
          (list data -> r) ->
          (integer -> r) ->
          (bytestring -> r) ->
@@ -1402,6 +1415,7 @@
            (constrCase : integer -> list data -> r)
            (mapCase : list (pair data data) -> r)
            (listCase : list data -> r)
+           (arrayCase : list data -> r)
            (iCase : integer -> r)
            (bCase : bytestring -> r) ->
             chooseData
@@ -1416,6 +1430,7 @@
                    (\(l : integer) (r : list data) -> constrCase l r))
               (\(ds : Unit) -> mapCase (unMapData d))
               (\(ds : Unit) -> listCase (unListData d))
+              (\(ds : Unit) -> arrayCase (unArrayData d))
               (\(ds : Unit) -> iCase (unIData d))
               (\(ds : Unit) -> bCase (unBData d))
               Unit
@@ -1488,6 +1503,7 @@
                    , (/\dead -> Just {Extended a} (NegInf {a})) ]
                    {all dead. dead})
               (\(ds : list (pair data data)) -> Nothing {Extended a})
+              (\(ds : list data) -> Nothing {Extended a})
               (\(ds : list data) -> Nothing {Extended a})
               (\(ds : integer) -> Nothing {Extended a})
               (\(ds : bytestring) -> Nothing {Extended a})
@@ -1571,6 +1587,7 @@
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {GovernanceActionId})
             (\(ds : list data) -> Nothing {GovernanceActionId})
+            (\(ds : list data) -> Nothing {GovernanceActionId})
             (\(ds : integer) -> Nothing {GovernanceActionId})
             (\(ds : bytestring) -> Nothing {GovernanceActionId})
     !`$fFromDataCredential_$cfromBuiltinData` :
@@ -1647,6 +1664,7 @@
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {Credential})
             (\(ds : list data) -> Nothing {Credential})
+            (\(ds : list data) -> Nothing {Credential})
             (\(ds : integer) -> Nothing {Credential})
             (\(ds : bytestring) -> Nothing {Credential})
     !`$fFromDataMaybe_$cfromBuiltinData` :
@@ -1697,6 +1715,7 @@
                                {all dead. dead})
                         , (/\dead -> Just {Maybe a} (Nothing {a})) ]
                         {all dead. dead}))
+              (\(ds : Unit) -> Nothing {Maybe a})
               (\(ds : Unit) -> Nothing {Maybe a})
               (\(ds : Unit) -> Nothing {Maybe a})
               (\(ds : Unit) -> Nothing {Maybe a})
@@ -1809,6 +1828,11 @@
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
                 (\(ds : Unit) ->
                    let
+                     !ds : list data = unArrayData d
+                   in
+                   Nothing {(\k v -> List (Tuple2 k v)) k v})
+                (\(ds : Unit) ->
+                   let
                      !ds : integer = unIData d
                    in
                    Nothing {(\k v -> List (Tuple2 k v)) k v})
@@ -1868,6 +1892,11 @@
                    in
                    Nothing {List a})
                 (\(ds : Unit) -> go (unListData d))
+                (\(ds : Unit) ->
+                   let
+                     !ds : list data = unArrayData d
+                   in
+                   Nothing {List a})
                 (\(ds : Unit) ->
                    let
                      !ds : integer = unIData d
@@ -2215,6 +2244,12 @@
                                                                                                                                 (pair
                                                                                                                                    data
                                                                                                                                    data)) ->
+                                                                                                                            Nothing
+                                                                                                                              {Maybe
+                                                                                                                                 bytestring})
+                                                                                                                         (\(ds :
+                                                                                                                              list
+                                                                                                                                data) ->
                                                                                                                             Nothing
                                                                                                                               {Maybe
                                                                                                                                  bytestring})
@@ -3136,6 +3171,11 @@
                                                                                                                             Nothing
                                                                                                                               {ProtocolVersion})
                                                                                                                          (\(ds :
+                                                                                                                              list
+                                                                                                                                data) ->
+                                                                                                                            Nothing
+                                                                                                                              {ProtocolVersion})
+                                                                                                                         (\(ds :
                                                                                                                               integer) ->
                                                                                                                             Nothing
                                                                                                                               {ProtocolVersion})
@@ -3392,6 +3432,11 @@
                                                                            Nothing
                                                                              {GovernanceAction})
                                                                         (\(ds :
+                                                                             list
+                                                                               data) ->
+                                                                           Nothing
+                                                                             {GovernanceAction})
+                                                                        (\(ds :
                                                                              integer) ->
                                                                            Nothing
                                                                              {GovernanceAction})
@@ -3433,6 +3478,7 @@
                         {all dead. dead}) ]
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {ProposalProcedure})
+            (\(ds : list data) -> Nothing {ProposalProcedure})
             (\(ds : list data) -> Nothing {ProposalProcedure})
             (\(ds : integer) -> Nothing {ProposalProcedure})
             (\(ds : bytestring) -> Nothing {ProposalProcedure})
@@ -3491,6 +3537,7 @@
                           {all dead. dead}) ]
                    {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {DRep})
+            (\(ds : list data) -> Nothing {DRep})
             (\(ds : list data) -> Nothing {DRep})
             (\(ds : integer) -> Nothing {DRep})
             (\(ds : bytestring) -> Nothing {DRep})
@@ -3638,6 +3685,7 @@
                         {all dead. dead}) ]
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {Delegatee})
+            (\(ds : list data) -> Nothing {Delegatee})
             (\(ds : list data) -> Nothing {Delegatee})
             (\(ds : integer) -> Nothing {Delegatee})
             (\(ds : bytestring) -> Nothing {Delegatee})
@@ -4424,6 +4472,7 @@
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {TxCert})
             (\(ds : list data) -> Nothing {TxCert})
+            (\(ds : list data) -> Nothing {TxCert})
             (\(ds : integer) -> Nothing {TxCert})
             (\(ds : bytestring) -> Nothing {TxCert})
     data Voter | Voter_match where
@@ -4531,6 +4580,7 @@
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {Voter})
             (\(ds : list data) -> Nothing {Voter})
+            (\(ds : list data) -> Nothing {Voter})
             (\(ds : integer) -> Nothing {Voter})
             (\(ds : bytestring) -> Nothing {Voter})
     !`$fFromDataTxOutRef_$cfromBuiltinData` :
@@ -4604,6 +4654,7 @@
                         {all dead. dead}) ]
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {TxOutRef})
+            (\(ds : list data) -> Nothing {TxOutRef})
             (\(ds : list data) -> Nothing {TxOutRef})
             (\(ds : integer) -> Nothing {TxOutRef})
             (\(ds : bytestring) -> Nothing {TxOutRef})
@@ -5024,6 +5075,11 @@
                                                                                         Nothing
                                                                                           {StakingCredential})
                                                                                      (\(ds :
+                                                                                          list
+                                                                                            data) ->
+                                                                                        Nothing
+                                                                                          {StakingCredential})
+                                                                                     (\(ds :
                                                                                           integer) ->
                                                                                         Nothing
                                                                                           {StakingCredential})
@@ -5064,6 +5120,7 @@
                                             {all dead. dead})
                                        (\(ds : list (pair data data)) ->
                                           Nothing {Address})
+                                       (\(ds : list data) -> Nothing {Address})
                                        (\(ds : list data) -> Nothing {Address})
                                        (\(ds : integer) -> Nothing {Address})
                                        (\(ds : bytestring) ->
@@ -5330,6 +5387,11 @@
                                                                                 Nothing
                                                                                   {OutputDatum})
                                                                              (\(ds :
+                                                                                  list
+                                                                                    data) ->
+                                                                                Nothing
+                                                                                  {OutputDatum})
+                                                                             (\(ds :
                                                                                   integer) ->
                                                                                 Nothing
                                                                                   {OutputDatum})
@@ -5417,6 +5479,7 @@
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {TxOut})
             (\(ds : list data) -> Nothing {TxOut})
+            (\(ds : list data) -> Nothing {TxOut})
             (\(ds : integer) -> Nothing {TxOut})
             (\(ds : bytestring) -> Nothing {TxOut})
     !`$fFromDataScriptContext_$cfromBuiltinData` :
@@ -5489,6 +5552,7 @@
                         {all dead. dead}) ]
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {TxInInfo})
+            (\(ds : list data) -> Nothing {TxInInfo})
             (\(ds : list data) -> Nothing {TxInInfo})
             (\(ds : integer) -> Nothing {TxInInfo})
             (\(ds : bytestring) -> Nothing {TxInInfo})
@@ -6910,6 +6974,12 @@
                                                                                                                                                                                                                                        {LowerBound
                                                                                                                                                                                                                                           integer})
                                                                                                                                                                                                                                   (\(ds :
+                                                                                                                                                                                                                                       list
+                                                                                                                                                                                                                                         data) ->
+                                                                                                                                                                                                                                     Nothing
+                                                                                                                                                                                                                                       {LowerBound
+                                                                                                                                                                                                                                          integer})
+                                                                                                                                                                                                                                  (\(ds :
                                                                                                                                                                                                                                        integer) ->
                                                                                                                                                                                                                                      Nothing
                                                                                                                                                                                                                                        {LowerBound
@@ -7129,6 +7199,12 @@
                                                                                                                                                                                                                                                      {UpperBound
                                                                                                                                                                                                                                                         integer})
                                                                                                                                                                                                                                                 (\(ds :
+                                                                                                                                                                                                                                                     list
+                                                                                                                                                                                                                                                       data) ->
+                                                                                                                                                                                                                                                   Nothing
+                                                                                                                                                                                                                                                     {UpperBound
+                                                                                                                                                                                                                                                        integer})
+                                                                                                                                                                                                                                                (\(ds :
                                                                                                                                                                                                                                                      integer) ->
                                                                                                                                                                                                                                                    Nothing
                                                                                                                                                                                                                                                      {UpperBound
@@ -7184,6 +7260,12 @@
                                                                                                                                                                                                               (pair
                                                                                                                                                                                                                  data
                                                                                                                                                                                                                  data)) ->
+                                                                                                                                                                                                          Nothing
+                                                                                                                                                                                                            {Interval
+                                                                                                                                                                                                               integer})
+                                                                                                                                                                                                       (\(ds :
+                                                                                                                                                                                                            list
+                                                                                                                                                                                                              data) ->
                                                                                                                                                                                                           Nothing
                                                                                                                                                                                                             {Interval
                                                                                                                                                                                                                integer})
@@ -7904,6 +7986,11 @@
                                                                                                                                                                                                                                                      Nothing
                                                                                                                                                                                                                                                        {ScriptPurpose})
                                                                                                                                                                                                                                                   (\(ds :
+                                                                                                                                                                                                                                                       list
+                                                                                                                                                                                                                                                         data) ->
+                                                                                                                                                                                                                                                     Nothing
+                                                                                                                                                                                                                                                       {ScriptPurpose})
+                                                                                                                                                                                                                                                  (\(ds :
                                                                                                                                                                                                                                                        integer) ->
                                                                                                                                                                                                                                                      Nothing
                                                                                                                                                                                                                                                        {ScriptPurpose})
@@ -8217,6 +8304,11 @@
                                                                                                                                                                                                                                                                                                                      (pair
                                                                                                                                                                                                                                                                                                                         data
                                                                                                                                                                                                                                                                                                                         data)) ->
+                                                                                                                                                                                                                                                                                                                 Nothing
+                                                                                                                                                                                                                                                                                                                   {Vote})
+                                                                                                                                                                                                                                                                                                              (\(ds :
+                                                                                                                                                                                                                                                                                                                   list
+                                                                                                                                                                                                                                                                                                                     data) ->
                                                                                                                                                                                                                                                                                                                  Nothing
                                                                                                                                                                                                                                                                                                                    {Vote})
                                                                                                                                                                                                                                                                                                               (\(ds :
@@ -8604,6 +8696,7 @@
                                             {all dead. dead})
                                        (\(ds : list (pair data data)) ->
                                           Nothing {TxInfo})
+                                       (\(ds : list data) -> Nothing {TxInfo})
                                        (\(ds : list data) -> Nothing {TxInfo})
                                        (\(ds : integer) -> Nothing {TxInfo})
                                        (\(ds : bytestring) -> Nothing {TxInfo}))
@@ -9288,6 +9381,11 @@
                                                                     Nothing
                                                                       {ScriptInfo})
                                                                  (\(ds :
+                                                                      list
+                                                                        data) ->
+                                                                    Nothing
+                                                                      {ScriptInfo})
+                                                                 (\(ds :
                                                                       integer) ->
                                                                     Nothing
                                                                       {ScriptInfo})
@@ -9323,6 +9421,7 @@
                         {all dead. dead}) ]
                  {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {ScriptContext})
+            (\(ds : list data) -> Nothing {ScriptContext})
             (\(ds : list data) -> Nothing {ScriptContext})
             (\(ds : integer) -> Nothing {ScriptContext})
             (\(ds : bytestring) -> Nothing {ScriptContext})))
@@ -9420,6 +9519,7 @@
                                       , (/\dead ->
                                            Just {LoanRedeemer} CloseAsk) ]
                                       {all dead. dead}))
+                            (\(ds : Unit) -> Nothing {LoanRedeemer})
                             (\(ds : Unit) -> Nothing {LoanRedeemer})
                             (\(ds : Unit) -> Nothing {LoanRedeemer})
                             (\(ds : Unit) -> Nothing {LoanRedeemer})
@@ -11393,6 +11493,7 @@
                                                {all dead. dead})
                                             l
                                             r))
+                                  (\(ds : Unit) -> Nothing {LoanDatum})
                                   (\(ds : Unit) -> Nothing {LoanDatum})
                                   (\(ds : Unit) -> Nothing {LoanDatum})
                                   (\(ds : Unit) -> Nothing {LoanDatum})
