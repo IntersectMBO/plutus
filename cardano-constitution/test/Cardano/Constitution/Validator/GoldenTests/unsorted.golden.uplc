@@ -944,201 +944,215 @@ program
                                  eta
                                  [ True
                                  , (\preds ->
-                                      validatePreds
+                                      case
                                         (constr 0
-                                           [ (\x y -> equalsInteger x y)
-                                           , (\eta eta ->
-                                                case
-                                                  (equalsInteger eta eta)
-                                                  [ (case
+                                           [ (constr 0
+                                                [ (\x y -> equalsInteger x y)
+                                                , (\eta eta ->
+                                                     case
+                                                       (equalsInteger eta eta)
+                                                       [ (case
+                                                            (lessThanEqualsInteger
+                                                               eta
+                                                               eta)
+                                                            [ (constr 1 [])
+                                                            , (constr 2 []) ])
+                                                       , (constr 0 []) ])
+                                                , (\x y -> lessThanInteger x y)
+                                                , (\x y ->
+                                                     lessThanEqualsInteger x y)
+                                                , (\x y ->
+                                                     case
                                                        (lessThanEqualsInteger
-                                                          eta
-                                                          eta)
-                                                       [ (constr 1 [])
-                                                       , (constr 2 []) ])
-                                                  , (constr 0 []) ])
-                                           , (\x y -> lessThanInteger x y)
-                                           , (\x y -> lessThanEqualsInteger x y)
-                                           , (\x y ->
-                                                case
-                                                  (lessThanEqualsInteger x y)
-                                                  [True, False])
-                                           , (\x y ->
-                                                case
-                                                  (lessThanInteger x y)
-                                                  [True, False])
-                                           , (\x y ->
-                                                case
-                                                  (lessThanEqualsInteger x y)
-                                                  [x, y])
-                                           , (\x y ->
-                                                case
-                                                  (lessThanEqualsInteger x y)
-                                                  [y, x]) ])
-                                        preds
-                                        (unIData eta))
+                                                          x
+                                                          y)
+                                                       [True, False])
+                                                , (\x y ->
+                                                     case
+                                                       (lessThanInteger x y)
+                                                       [True, False])
+                                                , (\x y ->
+                                                     case
+                                                       (lessThanEqualsInteger
+                                                          x
+                                                          y)
+                                                       [x, y])
+                                                , (\x y ->
+                                                     case
+                                                       (lessThanEqualsInteger
+                                                          x
+                                                          y)
+                                                       [y, x]) ])
+                                           , preds
+                                           , (unIData eta) ])
+                                        [validatePreds])
                                  , (\paramValues ->
                                       validateParamValues
                                         paramValues
                                         (unListData eta))
                                  , (\preds ->
-                                      validatePreds
+                                      case
                                         (constr 0
-                                           [ (\ds ds ->
-                                                case
-                                                  ds
-                                                  [ (\n d ->
-                                                       case
-                                                         ds
-                                                         [ (\n' d' ->
-                                                              case
-                                                                (equalsInteger
-                                                                   n
-                                                                   n')
-                                                                [ False
-                                                                , (equalsInteger
-                                                                     d
-                                                                     d') ]) ]) ])
-                                           , (\ds ds ->
-                                                case
-                                                  ds
-                                                  [ (\n d ->
-                                                       case
-                                                         ds
-                                                         [ (\n' d' ->
-                                                              (\x ->
-                                                                 (\y ->
-                                                                    case
-                                                                      (equalsInteger
-                                                                         x
-                                                                         y)
-                                                                      [ (case
-                                                                           (lessThanEqualsInteger
+                                           [ (constr 0
+                                                [ (\ds ds ->
+                                                     case
+                                                       ds
+                                                       [ (\n d ->
+                                                            case
+                                                              ds
+                                                              [ (\n' d' ->
+                                                                   case
+                                                                     (equalsInteger
+                                                                        n
+                                                                        n')
+                                                                     [ False
+                                                                     , (equalsInteger
+                                                                          d
+                                                                          d') ]) ]) ])
+                                                , (\ds ds ->
+                                                     case
+                                                       ds
+                                                       [ (\n d ->
+                                                            case
+                                                              ds
+                                                              [ (\n' d' ->
+                                                                   (\x ->
+                                                                      (\y ->
+                                                                         case
+                                                                           (equalsInteger
                                                                               x
                                                                               y)
-                                                                           [ (constr 1
-                                                                                [  ])
-                                                                           , (constr 2
+                                                                           [ (case
+                                                                                (lessThanEqualsInteger
+                                                                                   x
+                                                                                   y)
+                                                                                [ (constr 1
+                                                                                     [  ])
+                                                                                , (constr 2
+                                                                                     [  ]) ])
+                                                                           , (constr 0
                                                                                 [  ]) ])
-                                                                      , (constr 0
-                                                                           [  ]) ])
-                                                                   (multiplyInteger
-                                                                      n'
-                                                                      d))
-                                                                (multiplyInteger
-                                                                   n
-                                                                   d')) ]) ])
-                                           , (\ds ds ->
-                                                case
-                                                  ds
-                                                  [ (\n d ->
-                                                       case
-                                                         ds
-                                                         [ (\n' d' ->
-                                                              lessThanInteger
-                                                                (multiplyInteger
-                                                                   n
-                                                                   d')
-                                                                (multiplyInteger
-                                                                   n'
-                                                                   d)) ]) ])
-                                           , (\ds ds ->
-                                                case
-                                                  ds
-                                                  [ (\n d ->
-                                                       case
-                                                         ds
-                                                         [ (\n' d' ->
-                                                              lessThanEqualsInteger
-                                                                (multiplyInteger
-                                                                   n
-                                                                   d')
-                                                                (multiplyInteger
-                                                                   n'
-                                                                   d)) ]) ])
-                                           , (\ds ds ->
-                                                case
-                                                  ds
-                                                  [ (\n d ->
-                                                       case
-                                                         ds
-                                                         [ (\n' d' ->
-                                                              case
-                                                                (lessThanEqualsInteger
-                                                                   (multiplyInteger
-                                                                      n
-                                                                      d')
-                                                                   (multiplyInteger
-                                                                      n'
-                                                                      d))
-                                                                [ True
-                                                                , False ]) ]) ])
-                                           , (\ds ds ->
-                                                case
-                                                  ds
-                                                  [ (\n d ->
-                                                       case
-                                                         ds
-                                                         [ (\n' d' ->
-                                                              case
-                                                                (lessThanInteger
-                                                                   (multiplyInteger
-                                                                      n
-                                                                      d')
-                                                                   (multiplyInteger
-                                                                      n'
-                                                                      d))
-                                                                [ True
-                                                                , False ]) ]) ])
-                                           , (\x y ->
-                                                case
-                                                  x
-                                                  [ (\ipv ipv ->
-                                                       case
-                                                         y
-                                                         [ (\ipv ipv ->
-                                                              case
-                                                                (lessThanEqualsInteger
-                                                                   (multiplyInteger
-                                                                      ipv
-                                                                      ipv)
-                                                                   (multiplyInteger
-                                                                      ipv
-                                                                      ipv))
-                                                                [x, y]) ]) ])
-                                           , (\x y ->
-                                                case
-                                                  x
-                                                  [ (\ipv ipv ->
-                                                       case
-                                                         y
-                                                         [ (\ipv ipv ->
-                                                              case
-                                                                (lessThanEqualsInteger
-                                                                   (multiplyInteger
-                                                                      ipv
-                                                                      ipv)
-                                                                   (multiplyInteger
-                                                                      ipv
-                                                                      ipv))
-                                                                [y, x]) ]) ]) ])
-                                        preds
-                                        ((\bl ->
-                                            (\bl' ->
-                                               case
-                                                 (force nullList
-                                                    (force tailList bl'))
-                                                 [ (\ds -> error)
-                                                 , (\ds ->
-                                                      unsafeRatio
-                                                        (unIData
-                                                           (force headList bl))
-                                                        (unIData
-                                                           (force headList
-                                                              bl'))) ]
-                                                 (constr 0 []))
-                                              (force tailList bl))
-                                           (unListData eta))) ])
+                                                                        (multiplyInteger
+                                                                           n'
+                                                                           d))
+                                                                     (multiplyInteger
+                                                                        n
+                                                                        d')) ]) ])
+                                                , (\ds ds ->
+                                                     case
+                                                       ds
+                                                       [ (\n d ->
+                                                            case
+                                                              ds
+                                                              [ (\n' d' ->
+                                                                   lessThanInteger
+                                                                     (multiplyInteger
+                                                                        n
+                                                                        d')
+                                                                     (multiplyInteger
+                                                                        n'
+                                                                        d)) ]) ])
+                                                , (\ds ds ->
+                                                     case
+                                                       ds
+                                                       [ (\n d ->
+                                                            case
+                                                              ds
+                                                              [ (\n' d' ->
+                                                                   lessThanEqualsInteger
+                                                                     (multiplyInteger
+                                                                        n
+                                                                        d')
+                                                                     (multiplyInteger
+                                                                        n'
+                                                                        d)) ]) ])
+                                                , (\ds ds ->
+                                                     case
+                                                       ds
+                                                       [ (\n d ->
+                                                            case
+                                                              ds
+                                                              [ (\n' d' ->
+                                                                   case
+                                                                     (lessThanEqualsInteger
+                                                                        (multiplyInteger
+                                                                           n
+                                                                           d')
+                                                                        (multiplyInteger
+                                                                           n'
+                                                                           d))
+                                                                     [ True
+                                                                     , False ]) ]) ])
+                                                , (\ds ds ->
+                                                     case
+                                                       ds
+                                                       [ (\n d ->
+                                                            case
+                                                              ds
+                                                              [ (\n' d' ->
+                                                                   case
+                                                                     (lessThanInteger
+                                                                        (multiplyInteger
+                                                                           n
+                                                                           d')
+                                                                        (multiplyInteger
+                                                                           n'
+                                                                           d))
+                                                                     [ True
+                                                                     , False ]) ]) ])
+                                                , (\x y ->
+                                                     case
+                                                       x
+                                                       [ (\ipv ipv ->
+                                                            case
+                                                              y
+                                                              [ (\ipv ipv ->
+                                                                   case
+                                                                     (lessThanEqualsInteger
+                                                                        (multiplyInteger
+                                                                           ipv
+                                                                           ipv)
+                                                                        (multiplyInteger
+                                                                           ipv
+                                                                           ipv))
+                                                                     [ x
+                                                                     , y ]) ]) ])
+                                                , (\x y ->
+                                                     case
+                                                       x
+                                                       [ (\ipv ipv ->
+                                                            case
+                                                              y
+                                                              [ (\ipv ipv ->
+                                                                   case
+                                                                     (lessThanEqualsInteger
+                                                                        (multiplyInteger
+                                                                           ipv
+                                                                           ipv)
+                                                                        (multiplyInteger
+                                                                           ipv
+                                                                           ipv))
+                                                                     [ y
+                                                                     , x ]) ]) ]) ])
+                                           , preds
+                                           , ((\bl ->
+                                                 (\bl' ->
+                                                    case
+                                                      (force nullList
+                                                         (force tailList bl'))
+                                                      [ (\ds -> error)
+                                                      , (\ds ->
+                                                           unsafeRatio
+                                                             (unIData
+                                                                (force headList
+                                                                   bl))
+                                                             (unIData
+                                                                (force headList
+                                                                   bl'))) ]
+                                                      (constr 0 []))
+                                                   (force tailList bl))
+                                                (unListData eta)) ])
+                                        [validatePreds]) ])
                             (\ds ->
                                case
                                  ds
@@ -1171,7 +1185,10 @@ program
                              (subtractInteger 0 d)) ])
                    , error ])))
         ((\s -> s s)
-           (\s x y -> case (equalsInteger 0 y) [(s s y (modInteger x y)), x])))
+           (\s x y ->
+              case
+                (equalsInteger 0 y)
+                [(case (constr 0 [s, y, (modInteger x y)]) [s]), x])))
      (\`$dOrd` ds ds ->
         (\s -> s s)
           (\s ds ->

@@ -27,9 +27,10 @@ data SimplifierTag : Set where
   caseReduceT : SimplifierTag
   inlineT : SimplifierTag
   cseT : SimplifierTag
+  caseApplyT : SimplifierTag
 
 {-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
+{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE | CaseApply) #-}
 
 variable
   𝓁 𝓂 : Level

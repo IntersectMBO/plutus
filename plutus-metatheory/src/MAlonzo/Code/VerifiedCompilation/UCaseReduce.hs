@@ -44,13 +44,13 @@ d_isCaseReduce'63'_30 ::
   MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_30
 d_isCaseReduce'63'_30 ~v0 v1 = du_isCaseReduce'63'_30 v1
 du_isCaseReduce'63'_30 ::
   MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_30
 du_isCaseReduce'63'_30 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_178
@@ -71,13 +71,13 @@ d_isCR'63'_48 ::
   MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_30
 d_isCR'63'_48 ~v0 v1 v2 v3 = du_isCR'63'_48 v1 v2 v3
 du_isCR'63'_48 ::
   MAlonzo.Code.Untyped.Equality.T_DecEq_6 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_28
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_30
 du_isCR'63'_48 v0 v1 v2
   = let v3
           = coe
@@ -131,20 +131,20 @@ du_isCR'63'_48 v0 v1 v2
                                                                                   v2 in
                                                                         coe
                                                                           (case coe v20 of
-                                                                             MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_34 v21
+                                                                             MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_36 v21
                                                                                -> coe
-                                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_34
+                                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_36
                                                                                     (coe
                                                                                        C_casereduce_20
                                                                                        v19 v21)
-                                                                             MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_42 v24 v25 v26
+                                                                             MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_44 v24 v25 v26
                                                                                -> coe
-                                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_42
+                                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_44
                                                                                     v24 v25 v26
                                                                              _ -> MAlonzo.RTE.mazUnreachableError)
                                                                    MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                                                                      -> coe
-                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_42
+                                                                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_44
                                                                           (coe
                                                                              MAlonzo.Code.VerifiedCompilation.Certificate.C_caseReduceT_14)
                                                                           v1 v2
@@ -157,7 +157,7 @@ du_isCR'63'_48 v0 v1 v2
                 else coe
                        seq (coe v5)
                        (coe
-                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_42
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_44
                           (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_caseReduceT_14)
                           v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)

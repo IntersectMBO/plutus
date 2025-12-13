@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\drop xs -> force (force drop) [] 5 xs)
+   ((\drop xs -> case (constr 0 [[], 5, xs]) [(force (force drop))])
       ((\f ->
           (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
             (\s -> f (\x -> s s x)))
@@ -13,10 +13,10 @@
                       [ (case
                            l
                            [ (\ds xs ->
-                                force (force (drop (delay (\x -> x))))
-                                  `$dMkNil`
-                                  (subtractInteger n 1)
-                                  xs)
+                                case
+                                  (constr 0
+                                     [`$dMkNil`, (subtractInteger n 1), xs])
+                                  [(force (force (drop (delay (\x -> x)))))])
                            , `$dMkNil` ])
                       , l ])))
          (delay (\x -> x)))))
