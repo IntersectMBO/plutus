@@ -927,7 +927,7 @@ enterComputeCek = computeCek
       -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
       -- "apparently good" value.
       (VConstr i _)
-        | fromIntegral @_ @Integer i > fromIntegral @Int @Integer maxBound ->
+        | i > fromIntegral @Int @Word64 maxBound ->
             throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
       -- Otherwise, we can safely convert the index to an Int and use it.
       (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
