@@ -24,6 +24,7 @@ import Control.DeepSeq (NFData, force)
 import Criterion.Main (Benchmark, bench, bgroup, whnf)
 import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
+import Data.Text qualified as T
 import Data.Typeable (Typeable)
 
 type PlainTerm uni fun = UPLC.Term Name uni fun ()
@@ -74,7 +75,8 @@ pairWith f = fmap (\a -> (a, f a))
 ---------------- Creating benchmarks ----------------
 
 benchWith
-  :: (Pretty fun, Typeable fun)
+  :: forall fun
+   . (Pretty fun, Typeable fun)
   => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
   -> String
   -> PlainTerm DefaultUni fun
@@ -85,13 +87,19 @@ benchWith
 -- gets back a 'Data' value it'll traverse all of it.
 benchWith params name term =
   bench name $
-    whnf (handleEvaluationErrors . evaluateCekNoEmit params) term
+    whnf (runEvalCek params) term
   where
-    handleEvaluationErrors = \case
-      Right res -> res
-      Left (ErrorWithCause err cause) ->
-        error $
-          "Evaluation error:\n" ++ show err ++ "\nCaused by:\n" ++ display cause
+    runEvalCek
+      :: MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
+      -> PlainTerm DefaultUni fun
+      -> PlainTerm DefaultUni fun
+    runEvalCek ps t =
+      let (result, logs) = evaluateCek logEmitter ps t
+       in case result of
+            Right res -> res
+            Left (ErrorWithCause err cause) ->
+              error $
+                "Evaluation error:\n" ++ show err ++ "\nCaused by:\n" ++ display cause <> "\nLogs:\n" ++ unlines (map T.unpack logs)
 
 {- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
@@ -488,3 +496,40 @@ createThreeTermBuiltinBenchWithWrappers (wrapX, wrapY, wrapZ) fun tys xs ys zs =
     ]
   where
     mkBM x y z = benchDefault (showMemoryUsage (wrapZ z)) $ mkApp3 fun tys x y z
+
+{- See Note [Adjusting the memory usage of arguments of costing benchmarks]. -}
+createFourTermBuiltinBenchElementwiseWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , uni `HasTermLevel` c
+     , uni `HasTermLevel` d
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , ExMemoryUsage c'
+     , ExMemoryUsage d'
+     , NFData a
+     , NFData b
+     , NFData c
+     , NFData d
+     )
+  => (a -> a', b -> b', c -> c', d -> d')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [(a, b, c, d)]
+  -> Benchmark
+createFourTermBuiltinBenchElementwiseWithWrappers (wrapW, wrapX, wrapY, wrapZ) fun tys inputs =
+  bgroup (show fun) $
+    fmap
+      ( \(w, x, y, z) ->
+          bgroup
+            (showMemoryUsage $ wrapW w)
+            [ bgroup
+                (showMemoryUsage $ wrapX x)
+                [bgroup (showMemoryUsage $ wrapY y) [mkBM w x y z]]
+            ]
+      )
+      inputs
+  where
+    mkBM w x y z = benchDefault (showMemoryUsage $ wrapZ z) $ mkApp4 fun tys w x y z

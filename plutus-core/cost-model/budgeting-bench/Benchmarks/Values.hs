@@ -11,22 +11,23 @@ import Prelude
 
 import Common
 import Control.Monad (replicateM)
+import Control.Monad.State.Strict (State)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
-import Data.Int (Int64)
 import Data.List (find, sort)
 import Data.Word (Word8)
+import Debug.Trace (trace)
 import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
+import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( ValueLogOuterSizeAddLogMaxInnerSize (..)
   , ValueTotalSize (..)
   )
-import PlutusCore.Value (K, Value)
+import PlutusCore.Value (K, Quantity (..), Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformRM)
+import System.Random.Stateful (StateGenM, StatefulGen, StdGen, runStateGen_, uniformListRM, uniformRM)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -37,6 +38,9 @@ makeBenchmarks gen =
   , valueContainsBenchmark gen
   , valueDataBenchmark gen
   , unValueDataBenchmark gen
+  , insertCoinBenchmark gen
+  , unionValueBenchmark gen
+  , scaleValueBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -48,10 +52,10 @@ lookupCoinBenchmark gen =
     (id, id, ValueLogOuterSizeAddLogMaxInnerSize) -- Wrap Value argument to report sum of log sizes
     LookupCoin -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
-    (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
+    (runBenchGen gen lookupCoinArgs) -- the argument combos to generate benchmarks for
 
-lookupCoinArgs :: StdGen -> [(ByteString, ByteString, Value)]
-lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
+lookupCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Value)]
+lookupCoinArgs gen = do
   {- Exhaustive power-of-2 combinations for BST worst-case benchmarking.
 
      Tests all combinations of sizes from powers and half-powers of 2.
@@ -82,7 +86,7 @@ lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
 
   sequence
     -- Generate worst-case lookups for each size combination
-    [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g)
+    [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy gen)
     | numPolicies <- sizes
     , tokensPerPolicy <- sizes
     ]
@@ -213,6 +217,176 @@ unValueDataBenchmark gen =
   createOneTermBuiltinBench UnValueData [] (Value.valueData <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
+-- InsertCoin --------------------------------------------------------------------------------------
+
+insertCoinBenchmark :: StdGen -> Benchmark
+insertCoinBenchmark gen =
+  createFourTermBuiltinBenchElementwiseWithWrappers
+    (id, id, id, ValueLogOuterSizeAddLogMaxInnerSize)
+    InsertCoin
+    []
+    (runBenchGen gen insertCoinArgs)
+
+insertCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Integer, Value)]
+insertCoinArgs gen = do
+  lookupArgs <- lookupCoinArgs gen
+  let noOfBenchs = length lookupArgs
+  amounts <- genZeroOrMaxAmount gen noOfBenchs
+  pure $ reorderArgs <$> zip lookupArgs amounts
+  where
+    reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
+
+----------------------------------------------------------------------------------------------------
+-- UnionValue --------------------------------------------------------------------------------------
+
+unionValueBenchmark :: StdGen -> Benchmark
+unionValueBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (ValueTotalSize, ValueTotalSize)
+    UnionValue
+    []
+    (runBenchGen gen unionValueArgs)
+
+unionValueArgs :: StatefulGen g m => g -> m [(Value, Value)]
+unionValueArgs gen = do
+  -- case1 <- replicateM 20 (genUnionArgs1 gen)
+  -- let case2 = map (\(a, b) -> (b, a)) case1
+  caseWorst <- replicateM 50 (genUnionArgsWorst gen)
+  -- caseInverses <- replicateM 50 (genUnionArgsInverses gen)
+  -- case2 <- replicateM 20 (genUnionArgs2 gen)
+  -- case3 is definitely not worst-case
+  -- case3 <- replicateM 20 (genUnionArgs3 gen)
+  pure $ caseWorst
+
+-- pure (case2 <> case3)
+
+-- Values where second is contained in the first
+genUnionArgs1 :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgs1 gen = do
+  let maxValue1Entries = maxValueEntries
+  maxTokenNamesValue1 <- uniformRM (1, maxValue1Entries) gen
+  let maxPolicyIdsValue1 = maxValue1Entries `div` maxTokenNamesValue1
+  numPolicyIdsV1 <- uniformRM (1, maxPolicyIdsValue1) gen
+  numTokenNamesV1 <- uniformRM (1, maxTokenNamesValue1) gen
+  policyIdsV1 <- replicateM numPolicyIdsV1 (generateKey gen)
+  tokenNamesV1 <- replicateM numTokenNamesV1 (generateKey gen)
+  let value1 = buildValue policyIdsV1 tokenNamesV1
+  numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV1) gen
+  numTokenIdsToKeep <- uniformRM (1, numTokenNamesV1) gen
+  let policyIdsV2 = take numPolicyIdsToKeep policyIdsV1
+      tokenNamesV2 = take numTokenIdsToKeep tokenNamesV1
+      value2 = buildValue policyIdsV2 tokenNamesV2
+  pure (value1, value2)
+
+-- Worst: second arg is larger, maps are flat
+genUnionArgsWorst :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsWorst gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
+  numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
+  let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
+      value1 = buildValue policyIdsV1 tokenNames
+  pure (value1, value2)
+
+genUnionArgsOneSmall :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsOneSmall gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
+  let numPolicyIdsToKeep = 1
+  let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
+      value1 = buildValue policyIdsV1 tokenNames
+  pure (value1, value2)
+
+genUnionArgsOneEmpty :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsOneEmpty gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
+  pure (Value.empty, value2)
+
+genUnionArgsInverses :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgsInverses gen = do
+  numPolicyIdsV2 <- uniformRM (1, maxValueEntries) gen
+  let numTokenNames = 1
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNames <- replicateM numTokenNames (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNames
+      BuiltinSuccess value1 = Value.scaleValue (-1) value2
+  pure (value1, value2)
+
+-- Values where first is contained in the second
+genUnionArgs2 :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgs2 gen = do
+  (v1, v2) <- genUnionArgs1 gen
+  pure (v2, v1)
+
+-- Values which are disjoint
+genUnionArgs3 :: StatefulGen g m => g -> m (Value, Value)
+genUnionArgs3 gen = do
+  let maxValue1Entries = maxValueEntries `div` 2
+      maxValue2Entries = maxValueEntries `div` 2
+  maxTokenNamesValue1 <- uniformRM (1, maxValue1Entries) gen
+  let maxPolicyIdsValue1 = maxValue1Entries `div` maxTokenNamesValue1
+  numPolicyIdsV1 <- uniformRM (1, maxPolicyIdsValue1) gen
+  numTokenNamesV1 <- uniformRM (1, maxTokenNamesValue1) gen
+  policyIdsV1 <- replicateM numPolicyIdsV1 (generateKey gen)
+  tokenNamesV1 <- replicateM numTokenNamesV1 (generateKey gen)
+  let value1 = buildValue policyIdsV1 tokenNamesV1
+  maxTokenNamesValue2 <- uniformRM (1, maxValue2Entries) gen
+  let maxPolicyIdsValue2 = maxValue2Entries `div` maxTokenNamesValue2
+  numPolicyIdsV2 <- uniformRM (1, maxPolicyIdsValue2) gen
+  numTokenNamesV2 <- uniformRM (1, maxTokenNamesValue2) gen
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenNamesV2 <- replicateM numTokenNamesV2 (generateKey gen)
+  let value2 = buildValue policyIdsV2 tokenNamesV2
+  pure (value1, value2)
+
+buildValue :: [K] -> [K] -> Value
+buildValue policyIds tokenNames =
+  Value.unsafeFromList entries
+  where
+    entries =
+      [ ( pId
+        , [ (tName, amt)
+          | tName <- tokenNames
+          ]
+        )
+      | pId <- policyIds
+      ]
+    amt = mkQuantity 2 -- mkQuantity 10000000
+
+-- mkQuantity $
+--   unQuantity (maxBound :: Quantity) `div` 2 - 10000
+
+----------------------------------------------------------------------------------------------------
+-- ScaleValue --------------------------------------------------------------------------------------
+
+scaleValueBenchmark :: StdGen -> Benchmark
+scaleValueBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (id, ValueTotalSize)
+    ScaleValue
+    []
+    (runBenchGen gen scaleValueArgs)
+
+scaleValueArgs :: StatefulGen g m => g -> m [(Integer, Value)]
+scaleValueArgs gen =
+  replicateM 200 $ do
+    numPolicyIds <- uniformRM (1, 100_000) gen
+    policyIds <- replicateM numPolicyIds (generateKey gen)
+    tokenName <- generateKey gen
+    let value = buildValue policyIds [tokenName]
+    pure (halfMax, value)
+
+----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
 
 -- | Generate common test values for benchmarking
@@ -230,6 +404,12 @@ generateValue g = do
   numEntries <- uniformRM (1, maxValueEntries) g
   generateValueMaxEntries numEntries g
 
+-- | Generate Value with random number of entries between 1 and maxValueEntries
+generateValueWithQuantity :: StatefulGen g m => Quantity -> g -> m Value
+generateValueWithQuantity qty g = do
+  numEntries <- uniformRM (1, maxValueEntries) g
+  generateValueMaxEntriesWithQuantity numEntries qty g
+
 {-| Maximum number of (policyId, tokenName, quantity) entries for Value generation.
 This represents the practical limit based on execution budget constraints.
 Scripts can programmatically generate large Values, so we benchmark based on
@@ -238,7 +418,7 @@ what's achievable within CPU execution budget, not ledger storage limits.
 Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
 consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
 maxValueEntries :: Int
-maxValueEntries = 100_000
+maxValueEntries = 50_000
 
 -- | Generate Value within total size budget
 generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
@@ -250,6 +430,15 @@ generateValueMaxEntries maxEntries g = do
 
   generateConstrainedValue numPolicies tokensPerPolicy g
 
+generateValueMaxEntriesWithQuantity :: StatefulGen g m => Int -> Quantity -> g -> m Value
+generateValueMaxEntriesWithQuantity maxEntries qty g = do
+  -- Uniform random distribution: cover full range from many policies (few tokens each)
+  -- to few policies (many tokens each)
+  numPolicies <- uniformRM (1, maxEntries) g
+  let tokensPerPolicy = if numPolicies > 0 then maxEntries `div` numPolicies else 0
+
+  generateConstrainedValueWithQuantity numPolicies tokensPerPolicy qty g
+
 -- | Generate constrained Value with information about max-size policy
 generateConstrainedValueWithMaxPolicy
   :: StatefulGen g m
@@ -257,16 +446,21 @@ generateConstrainedValueWithMaxPolicy
   -> Int -- Number of tokens per policy
   -> g
   -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
-generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g = do
+generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy =
+  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy maxBound
+
+-- | Generate constrained Value with information about max-size policy and quantity
+generateConstrainedValueWithMaxPolicyAndQuantity
+  :: StatefulGen g m
+  => Int -- Number of policies
+  -> Int -- Number of tokens per policy
+  -> Quantity -- Each token gets user defined quantity
+  -> g
+  -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
+generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy qty g = do
   policyIds <- replicateM numPolicies (generateKey g)
   tokenNames <- replicateM tokensPerPolicy (generateKey g)
-
   let
-    qty :: Value.Quantity
-    qty = case Value.quantity (fromIntegral (maxBound :: Int64)) of
-      Just q -> q
-      Nothing -> error "generateConstrainedValueWithMaxPolicy: Int64 maxBound should be valid Quantity"
-
     -- Sort policy IDs to establish BST ordering
     sortedPolicyIds = sort policyIds
 
@@ -305,6 +499,17 @@ generateConstrainedValue numPolicies tokensPerPolicy g = do
   (value, _, _) <- generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
   pure value
 
+generateConstrainedValueWithQuantity
+  :: StatefulGen g m
+  => Int -- Number of policies
+  -> Int -- Number of tokens per policy
+  -> Quantity
+  -> g
+  -> m Value
+generateConstrainedValueWithQuantity numPolicies tokensPerPolicy qty g = do
+  (value, _, _) <- generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy qty g
+  pure value
+
 ----------------------------------------------------------------------------------------------------
 -- Other Generators --------------------------------------------------------------------------------
 
@@ -326,6 +531,46 @@ generateKey g = do
     Just key -> pure key
     Nothing -> error "Internal error: maxKeyLen key should always be valid"
 
+-- | Generate either zero or maximum amount Integer values, the probability of each is 50%
+genZeroOrMaxAmount
+  :: StatefulGen g m
+  => g
+  -> Int
+  -- ^ Number of amounts to generate
+  -> m [Integer]
+genZeroOrMaxAmount gen n =
+  genZeroOrAmount gen n (maxBound :: Quantity)
+
+genZeroOrAmount
+  :: StatefulGen g m
+  => g
+  -> Int
+  -- ^ Number of amounts to generate
+  -> Quantity
+  -> m [Integer]
+genZeroOrAmount gen n qty =
+  replicateM n $ do
+    coinType <- uniformRM (0 :: Int, 1) gen
+    pure $ case coinType of
+      0 -> 0
+      1 -> unQuantity qty
+      _ -> error "genZeroOrAmount: impossible"
+
+genBoundedProduct
+  :: StatefulGen g m
+  => g
+  -> m (Integer, Integer)
+genBoundedProduct gen = do
+  i1 <- uniformRM (0, sqrtMax) gen
+  i2 <- uniformRM (0, sqrtMax) gen
+  pure (i1, i2)
+
+sqrtMax :: Integer
+sqrtMax = floor . sqrt . fromIntegral $ unQuantity (maxBound :: Quantity)
+
+halfMax :: Integer
+halfMax = unQuantity (maxBound :: Quantity) `div` 2
+
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
 
@@ -341,3 +586,12 @@ unsafeFromBuiltinResult = \case
   BuiltinSuccess x -> x
   BuiltinSuccessWithLogs _ x -> x
   BuiltinFailure _ err -> error $ "BuiltinResult failed: " <> show err
+
+-- | Abstracted runner for computations using stateful random generator 'StdGen'
+runBenchGen :: StdGen -> (StateGenM StdGen -> State StdGen a) -> a
+runBenchGen gen ma = runStateGen_ gen \g -> ma g
+
+mkQuantity :: Integer -> Value.Quantity
+mkQuantity qty = case Value.quantity qty of
+  Just q -> q
+  Nothing -> error "mkQuantity: out of bounds user supplied integer as quantity"

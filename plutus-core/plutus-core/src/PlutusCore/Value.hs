@@ -22,6 +22,7 @@ module PlutusCore.Value
   , pack
   , empty
   , fromList
+  , unsafeFromList
   , toList
   , toFlatList
   , totalSize
@@ -261,6 +262,10 @@ fromList xs = do
   pack <$> validateQuantities outerMap
 {-# INLINEABLE fromList #-}
 
+-- | Left biased unsafe fromList.
+unsafeFromList :: [(K, [(K, Quantity)])] -> Value
+unsafeFromList xs = pack $ Map.fromList $ fmap Map.fromList <$> xs
+
 -- | Unsafe addition of quantities without bounds checking.
 unsafeAddQuantity :: Quantity -> Quantity -> Quantity
 unsafeAddQuantity (UnsafeQuantity x) (UnsafeQuantity y) = UnsafeQuantity (x + y)
@@ -383,28 +388,49 @@ valueContains v1 v2
 
 {-| \(O(n_{1}) + O(n_{2})\), where \(n_{1}\) and \(n_{2}\) are the total sizes
 (i.e., sum of inner map sizes) of the two maps. -}
+unionValue' :: Value -> Value -> BuiltinResult Value
+unionValue' (unpack -> vA) (unpack -> vB) =
+  let result =
+        (traverse . traverse) checkOverflow $
+          Map.unionWith (Map.unionWith unsafeAddQuantity) vA vB
+   in case result of
+        Nothing ->
+          fail "unionValue: quantity is out of the signed 128-bit integer bounds"
+        Just v -> BuiltinSuccess $ pack v
+  where
+    checkOverflow :: Quantity -> Maybe Quantity
+    checkOverflow (UnsafeQuantity x) = quantity x
+
 unionValue :: Value -> Value -> BuiltinResult Value
-unionValue (unpack -> vA) (unpack -> vB) =
-  pack'
-    <$> M.mergeA
-      M.preserveMissing
-      M.preserveMissing
-      ( M.zipWithMaybeAMatched \_ innerA innerB ->
-          fmap (\inner -> if Map.null inner then Nothing else Just inner) $
-            M.mergeA
-              M.preserveMissing
-              M.preserveMissing
-              ( M.zipWithMaybeAMatched \_ x y ->
-                  case addQuantity x y of
-                    Just z -> pure if z == zeroQuantity then Nothing else Just z
-                    Nothing ->
-                      fail "unionValue: quantity is out of the signed 128-bit integer bounds"
-              )
-              innerA
-              innerB
-      )
-      vA
-      vB
+unionValue vA vB
+  | totalSize vA == 0 = BuiltinSuccess vB
+  | totalSize vB == 0 = BuiltinSuccess vA
+  | otherwise =
+      pack'
+        <$> M.mergeA
+          M.preserveMissing
+          M.preserveMissing
+          ( M.zipWithMaybeAMatched \_ innerA innerB ->
+              fmap (\inner -> if Map.null inner then Nothing else Just inner) $
+                M.mergeA
+                  M.preserveMissing
+                  M.preserveMissing
+                  ( M.zipWithMaybeAMatched \_ x y ->
+                      case addQuantity x y of
+                        Just z -> pure if z == zeroQuantity then Nothing else Just z
+                        Nothing ->
+                          fail "unionValue: quantity is out of the signed 128-bit integer bounds"
+                  )
+                  innerA
+                  innerB
+          )
+          v1
+          v2
+  where
+    (v1, v2) =
+      if totalSize vB > totalSize vA
+        then (unpack vB, unpack vA)
+        else (unpack vA, unpack vB)
 {-# INLINEABLE unionValue #-}
 
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
