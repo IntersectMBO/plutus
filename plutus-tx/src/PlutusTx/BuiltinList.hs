@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 {-# HLINT ignore "Redundant if" #-}
@@ -283,9 +285,13 @@ reverse xs = revAppend xs empty
 
 -- | Plutus Tx version of 'Data.List.zip' for 'BuiltinList'.
 _zip
-  :: forall a b
-   . (MkNil a, MkNil b)
-  => BuiltinList a
+  :: forall a b .
+#if __GLASGOW_HASKELL__ < 914
+     -- These constraints are REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+     -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+     (MkNil a, MkNil b) =>
+#endif
+     BuiltinList a
   -> BuiltinList b
   -> BuiltinList (BuiltinPair a b)
 _zip = zipWith (curry BI.BuiltinPair)
