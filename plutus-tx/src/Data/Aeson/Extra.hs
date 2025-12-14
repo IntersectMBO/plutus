@@ -1,11 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 
-module Data.Aeson.Extra (
-  buildObject,
-  optionalField,
-  requiredField,
-  stripPrefix,
-) where
+module Data.Aeson.Extra
+  ( buildObject
+  , optionalField
+  , requiredField
+  , stripPrefix
+  ) where
 
 import Prelude
 
@@ -32,21 +32,19 @@ builds this JSON object:
       "field3": "hello"
     }
 @
-omitting optional 'field4'.
--}
+omitting optional 'field4'. -}
 buildObject :: (Aeson.Object -> Aeson.Object) -> Aeson.Value
 buildObject = Aeson.Object . ($ KeyMap.empty)
 
-optionalField :: (ToJSON a) => Aeson.Key -> Maybe a -> Aeson.Object -> Aeson.Object
+optionalField :: ToJSON a => Aeson.Key -> Maybe a -> Aeson.Object -> Aeson.Object
 optionalField = maybe id . requiredField
 
-requiredField :: (ToJSON a) => Aeson.Key -> a -> Aeson.Object -> Aeson.Object
+requiredField :: ToJSON a => Aeson.Key -> a -> Aeson.Object -> Aeson.Object
 requiredField key value = KeyMap.insert key (toJSON value)
 
 {-| A field label modifier that strips a prefix from the camelCased field name;
 >>> stripPrefix "preamble" "preambleTitle"
-"title"
--}
+"title" -}
 stripPrefix
   :: String
   -- ^ Field prefix to strip
@@ -54,14 +52,14 @@ stripPrefix
   -- ^ Field name
   -> String
 stripPrefix prefix field = go (prefix, field)
- where
-  go = \case
-    (p1 : ps, f1 : fs) | p1 == f1 -> go (ps, fs)
-    ([], f1 : fs) -> Char.toLower f1 : fs
-    _ ->
-      error $
-        "Unexpected field name '"
-          ++ field
-          ++ "', must start from '"
-          ++ prefix
-          ++ "' and have other characters after."
+  where
+    go = \case
+      (p1 : ps, f1 : fs) | p1 == f1 -> go (ps, fs)
+      ([], f1 : fs) -> Char.toLower f1 : fs
+      _ ->
+        error $
+          "Unexpected field name '"
+            ++ field
+            ++ "', must start from '"
+            ++ prefix
+            ++ "' and have other characters after."

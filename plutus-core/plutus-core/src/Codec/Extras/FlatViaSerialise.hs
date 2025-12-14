@@ -1,6 +1,6 @@
 module Codec.Extras.FlatViaSerialise
-    ( FlatViaSerialise (..)
-    ) where
+  ( FlatViaSerialise (..)
+  ) where
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
 import Data.ByteString.Lazy qualified as BSL (toStrict)
@@ -27,14 +27,14 @@ convert `Data` objects to bytestrings on the chain using the `serialiseData` bui
 performs CBOR serialisation and the result is always in a canonical form. -}
 
 -- | For deriving 'Flat' instances via 'Serialize'.
-newtype FlatViaSerialise a = FlatViaSerialise { unFlatViaSerialise :: a }
+newtype FlatViaSerialise a = FlatViaSerialise {unFlatViaSerialise :: a}
 
 instance Serialise a => Flat (FlatViaSerialise a) where
-    -- See Note [Flat serialisation for strict and lazy bytestrings]
-    encode = encode . BSL.toStrict . serialise . unFlatViaSerialise
-    decode = do
-        errOrX <- deserialiseOrFail <$> decode
-        case errOrX of
-            Left err -> fail $ show err  -- Here we embed a 'Serialise' error into a 'Flat' one.
-            Right x  -> pure $ FlatViaSerialise x
-    size = size . BSL.toStrict . serialise . unFlatViaSerialise
+  -- See Note [Flat serialisation for strict and lazy bytestrings]
+  encode = encode . BSL.toStrict . serialise . unFlatViaSerialise
+  decode = do
+    errOrX <- deserialiseOrFail <$> decode
+    case errOrX of
+      Left err -> fail $ show err -- Here we embed a 'Serialise' error into a 'Flat' one.
+      Right x -> pure $ FlatViaSerialise x
+  size = size . BSL.toStrict . serialise . unFlatViaSerialise

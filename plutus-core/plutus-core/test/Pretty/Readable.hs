@@ -19,7 +19,7 @@ prettyConfigReadable =
     . PrettyConfigPlcReadable
     $ botPrettyConfigReadable prettyConfigNameSimple def
 
-testReadable :: (PrettyPlc a) => TestName -> a -> TestNested
+testReadable :: PrettyPlc a => TestName -> a -> TestNested
 testReadable name = nestedGoldenVsDoc name "" . prettyBy prettyConfigReadable
 
 test_PrettyReadable :: TestTree
@@ -31,8 +31,8 @@ test_PrettyReadable =
     ]
   where
     folder :: Pretty fun => PlcFolderContents DefaultUni fun -> TestTree
-    folder
-        = runTestNested ["plutus-core", "test", "Pretty", "Golden", "Readable"]
+    folder =
+      runTestNested ["plutus-core", "test", "Pretty", "Golden", "Readable"]
         . foldPlcFolderContents testNested testReadable testReadable
 
 test_Pretty :: TestTree

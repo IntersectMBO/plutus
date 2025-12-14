@@ -1,16 +1,16 @@
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-typecheck #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module Plugin.Typeclasses.Spec where
 
@@ -68,19 +68,19 @@ class PersonLike a where
 
 instance PersonLike Person where
   {-# INLINEABLE age #-}
-  age Jim  = 30
+  age Jim = 30
   age Jane = 35
   {-# INLINEABLE likesAnimal #-}
   likesAnimal Jane Cat = True
-  likesAnimal _ _      = False
+  likesAnimal _ _ = False
 
 instance PersonLike Alien where
   {-# INLINEABLE age #-}
-  age AlienJim  = 300
+  age AlienJim = 300
   age AlienJane = 350
   {-# INLINEABLE likesAnimal #-}
   likesAnimal AlienJane Dog = True
-  likesAnimal _ _           = False
+  likesAnimal _ _ = False
 
 multiFunction :: CompiledCode (Person -> Bool)
 multiFunction =
@@ -88,7 +88,7 @@ multiFunction =
     (Proxy @"multiFunction")
     ( let
         {-# OPAQUE predicate #-}
-        predicate :: (PersonLike p) => p -> Bool
+        predicate :: PersonLike p => p -> Bool
         predicate p = likesAnimal p Cat P.&& (age p `Builtins.lessThanInteger` 30)
        in
         \(p :: Person) -> predicate p
@@ -100,7 +100,7 @@ defaultMethods =
     (Proxy @"defaultMethods")
     ( let
         {-# OPAQUE f #-}
-        f :: (DefaultMethods a) => a -> Integer
+        f :: DefaultMethods a => a -> Integer
         f a = method2 a
        in
         \(a :: Integer) -> f a
@@ -112,7 +112,7 @@ partialApplication = plc (Proxy @"partialApplication") (P.compare @Integer)
 sequenceTest :: CompiledCode (Maybe [Integer])
 sequenceTest = plc (Proxy @"sequenceTests") (T.sequence [Just (1 :: Integer), Just (2 :: Integer)])
 
-opCompare :: (P.Ord a) => a -> a -> Ordering
+opCompare :: P.Ord a => a -> a -> Ordering
 opCompare a b = case P.compare a b of
   LT -> GT
   EQ -> EQ

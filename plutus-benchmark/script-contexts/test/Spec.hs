@@ -8,8 +8,8 @@ import Test.Tasty
 
 main :: IO ()
 main =
-    defaultMain
-        ( testGroup
-            "plutus-benchmark script-contexts tests"
-            [V1.allTests, V2.allTests, V3.allTests]
-        )
+  defaultMain
+    ( testGroup
+        "plutus-benchmark script-contexts tests"
+        [V1.allTests, V2.allTests, V3.allTests]
+    )

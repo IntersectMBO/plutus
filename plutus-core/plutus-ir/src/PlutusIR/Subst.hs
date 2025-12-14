@@ -1,31 +1,31 @@
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE ViewPatterns #-}
 
-module PlutusIR.Subst (
-  substVarA,
-  substTyVarA,
-  typeSubstTyNames,
-  termSubstNames,
-  termSubstNamesM,
-  termSubstTyNames,
-  termSubstTyNamesM,
-  bindingSubstNames,
-  bindingSubstTyNames,
-  fvTerm,
-  ftvTerm,
-  fvBinding,
-  ftvBinding,
-  ftvTy,
-  vTerm,
-  tvTerm,
-  tvTy,
-  substConstantA,
-  substConstant,
-  termSubstConstantsM,
-  termSubstConstants,
-) where
+module PlutusIR.Subst
+  ( substVarA
+  , substTyVarA
+  , typeSubstTyNames
+  , termSubstNames
+  , termSubstNamesM
+  , termSubstTyNames
+  , termSubstTyNamesM
+  , bindingSubstNames
+  , bindingSubstTyNames
+  , fvTerm
+  , ftvTerm
+  , fvBinding
+  , ftvBinding
+  , ftvTy
+  , vTerm
+  , tvTerm
+  , tvTy
+  , substConstantA
+  , substConstant
+  , termSubstConstantsM
+  , termSubstConstants
+  ) where
 
 import PlutusPrelude
 
@@ -44,83 +44,82 @@ import Data.Traversable (mapAccumL)
 import Universe
 
 -- | Applicatively replace a variable using the given function.
-substVarA ::
-  (Applicative f) =>
-  (name -> f (Maybe (Term tyname name uni fun ann))) ->
-  Term tyname name uni fun ann ->
-  f (Term tyname name uni fun ann)
+substVarA
+  :: Applicative f
+  => (name -> f (Maybe (Term tyname name uni fun ann)))
+  -> Term tyname name uni fun ann
+  -> f (Term tyname name uni fun ann)
 substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
-substVarA _ t                  = pure t
+substVarA _ t = pure t
 {-# INLINE substVarA #-}
 
 -- | Applicatively replace a type variable using the given function.
-substTyVarA ::
-  (Applicative f) =>
-  (tyname -> f (Maybe (Type tyname uni ann))) ->
-  Type tyname uni ann ->
-  f (Type tyname uni ann)
+substTyVarA
+  :: Applicative f
+  => (tyname -> f (Maybe (Type tyname uni ann)))
+  -> Type tyname uni ann
+  -> f (Type tyname uni ann)
 substTyVarA tynameF ty@(TyVar _ tyname) = fromMaybe ty <$> tynameF tyname
-substTyVarA _ ty                        = pure ty
+substTyVarA _ ty = pure ty
 {-# INLINE substTyVarA #-}
 
 -- | Naively substitute names using the given functions (i.e. do not substitute binders).
-termSubstNames ::
-  (name -> Maybe (Term tyname name uni fun a)) ->
-  Term tyname name uni fun a ->
-  Term tyname name uni fun a
+termSubstNames
+  :: (name -> Maybe (Term tyname name uni fun a))
+  -> Term tyname name uni fun a
+  -> Term tyname name uni fun a
 termSubstNames = purely termSubstNamesM
 
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
-termSubstNamesM ::
-  (Monad m) =>
-  (name -> m (Maybe (Term tyname name uni fun ann))) ->
-  Term tyname name uni fun ann ->
-  m (Term tyname name uni fun ann)
+termSubstNamesM
+  :: Monad m
+  => (name -> m (Maybe (Term tyname name uni fun ann)))
+  -> Term tyname name uni fun ann
+  -> m (Term tyname name uni fun ann)
 termSubstNamesM = transformMOf termSubterms . substVarA
 
 -- | Naively substitute type names using the given functions (i.e. do not substitute binders).
-termSubstTyNames ::
-  (tyname -> Maybe (Type tyname uni a)) ->
-  Term tyname name uni fun a ->
-  Term tyname name uni fun a
+termSubstTyNames
+  :: (tyname -> Maybe (Type tyname uni a))
+  -> Term tyname name uni fun a
+  -> Term tyname name uni fun a
 termSubstTyNames = purely termSubstTyNamesM
 
-{- | Naively monadically substitute type names using the given function
-(i.e. do not substitute binders).
--}
-termSubstTyNamesM ::
-  (Monad m) =>
-  (tyname -> m (Maybe (Type tyname uni ann))) ->
-  Term tyname name uni fun ann ->
-  m (Term tyname name uni fun ann)
+{-| Naively monadically substitute type names using the given function
+(i.e. do not substitute binders). -}
+termSubstTyNamesM
+  :: Monad m
+  => (tyname -> m (Maybe (Type tyname uni ann)))
+  -> Term tyname name uni fun ann
+  -> m (Term tyname name uni fun ann)
 termSubstTyNamesM =
   transformMOf termSubterms . traverseOf termSubtypes . transformMOf typeSubtypes . substTyVarA
 
 -- | Naively substitute names using the given functions (i.e. do not substitute binders).
-bindingSubstNames ::
-  (name -> Maybe (Term tyname name uni fun a)) ->
-  Binding tyname name uni fun a ->
-  Binding tyname name uni fun a
+bindingSubstNames
+  :: (name -> Maybe (Term tyname name uni fun a))
+  -> Binding tyname name uni fun a
+  -> Binding tyname name uni fun a
 bindingSubstNames nameF = over bindingSubterms (termSubstNames nameF)
 
 -- | Naively substitute type names using the given functions (i.e. do not substitute binders).
-bindingSubstTyNames ::
-  (tyname -> Maybe (Type tyname uni a)) ->
-  Binding tyname name uni fun a ->
-  Binding tyname name uni fun a
+bindingSubstTyNames
+  :: (tyname -> Maybe (Type tyname uni a))
+  -> Binding tyname name uni fun a
+  -> Binding tyname name uni fun a
 bindingSubstTyNames tynameF =
   over bindingSubterms (termSubstTyNames tynameF)
     . over bindingSubtypes (typeSubstTyNames tynameF)
 
 -- | Get all the free term variables in a PIR term.
-fvTerm :: (HasUnique name TermUnique) => Traversal' (Term tyname name uni fun ann) name
+fvTerm :: HasUnique name TermUnique => Traversal' (Term tyname name uni fun ann) name
 fvTerm = fvTermCtx mempty
 
 fvTermCtx
-  :: forall tyname name uni fun ann .
-  (HasUnique name TermUnique) =>
-  UniqueSet TermUnique ->
-  Traversal' (Term tyname name uni fun ann) name
+  :: forall tyname name uni fun ann
+   . HasUnique name TermUnique
+  => UniqueSet TermUnique
+  -> Traversal' (Term tyname name uni fun ann) name
 fvTermCtx bound f = \case
   Let a r@NonRec bs tIn ->
     let fvLinearScope boundSoFar b =
@@ -135,13 +134,13 @@ fvTermCtx bound f = \case
   t -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a PIR term.
-ftvTerm :: (HasUnique tyname TypeUnique) => Traversal' (Term tyname name uni fun ann) tyname
+ftvTerm :: HasUnique tyname TypeUnique => Traversal' (Term tyname name uni fun ann) tyname
 ftvTerm = ftvTermCtx mempty
 
-ftvTermCtx ::
-  (HasUnique tyname TypeUnique) =>
-  UniqueSet TypeUnique ->
-  Traversal' (Term tyname name uni fun ann) tyname
+ftvTermCtx
+  :: HasUnique tyname TypeUnique
+  => UniqueSet TypeUnique
+  -> Traversal' (Term tyname name uni fun ann) tyname
 ftvTermCtx bound f = \case
   Let a r@NonRec bs tIn ->
     let ftvLinearScope bound' b =
@@ -156,27 +155,27 @@ ftvTermCtx bound f = \case
   t -> ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free variables in a PIR single let-binding.
-fvBinding :: (HasUnique name TermUnique) => Traversal' (Binding tyname name uni fun ann) name
+fvBinding :: HasUnique name TermUnique => Traversal' (Binding tyname name uni fun ann) name
 fvBinding = fvBindingCtx mempty
 
-fvBindingCtx ::
-  (HasUnique name TermUnique) =>
-  UniqueSet TermUnique ->
-  Traversal' (Binding tyname name uni fun ann) name
+fvBindingCtx
+  :: HasUnique name TermUnique
+  => UniqueSet TermUnique
+  -> Traversal' (Binding tyname name uni fun ann) name
 fvBindingCtx bound = bindingSubterms . fvTermCtx bound
 
 -- | Get all the free type variables in a PIR single let-binding.
-ftvBinding ::
-  (HasUnique tyname TypeUnique) =>
-  Recursivity ->
-  Traversal' (Binding tyname name uni fun ann) tyname
+ftvBinding
+  :: HasUnique tyname TypeUnique
+  => Recursivity
+  -> Traversal' (Binding tyname name uni fun ann) tyname
 ftvBinding r = ftvBindingCtx r mempty
 
-ftvBindingCtx ::
-  (HasUnique tyname TypeUnique) =>
-  Recursivity ->
-  UniqueSet TypeUnique ->
-  Traversal' (Binding tyname name uni fun ann) tyname
+ftvBindingCtx
+  :: HasUnique tyname TypeUnique
+  => Recursivity
+  -> UniqueSet TypeUnique
+  -> Traversal' (Binding tyname name uni fun ann) tyname
 ftvBindingCtx r bound f = \case
   DatatypeBind a d -> DatatypeBind a <$> ftvDatatypeCtx r bound f d
   -- sound because the subterms and subtypes are disjoint
@@ -187,11 +186,11 @@ ftvBindingCtx r bound f = \case
       f
       b
 
-ftvDatatypeCtx ::
-  (HasUnique tyname TypeUnique) =>
-  Recursivity ->
-  UniqueSet TypeUnique ->
-  Traversal' (Datatype tyname name uni ann) tyname
+ftvDatatypeCtx
+  :: HasUnique tyname TypeUnique
+  => Recursivity
+  -> UniqueSet TypeUnique
+  -> Traversal' (Datatype tyname name uni ann) tyname
 ftvDatatypeCtx r bound f d@(Datatype a tyconstr tyvars destr constrs) =
   let
     tyConstr = USet.setOfByName PLC.tyVarDeclName tyconstr
@@ -219,15 +218,15 @@ ftvDatatypeCtx r bound f d@(Datatype a tyconstr tyvars destr constrs) =
 -- | Traverse the arguments of a function type (nothing if the type is not a function type).
 funArgs :: Traversal' (Type tyname uni a) (Type tyname uni a)
 funArgs f = \case
-  TyFun a dom cod@TyFun{} -> TyFun a <$> f dom <*> funArgs f cod
-  TyFun a dom res         -> TyFun a <$> f dom <*> pure res
-  t                       -> pure t
+  TyFun a dom cod@TyFun {} -> TyFun a <$> f dom <*> funArgs f cod
+  TyFun a dom res -> TyFun a <$> f dom <*> pure res
+  t -> pure t
 
 -- | Traverse the result type of a function type (the type itself if it is not a function type).
 funRes :: Lens' (Type tyname uni a) (Type tyname uni a)
 funRes f = \case
   TyFun a dom cod -> TyFun a dom <$> funRes f cod
-  t               -> f t
+  t -> f t
 
 -- TODO: these could be Traversals
 -- | Get all the term variables in a term.
@@ -240,31 +239,31 @@ tvTerm = termSubtypesDeep . typeTyVars
 
 -- | Applicatively replace a constant using the given function.
 substConstantA
-    :: Applicative f
-    => (ann -> Some (ValueOf uni) -> f (Maybe (Term tyname name uni fun ann)))
-    -> Term tyname name uni fun ann
-    -> f (Term tyname name uni fun ann)
+  :: Applicative f
+  => (ann -> Some (ValueOf uni) -> f (Maybe (Term tyname name uni fun ann)))
+  -> Term tyname name uni fun ann
+  -> f (Term tyname name uni fun ann)
 substConstantA valF t@(Constant ann val) = fromMaybe t <$> valF ann val
-substConstantA _    t                    = pure t
+substConstantA _ t = pure t
 
 -- | Replace a constant using the given function.
 substConstant
-    :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
-    -> Term tyname name uni fun ann
-    -> Term tyname name uni fun ann
+  :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+  -> Term tyname name uni fun ann
+  -> Term tyname name uni fun ann
 substConstant = purely (substConstantA . curry) . uncurry
 
 -- | Monadically substitute constants using the given function.
 termSubstConstantsM
-    :: Monad m
-    => (ann -> Some (ValueOf uni) -> m (Maybe (Term tyname name uni fun ann)))
-    -> Term tyname name uni fun ann
-    -> m (Term tyname name uni fun ann)
+  :: Monad m
+  => (ann -> Some (ValueOf uni) -> m (Maybe (Term tyname name uni fun ann)))
+  -> Term tyname name uni fun ann
+  -> m (Term tyname name uni fun ann)
 termSubstConstantsM = transformMOf termSubterms . substConstantA
 
 -- | Substitute constants using the given function.
 termSubstConstants
-    :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
-    -> Term tyname name uni fun ann
-    -> Term tyname name uni fun ann
+  :: (ann -> Some (ValueOf uni) -> Maybe (Term tyname name uni fun ann))
+  -> Term tyname name uni fun ann
+  -> Term tyname name uni fun ann
 termSubstConstants = purely (termSubstConstantsM . curry) . uncurry

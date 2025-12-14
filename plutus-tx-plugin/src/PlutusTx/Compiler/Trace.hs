@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusTx.Compiler.Trace where
@@ -22,8 +22,7 @@ import GHC.Plugins qualified as GHC
 turned on via `-fcontext-level=<level>`.
 
 `traceCompilationStep` dumps the full compilation trace, and can be
-turned on via `-fdump-compilation-trace`.
--}
+turned on via `-fdump-compilation-trace`. -}
 traceCompilation
   :: ( MonadReader (CompileContext uni fun) m
      , MonadState CompileState m

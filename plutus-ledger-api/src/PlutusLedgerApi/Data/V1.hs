@@ -1,182 +1,188 @@
 {-# LANGUAGE PatternSynonyms #-}
 
 -- | The interface to Plutus V1 for the ledger.
-module PlutusLedgerApi.Data.V1 (
-  -- * Scripts
-  SerialisedScript,
-  ScriptForEvaluation,
-  serialisedScript,
-  deserialisedScript,
-  serialiseCompiledCode,
-  serialiseUPLC,
-  deserialiseScript,
-  uncheckedDeserialiseUPLC,
+module PlutusLedgerApi.Data.V1
+  ( -- * Scripts
+    SerialisedScript
+  , ScriptForEvaluation
+  , serialisedScript
+  , deserialisedScript
+  , serialiseCompiledCode
+  , serialiseUPLC
+  , deserialiseScript
+  , uncheckedDeserialiseUPLC
 
-  -- * Running scripts
-  evaluateScriptRestricting,
-  evaluateScriptCounting,
+    -- * Running scripts
+  , evaluateScriptRestricting
+  , evaluateScriptCounting
 
-  -- ** Protocol version
-  MajorProtocolVersion (..),
+    -- ** Protocol version
+  , MajorProtocolVersion (..)
 
-  -- ** Verbose mode and log output
-  VerboseMode (..),
-  LogOutput,
+    -- ** Verbose mode and log output
+  , VerboseMode (..)
+  , LogOutput
 
-  -- * Costing-related types
-  ExBudget (..),
-  ExCPU (..),
-  ExMemory (..),
-  SatInt (unSatInt),
-  fromSatInt,
+    -- * Costing-related types
+  , ExBudget (..)
+  , ExCPU (..)
+  , ExMemory (..)
+  , SatInt (unSatInt)
+  , fromSatInt
 
-  -- ** Cost model
-  EvaluationContext,
-  mkEvaluationContext,
-  ParamName (..),
-  CostModelApplyError (..),
-  CostModelParams,
-  assertWellFormedCostModelParams,
+    -- ** Cost model
+  , EvaluationContext
+  , mkEvaluationContext
+  , ParamName (..)
+  , CostModelApplyError (..)
+  , CostModelParams
+  , assertWellFormedCostModelParams
 
-  -- * Context types
-  ScriptContext,
-  pattern ScriptContext,
-  scriptContextTxInfo,
-  scriptContextPurpose,
-  ScriptPurpose,
-  pattern Minting,
-  pattern Spending,
-  pattern Rewarding,
-  pattern Certifying,
+    -- * Context types
+  , ScriptContext
+  , pattern ScriptContext
+  , scriptContextTxInfo
+  , scriptContextPurpose
+  , ScriptPurpose
+  , pattern Minting
+  , pattern Spending
+  , pattern Rewarding
+  , pattern Certifying
 
-  -- ** Supporting types used in the context types
+    -- ** Supporting types used in the context types
 
-  -- *** ByteStrings
-  BuiltinByteString,
-  toBuiltin,
-  fromBuiltin,
+    -- *** ByteStrings
+  , BuiltinByteString
+  , toBuiltin
+  , fromBuiltin
 
-  -- *** Bytes
-  LedgerBytes (..),
-  fromBytes,
+    -- *** Bytes
+  , LedgerBytes (..)
+  , fromBytes
 
-  -- *** Certificates
-  DCert,
-  pattern DCertDelegRegKey,
-  pattern DCertDelegDeRegKey,
-  pattern DCertDelegDelegate,
-  pattern DCertPoolRegister,
-  pattern DCertPoolRetire,
-  pattern DCertGenesis,
-  pattern DCertMir,
+    -- *** Certificates
+  , DCert
+  , pattern DCertDelegRegKey
+  , pattern DCertDelegDeRegKey
+  , pattern DCertDelegDelegate
+  , pattern DCertPoolRegister
+  , pattern DCertPoolRetire
+  , pattern DCertGenesis
+  , pattern DCertMir
 
-  -- *** Credentials
-  StakingCredential,
-  pattern StakingHash,
-  pattern StakingPtr,
-  Credential,
-  pattern PubKeyCredential,
-  pattern ScriptCredential,
+    -- *** Credentials
+  , StakingCredential
+  , pattern StakingHash
+  , pattern StakingPtr
+  , Credential
+  , pattern PubKeyCredential
+  , pattern ScriptCredential
 
-  -- *** Value
-  Value (..),
-  CurrencySymbol (..),
-  TokenName (..),
-  singleton,
-  unionWith,
-  adaSymbol,
-  adaToken,
-  Lovelace (..),
+    -- *** Value
+  , Value (..)
+  , CurrencySymbol (..)
+  , TokenName (..)
+  , singleton
+  , unionWith
+  , adaSymbol
+  , adaToken
+  , Lovelace (..)
 
-  -- *** Time
-  POSIXTime (..),
-  POSIXTimeRange,
+    -- *** Time
+  , POSIXTime (..)
+  , POSIXTimeRange
 
-  -- *** Types for representing transactions
-  Address,
-  pattern Address,
-  addressCredential,
-  addressStakingCredential,
-  PubKeyHash (..),
-  TxId (..),
-  TxInfo,
-  pattern TxInfo,
-  txInfoInputs,
-  txInfoOutputs,
-  txInfoFee,
-  txInfoMint,
-  txInfoDCert,
-  txInfoWdrl,
-  txInfoValidRange,
-  txInfoSignatories,
-  txInfoData,
-  txInfoId,
-  TxOut,
-  pattern TxOut,
-  txOutAddress,
-  txOutValue,
-  txOutDatumHash,
-  TxOutRef,
-  pattern TxOutRef,
-  txOutRefId,
-  txOutRefIdx,
-  TxInInfo,
-  pattern TxInInfo,
-  txInInfoOutRef,
-  txInInfoResolved,
+    -- *** Types for representing transactions
+  , Address
+  , pattern Address
+  , addressCredential
+  , addressStakingCredential
+  , PubKeyHash (..)
+  , TxId (..)
+  , TxInfo
+  , pattern TxInfo
+  , txInfoInputs
+  , txInfoOutputs
+  , txInfoFee
+  , txInfoMint
+  , txInfoDCert
+  , txInfoWdrl
+  , txInfoValidRange
+  , txInfoSignatories
+  , txInfoData
+  , txInfoId
+  , TxOut
+  , pattern TxOut
+  , txOutAddress
+  , txOutValue
+  , txOutDatumHash
+  , TxOutRef
+  , pattern TxOutRef
+  , txOutRefId
+  , txOutRefIdx
+  , TxInInfo
+  , pattern TxInInfo
+  , txInInfoOutRef
+  , txInInfoResolved
 
-  -- *** Intervals
-  Interval,
-  pattern Interval,
-  ivFrom,
-  ivTo,
-  Extended,
-  pattern NegInf,
-  pattern PosInf,
-  pattern Finite,
-  Closure,
-  UpperBound,
-  pattern UpperBound,
-  LowerBound,
-  pattern LowerBound,
-  always,
-  from,
-  to,
-  lowerBound,
-  upperBound,
-  strictLowerBound,
-  strictUpperBound,
+    -- *** Intervals
+  , Interval
+  , pattern Interval
+  , ivFrom
+  , ivTo
+  , Extended
+  , pattern NegInf
+  , pattern PosInf
+  , pattern Finite
+  , Closure
+  , UpperBound
+  , pattern UpperBound
+  , LowerBound
+  , pattern LowerBound
+  , always
+  , from
+  , to
+  , lowerBound
+  , upperBound
+  , strictLowerBound
+  , strictUpperBound
 
-  -- *** Newtypes and hash types
-  ScriptHash (..),
-  Redeemer (..),
-  RedeemerHash (..),
-  Datum (..),
-  DatumHash (..),
+    -- *** Newtypes and hash types
+  , ScriptHash (..)
+  , Redeemer (..)
+  , RedeemerHash (..)
+  , Datum (..)
+  , DatumHash (..)
 
-  -- * Data
-  PLC.Data (..),
-  BuiltinData (..),
-  ToData (..),
-  FromData (..),
-  UnsafeFromData (..),
-  toData,
-  fromData,
-  dataToBuiltinData,
-  builtinDataToData,
+    -- * Data
+  , PLC.Data (..)
+  , BuiltinData (..)
+  , ToData (..)
+  , FromData (..)
+  , UnsafeFromData (..)
+  , toData
+  , fromData
+  , dataToBuiltinData
+  , builtinDataToData
 
-  -- * Errors
-  EvaluationError (..),
-  ScriptDecodeError (..),
-) where
+    -- * Errors
+  , EvaluationError (..)
+  , ScriptDecodeError (..)
+  ) where
 
 import Data.SatInt
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget as PLC
-import PlutusLedgerApi.Common as Common hiding (deserialiseScript, evaluateScriptCounting,
-                                         evaluateScriptRestricting)
-import PlutusLedgerApi.Common qualified as Common (deserialiseScript, evaluateScriptCounting,
-                                                   evaluateScriptRestricting)
+import PlutusLedgerApi.Common as Common hiding
+  ( deserialiseScript
+  , evaluateScriptCounting
+  , evaluateScriptRestricting
+  )
+import PlutusLedgerApi.Common qualified as Common
+  ( deserialiseScript
+  , evaluateScriptCounting
+  , evaluateScriptRestricting
+  )
 import PlutusLedgerApi.V1.Bytes
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Data.Address
@@ -191,8 +197,7 @@ import PlutusLedgerApi.V1.ParamName
 import PlutusLedgerApi.V1.Scripts as Scripts
 
 {-| An alias to the Plutus ledger language this module exposes at runtime.
- MAYBE: Use CPP '__FILE__' + some TH to automate this.
--}
+ MAYBE: Use CPP '__FILE__' + some TH to automate this. -}
 thisLedgerLanguage :: PlutusLedgerLanguage
 thisLedgerLanguage = PlutusV1
 
@@ -216,11 +221,10 @@ new versions.
 
 {-| The deserialization from a serialised script into a `ScriptForEvaluation`,
 ready to be evaluated on-chain.
-Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
--}
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error). -}
 deserialiseScript
   :: forall m
-   . (MonadError ScriptDecodeError m)
+   . MonadError ScriptDecodeError m
   => MajorProtocolVersion
   -- ^ which major protocol version the script was submitted in.
   -> SerialisedScript
@@ -231,8 +235,7 @@ deserialiseScript = Common.deserialiseScript thisLedgerLanguage
 {-| Evaluates a script, returning the minimum budget that the script would need
 to evaluate successfully. lalaThis will take as long as the script takes, if you need to
 limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
-also returns the used budget.
--}
+also returns the used budget. -}
 evaluateScriptCounting
   :: MajorProtocolVersion
   -- ^ Which major protocol version to run the operation in
@@ -252,8 +255,7 @@ resources it can use according to the cost model. Also returns the budget that
 was actually used.
 
 Can be used to calculate budgets for scripts, but even in this case you must give
-a limit to guard against scripts that run for a long time or loop.
--}
+a limit to guard against scripts that run for a long time or loop. -}
 evaluateScriptRestricting
   :: MajorProtocolVersion
   -- ^ Which major protocol version to run the operation in

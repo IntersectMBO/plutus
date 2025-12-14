@@ -11,15 +11,15 @@ import Test.Tasty.Extras
 
 test_beta :: TestTree
 test_beta =
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Beta"] $
-        map
-            (goldenPir (runQuote . runTestPass betaPassSC) pTerm)
-            [ "lamapp"
-            , "lamapp2"
-            , "absapp"
-            , "multiapp"
-            , "multilet"
-            ]
+  runTestNested ["plutus-ir", "test", "PlutusIR", "Transform", "Beta"] $
+    map
+      (goldenPir (runQuote . runTestPass betaPassSC) pTerm)
+      [ "lamapp"
+      , "lamapp2"
+      , "absapp"
+      , "multiapp"
+      , "multilet"
+      ]
 
 prop_beta :: Property
 prop_beta = withMaxSuccess numTestsForPassProp $ testPassProp runQuote betaPassSC

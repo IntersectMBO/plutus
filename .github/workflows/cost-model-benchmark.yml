@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 1800 # (30 hours) These benchmarks take over 10 hours to run.
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v6.0.1
 
       - name: Run Benchmark
         run: nix --accept-flake-config run .#cost-model-budgeting-bench -- --csv results.csv ${{ inputs.extra-bench-args }}

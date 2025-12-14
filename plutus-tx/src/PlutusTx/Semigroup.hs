@@ -41,7 +41,7 @@ instance (Semigroup a, Semigroup b) => Semigroup (a, b) where
   {-# INLINEABLE (<>) #-}
   (a1, b1) <> (a2, b2) = (a1 <> a2, b1 <> b2)
 
-instance (Semigroup a) => Semigroup (Maybe a) where
+instance Semigroup a => Semigroup (Maybe a) where
   Just a1 <> Just a2 = Just (a1 <> a2)
   Just a1 <> Nothing = Just a1
   Nothing <> Just a2 = Just a2
@@ -55,7 +55,7 @@ instance Semigroup Ordering where
 instance Semigroup () where
   _ <> _ = ()
 
-instance (Semigroup a) => Semigroup (Dual a) where
+instance Semigroup a => Semigroup (Dual a) where
   {-# INLINEABLE (<>) #-}
   Dual a1 <> Dual a2 = Dual (a2 <> a1)
 
@@ -66,7 +66,7 @@ instance Semigroup (Endo a) where
 instance Semigroup (First a) where
   {-# INLINEABLE (<>) #-}
   First Nothing <> b = b
-  a <> _             = a
+  a <> _ = a
 
 newtype Max a = Max {getMax :: a}
 
@@ -74,7 +74,7 @@ instance Functor Max where
   {-# INLINEABLE fmap #-}
   fmap = coerce
 
-instance (Ord a) => Semigroup (Max a) where
+instance Ord a => Semigroup (Max a) where
   {-# INLINEABLE (<>) #-}
   (<>) = coerce (max :: a -> a -> a)
 
@@ -84,6 +84,6 @@ instance Functor Min where
   {-# INLINEABLE fmap #-}
   fmap = coerce
 
-instance (Ord a) => Semigroup (Min a) where
+instance Ord a => Semigroup (Min a) where
   {-# INLINEABLE (<>) #-}
   (<>) = coerce (min :: a -> a -> a)

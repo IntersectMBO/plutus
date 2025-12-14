@@ -1,24 +1,24 @@
-{-# LANGUAGE DeriveAnyClass       #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE PatternSynonyms      #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ViewPatterns         #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
 -- | Address and staking address credentials for outputs.
-module PlutusLedgerApi.V1.Data.Credential (
-  StakingCredential,
-  pattern StakingHash,
-  pattern StakingPtr,
-  Credential,
-  pattern PubKeyCredential,
-  pattern ScriptCredential,
-) where
+module PlutusLedgerApi.V1.Data.Credential
+  ( StakingCredential
+  , pattern StakingHash
+  , pattern StakingPtr
+  , Credential
+  , pattern PubKeyCredential
+  , pattern ScriptCredential
+  ) where
 
 import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
@@ -40,8 +40,7 @@ See `Crypto.PubKeyHash`.
 
 The 'ScriptCredential' constructor represents the transaction that spends
 this output must include the validator script and
-be accepted by the validator. See `ScriptHash`.
--}
+be accepted by the validator. See `ScriptHash`. -}
 PlutusTx.asData
   [d|
     data Credential
@@ -58,9 +57,9 @@ instance Pretty Credential where
 
 instance PlutusTx.Eq Credential where
   {-# INLINEABLE (==) #-}
-  PubKeyCredential l == PubKeyCredential r  = l PlutusTx.== r
+  PubKeyCredential l == PubKeyCredential r = l PlutusTx.== r
   ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
-  _ == _                                    = False
+  _ == _ = False
 
 {-| Staking credential used to assign rewards.
 
@@ -71,8 +70,7 @@ a script credential (`ScriptHash`). Both are hashed with /BLAKE2b-244/. 28 byte.
 The 'StakingPtr' constructor is the certificate pointer, constructed by the given
 slot number, transaction and certificate indices.
 NB: The fields should really be all `Word64`, as they are implemented in `Word64`,
-but 'Integer' is our only integral type so we need to use it instead.
--}
+but 'Integer' is our only integral type so we need to use it instead. -}
 PlutusTx.asData
   [d|
     data StakingCredential
@@ -90,7 +88,7 @@ PlutusTx.asData
     |]
 
 instance Pretty StakingCredential where
-  pretty (StakingHash h)    = "StakingHash" <+> pretty h
+  pretty (StakingHash h) = "StakingHash" <+> pretty h
   pretty (StakingPtr a b c) = "StakingPtr:" <+> pretty a <+> pretty b <+> pretty c
 
 instance PlutusTx.Eq StakingCredential where

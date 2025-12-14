@@ -93,23 +93,7 @@
                                   (stakingCred' : Maybe StakingCredential) ->
                                    case
                                      (all dead. bool)
-                                     (Credential_match
-                                        cred
-                                        {bool}
-                                        (\(l : bytestring) ->
-                                           Credential_match
-                                             cred'
-                                             {bool}
-                                             (\(r : bytestring) ->
-                                                equalsByteString l r)
-                                             (\(ipv : bytestring) -> False))
-                                        (\(a : bytestring) ->
-                                           Credential_match
-                                             cred'
-                                             {bool}
-                                             (\(ipv : bytestring) -> False)
-                                             (\(a' : bytestring) ->
-                                                equalsByteString a a')))
+                                     (`$fEqCredential_$c==` cred cred')
                                      [ (/\dead -> False)
                                      , (/\dead ->
                                           Maybe_match
@@ -257,24 +241,7 @@
                                           Maybe StakingCredential) ->
                                         case
                                           (all dead. bool)
-                                          (Credential_match
-                                             cred
-                                             {bool}
-                                             (\(l : bytestring) ->
-                                                Credential_match
-                                                  cred'
-                                                  {bool}
-                                                  (\(r : bytestring) ->
-                                                     equalsByteString l r)
-                                                  (\(ipv : bytestring) ->
-                                                     False))
-                                             (\(a : bytestring) ->
-                                                Credential_match
-                                                  cred'
-                                                  {bool}
-                                                  (\(ipv : bytestring) -> False)
-                                                  (\(a' : bytestring) ->
-                                                     equalsByteString a a')))
+                                          (`$fEqCredential_$c==` cred cred')
                                           [ (/\dead -> False)
                                           , (/\dead ->
                                                Maybe_match
@@ -5595,6 +5562,8 @@
             {all dead. dead}
   in
   let
+    !equalsInteger : integer -> integer -> bool
+      = \(x : integer) (y : integer) -> equalsInteger x y
     ~`$fAdditiveMonoidValue` :
        (\k v -> List (Tuple2 k v))
          bytestring
@@ -12022,7 +11991,7 @@
                                 (all dead. bool)
                                 (traceIfFalse
                                    "Datum is not an AskDatum"
-                                   (equalsInteger 0 (encodeDatum loanDatum)))
+                                   (equalsInteger (encodeDatum loanDatum) 0))
                                 [ (/\dead -> False)
                                 , (/\dead ->
                                      case
@@ -12058,19 +12027,19 @@
                                 (all dead. bool)
                                 (traceIfFalse
                                    "Datum is not an OfferDatum"
-                                   (equalsInteger 1 (encodeDatum loanDatum)))
+                                   (equalsInteger (encodeDatum loanDatum) 1))
                                 [ (/\dead -> False)
                                 , (/\dead ->
                                      case
                                        (all dead. bool)
                                        (equalsInteger
-                                          1
                                           (uncurry
                                              {bytestring}
                                              {bytestring}
                                              {integer}
                                              (valueOf inputValue)
-                                             (offerBeacon loanDatum)))
+                                             (offerBeacon loanDatum))
+                                          1)
                                        [ (/\dead ->
                                             traceIfFalse
                                               "Staking credential did not approve"

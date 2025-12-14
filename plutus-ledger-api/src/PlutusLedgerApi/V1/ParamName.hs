@@ -1,8 +1,9 @@
 {-# LANGUAGE DerivingVia #-}
+
 module PlutusLedgerApi.V1.ParamName
-    ( ParamName (..)
-    , tagWithParamNames
-    ) where
+  ( ParamName (..)
+  , tagWithParamNames
+  ) where
 
 import Data.Ix
 import GHC.Generics
@@ -12,10 +13,9 @@ import PlutusLedgerApi.Common.ParamName
 
 IMPORTANT: The order of appearance of the data constructors here matters. DO NOT REORDER.
 See Note [Quotation marks in cost model parameter constructors]
-See Note [Cost model parameters from the ledger's point of view]
--}
-data ParamName =
-    AddInteger'cpu'arguments'intercept
+See Note [Cost model parameters from the ledger's point of view] -}
+data ParamName
+  = AddInteger'cpu'arguments'intercept
   | AddInteger'cpu'arguments'slope
   | AddInteger'memory'arguments'intercept
   | AddInteger'memory'arguments'slope
@@ -181,9 +181,9 @@ data ParamName =
   | VerifyEd25519Signature'cpu'arguments'intercept
   | VerifyEd25519Signature'cpu'arguments'slope
   | VerifyEd25519Signature'memory'arguments
-  -- End of original cost model parameters
-  -- Remaining parameters to be deployed in PV11
-  | SerialiseData'cpu'arguments'intercept
+  | -- End of original cost model parameters
+    -- Remaining parameters to be deployed in PV11
+    SerialiseData'cpu'arguments'intercept
   | SerialiseData'cpu'arguments'slope
   | SerialiseData'memory'arguments'intercept
   | SerialiseData'memory'arguments'slope
@@ -329,6 +329,5 @@ data ParamName =
   | UnValueData'cpu'arguments'intercept
   | UnValueData'cpu'arguments'slope
   | UnValueData'memory'arguments
-    deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
-    deriving IsParamName via (GenericParamName ParamName)
-
+  deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
+  deriving (IsParamName) via (GenericParamName ParamName)

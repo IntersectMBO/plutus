@@ -4,14 +4,23 @@ script context generators are to be used as one-off to generate one script conte
 on every runs of the benchmark. It is important to understand changing script context will change
 execution unit.
 -}
-
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module PlutusBenchmark.Coop.Gen where
 
-import Test.QuickCheck (Arbitrary (arbitrary), Gen, choose, chooseAny, chooseEnum, chooseInt,
-                        chooseInteger, sublistOf, suchThat, vectorOf)
+import Test.QuickCheck
+  ( Arbitrary (arbitrary)
+  , Gen
+  , choose
+  , chooseAny
+  , chooseEnum
+  , chooseInt
+  , chooseInteger
+  , sublistOf
+  , suchThat
+  , vectorOf
+  )
 
 import Control.Monad (foldM, replicateM)
 import Crypto.Hash (Blake2b_256 (Blake2b_256), hashWith)
@@ -95,13 +104,13 @@ genCertRdmrInputs certRdmrAc = do
   certRdmrAddrs <- replicateM nCertRdmrInputs genAddress
   return
     [ TxInInfo
-      (TxOutRef (TxId "$CERT-RDMR input") 0)
-      ( TxOut
-          addr
-          (assetClassValue certRdmrAc 1)
-          NoOutputDatum
-          Nothing
-      )
+        (TxOutRef (TxId "$CERT-RDMR input") 0)
+        ( TxOut
+            addr
+            (assetClassValue certRdmrAc 1)
+            NoOutputDatum
+            Nothing
+        )
     | addr <- certRdmrAddrs
     ]
 
@@ -366,10 +375,10 @@ genCorrectFsMpMintingCtx fsMpParams fsCs = do
   let authsBurned = mconcat [Value.singleton authCs (TokenName certId) (-1) | certId <- certIds]
       fsVOuts =
         [ TxOut
-          fsVAddr
-          (Value.singleton fsCs (TokenName . toBuiltin $ hashTxInputs [authIn]) 1)
-          (toOutputDatum $ FsDatum (toBuiltinData True) "deadbeef" (Finite 100) submitter)
-          Nothing
+            fsVAddr
+            (Value.singleton fsCs (TokenName . toBuiltin $ hashTxInputs [authIn]) 1)
+            (toOutputDatum $ FsDatum (toBuiltinData True) "deadbeef" (Finite 100) submitter)
+            Nothing
         | authIn <- authIns
         ]
       fsMinted = mconcat [txOutValue fsVOut | fsVOut <- fsVOuts]
@@ -591,12 +600,10 @@ distributeSingle total =
         then take' ins (i : outs)
         else return (outs, i : ins)
 
-{- | Mutating functions to introduce corruptions into ScriptContext
+{-| Mutating functions to introduce corruptions into ScriptContext
 
 TODO: Use mlabs-haskell/plutus-simple-model to ensure ledger invariances for the mutated ScriptContexts
-WARN: All these mutations are untested and fairly unreliable
--}
-
+WARN: All these mutations are untested and fairly unreliable -}
 -- | Makes a ScriptContext corruption pipeline
 mkCorrupt :: [ScriptContext -> ScriptContext] -> ScriptContext -> ScriptContext
 mkCorrupt = foldr (.) id
@@ -745,4 +752,5 @@ hashTxInputs inputs =
     ixs = fmap (fromInteger . Value.txOutRefIdx) sortedOrefs
     txIds = fmap (Value.fromBuiltin . Value.getTxId . Value.txOutRefId) sortedOrefs
     hashedOref = convert @_ @ByteString . hashWith Blake2b_256 . mconcat $ zipWith cons ixs txIds
-   in hashedOref
+   in
+    hashedOref

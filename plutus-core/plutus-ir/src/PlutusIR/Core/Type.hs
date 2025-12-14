@@ -1,10 +1,10 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusIR.Core.Type
   ( TyName (..)
@@ -67,24 +67,22 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 -- Bindings
 
-{- | Each multi-let-group has to be marked with its scoping:
+{-| Each multi-let-group has to be marked with its scoping:
 * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped,
   i.e. an identifier cannot refer to itself or later-introduced identifiers of the group.
 * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets
-  of the same group (including itself), thus permitting (mutual) recursion.
--}
+  of the same group (including itself), thus permitting (mutual) recursion. -}
 data Recursivity = NonRec | Rec
   deriving stock (Show, Eq, Generic, Ord)
   deriving anyclass (Hashable)
 
-{- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
+{-| Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 The lattice is ordered by "power": a non-recursive binding group can be made recursive
 and it will still work, but not vice versa.
-The semigroup operation is the "join" of the lattice.
--}
+The semigroup operation is the "join" of the lattice. -}
 instance Semigroup Recursivity where
   NonRec <> x = x
-  Rec <> _    = Rec
+  Rec <> _ = Rec
 
 data Strictness = NonStrict | Strict
   deriving stock (Show, Eq, Generic)
@@ -172,7 +170,7 @@ type instance UniOf (Term tyname name uni fun ann) = uni
 
 instance HasConstant (Term tyname name uni fun ()) where
   asConstant (Constant _ val) = pure val
-  asConstant _                = throwError notAConstant
+  asConstant _ = throwError notAConstant
 
   fromConstant = Constant ()
 
@@ -194,8 +192,8 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
   typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
 data Program tyname name uni fun ann = Program
-  { _progAnn  :: ann
-  , _progVer  :: Version
+  { _progAnn :: ann
+  , _progVer :: Version
   -- ^ The version of the program. This corresponds to the underlying Plutus Core version.
   , _progTerm :: Term tyname name uni fun ann
   }
@@ -221,9 +219,8 @@ type instance
   PLC.HasUniques (Program tyname name uni fun ann) =
     PLC.HasUniques (Term tyname name uni fun ann)
 
-{- | Applies one program to another. Fails if the versions do not match
-and tries to merge annotations.
--}
+{-| Applies one program to another. Fails if the versions do not match
+and tries to merge annotations. -}
 applyProgram
   :: (MonadError ApplyProgramError m, Semigroup a)
   => Program tyname name uni fun a
@@ -237,22 +234,22 @@ applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
 
 termAnn :: Term tyname name uni fun a -> a
 termAnn = \case
-  Let a _ _ _    -> a
-  Var a _        -> a
-  TyAbs a _ _ _  -> a
+  Let a _ _ _ -> a
+  Var a _ -> a
+  TyAbs a _ _ _ -> a
   LamAbs a _ _ _ -> a
-  Apply a _ _    -> a
-  Constant a _   -> a
-  Builtin a _    -> a
-  TyInst a _ _   -> a
-  Error a _      -> a
-  IWrap a _ _ _  -> a
-  Unwrap a _     -> a
+  Apply a _ _ -> a
+  Constant a _ -> a
+  Builtin a _ -> a
+  TyInst a _ _ -> a
+  Error a _ -> a
+  IWrap a _ _ _ -> a
+  Unwrap a _ -> a
   Constr a _ _ _ -> a
-  Case a _ _ _   -> a
+  Case a _ _ _ -> a
 
 bindingAnn :: Binding tyname name uni fun a -> a
 bindingAnn = \case
   TermBind a _ _ _ -> a
-  TypeBind a _ _   -> a
+  TypeBind a _ _ -> a
   DatatypeBind a _ -> a

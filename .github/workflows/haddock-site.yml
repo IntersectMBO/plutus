@@ -68,7 +68,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout gh-pages
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v6.0.1
         with:
           ref: gh-pages
 
@@ -87,7 +87,7 @@ jobs:
           fi  
 
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v6.0.1
         with:
           ref: ${{ inputs.ref || github.ref_name }}
 
@@ -101,7 +101,7 @@ jobs:
           nix develop --no-warn-dirty --accept-flake-config --command ./scripts/combined-haddock.sh _haddock all
 
       - name: Deploy Site
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         with:
           folder: _haddock
@@ -110,7 +110,7 @@ jobs:
  
       - name: Deploy Site (latest)
         if: ${{ inputs.latest == true }}
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           folder: _haddock
           target-folder: haddock/latest

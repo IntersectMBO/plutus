@@ -1,7 +1,8 @@
-{-# LANGUAGE CPP                #-}
-{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE StandaloneDeriving #-}
-module Test.E.Flat() where
+
+module Test.E.Flat () where
 
 import PlutusCore.Flat
 import PlutusCore.Flat.Decoder ()
@@ -14,22 +15,21 @@ import Test.E
 -- Not faster than generated ones (at least up to E16)
 gen :: Int -> String
 gen numBits =
-    let dt = "E"++show n
-        n = 2 ^ numBits
-        cs = zip [1..] $ map ((\n -> dt ++ "_" ++ n) . show) [1 .. n]
-        dec n c = unwords ["      ",n,"-> return",c]
-    in unlines [
-        unwords ["instance Flat",dt,"where"]
-        ,"  size _ n = n+"++ show numBits
-        ,"  encode a = case a of"
-        ,unlines $ map (\(n,c) -> unwords ["    ",c,"-> eBits16",show numBits,show n]) cs
-        ,"  decode = do"
-        ,"     tag <- dBEBits8 " ++ show numBits
-        ,"     case tag of"
-        ,unlines $ map (\(n,c) -> dec (show n) c) cs
-        ,dec "_" (snd $ last cs)
+  let dt = "E" ++ show n
+      n = 2 ^ numBits
+      cs = zip [1 ..] $ map ((\n -> dt ++ "_" ++ n) . show) [1 .. n]
+      dec n c = unwords ["      ", n, "-> return", c]
+   in unlines
+        [ unwords ["instance Flat", dt, "where"]
+        , "  size _ n = n+" ++ show numBits
+        , "  encode a = case a of"
+        , unlines $ map (\(n, c) -> unwords ["    ", c, "-> eBits16", show numBits, show n]) cs
+        , "  decode = do"
+        , "     tag <- dBEBits8 " ++ show numBits
+        , "     case tag of"
+        , unlines $ map (\(n, c) -> dec (show n) c) cs
+        , dec "_" (snd $ last cs)
         ]
-
 
 deriving instance Flat S3
 deriving instance Flat E2
@@ -56,5 +56,3 @@ deriving instance Flat E258
 --     , flat E256_253
 --     , flat E256_256
 --     ]
-
-

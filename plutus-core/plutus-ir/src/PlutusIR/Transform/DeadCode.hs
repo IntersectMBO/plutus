@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Optimization passes for removing dead code, mainly dead let bindings.
@@ -36,16 +36,16 @@ import PlutusIR.Pass
 import PlutusIR.TypeCheck qualified as TC
 import Witherable (Witherable (wither))
 
-removeDeadBindingsPassSC ::
-  (PLC.Typecheckable uni fun, PLC.GEq uni, Ord a, MonadQuote m)
+removeDeadBindingsPassSC
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Ord a, MonadQuote m)
   => TC.PirTCConfig uni fun
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun a
 removeDeadBindingsPassSC tcconfig binfo =
   renamePass <> removeDeadBindingsPass tcconfig binfo
 
-removeDeadBindingsPass ::
-  (PLC.Typecheckable uni fun, PLC.GEq uni, Ord a, MonadQuote m)
+removeDeadBindingsPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Ord a, MonadQuote m)
   => TC.PirTCConfig uni fun
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun a
@@ -59,82 +59,89 @@ removeDeadBindingsPass tcconfig binfo =
 -- We only need MonadQuote to make new types for bindings
 -- | Remove all the dead let bindings in a term.
 removeDeadBindings
-    :: (PLC.HasUnique name PLC.TermUnique,
-       PLC.ToBuiltinMeaning uni fun, PLC.MonadQuote m)
-    => BuiltinsInfo uni fun
-    -> Term TyName name uni fun a
-    -> m (Term TyName name uni fun a)
+  :: ( PLC.HasUnique name PLC.TermUnique
+     , PLC.ToBuiltinMeaning uni fun
+     , PLC.MonadQuote m
+     )
+  => BuiltinsInfo uni fun
+  -> Term TyName name uni fun a
+  -> m (Term TyName name uni fun a)
 removeDeadBindings binfo t = do
-    let vinfo = termVarInfo t
-    runReaderT (transformMOf termSubterms processTerm t) (calculateLiveness binfo vinfo t)
+  let vinfo = termVarInfo t
+  runReaderT (transformMOf termSubterms processTerm t) (calculateLiveness binfo vinfo t)
 
 type Liveness = Set.Set Deps.Node
 
 calculateLiveness
-    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
-       PLC.ToBuiltinMeaning uni fun)
-    => BuiltinsInfo uni fun
-    -> VarsInfo tyname name uni a
-    -> Term tyname name uni fun a
-    -> Liveness
+  :: ( PLC.HasUnique name PLC.TermUnique
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.ToBuiltinMeaning uni fun
+     )
+  => BuiltinsInfo uni fun
+  -> VarsInfo tyname name uni a
+  -> Term tyname name uni fun a
+  -> Liveness
 calculateLiveness binfo vinfo t =
-    let
-        depGraph :: G.Graph Deps.Node
-        depGraph = Deps.runTermDeps binfo vinfo t
-    in Set.fromList $ T.reachable depGraph Deps.Root
+  let
+    depGraph :: G.Graph Deps.Node
+    depGraph = Deps.runTermDeps binfo vinfo t
+   in
+    Set.fromList $ T.reachable depGraph Deps.Root
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool
 live n =
-    let
-        u = coerce $ n ^. PLC.unique
-    in asks $ Set.member (Deps.Variable u)
+  let
+    u = coerce $ n ^. PLC.unique
+   in
+    asks $ Set.member (Deps.Variable u)
 
 liveBinding
-    :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, MonadQuote m)
-    => Binding TyName name uni fun a
-    -> m (Maybe (Binding TyName name uni fun a))
+  :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, MonadQuote m)
+  => Binding TyName name uni fun a
+  -> m (Maybe (Binding TyName name uni fun a))
 liveBinding =
-    let
-        -- TODO: HasUnique instances for VarDecl and TyVarDecl?
-        liveVarDecl (VarDecl _ n _) = live n
-        liveTyVarDecl (TyVarDecl _ n _) = live n
-    in \case
-        b@(TermBind _ _ d _) -> do
-            l <- liveVarDecl d
-            pure $ if l then Just b else Nothing
-        b@(TypeBind _ d _) -> do
-            l <- liveTyVarDecl d
-            pure $ if l then Just b else Nothing
-        b@(DatatypeBind x (Datatype _ d _ destr constrs)) -> do
-            dtypeLive <- liveTyVarDecl d
-            destrLive <- live destr
-            constrsLive <- traverse liveVarDecl constrs
-            let termLive = or (destrLive : constrsLive)
-            case (dtypeLive, termLive) of
-                 -- At least one term-level part is live, keep the whole thing
-                (_, True)      -> pure $ Just b
-                -- Nothing is live, remove the whole thing
-                (False, False) -> pure Nothing
-                -- See Note [Dependencies for datatype bindings, and pruning them]
-                -- Datatype is live but no term-level parts are, replace with a trivial type binding
-                (True, False)  -> Just . TypeBind x d <$> mkTypeOfKind (_tyVarDeclKind d)
+  let
+    -- TODO: HasUnique instances for VarDecl and TyVarDecl?
+    liveVarDecl (VarDecl _ n _) = live n
+    liveTyVarDecl (TyVarDecl _ n _) = live n
+   in
+    \case
+      b@(TermBind _ _ d _) -> do
+        l <- liveVarDecl d
+        pure $ if l then Just b else Nothing
+      b@(TypeBind _ d _) -> do
+        l <- liveTyVarDecl d
+        pure $ if l then Just b else Nothing
+      b@(DatatypeBind x (Datatype _ d _ destr constrs)) -> do
+        dtypeLive <- liveTyVarDecl d
+        destrLive <- live destr
+        constrsLive <- traverse liveVarDecl constrs
+        let termLive = or (destrLive : constrsLive)
+        case (dtypeLive, termLive) of
+          -- At least one term-level part is live, keep the whole thing
+          (_, True) -> pure $ Just b
+          -- Nothing is live, remove the whole thing
+          (False, False) -> pure Nothing
+          -- See Note [Dependencies for datatype bindings, and pruning them]
+          -- Datatype is live but no term-level parts are, replace with a trivial type binding
+          (True, False) -> Just . TypeBind x d <$> mkTypeOfKind (_tyVarDeclKind d)
 
--- | Given a kind, make a type (any type!) of that kind.
--- Generates things of the form 'unit -> unit -> ... -> unit'
+{-| Given a kind, make a type (any type!) of that kind.
+Generates things of the form 'unit -> unit -> ... -> unit' -}
 mkTypeOfKind :: MonadQuote m => Kind a -> m (Type TyName uni a)
 mkTypeOfKind = \case
-    -- The scott-encoded unit here is a little bulky but it continues to be the easiest
-    -- way to get a type of kind Type without relying on builtins.
-    Type a -> pure $ a <$ Unit.unit
-    KindArrow a ki ki' -> do
-        n <- freshTyName "a"
-        TyLam a n ki <$> mkTypeOfKind ki'
+  -- The scott-encoded unit here is a little bulky but it continues to be the easiest
+  -- way to get a type of kind Type without relying on builtins.
+  Type a -> pure $ a <$ Unit.unit
+  KindArrow a ki ki' -> do
+    n <- freshTyName "a"
+    TyLam a n ki <$> mkTypeOfKind ki'
 
 processTerm
-    :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, MonadQuote m)
-    => Term TyName name uni fun a
-    -> m (Term TyName name uni fun a)
+  :: (MonadReader Liveness m, PLC.HasUnique name PLC.TermUnique, MonadQuote m)
+  => Term TyName name uni fun a
+  -> m (Term TyName name uni fun a)
 processTerm = \case
-    -- throw away dead bindings
-    Let x r bs t -> mkLet x r <$> wither liveBinding (NE.toList bs) <*> pure t
-    x            -> pure x
+  -- throw away dead bindings
+  Let x r bs t -> mkLet x r <$> wither liveBinding (NE.toList bs) <*> pure t
+  x -> pure x

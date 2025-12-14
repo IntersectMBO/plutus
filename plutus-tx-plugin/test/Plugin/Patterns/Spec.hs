@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NamedFieldPuns    #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms   #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -33,7 +33,7 @@ pattern EInt' i = EInt i
 pattern ETwoBoth a b = ETwo a b
 pattern ETwo2 b <- ETwo _ b
 
-pattern ERec{hello, world} <- ETwo hello world
+pattern ERec {hello, world} <- ETwo hello world
   where
     ERec hello world = ETwo hello world
 
@@ -45,17 +45,17 @@ psym1 =
         case e of
           EInt' i -> i
           ETwo2 _ -> 1
-          _       -> 0
+          _ -> 0
     )
 
 psymRec :: CompiledCode BuiltinString
 psymRec =
   plc
     (Proxy @"psymRec")
-    ( let r = ERec{hello = "wot", world = "yo"}
+    ( let r = ERec {hello = "wot", world = "yo"}
        in case r of
-            ERec{world} -> world
-            _           -> "no"
+            ERec {world} -> world
+            _ -> "no"
     )
 
 patterns :: TestNested

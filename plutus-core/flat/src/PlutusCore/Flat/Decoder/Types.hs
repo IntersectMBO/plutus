@@ -1,15 +1,14 @@
-{-# LANGUAGE BangPatterns  #-}
-{-# LANGUAGE CPP           #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveFunctor #-}
 
--- |Strict Decoder Types
+-- | Strict Decoder Types
 module PlutusCore.Flat.Decoder.Types
-  (
-    Get(..)
-  , S(..)
-  , GetResult(..)
+  ( Get (..)
+  , S (..)
+  , GetResult (..)
   , Decoded
-  , DecodeException(..)
+  , DecodeException (..)
   , notEnoughSpace
   , tooMuchSpace
   , badEncoding
@@ -25,7 +24,7 @@ import Foreign (Ptr)
 import Control.Monad.Fail qualified as Fail
 #endif
 
-{- |
+{-|
 A decoder.
 
 Given:
@@ -38,15 +37,14 @@ Returns:
 
 * decoded value
 
-* new position in input buffer
--}
-newtype Get a =
-  Get
-    { runGet ::
-      Ptr Word8
+* new position in input buffer -}
+newtype Get a
+  = Get
+  { runGet
+      :: Ptr Word8
       -> S
       -> IO (GetResult a)
-    }
+  }
 
 -- Seems to give better performance than the derived version
 instance Functor Get where
@@ -100,22 +98,22 @@ instance Fail.MonadFail Get where
 failGet :: String -> Get a
 failGet msg = Get $ \end s -> badEncoding end s msg
 
--- |Decoder state
-data S =
-  S
-    { currPtr  :: {-# UNPACK #-}!(Ptr Word8)
-    , usedBits :: {-# UNPACK #-}!Int
-    }
+-- | Decoder state
+data S
+  = S
+  { currPtr :: {-# UNPACK #-} !(Ptr Word8)
+  , usedBits :: {-# UNPACK #-} !Int
+  }
   deriving (Show, Eq, Ord)
 
-data GetResult a =
-  GetResult {-# UNPACK #-}!S !a
+data GetResult a
+  = GetResult {-# UNPACK #-} !S !a
   deriving (Functor)
 
--- |A decoded value
+-- | A decoded value
 type Decoded a = Either DecodeException a
 
--- |An exception during decoding
+-- | An exception during decoding
 data DecodeException
   = NotEnoughSpace Env
   | TooMuchSpace Env

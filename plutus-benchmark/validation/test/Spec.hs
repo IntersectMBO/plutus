@@ -25,10 +25,10 @@ mkCase :: FilePath -> FilePath -> IO TestNested
 mkCase path name = do
   bs <- BS.readFile (path </> name)
   let
-    parsed ::
-      Either
-        DecodeException
-        (UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun PLC.SrcSpans)
+    parsed
+      :: Either
+           DecodeException
+           (UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun PLC.SrcSpans)
     parsed =
       (fmap mempty . UPLC.programMapNames UPLC.fakeNameDeBruijn . UPLC.unUnrestrictedProgram)
         <$> unflat @(UPLC.UnrestrictedProgram UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()) bs

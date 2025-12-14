@@ -1,20 +1,21 @@
 module PlutusLedgerApi.Common.ProtocolVersions
-    ( MajorProtocolVersion (..)
+  ( MajorProtocolVersion (..)
+
     -- ** Protocol Version aliases
     -- | Based on https://github.com/IntersectMBO/cardano-ledger/wiki/First-Block-of-Each-Era
-    , shelleyPV
-    , allegraPV
-    , maryPV
-    , alonzoPV
-    , vasilPV
-    , valentinePV
-    , changPV
-    , plominPV
-    , pv11PV
-    , newestPV
-    , knownPVs
-    , futurePV
-    ) where
+  , shelleyPV
+  , allegraPV
+  , maryPV
+  , alonzoPV
+  , vasilPV
+  , valentinePV
+  , changPV
+  , plominPV
+  , pv11PV
+  , newestPV
+  , knownPVs
+  , futurePV
+  ) where
 
 import Codec.Serialise (Serialise)
 import GHC.Generics (Generic)
@@ -33,16 +34,16 @@ import Prettyprinter
   come at the end of the `ParamName` types.
 -}
 
--- | This represents the major component of the Cardano protocol version.
--- The ledger can only supply the major component of the protocol version, not the minor
--- component, and Plutus should only need to care about the major component anyway.
--- This relies on careful understanding between us and the ledger as to what this means.
-newtype MajorProtocolVersion = MajorProtocolVersion { getMajorProtocolVersion :: Int }
+{-| This represents the major component of the Cardano protocol version.
+The ledger can only supply the major component of the protocol version, not the minor
+component, and Plutus should only need to care about the major component anyway.
+This relies on careful understanding between us and the ledger as to what this means. -}
+newtype MajorProtocolVersion = MajorProtocolVersion {getMajorProtocolVersion :: Int}
   deriving newtype (Eq, Ord, Show, Serialise, Enum)
   deriving stock (Generic)
 
 instance Pretty MajorProtocolVersion where
-    pretty (MajorProtocolVersion v) = pretty v
+  pretty (MajorProtocolVersion v) = pretty v
 
 -- | Shelley era was introduced in protocol version 2.0
 shelleyPV :: MajorProtocolVersion
@@ -66,8 +67,8 @@ alonzoPV = MajorProtocolVersion 5
 vasilPV :: MajorProtocolVersion
 vasilPV = MajorProtocolVersion 7
 
--- | Valentine was an intra-era HF where builtin functions @VerifyEcdsaSecp256k1Signature@ and
--- @VerifySchnorrSecp256k1Signature@ were enabled.
+{-| Valentine was an intra-era HF where builtin functions @VerifyEcdsaSecp256k1Signature@ and
+@VerifySchnorrSecp256k1Signature@ were enabled. -}
 valentinePV :: MajorProtocolVersion
 valentinePV = MajorProtocolVersion 8
 
@@ -75,8 +76,8 @@ valentinePV = MajorProtocolVersion 8
 changPV :: MajorProtocolVersion
 changPV = MajorProtocolVersion 9
 
--- | The Plomin HF was an intra-era HF where some new builtin functions were
--- introduced in Plutus V2 and V3.
+{-| The Plomin HF was an intra-era HF where some new builtin functions were
+introduced in Plutus V2 and V3. -}
 plominPV :: MajorProtocolVersion
 plominPV = MajorProtocolVersion 10
 
@@ -84,21 +85,21 @@ plominPV = MajorProtocolVersion 10
 pv11PV :: MajorProtocolVersion
 pv11PV = MajorProtocolVersion 11
 
--- | The set of protocol versions that are "known", i.e. that have been released
--- and have actual differences associated with them.  This is currently only
--- used for testing, so efficiency is not parmount and a list is fine.
+{-| The set of protocol versions that are "known", i.e. that have been released
+and have actual differences associated with them.  This is currently only
+used for testing, so efficiency is not parmount and a list is fine. -}
 knownPVs :: [MajorProtocolVersion]
 knownPVs =
-    [ shelleyPV
-    , allegraPV
-    , maryPV
-    , alonzoPV
-    , vasilPV
-    , valentinePV
-    , changPV
-    , plominPV
-    , pv11PV
-    ]
+  [ shelleyPV
+  , allegraPV
+  , maryPV
+  , alonzoPV
+  , vasilPV
+  , valentinePV
+  , changPV
+  , plominPV
+  , pv11PV
+  ]
 
 -- We're sometimes in an intermediate state where we've added new builtins but
 -- not yet released them (but intend to). This is used by some of the tests to
@@ -113,8 +114,7 @@ newestPV = pv11PV
 
   We should not assign names to future protocol versions until it's
   confirmed that they are correct, otherwise we could accidentally
-  associate something with the wrong protocol version.
--}
+  associate something with the wrong protocol version. -}
 futurePV :: MajorProtocolVersion
 futurePV = MajorProtocolVersion maxBound
 

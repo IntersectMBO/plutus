@@ -1,15 +1,14 @@
--- | @boolean@ and related functions.
-
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 
+-- | @boolean@ and related functions.
 module PlutusCore.StdLib.Data.Bool
-    ( bool
-    , true
-    , false
-    , ifThenElse
-    ) where
+  ( bool
+  , true
+  , false
+  , ifThenElse
+  ) where
 
 import PlutusCore.Core
 import PlutusCore.Default.Builtins
@@ -31,28 +30,29 @@ true = mkConstant () True
 false :: (TermLike term tyname name uni fun, uni `HasTermLevel` Bool) => term ()
 false = mkConstant () False
 
--- | @if_then_else_@ as a PLC term.
---
--- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> IfThenElse {() -> A} b x y ()
+{-| @if_then_else_@ as a PLC term.
+
+> /\(A :: *) -> \(b : Bool) (x y : () -> A) -> IfThenElse {() -> A} b x y () -}
 ifThenElse
-    :: forall term uni.
-       ( TermLike term TyName Name uni DefaultFun
-       , uni `HasTypeAndTermLevel` Bool, uni `HasTypeAndTermLevel` ()
-       )
-    => term ()
+  :: forall term uni
+   . ( TermLike term TyName Name uni DefaultFun
+     , uni `HasTypeAndTermLevel` Bool
+     , uni `HasTypeAndTermLevel` ()
+     )
+  => term ()
 ifThenElse = runQuote $ do
-    a <- freshTyName "a"
-    b <- freshName "b"
-    x <- freshName "x"
-    y <- freshName "y"
-    let unitFunA = TyFun () unit (TyVar () a)
-    return
-       . tyAbs () a (Type ())
-      $ mkIterLamAbs [
-          VarDecl () b bool,
-          VarDecl () x unitFunA,
-          VarDecl () y unitFunA
-          ]
-      $ mkIterAppNoAnn
-          (tyInst () (builtin () IfThenElse) unitFunA)
-          [var () b, var () x, var () y, unitval]
+  a <- freshTyName "a"
+  b <- freshName "b"
+  x <- freshName "x"
+  y <- freshName "y"
+  let unitFunA = TyFun () unit (TyVar () a)
+  return
+    . tyAbs () a (Type ())
+    $ mkIterLamAbs
+      [ VarDecl () b bool
+      , VarDecl () x unitFunA
+      , VarDecl () y unitFunA
+      ]
+    $ mkIterAppNoAnn
+      (tyInst () (builtin () IfThenElse) unitFunA)
+      [var () b, var () x, var () y, unitval]

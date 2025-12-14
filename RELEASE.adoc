@@ -43,6 +43,12 @@ In all other cases, we always start a new major or minor release from master.
 
 Run `./scripts/interactive-release.sh` to manage the release process. 
 
+== Make Broken Release Unbuildable
+
+Once a release has been published to CHaP, it cannot be removed. If a release is found to be broken or unsafe, it should be marked as unbuildable in CHaP to prevent cabal from selecting it during dependency resolution. This can be accomplished by setting `base < 0` in the `build-depends` section of each affected `.cabal` file.
+
+To do this, follow https://github.com/IntersectMBO/cardano-haskell-packages?tab=readme-ov-file#how-to-add-a-new-package-metadata-revision[the instructions] provided in the CHaP documentation. In summary: clone the CHaP repository, download the https://github.com/intersectmbo/cardano-haskell-packages/archive/refs/heads/repo.zip[pre-built repository] into the `_repo` top-level directory, run `./scripts/add-revision.sh _repo PACKAGE_NAME PACKAGE_VERSION` for each relevant `plutus-*` package and for the target version (e.g. `./scripts/add-revision _repo plutus-core 1.54.0.0`) then commit and push your changes to CHaP. Please refer to this https://github.com/IntersectMBO/cardano-haskell-packages/pull/1178[pull request] as an example.
+
 == Backwards Compatibility with Cardano API
 
 It is a good idea to avoid breaking the latest version of Cardano API in a new Plutus release.

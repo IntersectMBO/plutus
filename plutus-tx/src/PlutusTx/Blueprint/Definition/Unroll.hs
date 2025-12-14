@@ -1,18 +1,18 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
 
 module PlutusTx.Blueprint.Definition.Unroll where
@@ -24,13 +24,32 @@ import Data.Typeable (Typeable)
 import Data.Void (Void)
 import GHC.Generics (Generic (Rep), K1, M1, U1, type (:*:), type (:+:))
 import GHC.TypeLits qualified as GHC
-import PlutusTx.Blueprint.Definition.Id (DefinitionId (..), definitionIdFromType,
-                                         definitionIdFromTypeK, definitionIdList,
-                                         definitionIdTuple2, definitionIdTuple3, definitionIdUnit)
-import PlutusTx.Blueprint.Definition.TF (Concat, IfStuckRep, IfStuckUnroll, Insert, Nub, Reverse,
-                                         type (++))
-import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinPair,
-                                   BuiltinString, BuiltinUnit)
+import PlutusTx.Blueprint.Definition.Id
+  ( DefinitionId (..)
+  , definitionIdFromType
+  , definitionIdFromTypeK
+  , definitionIdList
+  , definitionIdTuple2
+  , definitionIdTuple3
+  , definitionIdUnit
+  )
+import PlutusTx.Blueprint.Definition.TF
+  ( Concat
+  , IfStuckRep
+  , IfStuckUnroll
+  , Insert
+  , Nub
+  , Reverse
+  , type (++)
+  )
+import PlutusTx.Builtins.Internal
+  ( BuiltinByteString
+  , BuiltinData
+  , BuiltinList
+  , BuiltinPair
+  , BuiltinString
+  , BuiltinUnit
+  )
 
 ----------------------------------------------------------------------------------------------------
 -- Functionality to "unroll" types. -- For more context see Note ["Unrolling" types] -----------
@@ -77,8 +96,7 @@ type family will take care of discovering all the nested types:
 {-| Designates a class of types that could be used as a Blueprint Definition.
      Each such type:
      - could be unrolled to a list of all nested types (including the type itself).
-     - has a unique 'DefinitionId'.
--}
+     - has a unique 'DefinitionId'. -}
 class HasBlueprintDefinition (t :: Type) where
   type Unroll t :: [Type]
   type Unroll t = Insert t (GUnroll (IfStuckRep (RepIsStuckError t) (Rep t)))
@@ -86,7 +104,7 @@ class HasBlueprintDefinition (t :: Type) where
   definitionId :: DefinitionId
 
   -- | Derive a 'DefinitionId' for a type.
-  default definitionId :: (Typeable t) => DefinitionId
+  default definitionId :: Typeable t => DefinitionId
   definitionId = definitionIdFromType @t
 
 instance HasBlueprintDefinition Void where
@@ -117,7 +135,7 @@ instance HasBlueprintDefinition BuiltinString where
 instance HasBlueprintDefinition BuiltinByteString where
   type Unroll BuiltinByteString = '[BuiltinByteString]
 
-instance (HasBlueprintDefinition a) => HasBlueprintDefinition (BuiltinList a) where
+instance HasBlueprintDefinition a => HasBlueprintDefinition (BuiltinList a) where
   type Unroll (BuiltinList a) = Insert (BuiltinList a) (Unrolled a)
   definitionId = definitionIdFromTypeK @(Type -> Type) @BuiltinList <> definitionId @a
 
@@ -131,11 +149,11 @@ instance
       <> definitionId @a
       <> definitionId @b
 
-instance (HasBlueprintDefinition a) => HasBlueprintDefinition (Maybe a) where
+instance HasBlueprintDefinition a => HasBlueprintDefinition (Maybe a) where
   type Unroll (Maybe a) = Insert (Maybe a) (Unrolled a)
   definitionId = definitionIdFromTypeK @(Type -> Type) @Maybe <> definitionId @a
 
-instance (HasBlueprintDefinition a) => HasBlueprintDefinition [a] where
+instance HasBlueprintDefinition a => HasBlueprintDefinition [a] where
   type Unroll [a] = Insert [a] (Unrolled a)
   definitionId = definitionIdList <> definitionId @a
 
@@ -151,15 +169,13 @@ instance
   definitionId = definitionIdTuple3 <> definitionId @a <> definitionId @b <> definitionId @c
 
 {-| Compile-time error that happens when a type couldn't be unrolled
-('Unroll' TF is "stuck")
--}
+('Unroll' TF is "stuck") -}
 type family UnrollIsStuckError x where
   UnrollIsStuckError x =
     GHC.TypeError (GHC.Text "No instance: " GHC.:<>: GHC.ShowType (HasBlueprintDefinition x))
 
 {-| Compile-time error that happens when type's generic representation is not defined
-('Rep' TF is "stuck")
--}
+('Rep' TF is "stuck") -}
 type family RepIsStuckError x where
   RepIsStuckError x =
     GHC.TypeError (GHC.Text "No instance: " GHC.:<>: GHC.ShowType (Generic x))

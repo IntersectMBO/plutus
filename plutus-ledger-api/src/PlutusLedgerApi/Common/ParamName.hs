@@ -1,16 +1,16 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module PlutusLedgerApi.Common.ParamName
-    ( IsParamName (..)
-    , GenericParamName (..)
-    , toCostModelParams
-    , tagWithParamNames
-    , CostModelApplyError (..)
-    , CostModelApplyWarn (..)
-    ) where
+  ( IsParamName (..)
+  , GenericParamName (..)
+  , toCostModelParams
+  , tagWithParamNames
+  , CostModelApplyError (..)
+  , CostModelApplyWarn (..)
+  ) where
 
 import PlutusCore.Evaluation.Machine.CostModelInterface
 
@@ -30,31 +30,30 @@ Each Plutus version should expose such an enumeration as an ADT and create
 an instance of 'ParamName' out of it.
 
 A valid parameter name has to be enumeration, bounded, ordered, and
-prettyprintable to a \"lower-Kebab\" string.
--}
+prettyprintable to a \"lower-Kebab\" string. -}
 class (Enum a, Bounded a) => IsParamName a where
-   -- | Produce the raw textual form for a given typed-by-plutus-version cost model parameter
-   -- Any implementation *must be* an injective function.
-   -- The 'GIsParamName' generic implementation guarantees injectivity.
-   showParamName :: a -> Text.Text
+  {-| Produce the raw textual form for a given typed-by-plutus-version cost model parameter
+  Any implementation *must be* an injective function.
+  The 'GIsParamName' generic implementation guarantees injectivity. -}
+  showParamName :: a -> Text.Text
 
-   -- | default implementation that inverts the showParamName operation (not very efficient)
-   readParamName :: Text.Text -> Maybe a
-   readParamName str = List.lookup str $ fmap (\p -> (showParamName p, p)) $ enumerate @a
+  -- | default implementation that inverts the showParamName operation (not very efficient)
+  readParamName :: Text.Text -> Maybe a
+  readParamName str = List.lookup str $ fmap (\p -> (showParamName p, p)) $ enumerate @a
 
 -- | A Generic wrapper for use with deriving via
 newtype GenericParamName a = GenericParamName a
-    deriving newtype (Enum, Bounded)
+  deriving newtype (Enum, Bounded)
 
 instance (Enum (GenericParamName a), Bounded (GenericParamName a), Generic a, GIsParamName (Rep a)) => IsParamName (GenericParamName a) where
-   showParamName (GenericParamName a) = gshowParamName $ from a
+  showParamName (GenericParamName a) = gshowParamName $ from a
 
 -- | A datatype-generic class to prettyprint 'sums of nullary constructors' in lower-kebab syntax.
 class GIsParamName f where
-    gshowParamName :: f p -> Text.Text
+  gshowParamName :: f p -> Text.Text
 
-instance (GIsParamName a) => GIsParamName (M1 D i a) where
-    gshowParamName (M1 x) = gshowParamName x
+instance GIsParamName a => GIsParamName (M1 D i a) where
+  gshowParamName (M1 x) = gshowParamName x
 
 {- Note [Quotation marks in cost model parameter constructors]
 We use the quotation mark <'> inside each nullary constructor of
@@ -63,50 +62,53 @@ The character <_> cannot be used as a delimiter because it may be part of the bu
 -}
 
 instance Constructor i => GIsParamName (M1 C i U1) where
-    gshowParamName = Text.pack . lowerKebab . conName
-      where
-        lowerKebab :: String -> String
-        lowerKebab (h:t) = toLower h : fmap maybeKebab t
-        lowerKebab _     = error "this should not happen because constructors cannot have empty names"
+  gshowParamName = Text.pack . lowerKebab . conName
+    where
+      lowerKebab :: String -> String
+      lowerKebab (h : t) = toLower h : fmap maybeKebab t
+      lowerKebab _ = error "this should not happen because constructors cannot have empty names"
 
-        maybeKebab '\'' = '-'
-        maybeKebab c    = c
-
+      maybeKebab '\'' = '-'
+      maybeKebab c = c
 
 instance (GIsParamName a, GIsParamName b) => GIsParamName ((:+:) a b) where
-    gshowParamName (L1 x) = gshowParamName x
-    gshowParamName (R1 x) = gshowParamName x
+  gshowParamName (L1 x) = gshowParamName x
+  gshowParamName (R1 x) = gshowParamName x
 
--- | Given an ordered list of parameter values, tag them with their parameter
--- names.  If the passed parameter values are more than expected: the function
--- will ignore the extraneous values at the tail of the list, if the passed
--- values are less than expected: the function will throw an error; for more
--- information, see Note [Cost model parameters from the ledger's point of view]
-tagWithParamNames :: forall k m. (Enum k, Bounded k,
-                            MonadError CostModelApplyError m,
-                            -- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl>=2.3
-                            -- OPTIMIZE: using List [] as the log datatype is worse than others (DList/Endo) but does not matter much here
-                            MonadWriter [CostModelApplyWarn] m)
-                  => [Int64] -> m [(k, Int64)]
+{-| Given an ordered list of parameter values, tag them with their parameter
+names.  If the passed parameter values are more than expected: the function
+will ignore the extraneous values at the tail of the list, if the passed
+values are less than expected: the function will throw an error; for more
+information, see Note [Cost model parameters from the ledger's point of view] -}
+tagWithParamNames
+  :: forall k m
+   . ( Enum k
+     , Bounded k
+     , MonadError CostModelApplyError m
+     , -- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl>=2.3
+       -- OPTIMIZE: using List [] as the log datatype is worse than others (DList/Endo) but does not matter much here
+       MonadWriter [CostModelApplyWarn] m
+     )
+  => [Int64] -> m [(k, Int64)]
 tagWithParamNames ledgerParams =
-    let paramNames = enumerate @k
-        lenExpected = length paramNames
-        lenActual = length ledgerParams
-    in case lenExpected `compare` lenActual of
+  let paramNames = enumerate @k
+      lenExpected = length paramNames
+      lenActual = length ledgerParams
+   in case lenExpected `compare` lenActual of
         EQ ->
-            pure $ zip paramNames ledgerParams
+          pure $ zip paramNames ledgerParams
         LT -> do
-            -- See Note [Cost model parameters from the ledger's point of view]
-            tell [CMTooManyParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
-            -- zip will truncate/ignore any extraneous parameter values
-            pure $ zip paramNames ledgerParams
+          -- See Note [Cost model parameters from the ledger's point of view]
+          tell [CMTooManyParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
+          -- zip will truncate/ignore any extraneous parameter values
+          pure $ zip paramNames ledgerParams
         GT -> do
-            -- Too few parameters - substitute a large number for the missing parameters
-            -- See Note [Cost model parameters from the ledger's point of view]
-            tell [CMTooFewParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
-            pure $ zip paramNames (ledgerParams ++ repeat maxBound)
+          -- Too few parameters - substitute a large number for the missing parameters
+          -- See Note [Cost model parameters from the ledger's point of view]
+          tell [CMTooFewParamsWarn {cmExpected = lenExpected, cmActual = lenActual}]
+          pure $ zip paramNames (ledgerParams ++ repeat maxBound)
 
--- | Untags the plutus version from the typed cost model parameters and returns their raw textual form
--- (internally used by CostModelInterface).
+{-| Untags the plutus version from the typed cost model parameters and returns their raw textual form
+(internally used by CostModelInterface). -}
 toCostModelParams :: IsParamName p => [(p, Int64)] -> CostModelParams
 toCostModelParams = Map.fromList . fmap (first showParamName)

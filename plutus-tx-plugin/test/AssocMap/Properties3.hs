@@ -1,16 +1,16 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 -- CSE is very unstable and produces different output, likely depending on the version of either
@@ -30,8 +30,8 @@ import PlutusTx.IsData qualified as P
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.List qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode, evaluationResultMatchesHaskell)
 import PlutusTx.TH (compile)
+import PlutusTx.Test.Run.Code (evalResult, evaluateCompiledCode, evaluationResultMatchesHaskell)
 
 import PlutusTx.These (These (..))
 

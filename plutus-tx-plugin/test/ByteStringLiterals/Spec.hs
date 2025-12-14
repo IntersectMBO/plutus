@@ -1,8 +1,8 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 
 module ByteStringLiterals.Spec (tests) where
@@ -15,10 +15,17 @@ import Data.String (fromString)
 import Data.Text.Encoding qualified as TE
 import PlutusCore (DefaultUni (..), Some (..), ValueOf (..), someValue)
 import PlutusTx (CompiledCode, getPlcNoAnn)
-import PlutusTx.Builtins (BuiltinByteString, BuiltinByteStringHex, BuiltinByteStringUtf8,
-                          fromBuiltin)
-import PlutusTx.Builtins.HasOpaque (stringToBuiltinByteString, stringToBuiltinByteStringHex,
-                                    stringToBuiltinByteStringUtf8)
+import PlutusTx.Builtins
+  ( BuiltinByteString
+  , BuiltinByteStringHex
+  , BuiltinByteStringUtf8
+  , fromBuiltin
+  )
+import PlutusTx.Builtins.HasOpaque
+  ( stringToBuiltinByteString
+  , stringToBuiltinByteStringHex
+  , stringToBuiltinByteStringUtf8
+  )
 import PlutusTx.TH (compile)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (testCase, (@?=))
@@ -51,55 +58,11 @@ test_CompileBuiltinByteStringLiteral_raw :: TestTree
 test_CompileBuiltinByteStringLiteral_raw =
   testCase "Raw bytes" do
     term compiledLiteral @?= expectedUplc
- where
-  compiledLiteral :: CompiledCode BuiltinByteString =
-    -- 00..FF FF..00
-    $$( compile
-          [||
-          "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\
-          \\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\
-          \\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F\
-          \\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\x3E\x3F\
-          \\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4A\x4B\x4C\x4D\x4E\x4F\
-          \\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5A\x5B\x5C\x5D\x5E\x5F\
-          \\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6A\x6B\x6C\x6D\x6E\x6F\
-          \\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7A\x7B\x7C\x7D\x7E\x7F\
-          \\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F\
-          \\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F\
-          \\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF\
-          \\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF\
-          \\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\
-          \\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\
-          \\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\
-          \\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF\
-          \\xFF\xFE\xFD\xFC\xFB\xFA\xF9\xF8\xF7\xF6\xF5\xF4\xF3\xF2\xF1\xF0\
-          \\xEF\xEE\xED\xEC\xEB\xEA\xE9\xE8\xE7\xE6\xE5\xE4\xE3\xE2\xE1\xE0\
-          \\xDF\xDE\xDD\xDC\xDB\xDA\xD9\xD8\xD7\xD6\xD5\xD4\xD3\xD2\xD1\xD0\
-          \\xCF\xCE\xCD\xCC\xCB\xCA\xC9\xC8\xC7\xC6\xC5\xC4\xC3\xC2\xC1\xC0\
-          \\xBF\xBE\xBD\xBC\xBB\xBA\xB9\xB8\xB7\xB6\xB5\xB4\xB3\xB2\xB1\xB0\
-          \\xAF\xAE\xAD\xAC\xAB\xAA\xA9\xA8\xA7\xA6\xA5\xA4\xA3\xA2\xA1\xA0\
-          \\x9F\x9E\x9D\x9C\x9B\x9A\x99\x98\x97\x96\x95\x94\x93\x92\x91\x90\
-          \\x8F\x8E\x8D\x8C\x8B\x8A\x89\x88\x87\x86\x85\x84\x83\x82\x81\x80\
-          \\x7F\x7E\x7D\x7C\x7B\x7A\x79\x78\x77\x76\x75\x74\x73\x72\x71\x70\
-          \\x6F\x6E\x6D\x6C\x6B\x6A\x69\x68\x67\x66\x65\x64\x63\x62\x61\x60\
-          \\x5F\x5E\x5D\x5C\x5B\x5A\x59\x58\x57\x56\x55\x54\x53\x52\x51\x50\
-          \\x4F\x4E\x4D\x4C\x4B\x4A\x49\x48\x47\x46\x45\x44\x43\x42\x41\x40\
-          \\x3F\x3E\x3D\x3C\x3B\x3A\x39\x38\x37\x36\x35\x34\x33\x32\x31\x30\
-          \\x2F\x2E\x2D\x2C\x2B\x2A\x29\x28\x27\x26\x25\x24\x23\x22\x21\x20\
-          \\x1F\x1E\x1D\x1C\x1B\x1A\x19\x18\x17\x16\x15\x14\x13\x12\x11\x10\
-          \\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08\x07\x06\x05\x04\x03\x02\x01\x00"
-          ||]
-      )
-
-test_CompileBuiltinByteStringLiteral_stringToBuiltinByteString :: TestTree
-test_CompileBuiltinByteStringLiteral_stringToBuiltinByteString =
-  testCase "stringToBuiltinByteString" do
-    term compiledLiteral @?= expectedUplc
- where
-  compiledLiteral :: CompiledCode BuiltinByteString =
-    $$( compile
-          [||
-          stringToBuiltinByteString
+  where
+    compiledLiteral :: CompiledCode BuiltinByteString =
+      -- 00..FF FF..00
+      $$( compile
+            [||
             "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\
             \\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\
             \\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F\
@@ -132,8 +95,52 @@ test_CompileBuiltinByteStringLiteral_stringToBuiltinByteString =
             \\x2F\x2E\x2D\x2C\x2B\x2A\x29\x28\x27\x26\x25\x24\x23\x22\x21\x20\
             \\x1F\x1E\x1D\x1C\x1B\x1A\x19\x18\x17\x16\x15\x14\x13\x12\x11\x10\
             \\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08\x07\x06\x05\x04\x03\x02\x01\x00"
-          ||]
-      )
+            ||]
+        )
+
+test_CompileBuiltinByteStringLiteral_stringToBuiltinByteString :: TestTree
+test_CompileBuiltinByteStringLiteral_stringToBuiltinByteString =
+  testCase "stringToBuiltinByteString" do
+    term compiledLiteral @?= expectedUplc
+  where
+    compiledLiteral :: CompiledCode BuiltinByteString =
+      $$( compile
+            [||
+            stringToBuiltinByteString
+              "\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\
+              \\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\
+              \\x20\x21\x22\x23\x24\x25\x26\x27\x28\x29\x2A\x2B\x2C\x2D\x2E\x2F\
+              \\x30\x31\x32\x33\x34\x35\x36\x37\x38\x39\x3A\x3B\x3C\x3D\x3E\x3F\
+              \\x40\x41\x42\x43\x44\x45\x46\x47\x48\x49\x4A\x4B\x4C\x4D\x4E\x4F\
+              \\x50\x51\x52\x53\x54\x55\x56\x57\x58\x59\x5A\x5B\x5C\x5D\x5E\x5F\
+              \\x60\x61\x62\x63\x64\x65\x66\x67\x68\x69\x6A\x6B\x6C\x6D\x6E\x6F\
+              \\x70\x71\x72\x73\x74\x75\x76\x77\x78\x79\x7A\x7B\x7C\x7D\x7E\x7F\
+              \\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8A\x8B\x8C\x8D\x8E\x8F\
+              \\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9A\x9B\x9C\x9D\x9E\x9F\
+              \\xA0\xA1\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xAB\xAC\xAD\xAE\xAF\
+              \\xB0\xB1\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xBB\xBC\xBD\xBE\xBF\
+              \\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF\
+              \\xD0\xD1\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xDB\xDC\xDD\xDE\xDF\
+              \\xE0\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xEB\xEC\xED\xEE\xEF\
+              \\xF0\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFB\xFC\xFD\xFE\xFF\
+              \\xFF\xFE\xFD\xFC\xFB\xFA\xF9\xF8\xF7\xF6\xF5\xF4\xF3\xF2\xF1\xF0\
+              \\xEF\xEE\xED\xEC\xEB\xEA\xE9\xE8\xE7\xE6\xE5\xE4\xE3\xE2\xE1\xE0\
+              \\xDF\xDE\xDD\xDC\xDB\xDA\xD9\xD8\xD7\xD6\xD5\xD4\xD3\xD2\xD1\xD0\
+              \\xCF\xCE\xCD\xCC\xCB\xCA\xC9\xC8\xC7\xC6\xC5\xC4\xC3\xC2\xC1\xC0\
+              \\xBF\xBE\xBD\xBC\xBB\xBA\xB9\xB8\xB7\xB6\xB5\xB4\xB3\xB2\xB1\xB0\
+              \\xAF\xAE\xAD\xAC\xAB\xAA\xA9\xA8\xA7\xA6\xA5\xA4\xA3\xA2\xA1\xA0\
+              \\x9F\x9E\x9D\x9C\x9B\x9A\x99\x98\x97\x96\x95\x94\x93\x92\x91\x90\
+              \\x8F\x8E\x8D\x8C\x8B\x8A\x89\x88\x87\x86\x85\x84\x83\x82\x81\x80\
+              \\x7F\x7E\x7D\x7C\x7B\x7A\x79\x78\x77\x76\x75\x74\x73\x72\x71\x70\
+              \\x6F\x6E\x6D\x6C\x6B\x6A\x69\x68\x67\x66\x65\x64\x63\x62\x61\x60\
+              \\x5F\x5E\x5D\x5C\x5B\x5A\x59\x58\x57\x56\x55\x54\x53\x52\x51\x50\
+              \\x4F\x4E\x4D\x4C\x4B\x4A\x49\x48\x47\x46\x45\x44\x43\x42\x41\x40\
+              \\x3F\x3E\x3D\x3C\x3B\x3A\x39\x38\x37\x36\x35\x34\x33\x32\x31\x30\
+              \\x2F\x2E\x2D\x2C\x2B\x2A\x29\x28\x27\x26\x25\x24\x23\x22\x21\x20\
+              \\x1F\x1E\x1D\x1C\x1B\x1A\x19\x18\x17\x16\x15\x14\x13\x12\x11\x10\
+              \\x0F\x0E\x0D\x0C\x0B\x0A\x09\x08\x07\x06\x05\x04\x03\x02\x01\x00"
+            ||]
+        )
 
 test_CompileBuiltinByteStringLiteral_utf8 :: TestTree
 test_CompileBuiltinByteStringLiteral_utf8 =
@@ -151,60 +158,10 @@ test_CompileBuiltinByteStringLiteral_hex :: TestTree
 test_CompileBuiltinByteStringLiteral_hex =
   testCase "BuiltinByteStringHex (local)" do
     term compiledLiteral @?= expectedUplc
- where
-  compiledLiteral :: CompiledCode BuiltinByteStringHex =
-    $$( compile
-          [||
-          "000102030405060708090a0b0c0d0e0f\
-          \101112131415161718191a1b1c1d1e1f\
-          \202122232425262728292a2b2c2d2e2f\
-          \303132333435363738393a3b3c3d3e3f\
-          \404142434445464748494a4b4c4d4e4f\
-          \505152535455565758595a5b5c5d5e5f\
-          \606162636465666768696a6b6c6d6e6f\
-          \707172737475767778797a7b7c7d7e7f\
-          \808182838485868788898a8b8c8d8e8f\
-          \909192939495969798999a9b9c9d9e9f\
-          \a0a1a2a3a4a5a6a7a8a9aaabacadaeaf\
-          \b0b1b2b3b4b5b6b7b8b9babbbcbdbebf\
-          \c0c1c2c3c4c5c6c7c8c9cacbcccdcecf\
-          \d0d1d2d3d4d5d6d7d8d9dadbdcdddedf\
-          \e0e1e2e3e4e5e6e7e8e9eaebecedeeef\
-          \f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff\
-          \fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0\
-          \efeeedecebeae9e8e7e6e5e4e3e2e1e0\
-          \dfdedddcdbdad9d8d7d6d5d4d3d2d1d0\
-          \cfcecdcccbcac9c8c7c6c5c4c3c2c1c0\
-          \bfbebdbcbbbab9b8b7b6b5b4b3b2b1b0\
-          \afaeadacabaaa9a8a7a6a5a4a3a2a1a0\
-          \9f9e9d9c9b9a99989796959493929190\
-          \8f8e8d8c8b8a89888786858483828180\
-          \7f7e7d7c7b7a79787776757473727170\
-          \6f6e6d6c6b6a69686766656463626160\
-          \5f5e5d5c5b5a59585756555453525150\
-          \4f4e4d4c4b4a49484746454443424140\
-          \3f3e3d3c3b3a39383736353433323130\
-          \2f2e2d2c2b2a29282726252423222120\
-          \1f1e1d1c1b1a19181716151413121110\
-          \0f0e0d0c0b0a09080706050403020100"
-          ||]
-      )
-
-test_CompileBuiltinByteStringLiteral_hex_imported :: TestTree
-test_CompileBuiltinByteStringLiteral_hex_imported =
-  testCase "BuiltinByteStringHex (imported)" $
-    term $$(compile [||Lib.hex||])
-      @?= Constant () (Some (ValueOf DefaultUniByteString "\240\209"))
-
-test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex :: TestTree
-test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex =
-  testCase "stringToBuiltinByteStringHex" do
-    term compiledLiteral @?= expectedUplc
- where
-  compiledLiteral :: CompiledCode BuiltinByteString =
-    $$( compile
-          [||
-          stringToBuiltinByteStringHex
+  where
+    compiledLiteral :: CompiledCode BuiltinByteStringHex =
+      $$( compile
+            [||
             "000102030405060708090a0b0c0d0e0f\
             \101112131415161718191a1b1c1d1e1f\
             \202122232425262728292a2b2c2d2e2f\
@@ -237,8 +194,58 @@ test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex =
             \2f2e2d2c2b2a29282726252423222120\
             \1f1e1d1c1b1a19181716151413121110\
             \0f0e0d0c0b0a09080706050403020100"
-          ||]
-      )
+            ||]
+        )
+
+test_CompileBuiltinByteStringLiteral_hex_imported :: TestTree
+test_CompileBuiltinByteStringLiteral_hex_imported =
+  testCase "BuiltinByteStringHex (imported)" $
+    term $$(compile [||Lib.hex||])
+      @?= Constant () (Some (ValueOf DefaultUniByteString "\240\209"))
+
+test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex :: TestTree
+test_CompileBuiltinByteStringLiteral_stringToBuiltinByteStringHex =
+  testCase "stringToBuiltinByteStringHex" do
+    term compiledLiteral @?= expectedUplc
+  where
+    compiledLiteral :: CompiledCode BuiltinByteString =
+      $$( compile
+            [||
+            stringToBuiltinByteStringHex
+              "000102030405060708090a0b0c0d0e0f\
+              \101112131415161718191a1b1c1d1e1f\
+              \202122232425262728292a2b2c2d2e2f\
+              \303132333435363738393a3b3c3d3e3f\
+              \404142434445464748494a4b4c4d4e4f\
+              \505152535455565758595a5b5c5d5e5f\
+              \606162636465666768696a6b6c6d6e6f\
+              \707172737475767778797a7b7c7d7e7f\
+              \808182838485868788898a8b8c8d8e8f\
+              \909192939495969798999a9b9c9d9e9f\
+              \a0a1a2a3a4a5a6a7a8a9aaabacadaeaf\
+              \b0b1b2b3b4b5b6b7b8b9babbbcbdbebf\
+              \c0c1c2c3c4c5c6c7c8c9cacbcccdcecf\
+              \d0d1d2d3d4d5d6d7d8d9dadbdcdddedf\
+              \e0e1e2e3e4e5e6e7e8e9eaebecedeeef\
+              \f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff\
+              \fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0\
+              \efeeedecebeae9e8e7e6e5e4e3e2e1e0\
+              \dfdedddcdbdad9d8d7d6d5d4d3d2d1d0\
+              \cfcecdcccbcac9c8c7c6c5c4c3c2c1c0\
+              \bfbebdbcbbbab9b8b7b6b5b4b3b2b1b0\
+              \afaeadacabaaa9a8a7a6a5a4a3a2a1a0\
+              \9f9e9d9c9b9a99989796959493929190\
+              \8f8e8d8c8b8a89888786858483828180\
+              \7f7e7d7c7b7a79787776757473727170\
+              \6f6e6d6c6b6a69686766656463626160\
+              \5f5e5d5c5b5a59585756555453525150\
+              \4f4e4d4c4b4a49484746454443424140\
+              \3f3e3d3c3b3a39383736353433323130\
+              \2f2e2d2c2b2a29282726252423222120\
+              \1f1e1d1c1b1a19181716151413121110\
+              \0f0e0d0c0b0a09080706050403020100"
+            ||]
+        )
 
 term :: CompiledCode a -> Term NamedDeBruijn DefaultUni DefaultFun ()
 term = _progTerm . getPlcNoAnn

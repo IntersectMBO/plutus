@@ -1,29 +1,29 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module UntypedPlutusCore.Core.Type
-    ( TPLC.UniOf
-    , TPLC.Version (..)
-    , TPLC.Binder (..)
-    , Term (..)
-    , Program (..)
-    , progAnn
-    , progVer
-    , progTerm
-    , bindFunM
-    , bindFun
-    , mapFun
-    , termAnn
-    , UVarDecl(..)
-    , uvarDeclName
-    , uvarDeclAnn
-    ) where
+  ( TPLC.UniOf
+  , TPLC.Version (..)
+  , TPLC.Binder (..)
+  , Term (..)
+  , Program (..)
+  , progAnn
+  , progVer
+  , progTerm
+  , bindFunM
+  , bindFun
+  , mapFun
+  , termAnn
+  , UVarDecl (..)
+  , uvarDeclName
+  , uvarDeclAnn
+  ) where
 
 import Control.Lens
 import Control.Monad.Except
@@ -81,115 +81,123 @@ and hence a computation can be stuck expecting only a single type argument for t
 to become unstuck. Therefore we can't just silently remove type abstractions and instantiations and
 need to replace them with something else that also blocks evaluation (in order for the semantics
 of an erased program to match with the semantics of the original typed one). 'Delay' and 'Force'
-serve exactly this purpose.
--}
+serve exactly this purpose. -}
+
 -- Making all the fields strict gives us a couple of percent in benchmarks
 -- See Note [Term constructor ordering and numbers]
 data Term name uni fun ann
-    = Var !ann !name
-    | LamAbs !ann !name !(Term name uni fun ann)
-    | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
-    | Force !ann !(Term name uni fun ann)
-    | Delay !ann !(Term name uni fun ann)
-    | Constant !ann !(Some (ValueOf uni))
-    | Builtin !ann !fun
-    -- This is the cutoff at which constructors won't get pointer tags
+  = Var !ann !name
+  | LamAbs !ann !name !(Term name uni fun ann)
+  | Apply !ann !(Term name uni fun ann) !(Term name uni fun ann)
+  | Force !ann !(Term name uni fun ann)
+  | Delay !ann !(Term name uni fun ann)
+  | Constant !ann !(Some (ValueOf uni))
+  | Builtin !ann !fun
+  | -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]
-    | Error !ann
-    -- TODO: worry about overflow, maybe use an Integer
+    Error !ann
+  | -- TODO: worry about overflow, maybe use an Integer
     -- See Note [Constr tag type]
-    | Constr !ann !Word64 ![Term name uni fun ann]
-    -- See Note [Supported case-expressions].
-    | Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
-    deriving stock (Functor, Generic)
+    Constr !ann !Word64 ![Term name uni fun ann]
+  | -- See Note [Supported case-expressions].
+    Case !ann !(Term name uni fun ann) !(Vector (Term name uni fun ann))
+  deriving stock (Functor, Generic)
 
-deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-    => Show (Term name uni fun ann)
+deriving stock instance
+  (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+  => Show (Term name uni fun ann)
 
-deriving anyclass instance (NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
-    => NFData (Term name uni fun ann)
+deriving anyclass instance
+  (NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
+  => NFData (Term name uni fun ann)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program
-    { _progAnn  :: ann
-    , _progVer  :: TPLC.Version
-    , _progTerm :: Term name uni fun ann
-    }
-    deriving stock (Functor, Generic)
+  { _progAnn :: ann
+  , _progVer :: TPLC.Version
+  , _progTerm :: Term name uni fun ann
+  }
+  deriving stock (Functor, Generic)
+
 makeLenses ''Program
 
-deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-    => Show (Program name uni fun ann)
+deriving stock instance
+  (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+  => Show (Program name uni fun ann)
 
-deriving anyclass instance (NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)
-    => NFData (Program name uni fun ann)
+deriving anyclass instance
+  (NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)
+  => NFData (Program name uni fun ann)
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
 instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
-    var      = Var
-    tyAbs    = \ann _ _ -> Delay ann
-    lamAbs   = \ann name _ -> LamAbs ann name
-    apply    = Apply
-    constant = Constant
-    builtin  = Builtin
-    tyInst   = \ann term _ -> Force ann term
-    unwrap   = const id
-    iWrap    = \_ _ _ -> id
-    error    = \ann _ -> Error ann
-    constr   = \ann _ i es -> Constr ann i es
-    kase     = \ann _ arg cs -> Case ann arg (fromList cs)
+  var = Var
+  tyAbs = \ann _ _ -> Delay ann
+  lamAbs = \ann name _ -> LamAbs ann name
+  apply = Apply
+  constant = Constant
+  builtin = Builtin
+  tyInst = \ann term _ -> Force ann term
+  unwrap = const id
+  iWrap = \_ _ _ -> id
+  error = \ann _ -> Error ann
+  constr = \ann _ i es -> Constr ann i es
+  kase = \ann _ arg cs -> Case ann arg (fromList cs)
 
 instance TPLC.HasConstant (Term name uni fun ()) where
-    asConstant (Constant _ val) = pure val
-    asConstant _                = throwError TPLC.notAConstant
+  asConstant (Constant _ val) = pure val
+  asConstant _ = throwError TPLC.notAConstant
 
-    fromConstant = Constant ()
+  fromConstant = Constant ()
 
 type instance TPLC.HasUniques (Term name uni fun ann) = TPLC.HasUnique name TPLC.TermUnique
 type instance TPLC.HasUniques (Program name uni fun ann) = TPLC.HasUniques (Term name uni fun ann)
 
 -- | An untyped "variable declaration", i.e. a name for a variable.
 data UVarDecl name ann = UVarDecl
-    { _uvarDeclAnn  :: ann
-    , _uvarDeclName :: name
-    } deriving stock (Functor, Show, Generic)
+  { _uvarDeclAnn :: ann
+  , _uvarDeclName :: name
+  }
+  deriving stock (Functor, Show, Generic)
+
 makeLenses ''UVarDecl
 
 -- | Return the outermost annotation of a 'Term'.
 termAnn :: Term name uni fun ann -> ann
 termAnn (Constant ann _) = ann
-termAnn (Builtin ann _)  = ann
-termAnn (Var ann _)      = ann
+termAnn (Builtin ann _) = ann
+termAnn (Var ann _) = ann
 termAnn (LamAbs ann _ _) = ann
-termAnn (Apply ann _ _)  = ann
-termAnn (Delay ann _)    = ann
-termAnn (Force ann _)    = ann
-termAnn (Error ann)      = ann
+termAnn (Apply ann _ _) = ann
+termAnn (Delay ann _) = ann
+termAnn (Force ann _) = ann
+termAnn (Error ann) = ann
 termAnn (Constr ann _ _) = ann
-termAnn (Case ann _ _)   = ann
+termAnn (Case ann _ _) = ann
 
 bindFunM
-    :: Monad m
-    => (ann -> fun -> m (Term name uni fun' ann))
-    -> Term name uni fun ann
-    -> m (Term name uni fun' ann)
-bindFunM f = go where
-    go (Constant ann val)     = pure $ Constant ann val
-    go (Builtin ann fun)      = f ann fun
-    go (Var ann name)         = pure $ Var ann name
+  :: Monad m
+  => (ann -> fun -> m (Term name uni fun' ann))
+  -> Term name uni fun ann
+  -> m (Term name uni fun' ann)
+bindFunM f = go
+  where
+    go (Constant ann val) = pure $ Constant ann val
+    go (Builtin ann fun) = f ann fun
+    go (Var ann name) = pure $ Var ann name
     go (LamAbs ann name body) = LamAbs ann name <$> go body
-    go (Apply ann fun arg)    = Apply ann <$> go fun <*> go arg
-    go (Delay ann term)       = Delay ann <$> go term
-    go (Force ann term)       = Force ann <$> go term
-    go (Error ann)            = pure $ Error ann
-    go (Constr ann i args)    = Constr ann i <$> traverse go args
-    go (Case ann arg cs)      = Case ann <$> go arg <*> traverse go cs
+    go (Apply ann fun arg) = Apply ann <$> go fun <*> go arg
+    go (Delay ann term) = Delay ann <$> go term
+    go (Force ann term) = Force ann <$> go term
+    go (Error ann) = pure $ Error ann
+    go (Constr ann i args) = Constr ann i <$> traverse go args
+    go (Case ann arg cs) = Case ann <$> go arg <*> traverse go cs
 
 bindFun
-    :: (ann -> fun -> Term name uni fun' ann)
-    -> Term name uni fun ann
-    -> Term name uni fun' ann
+  :: (ann -> fun -> Term name uni fun' ann)
+  -> Term name uni fun ann
+  -> Term name uni fun' ann
 bindFun f = runIdentity . bindFunM (coerce f)
 
 mapFun :: (ann -> fun -> fun') -> Term name uni fun ann -> Term name uni fun' ann

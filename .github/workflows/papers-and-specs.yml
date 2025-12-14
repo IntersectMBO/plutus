@@ -28,7 +28,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v6.0.1
 
       - name: Build Papers
         run: | 
@@ -50,7 +50,7 @@ jobs:
 
       - name: Publish Papers
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           folder: _resources
           target-folder: resources
@@ -58,7 +58,7 @@ jobs:
 
       - name: Publish Preview Papers 
         if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-        uses: rossjrw/pr-preview-action@v1.6.2
+        uses: rossjrw/pr-preview-action@v1.6.3
         with:
           source-dir: _resources
           umbrella-dir: pr-preview/resources

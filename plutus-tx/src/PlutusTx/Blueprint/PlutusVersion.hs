@@ -1,6 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module PlutusTx.Blueprint.PlutusVersion where
 
@@ -11,8 +11,7 @@ import Data.Aeson (ToJSON (..))
 {-| A "Plutus Version", as defined by the CIP-0057
 |
 | This version corresponds to the "Plutus Ledger Language Version"
-| defined by the plutus-tx-plugin.
--}
+| defined by the plutus-tx-plugin. -}
 data PlutusVersion = PlutusV1 | PlutusV2 | PlutusV3
   deriving stock (Show)
 

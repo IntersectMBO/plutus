@@ -1,6 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE NumericUnderscores #-}
-{-# LANGUAGE TupleSections      #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 
 module PlutusBenchmark.SHA512 (sha512) where
 
@@ -91,26 +91,28 @@ data SHA512State
       UInt64
 
 initialState :: SHA512State
-initialState = SHA512State (integerToUInt64 0x6a09_e667_f3bc_c908)
-                           (integerToUInt64 0xbb67_ae85_84ca_a73b)
-                           (integerToUInt64 0x3c6e_f372_fe94_f82b)
-                           (integerToUInt64 0xa54f_f53a_5f1d_36f1)
-                           (integerToUInt64 0x510e_527f_ade6_82d1)
-                           (integerToUInt64 0x9b05_688c_2b3e_6c1f)
-                           (integerToUInt64 0x1f83_d9ab_fb41_bd6b)
-                           (integerToUInt64 0x5be0_cd19_137e_2179)
+initialState =
+  SHA512State
+    (integerToUInt64 0x6a09_e667_f3bc_c908)
+    (integerToUInt64 0xbb67_ae85_84ca_a73b)
+    (integerToUInt64 0x3c6e_f372_fe94_f82b)
+    (integerToUInt64 0xa54f_f53a_5f1d_36f1)
+    (integerToUInt64 0x510e_527f_ade6_82d1)
+    (integerToUInt64 0x9b05_688c_2b3e_6c1f)
+    (integerToUInt64 0x1f83_d9ab_fb41_bd6b)
+    (integerToUInt64 0x5be0_cd19_137e_2179)
 {-# INLINEABLE initialState #-}
 
 extract :: SHA512State -> BuiltinByteString
 extract (SHA512State x1 x2 x3 x4 x5 x6 x7 x8) =
-  uint64ToBS x1 <>
-  uint64ToBS x2 <>
-  uint64ToBS x3 <>
-  uint64ToBS x4 <>
-  uint64ToBS x5 <>
-  uint64ToBS x6 <>
-  uint64ToBS x7 <>
-  uint64ToBS x8
+  uint64ToBS x1
+    <> uint64ToBS x2
+    <> uint64ToBS x3
+    <> uint64ToBS x4
+    <> uint64ToBS x5
+    <> uint64ToBS x6
+    <> uint64ToBS x7
+    <> uint64ToBS x8
 {-# INLINEABLE extract #-}
 
 data SHA512Sched
@@ -198,168 +200,168 @@ data SHA512Sched
 
 getSHA512Sched :: BuiltinByteString -> (SHA512Sched, BuiltinByteString)
 getSHA512Sched bs =
-      let (w00, rest00) = next64 bs
-          (w01, rest01) = next64 rest00
-          (w02, rest02) = next64 rest01
-          (w03, rest03) = next64 rest02
-          (w04, rest04) = next64 rest03
-          (w05, rest05) = next64 rest04
-          (w06, rest06) = next64 rest05
-          (w07, rest07) = next64 rest06
-          (w08, rest08) = next64 rest07
-          (w09, rest09) = next64 rest08
-          (w10, rest10) = next64 rest09
-          (w11, rest11) = next64 rest10
-          (w12, rest12) = next64 rest11
-          (w13, rest13) = next64 rest12
-          (w14, rest14) = next64 rest13
-          (w15, cont) = next64 rest14
-          w16 = lsig512_1 w14 #+ w09 #+ lsig512_0 w01 #+ w00
-          w17 = lsig512_1 w15 #+ w10 #+ lsig512_0 w02 #+ w01
-          w18 = lsig512_1 w16 #+ w11 #+ lsig512_0 w03 #+ w02
-          w19 = lsig512_1 w17 #+ w12 #+ lsig512_0 w04 #+ w03
-          w20 = lsig512_1 w18 #+ w13 #+ lsig512_0 w05 #+ w04
-          w21 = lsig512_1 w19 #+ w14 #+ lsig512_0 w06 #+ w05
-          w22 = lsig512_1 w20 #+ w15 #+ lsig512_0 w07 #+ w06
-          w23 = lsig512_1 w21 #+ w16 #+ lsig512_0 w08 #+ w07
-          w24 = lsig512_1 w22 #+ w17 #+ lsig512_0 w09 #+ w08
-          w25 = lsig512_1 w23 #+ w18 #+ lsig512_0 w10 #+ w09
-          w26 = lsig512_1 w24 #+ w19 #+ lsig512_0 w11 #+ w10
-          w27 = lsig512_1 w25 #+ w20 #+ lsig512_0 w12 #+ w11
-          w28 = lsig512_1 w26 #+ w21 #+ lsig512_0 w13 #+ w12
-          w29 = lsig512_1 w27 #+ w22 #+ lsig512_0 w14 #+ w13
-          w30 = lsig512_1 w28 #+ w23 #+ lsig512_0 w15 #+ w14
-          w31 = lsig512_1 w29 #+ w24 #+ lsig512_0 w16 #+ w15
-          w32 = lsig512_1 w30 #+ w25 #+ lsig512_0 w17 #+ w16
-          w33 = lsig512_1 w31 #+ w26 #+ lsig512_0 w18 #+ w17
-          w34 = lsig512_1 w32 #+ w27 #+ lsig512_0 w19 #+ w18
-          w35 = lsig512_1 w33 #+ w28 #+ lsig512_0 w20 #+ w19
-          w36 = lsig512_1 w34 #+ w29 #+ lsig512_0 w21 #+ w20
-          w37 = lsig512_1 w35 #+ w30 #+ lsig512_0 w22 #+ w21
-          w38 = lsig512_1 w36 #+ w31 #+ lsig512_0 w23 #+ w22
-          w39 = lsig512_1 w37 #+ w32 #+ lsig512_0 w24 #+ w23
-          w40 = lsig512_1 w38 #+ w33 #+ lsig512_0 w25 #+ w24
-          w41 = lsig512_1 w39 #+ w34 #+ lsig512_0 w26 #+ w25
-          w42 = lsig512_1 w40 #+ w35 #+ lsig512_0 w27 #+ w26
-          w43 = lsig512_1 w41 #+ w36 #+ lsig512_0 w28 #+ w27
-          w44 = lsig512_1 w42 #+ w37 #+ lsig512_0 w29 #+ w28
-          w45 = lsig512_1 w43 #+ w38 #+ lsig512_0 w30 #+ w29
-          w46 = lsig512_1 w44 #+ w39 #+ lsig512_0 w31 #+ w30
-          w47 = lsig512_1 w45 #+ w40 #+ lsig512_0 w32 #+ w31
-          w48 = lsig512_1 w46 #+ w41 #+ lsig512_0 w33 #+ w32
-          w49 = lsig512_1 w47 #+ w42 #+ lsig512_0 w34 #+ w33
-          w50 = lsig512_1 w48 #+ w43 #+ lsig512_0 w35 #+ w34
-          w51 = lsig512_1 w49 #+ w44 #+ lsig512_0 w36 #+ w35
-          w52 = lsig512_1 w50 #+ w45 #+ lsig512_0 w37 #+ w36
-          w53 = lsig512_1 w51 #+ w46 #+ lsig512_0 w38 #+ w37
-          w54 = lsig512_1 w52 #+ w47 #+ lsig512_0 w39 #+ w38
-          w55 = lsig512_1 w53 #+ w48 #+ lsig512_0 w40 #+ w39
-          w56 = lsig512_1 w54 #+ w49 #+ lsig512_0 w41 #+ w40
-          w57 = lsig512_1 w55 #+ w50 #+ lsig512_0 w42 #+ w41
-          w58 = lsig512_1 w56 #+ w51 #+ lsig512_0 w43 #+ w42
-          w59 = lsig512_1 w57 #+ w52 #+ lsig512_0 w44 #+ w43
-          w60 = lsig512_1 w58 #+ w53 #+ lsig512_0 w45 #+ w44
-          w61 = lsig512_1 w59 #+ w54 #+ lsig512_0 w46 #+ w45
-          w62 = lsig512_1 w60 #+ w55 #+ lsig512_0 w47 #+ w46
-          w63 = lsig512_1 w61 #+ w56 #+ lsig512_0 w48 #+ w47
-          w64 = lsig512_1 w62 #+ w57 #+ lsig512_0 w49 #+ w48
-          w65 = lsig512_1 w63 #+ w58 #+ lsig512_0 w50 #+ w49
-          w66 = lsig512_1 w64 #+ w59 #+ lsig512_0 w51 #+ w50
-          w67 = lsig512_1 w65 #+ w60 #+ lsig512_0 w52 #+ w51
-          w68 = lsig512_1 w66 #+ w61 #+ lsig512_0 w53 #+ w52
-          w69 = lsig512_1 w67 #+ w62 #+ lsig512_0 w54 #+ w53
-          w70 = lsig512_1 w68 #+ w63 #+ lsig512_0 w55 #+ w54
-          w71 = lsig512_1 w69 #+ w64 #+ lsig512_0 w56 #+ w55
-          w72 = lsig512_1 w70 #+ w65 #+ lsig512_0 w57 #+ w56
-          w73 = lsig512_1 w71 #+ w66 #+ lsig512_0 w58 #+ w57
-          w74 = lsig512_1 w72 #+ w67 #+ lsig512_0 w59 #+ w58
-          w75 = lsig512_1 w73 #+ w68 #+ lsig512_0 w60 #+ w59
-          w76 = lsig512_1 w74 #+ w69 #+ lsig512_0 w61 #+ w60
-          w77 = lsig512_1 w75 #+ w70 #+ lsig512_0 w62 #+ w61
-          w78 = lsig512_1 w76 #+ w71 #+ lsig512_0 w63 #+ w62
-          w79 = lsig512_1 w77 #+ w72 #+ lsig512_0 w64 #+ w63
-        in (,cont)
-            $ SHA512Sched
-              w00
-              w01
-              w02
-              w03
-              w04
-              w05
-              w06
-              w07
-              w08
-              w09
-              w10
-              w11
-              w12
-              w13
-              w14
-              w15
-              w16
-              w17
-              w18
-              w19
-              w20
-              w21
-              w22
-              w23
-              w24
-              w25
-              w26
-              w27
-              w28
-              w29
-              w30
-              w31
-              w32
-              w33
-              w34
-              w35
-              w36
-              w37
-              w38
-              w39
-              w40
-              w41
-              w42
-              w43
-              w44
-              w45
-              w46
-              w47
-              w48
-              w49
-              w50
-              w51
-              w52
-              w53
-              w54
-              w55
-              w56
-              w57
-              w58
-              w59
-              w60
-              w61
-              w62
-              w63
-              w64
-              w65
-              w66
-              w67
-              w68
-              w69
-              w70
-              w71
-              w72
-              w73
-              w74
-              w75
-              w76
-              w77
-              w78
-              w79
+  let (w00, rest00) = next64 bs
+      (w01, rest01) = next64 rest00
+      (w02, rest02) = next64 rest01
+      (w03, rest03) = next64 rest02
+      (w04, rest04) = next64 rest03
+      (w05, rest05) = next64 rest04
+      (w06, rest06) = next64 rest05
+      (w07, rest07) = next64 rest06
+      (w08, rest08) = next64 rest07
+      (w09, rest09) = next64 rest08
+      (w10, rest10) = next64 rest09
+      (w11, rest11) = next64 rest10
+      (w12, rest12) = next64 rest11
+      (w13, rest13) = next64 rest12
+      (w14, rest14) = next64 rest13
+      (w15, cont) = next64 rest14
+      w16 = lsig512_1 w14 #+ w09 #+ lsig512_0 w01 #+ w00
+      w17 = lsig512_1 w15 #+ w10 #+ lsig512_0 w02 #+ w01
+      w18 = lsig512_1 w16 #+ w11 #+ lsig512_0 w03 #+ w02
+      w19 = lsig512_1 w17 #+ w12 #+ lsig512_0 w04 #+ w03
+      w20 = lsig512_1 w18 #+ w13 #+ lsig512_0 w05 #+ w04
+      w21 = lsig512_1 w19 #+ w14 #+ lsig512_0 w06 #+ w05
+      w22 = lsig512_1 w20 #+ w15 #+ lsig512_0 w07 #+ w06
+      w23 = lsig512_1 w21 #+ w16 #+ lsig512_0 w08 #+ w07
+      w24 = lsig512_1 w22 #+ w17 #+ lsig512_0 w09 #+ w08
+      w25 = lsig512_1 w23 #+ w18 #+ lsig512_0 w10 #+ w09
+      w26 = lsig512_1 w24 #+ w19 #+ lsig512_0 w11 #+ w10
+      w27 = lsig512_1 w25 #+ w20 #+ lsig512_0 w12 #+ w11
+      w28 = lsig512_1 w26 #+ w21 #+ lsig512_0 w13 #+ w12
+      w29 = lsig512_1 w27 #+ w22 #+ lsig512_0 w14 #+ w13
+      w30 = lsig512_1 w28 #+ w23 #+ lsig512_0 w15 #+ w14
+      w31 = lsig512_1 w29 #+ w24 #+ lsig512_0 w16 #+ w15
+      w32 = lsig512_1 w30 #+ w25 #+ lsig512_0 w17 #+ w16
+      w33 = lsig512_1 w31 #+ w26 #+ lsig512_0 w18 #+ w17
+      w34 = lsig512_1 w32 #+ w27 #+ lsig512_0 w19 #+ w18
+      w35 = lsig512_1 w33 #+ w28 #+ lsig512_0 w20 #+ w19
+      w36 = lsig512_1 w34 #+ w29 #+ lsig512_0 w21 #+ w20
+      w37 = lsig512_1 w35 #+ w30 #+ lsig512_0 w22 #+ w21
+      w38 = lsig512_1 w36 #+ w31 #+ lsig512_0 w23 #+ w22
+      w39 = lsig512_1 w37 #+ w32 #+ lsig512_0 w24 #+ w23
+      w40 = lsig512_1 w38 #+ w33 #+ lsig512_0 w25 #+ w24
+      w41 = lsig512_1 w39 #+ w34 #+ lsig512_0 w26 #+ w25
+      w42 = lsig512_1 w40 #+ w35 #+ lsig512_0 w27 #+ w26
+      w43 = lsig512_1 w41 #+ w36 #+ lsig512_0 w28 #+ w27
+      w44 = lsig512_1 w42 #+ w37 #+ lsig512_0 w29 #+ w28
+      w45 = lsig512_1 w43 #+ w38 #+ lsig512_0 w30 #+ w29
+      w46 = lsig512_1 w44 #+ w39 #+ lsig512_0 w31 #+ w30
+      w47 = lsig512_1 w45 #+ w40 #+ lsig512_0 w32 #+ w31
+      w48 = lsig512_1 w46 #+ w41 #+ lsig512_0 w33 #+ w32
+      w49 = lsig512_1 w47 #+ w42 #+ lsig512_0 w34 #+ w33
+      w50 = lsig512_1 w48 #+ w43 #+ lsig512_0 w35 #+ w34
+      w51 = lsig512_1 w49 #+ w44 #+ lsig512_0 w36 #+ w35
+      w52 = lsig512_1 w50 #+ w45 #+ lsig512_0 w37 #+ w36
+      w53 = lsig512_1 w51 #+ w46 #+ lsig512_0 w38 #+ w37
+      w54 = lsig512_1 w52 #+ w47 #+ lsig512_0 w39 #+ w38
+      w55 = lsig512_1 w53 #+ w48 #+ lsig512_0 w40 #+ w39
+      w56 = lsig512_1 w54 #+ w49 #+ lsig512_0 w41 #+ w40
+      w57 = lsig512_1 w55 #+ w50 #+ lsig512_0 w42 #+ w41
+      w58 = lsig512_1 w56 #+ w51 #+ lsig512_0 w43 #+ w42
+      w59 = lsig512_1 w57 #+ w52 #+ lsig512_0 w44 #+ w43
+      w60 = lsig512_1 w58 #+ w53 #+ lsig512_0 w45 #+ w44
+      w61 = lsig512_1 w59 #+ w54 #+ lsig512_0 w46 #+ w45
+      w62 = lsig512_1 w60 #+ w55 #+ lsig512_0 w47 #+ w46
+      w63 = lsig512_1 w61 #+ w56 #+ lsig512_0 w48 #+ w47
+      w64 = lsig512_1 w62 #+ w57 #+ lsig512_0 w49 #+ w48
+      w65 = lsig512_1 w63 #+ w58 #+ lsig512_0 w50 #+ w49
+      w66 = lsig512_1 w64 #+ w59 #+ lsig512_0 w51 #+ w50
+      w67 = lsig512_1 w65 #+ w60 #+ lsig512_0 w52 #+ w51
+      w68 = lsig512_1 w66 #+ w61 #+ lsig512_0 w53 #+ w52
+      w69 = lsig512_1 w67 #+ w62 #+ lsig512_0 w54 #+ w53
+      w70 = lsig512_1 w68 #+ w63 #+ lsig512_0 w55 #+ w54
+      w71 = lsig512_1 w69 #+ w64 #+ lsig512_0 w56 #+ w55
+      w72 = lsig512_1 w70 #+ w65 #+ lsig512_0 w57 #+ w56
+      w73 = lsig512_1 w71 #+ w66 #+ lsig512_0 w58 #+ w57
+      w74 = lsig512_1 w72 #+ w67 #+ lsig512_0 w59 #+ w58
+      w75 = lsig512_1 w73 #+ w68 #+ lsig512_0 w60 #+ w59
+      w76 = lsig512_1 w74 #+ w69 #+ lsig512_0 w61 #+ w60
+      w77 = lsig512_1 w75 #+ w70 #+ lsig512_0 w62 #+ w61
+      w78 = lsig512_1 w76 #+ w71 #+ lsig512_0 w63 #+ w62
+      w79 = lsig512_1 w77 #+ w72 #+ lsig512_0 w64 #+ w63
+   in (,cont)
+        $ SHA512Sched
+          w00
+          w01
+          w02
+          w03
+          w04
+          w05
+          w06
+          w07
+          w08
+          w09
+          w10
+          w11
+          w12
+          w13
+          w14
+          w15
+          w16
+          w17
+          w18
+          w19
+          w20
+          w21
+          w22
+          w23
+          w24
+          w25
+          w26
+          w27
+          w28
+          w29
+          w30
+          w31
+          w32
+          w33
+          w34
+          w35
+          w36
+          w37
+          w38
+          w39
+          w40
+          w41
+          w42
+          w43
+          w44
+          w45
+          w46
+          w47
+          w48
+          w49
+          w50
+          w51
+          w52
+          w53
+          w54
+          w55
+          w56
+          w57
+          w58
+          w59
+          w60
+          w61
+          w62
+          w63
+          w64
+          w65
+          w66
+          w67
+          w68
+          w69
+          w70
+          w71
+          w72
+          w73
+          w74
+          w75
+          w76
+          w77
+          w78
+          w79
 {-# INLINEABLE getSHA512Sched #-}
 
 next64 :: BuiltinByteString -> (UInt64, BuiltinByteString)
@@ -373,17 +375,18 @@ pad :: BuiltinByteString -> BuiltinByteString
 pad bs = bs <> padding
   where
     padding :: BuiltinByteString
-    padding = let lenBits = 8 * lengthOfByteString bs
-                  r = 896 - lenBits `modulo` 1024 - 1
-                  k = if r <= (-1) then r + 1024 else r
-                  -- INVARIANT: k is necessarily > 0, and (k + 1) is a
-                  -- multiple of 8.
-                  kBytes = (k + 1) `divide` 8
-                  zeroBytes = kBytes - 1
-                  paddingZeroes = replicateByte zeroBytes 0x0
-                  paddingWith1 = consByteString 0x80 paddingZeroes
-                  lengthSuffix = integerToByteString BigEndian 16 lenBits
-      in paddingWith1 <> lengthSuffix
+    padding =
+      let lenBits = 8 * lengthOfByteString bs
+          r = 896 - lenBits `modulo` 1024 - 1
+          k = if r <= (-1) then r + 1024 else r
+          -- INVARIANT: k is necessarily > 0, and (k + 1) is a
+          -- multiple of 8.
+          kBytes = (k + 1) `divide` 8
+          zeroBytes = kBytes - 1
+          paddingZeroes = replicateByte zeroBytes 0x0
+          paddingWith1 = consByteString 0x80 paddingZeroes
+          lengthSuffix = integerToByteString BigEndian 16 lenBits
+       in paddingWith1 <> lengthSuffix
 {-# INLINEABLE pad #-}
 
 processBlock :: BuiltinByteString -> SHA512State -> (SHA512State, BuiltinByteString)
@@ -468,8 +471,8 @@ processBlock bs s00@(SHA512State a00 b00 c00 d00 e00 f00 g00 h00) =
           w76
           w77
           w78
-          w79,
-        cont
+          w79
+        , cont
         ) = getSHA512Sched bs
       s01 = step512 s00 0x428a_2f98_d728_ae22 w00
       s02 = step512 s01 0x7137_4491_23ef_65cd w01
@@ -562,7 +565,7 @@ processBlock bs s00@(SHA512State a00 b00 c00 d00 e00 f00 g00 h00) =
           (f00 #+ f80)
           (g00 #+ g80)
           (h00 #+ h80)
-        in (newState, cont)
+   in (newState, cont)
 {-# INLINEABLE processBlock #-}
 
 step512 :: SHA512State -> Integer -> UInt64 -> SHA512State
@@ -597,12 +600,14 @@ maj :: UInt64 -> UInt64 -> UInt64 -> UInt64
 maj x y z = (x .&. (y .|. z)) .|. (y .&. z)
 {-# INLINEABLE maj #-}
 
-runSha :: SHA512State ->
-  (BuiltinByteString -> SHA512State -> (SHA512State, BuiltinByteString)) ->
-  BuiltinByteString ->
-  SHA512State
+runSha
+  :: SHA512State
+  -> (BuiltinByteString -> SHA512State -> (SHA512State, BuiltinByteString))
+  -> BuiltinByteString
+  -> SHA512State
 runSha state next input
   | lengthOfByteString input == 0 = state
-  | otherwise = let (state', rest) = next input state
-                  in runSha state' next rest
+  | otherwise =
+      let (state', rest) = next input state
+       in runSha state' next rest
 {-# INLINEABLE runSha #-}

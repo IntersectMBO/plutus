@@ -1,4 +1,4 @@
-{-# LANGUAGE BlockArguments    #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusIR.Contexts.Tests where

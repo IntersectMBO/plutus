@@ -1,5 +1,5 @@
-{-# LANGUAGE BlockArguments    #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
@@ -9,8 +9,11 @@ import Data.List qualified as List
 import Lib qualified
 import Main.Utf8 (withUtf8)
 import PlutusBenchmark.Common (checkGoldenFileExists)
-import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
-                                          semanticsBenchmarks)
+import PlutusBenchmark.Marlowe.BenchUtil
+  ( benchmarkToUPLC
+  , rolePayoutBenchmarks
+  , semanticsBenchmarks
+  )
 import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as Data (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Data.Semantics qualified as Data (marloweValidator)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as SOP (rolePayoutValidator)
@@ -23,7 +26,6 @@ import UntypedPlutusCore.AstSize qualified as UPLC
 
 main :: IO ()
 main = withUtf8 $ do
-
   let dir = "marlowe" </> "test"
       goldenFile = dir </> "budgets.golden.tsv"
       goldenFileData = dir </> "data.budgets.golden.tsv"
@@ -66,18 +68,19 @@ main = withUtf8 $ do
           [benchmarkToUPLC Data.rolePayoutValidator bench | bench <- rolePayout]
 
   -- Write the measures to the actual file
-  defaultMain
-    $ testGroup "Marlowe"
-    [ Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
-        for_
-          (semanticsMeasures <> rolePayoutMeasures)
-          \(ExCPU cpu, ExMemory mem, UPLC.AstSize size) ->
-            hPutStrLn writeHandle $
-              List.intercalate "\t" [show cpu, show mem, show size]
-    , Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
-        for_
-          (dataSemanticsMeasures <> dataRolePayoutMeasures)
-          \(ExCPU cpu, ExMemory mem, UPLC.AstSize size) ->
-            hPutStrLn writeHandle $
-              List.intercalate "\t" [show cpu, show mem, show size]
-    ]
+  defaultMain $
+    testGroup
+      "Marlowe"
+      [ Lib.goldenUplcMeasurements "budgets" goldenFile actualFile \writeHandle ->
+          for_
+            (semanticsMeasures <> rolePayoutMeasures)
+            \(ExCPU cpu, ExMemory mem, UPLC.AstSize size) ->
+              hPutStrLn writeHandle $
+                List.intercalate "\t" [show cpu, show mem, show size]
+      , Lib.goldenUplcMeasurements "data-budgets" goldenFileData actualFileData \writeHandle ->
+          for_
+            (dataSemanticsMeasures <> dataRolePayoutMeasures)
+            \(ExCPU cpu, ExMemory mem, UPLC.AstSize size) ->
+              hPutStrLn writeHandle $
+                List.intercalate "\t" [show cpu, show mem, show size]
+      ]

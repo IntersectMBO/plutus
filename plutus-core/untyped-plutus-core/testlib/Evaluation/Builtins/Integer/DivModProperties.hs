@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE ViewPatterns #-}
 
-{- | Property tests for the `divideInteger` and `modInteger` builtins -}
+-- | Property tests for the `divideInteger` and `modInteger` builtins
 module Evaluation.Builtins.Integer.DivModProperties (test_integer_div_mod_properties)
 where
 
@@ -32,15 +32,15 @@ prop_mod_0_fails (biginteger -> a) =
 -- This is the crucial property relating `divideInteger` and `modInteger`.
 prop_div_mod_compatible :: BigInteger -> NonZero BigInteger -> Property
 prop_div_mod_compatible (biginteger -> a) (NonZero (biginteger -> b)) =
-  let t = addInteger (multiplyInteger b (divideInteger a b) ) (modInteger a b)
-  in evalOkEq t a
+  let t = addInteger (multiplyInteger b (divideInteger a b)) (modInteger a b)
+   in evalOkEq t a
 
 -- (k*b) `div` b = b and (k*b) `mod` b = 0 for all k
 prop_div_mod_multiple :: BigInteger -> NonZero BigInteger -> Property
 prop_div_mod_multiple (biginteger -> k) (NonZero (biginteger -> b)) =
-    let t1 = divideInteger (multiplyInteger k b) b
-        t2 = modInteger (multiplyInteger k b) b
-    in evalOkEq t1 k .&&. evalOkEq t2 zero
+  let t1 = divideInteger (multiplyInteger k b) b
+      t2 = modInteger (multiplyInteger k b) b
+   in evalOkEq t1 k .&&. evalOkEq t2 zero
 
 -- For fixed b, `modInteger _ b` is an additive homomorphism:
 -- (a+a') `mod` b = ((a `mod` b) + (a' `mod` b)) `mod` b
@@ -50,7 +50,7 @@ prop_mod_additive :: BigInteger -> BigInteger -> NonZero BigInteger -> Property
 prop_mod_additive (biginteger -> a) (biginteger -> a') (NonZero (biginteger -> b)) =
   let t1 = modInteger (addInteger a a') b
       t2 = modInteger (addInteger (modInteger a b) (modInteger a' b)) b
-  in evalOkEq t1 t2
+   in evalOkEq t1 t2
 
 -- For fixed b, `modInteger _ b` is a multiplicative homomorphism:
 -- (a*a') `mod` b = ((a `mod` b) * (a' `mod` b)) `mod` b
@@ -58,21 +58,21 @@ prop_mod_multiplicative :: BigInteger -> BigInteger -> NonZero BigInteger -> Pro
 prop_mod_multiplicative (biginteger -> a) (biginteger -> a') (NonZero (biginteger -> b)) =
   let t1 = modInteger (multiplyInteger a a') b
       t2 = modInteger (multiplyInteger (modInteger a b) (modInteger a' b)) b
-  in evalOkEq t1 t2
+   in evalOkEq t1 t2
 
 -- For b > 0, 0 <= a `mod` b < b;
 prop_mod_size_pos :: BigInteger -> Positive BigInteger -> Property
 prop_mod_size_pos (biginteger -> a) (Positive (biginteger -> b)) =
   let t1 = lessThanEqualsInteger zero (modInteger a b)
       t2 = lessThanInteger (modInteger a b) b
-  in evalOkTrue t1 .&&. evalOkTrue t2
+   in evalOkTrue t1 .&&. evalOkTrue t2
 
 -- For b < 0, b < a `mod` b <= 0
 prop_mod_size_neg :: BigInteger -> Negative BigInteger -> Property
 prop_mod_size_neg (biginteger -> a) (Negative (biginteger -> b)) =
   let t1 = lessThanEqualsInteger (modInteger a b) zero
       t2 = lessThanInteger b (modInteger a b)
-  in evalOkTrue t1 .&&. evalOkTrue t2
+   in evalOkTrue t1 .&&. evalOkTrue t2
 
 -- a >= 0 && b > 0  =>  a `div` b >= 0  and  a `mod` b >= 0
 -- a <= 0 && b > 0  =>  a `div` b <= 0  and  a `mod` b >= 0
@@ -113,7 +113,8 @@ prop_mod_neg_neg (NonPositive (biginteger -> a)) (Negative (biginteger -> b)) =
 
 test_integer_div_mod_properties :: TestTree
 test_integer_div_mod_properties =
-  testGroup "Property tests for divideInteger and modInteger"
+  testGroup
+    "Property tests for divideInteger and modInteger"
     [ testProp "divideInteger _ 0 always fails" prop_div_0_fails
     , testProp "modInteger _ 0 always fails" prop_mod_0_fails
     , testProp "divideInteger and modInteger are compatible" prop_div_mod_compatible
@@ -131,4 +132,3 @@ test_integer_div_mod_properties =
     , testProp "modInteger (<= 0) (> 0) <= 0" prop_mod_pos_neg
     , testProp "modInteger (<= 0) (< 0) <= 0" prop_mod_neg_neg
     ]
-

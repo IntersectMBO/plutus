@@ -1,12 +1,13 @@
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeFamilies #-}
+
 module PlutusLedgerApi.Test.Common.EvaluationContext
-    ( MCostModel
-    , MCekMachineCosts
-    , MBuiltinCostModel
-    , toMCostModel
-    , extractCostModelParamsLedgerOrder
-    ) where
+  ( MCostModel
+  , MCekMachineCosts
+  , MBuiltinCostModel
+  , toMCostModel
+  , extractCostModelParamsLedgerOrder
+  ) where
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostModelInterface
@@ -28,34 +29,35 @@ type MCekMachineCosts = CekMachineCostsBase Maybe
 
 type MBuiltinCostModel = BuiltinCostModelBase MCostingFun
 
--- | A helper function to lift to a "full" `MCostModel`, by mapping *all* of its fields to `Just`.
--- The fields can be later on cleared, by assigning them to `Nothing`.
-toMCostModel :: CostModel CekMachineCosts BuiltinCostModel
-             -> MCostModel
+{-| A helper function to lift to a "full" `MCostModel`, by mapping *all* of its fields to `Just`.
+The fields can be later on cleared, by assigning them to `Nothing`. -}
+toMCostModel
+  :: CostModel CekMachineCosts BuiltinCostModel
+  -> MCostModel
 toMCostModel cm =
-   cm
-   & machineCostModel
-   %~ bmap (Just . runIdentity)
-   & builtinCostModel
-   %~ bmap (MCostingFun . Just)
+  cm
+    & machineCostModel
+    %~ bmap (Just . runIdentity)
+    & builtinCostModel
+    %~ bmap (MCostingFun . Just)
 
-{- | A variant of `extractCostModelParams` to make a mapping of params not in alphabetical order,
+{-| A variant of `extractCostModelParams` to make a mapping of params not in alphabetical order,
 but in the `ParamName` order, i.e. the order expected by the ledger.
 
-Here, overconstrained to `MCostModel`, but it could also work with `CostModel mcosts bcosts`.
--}
-extractCostModelParamsLedgerOrder :: (Common.IsParamName p, Ord p)
-                                  => MCostModel
-                                  -> Maybe (Map.Map p Int64)
+Here, overconstrained to `MCostModel`, but it could also work with `CostModel mcosts bcosts`. -}
+extractCostModelParamsLedgerOrder
+  :: (Common.IsParamName p, Ord p)
+  => MCostModel
+  -> Maybe (Map.Map p Int64)
 extractCostModelParamsLedgerOrder =
-    extractInAlphaOrder
-     >=> toLedgerOrder
-    where
-      extractInAlphaOrder = extractCostModelParams
-      toLedgerOrder = mapKeysM readParamName
+  extractInAlphaOrder
+    >=> toLedgerOrder
+  where
+    extractInAlphaOrder = extractCostModelParams
+    toLedgerOrder = mapKeysM readParamName
 
-      mapKeysM :: (Monad m, Ord k2) => (k1 -> m k2) -> Map.Map k1 a -> m (Map.Map k2 a)
-      mapKeysM = viaListM . mapM . firstM
+    mapKeysM :: (Monad m, Ord k2) => (k1 -> m k2) -> Map.Map k1 a -> m (Map.Map k2 a)
+    mapKeysM = viaListM . mapM . firstM
 
-      viaListM op = fmap Map.fromList . op . Map.toList
-      firstM f (k,v) = (,v) <$> f k
+    viaListM op = fmap Map.fromList . op . Map.toList
+    firstM f (k, v) = (,v) <$> f k

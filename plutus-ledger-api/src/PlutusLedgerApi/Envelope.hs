@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusLedgerApi.Envelope (
-  compiledCodeEnvelope,
-  compiledCodeEnvelopeForVersion,
-  writeCodeEnvelope,
-  writeCodeEnvelopeForVersion,
-) where
+module PlutusLedgerApi.Envelope
+  ( compiledCodeEnvelope
+  , compiledCodeEnvelopeForVersion
+  , writeCodeEnvelope
+  , writeCodeEnvelopeForVersion
+  ) where
 
 import Data.Aeson ((.=))
 import Data.Aeson qualified as Json
@@ -29,8 +29,7 @@ CBOR and encoded in Base 16 (aka. HEX), using PlutusV3 by default.
   "description": "A description of the code",
   "cborHex": "..."
 }
-@
--}
+@ -}
 compiledCodeEnvelope
   :: Text
   -- ^ Description of the code
@@ -50,8 +49,7 @@ CBOR and encoded in Base 16 (aka. HEX).
   "description": "A description of the code",
   "cborHex": "..."
 }
-@
--}
+@ -}
 compiledCodeEnvelopeForVersion
   :: PlutusLedgerLanguage
   -- ^ Language of the compiled code, e.g. 'PlutusLedgerLanguage.PlutusV3'
@@ -67,14 +65,14 @@ compiledCodeEnvelopeForVersion lang desc code =
     , "description" .= desc
     , "cborHex" .= hex
     ]
- where
-  typ :: Text =
-    case lang of
-      PlutusV1 -> "PlutusScriptV1"
-      PlutusV2 -> "PlutusScriptV2"
-      PlutusV3 -> "PlutusScriptV3"
+  where
+    typ :: Text =
+      case lang of
+        PlutusV1 -> "PlutusScriptV1"
+        PlutusV2 -> "PlutusScriptV2"
+        PlutusV3 -> "PlutusScriptV3"
 
-  hex = decodeUtf8 (Base16.encode (BS.fromShort (serialiseCompiledCode code)))
+    hex = decodeUtf8 (Base16.encode (BS.fromShort (serialiseCompiledCode code)))
 
 {-|
 Write a JSON envelope containing 'CompiledCode' serialised with
@@ -87,8 +85,7 @@ CBOR and encoded in Base 16 (aka. HEX) to a file on disk, using PlutusV3 by defa
   "description": "A description of the code",
   "cborHex": "..."
 }
-@
--}
+@ -}
 writeCodeEnvelope
   :: Text
   -- ^ Description of the code
@@ -110,8 +107,7 @@ CBOR and encoded in Base 16 (aka. HEX) to a file on disk.
   "description": "A description of the code",
   "cborHex": "..."
 }
-@
--}
+@ -}
 writeCodeEnvelopeForVersion
   :: PlutusLedgerLanguage
   -- ^ Language of the compiled code, e.g. 'PlutusLedgerLanguage.PlutusV3'
@@ -127,9 +123,9 @@ writeCodeEnvelopeForVersion lang desc code path = do
       -- aeson-pretty doesn't add a newline at the end, so we add it manually
       envelopePretty = Json.encodePretty' config envelope <> "\n"
   LBS.writeFile path envelopePretty
- where
-  config =
-    Json.defConfig
-      { Json.confCompare =
-          Json.keyOrder ["type", "description", "cborHex"]
-      }
+  where
+    config =
+      Json.defConfig
+        { Json.confCompare =
+            Json.keyOrder ["type", "description", "cborHex"]
+        }

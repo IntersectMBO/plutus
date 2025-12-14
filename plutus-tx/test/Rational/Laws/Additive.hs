@@ -4,10 +4,10 @@ module Rational.Laws.Additive (additiveLaws) where
 
 import Hedgehog (Property, property)
 import PlutusTx.Prelude qualified as Plutus
-import Prelude
 import Rational.Laws.Helpers (forAllWithPP, genRational, normalAndEquivalentTo)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Prelude
 
 additiveLaws :: [TestTree]
 additiveLaws =

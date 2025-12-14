@@ -1,7 +1,8 @@
 {-# LANGUAGE ImplicitParams #-}
+
 module Mode.PrintCostModel
-    ( runPrintCostModel
-    ) where
+  ( runPrintCostModel
+  ) where
 
 import Common
 import GetOpt
@@ -13,10 +14,10 @@ import Data.Maybe
 
 runPrintCostModel :: (?opts :: Opts) => IO ()
 runPrintCostModel = do
-    -- MAYBE: move to print-cost-model executable impl. which is much prettier
-    printE "Cost model of latest plutus version:"
-    -- TODO: add a semantic variant here to get the right machine parameters
-    let params = fromJust PLC.defaultCostModelParamsForTesting
+  -- MAYBE: move to print-cost-model executable impl. which is much prettier
+  printE "Cost model of latest plutus version:"
+  -- TODO: add a semantic variant here to get the right machine parameters
+  let params = fromJust PLC.defaultCostModelParamsForTesting
 
-    BSL.putStr $ Aeson.encodePretty params
-    putStrLn "" -- just for reading clarity
+  BSL.putStr $ Aeson.encodePretty params
+  putStrLn "" -- just for reading clarity

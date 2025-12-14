@@ -1,9 +1,8 @@
-{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
@@ -23,34 +22,35 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude as Tx
 import Prelude qualified as Haskell
 
-zipConst :: a -> [b] -> [(a,b)]
+zipConst :: a -> [b] -> [(a, b)]
 zipConst a = map ((,) a)
-{-# INLINABLE zipConst #-}
+{-# INLINEABLE zipConst #-}
 
-grow :: (Integer,ChessSet) -> [(Integer,ChessSet)]
-grow (x,y) = zipConst (x+1) (descendents y)
-{-# INLINABLE grow #-}
+grow :: (Integer, ChessSet) -> [(Integer, ChessSet)]
+grow (x, y) = zipConst (x + 1) (descendents y)
+{-# INLINEABLE grow #-}
 
-isFinished :: (Integer,ChessSet) -> Bool
-isFinished (_,y) = tourFinished y
-{-# INLINABLE isFinished #-}
+isFinished :: (Integer, ChessSet) -> Bool
+isFinished (_, y) = tourFinished y
+{-# INLINEABLE isFinished #-}
 
 interval :: Integer -> Integer -> [Integer]
-interval a0 b = go a0 where
+interval a0 b = go a0
+  where
     go a = if a > b then [] else a : go (a + 1)
-{-# INLINABLE interval #-}
+{-# INLINEABLE interval #-}
 
 -- % Original version used infinite lists.
 mkStarts :: Integer -> [(Integer, ChessSet)]
 mkStarts sze =
-    let l = [startTour (x,y) sze | x <- interval 1 sze, y <- interval 1 sze]
-        numStarts = List.length l  -- = sze*sze
-    in List.zip (replicate numStarts (1-numStarts)) l
-{-# INLINABLE mkStarts #-}
+  let l = [startTour (x, y) sze | x <- interval 1 sze, y <- interval 1 sze]
+      numStarts = List.length l -- = sze*sze
+   in List.zip (replicate numStarts (1 - numStarts)) l
+{-# INLINEABLE mkStarts #-}
 
 root :: Integer -> Queue (Integer, ChessSet)
 root sze = addAllFront (mkStarts sze) createQueue
-{-# INLINABLE root #-}
+{-# INLINEABLE root #-}
 
 {-% Original version
 root sze = addAllFront
@@ -65,34 +65,38 @@ root sze = addAllFront
 type Solution = (Integer, ChessSet)
 
 -- % Added a depth parameter to stop things getting out of hand in the strict world.
-depthSearch :: (Eq a) => Integer -> Queue a -> (a -> [a]) -> (a -> Bool) -> Queue a
+depthSearch :: Eq a => Integer -> Queue a -> (a -> [a]) -> (a -> Bool) -> Queue a
 depthSearch depth q growFn finFn
-   | depth == 0             = []
-   | emptyQueue q           = []
-   | finFn (inquireFront q) = (inquireFront q):
-                              (depthSearch (depth-1) (removeFront q) growFn finFn)
-   | otherwise              = depthSearch (depth-1)
-                                 (addAllFront (growFn (inquireFront q))
-                                              (removeFront q))
-                                 growFn
-                                 finFn
-{-# INLINABLE depthSearch #-}
+  | depth == 0 = []
+  | emptyQueue q = []
+  | finFn (inquireFront q) =
+      (inquireFront q)
+        : (depthSearch (depth - 1) (removeFront q) growFn finFn)
+  | otherwise =
+      depthSearch
+        (depth - 1)
+        ( addAllFront
+            (growFn (inquireFront q))
+            (removeFront q)
+        )
+        growFn
+        finFn
+{-# INLINEABLE depthSearch #-}
 
 -- % Only for textual output of PLC scripts
 unindent :: PLC.Doc ann -> [Haskell.String]
 unindent d = map (Haskell.dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
 
-
 -- % Haskell entry point for testing
 runKnights :: Integer -> Integer -> [Solution]
 runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
-{-# INLINABLE runKnights #-}
+{-# INLINEABLE runKnights #-}
 
 mkKnightsCode :: Integer -> Integer -> Tx.CompiledCode [Solution]
 mkKnightsCode depth boardSize =
-       $$(Tx.compile [|| runKnights ||])
-             `Tx.unsafeApplyCode` Tx.liftCodeDef depth
-                  `Tx.unsafeApplyCode` Tx.liftCodeDef boardSize
+  $$(Tx.compile [||runKnights||])
+    `Tx.unsafeApplyCode` Tx.liftCodeDef depth
+    `Tx.unsafeApplyCode` Tx.liftCodeDef boardSize
 
 mkKnightsTerm :: Integer -> Integer -> Term
 mkKnightsTerm depth boardSize = compiledCodeToTerm $ mkKnightsCode depth boardSize

@@ -1,37 +1,37 @@
-{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Evaluation.Builtins.Common
-    ( unsafeSplitStructuralOperational
-    , evaluateCek
-    , evaluateCekNoEmit
-    , readKnownCek
-    , typecheckAnd
-    , typecheckEvaluateCek
-    , typecheckEvaluateCekNoEmit
-    , typecheckReadKnownCek
-    , PlcType
-    , PlcTerm
-    , UplcTerm
-    , TypeErrorOrCekResult (..)
-    , evalTerm
-    , mkApp1
-    , mkApp2
-    , ok
-    , fails
-    , evalOkEq
-    , evalOkTrue
-    , integer
-    , bytestring
-    , zero
-    , one
-    , true
-    , false
-    , cekSuccessFalse
-    , cekSuccessTrue
-    )
+  ( unsafeSplitStructuralOperational
+  , evaluateCek
+  , evaluateCekNoEmit
+  , readKnownCek
+  , typecheckAnd
+  , typecheckEvaluateCek
+  , typecheckEvaluateCekNoEmit
+  , typecheckReadKnownCek
+  , PlcType
+  , PlcTerm
+  , UplcTerm
+  , TypeErrorOrCekResult (..)
+  , evalTerm
+  , mkApp1
+  , mkApp2
+  , ok
+  , fails
+  , evalOkEq
+  , evalOkTrue
+  , integer
+  , bytestring
+  , zero
+  , one
+  , true
+  , false
+  , cekSuccessFalse
+  , cekSuccessTrue
+  )
 where
 
 import PlutusCore qualified as TPLC
@@ -59,89 +59,109 @@ import Test.Tasty.QuickCheck (Property, property, (===))
 
 -- | Type check and evaluate a term.
 typecheckAnd
-    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , CaseBuiltin uni, Closed uni, uni `Everywhere` ExMemoryUsage
-       )
-    => BuiltinSemanticsVariant fun
-    -> (MachineParameters CekMachineCosts fun (CekValue uni fun ()) ->
-            UPLC.Term Name uni fun () -> a)
-    -> CostingPart uni fun -> TPLC.Term TyName Name uni fun () -> m a
+  :: ( MonadError (TypeErrorPlc uni fun ()) m
+     , TPLC.Typecheckable uni fun
+     , GEq uni
+     , CaseBuiltin uni
+     , Closed uni
+     , uni `Everywhere` ExMemoryUsage
+     )
+  => BuiltinSemanticsVariant fun
+  -> ( MachineParameters CekMachineCosts fun (CekValue uni fun ())
+       -> UPLC.Term Name uni fun ()
+       -> a
+     )
+  -> CostingPart uni fun
+  -> TPLC.Term TyName Name uni fun ()
+  -> m a
 typecheckAnd semvar action costingPart term = TPLC.runQuoteT $ do
-    -- Here we don't use 'getDefTypeCheckConfig', to cover the absurd case where
-    -- builtins can change their type according to their 'BuiltinSemanticsVariant'.
-    tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes semvar ()
-    _ <- TPLC.inferType tcConfig term
-    return . action runtime $ TPLC.eraseTerm term
-    where
-      runtime = MachineParameters def . mkMachineVariantParameters semvar $
-                -- FIXME: make sure we have the the correct cost model for the semantics variant.
-                   CostModel defaultCekMachineCostsForTesting costingPart
+  -- Here we don't use 'getDefTypeCheckConfig', to cover the absurd case where
+  -- builtins can change their type according to their 'BuiltinSemanticsVariant'.
+  tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes semvar ()
+  _ <- TPLC.inferType tcConfig term
+  return . action runtime $ TPLC.eraseTerm term
+  where
+    runtime =
+      MachineParameters def . mkMachineVariantParameters semvar $
+        -- FIXME: make sure we have the the correct cost model for the semantics variant.
+        CostModel defaultCekMachineCostsForTesting costingPart
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
-    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
-       , CaseBuiltin uni
-       )
-    => BuiltinSemanticsVariant fun
-    -> CostingPart uni fun
-    -> TPLC.Term TyName Name uni fun ()
-    -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
+  :: ( MonadError (TypeErrorPlc uni fun ()) m
+     , TPLC.Typecheckable uni fun
+     , GEq uni
+     , uni `Everywhere` ExMemoryUsage
+     , PrettyUni uni
+     , Pretty fun
+     , CaseBuiltin uni
+     )
+  => BuiltinSemanticsVariant fun
+  -> CostingPart uni fun
+  -> TPLC.Term TyName Name uni fun ()
+  -> m (EvaluationResult (UPLC.Term Name uni fun ()), [Text])
 typecheckEvaluateCek semvar =
-    typecheckAnd semvar $ \params ->
-        first unsafeSplitStructuralOperational . evaluateCek logEmitter params
+  typecheckAnd semvar $ \params ->
+    first unsafeSplitStructuralOperational . evaluateCek logEmitter params
 
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
-    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
-       , CaseBuiltin uni
-       )
-    => BuiltinSemanticsVariant fun
-    -> CostingPart uni fun
-    -> TPLC.Term TyName Name uni fun ()
-    -> m (EvaluationResult (UPLC.Term Name uni fun ()))
+  :: ( MonadError (TypeErrorPlc uni fun ()) m
+     , TPLC.Typecheckable uni fun
+     , GEq uni
+     , uni `Everywhere` ExMemoryUsage
+     , PrettyUni uni
+     , Pretty fun
+     , CaseBuiltin uni
+     )
+  => BuiltinSemanticsVariant fun
+  -> CostingPart uni fun
+  -> TPLC.Term TyName Name uni fun ()
+  -> m (EvaluationResult (UPLC.Term Name uni fun ()))
 typecheckEvaluateCekNoEmit semvar =
-    typecheckAnd semvar $ \params ->
-        unsafeSplitStructuralOperational . evaluateCekNoEmit params
+  typecheckAnd semvar $ \params ->
+    unsafeSplitStructuralOperational . evaluateCekNoEmit params
 
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
-    :: ( MonadError (TypeErrorPlc uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
-       , CaseBuiltin uni
-       , ReadKnown (UPLC.Term Name uni fun ()) a
-       )
-    => BuiltinSemanticsVariant fun
-    -> CostingPart uni fun
-    -> TPLC.Term TyName Name uni fun ()
-    -> m (Either (CekEvaluationException Name uni fun) a)
+  :: ( MonadError (TypeErrorPlc uni fun ()) m
+     , TPLC.Typecheckable uni fun
+     , GEq uni
+     , uni `Everywhere` ExMemoryUsage
+     , PrettyUni uni
+     , Pretty fun
+     , CaseBuiltin uni
+     , ReadKnown (UPLC.Term Name uni fun ()) a
+     )
+  => BuiltinSemanticsVariant fun
+  -> CostingPart uni fun
+  -> TPLC.Term TyName Name uni fun ()
+  -> m (Either (CekEvaluationException Name uni fun) a)
 typecheckReadKnownCek semvar =
-    typecheckAnd semvar readKnownCek
-
+  typecheckAnd semvar readKnownCek
 
 -- TPLC/UPLC utilities
 
 type PlcType = TPLC.Type TPLC.TyName TPLC.DefaultUni ()
-type PlcTerm  = TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
+type PlcTerm = TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 type PlcError = TypeErrorPlc TPLC.DefaultUni TPLC.DefaultFun ()
 type UplcTerm = UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()
 
 -- Possible CEK evluation results, flattened out
-data TypeErrorOrCekResult =
-    TypeCheckError PlcError
+data TypeErrorOrCekResult
+  = TypeCheckError PlcError
   | CekError
   | CekSuccess UplcTerm
-    deriving stock (Eq, Show)
+  deriving stock (Eq, Show)
 
 evalTerm :: PlcTerm -> TypeErrorOrCekResult
 evalTerm term =
-    case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term
-    of Left e -> TypeCheckError e
-       Right x  ->
-           case x of
-             TPLC.EvaluationFailure   -> CekError
-             TPLC.EvaluationSuccess s -> CekSuccess s
+  case typecheckEvaluateCekNoEmit def defaultBuiltinCostModelForTesting term of
+    Left e -> TypeCheckError e
+    Right x ->
+      case x of
+        TPLC.EvaluationFailure -> CekError
+        TPLC.EvaluationSuccess s -> CekSuccess s
 
 integer :: Integer -> PlcTerm
 integer = mkConstant ()
@@ -171,16 +191,16 @@ mkApp1 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm
 mkApp1 b x = mkIterAppNoAnn (builtin () b) [x]
 
 mkApp2 :: TPLC.DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
-mkApp2 b x y = mkIterAppNoAnn (builtin () b) [x,y]
+mkApp2 b x y = mkIterAppNoAnn (builtin () b) [x, y]
 
 -- QuickCheck utilities
 
 -- | Term evaluates successfully
 ok :: PlcTerm -> Property
 ok t = property $
-       case evalTerm t of
-         CekSuccess _ -> True
-         _            -> False
+  case evalTerm t of
+    CekSuccess _ -> True
+    _ -> False
 
 -- | Term fails to evaluate successfully
 fails :: PlcTerm -> Property
@@ -189,11 +209,9 @@ fails t = evalTerm t === CekError
 -- Check that two terms evaluate successfully and return the same result
 evalOkEq :: PlcTerm -> PlcTerm -> Property
 evalOkEq t1 t2 =
-    case evalTerm t1 of
-      r@(CekSuccess _) -> r === evalTerm t2
-      _                -> property False
+  case evalTerm t1 of
+    r@(CekSuccess _) -> r === evalTerm t2
+    _ -> property False
 
 evalOkTrue :: PlcTerm -> Property
 evalOkTrue t = evalOkEq t true
-
-

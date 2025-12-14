@@ -1,25 +1,25 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE InstanceSigs          #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module PlutusTx.Lift.Class (
-  Typeable (..),
-  Lift (..),
-  RTCompile,
-) where
+module PlutusTx.Lift.Class
+  ( Typeable (..)
+  , Lift (..)
+  , RTCompile
+  ) where
 
 import PlutusIR
 import PlutusIR.Compiler.Definitions
@@ -34,8 +34,13 @@ import PlutusCore.Value
 import PlutusIR.MkPir
 import PlutusTx.Builtins
 import PlutusTx.Builtins.HasBuiltin (FromBuiltin, HasFromBuiltin)
-import PlutusTx.Builtins.Internal (BuiltinInteger, BuiltinList, BuiltinPair, BuiltinUnit,
-                                   BuiltinValue)
+import PlutusTx.Builtins.Internal
+  ( BuiltinInteger
+  , BuiltinList
+  , BuiltinPair
+  , BuiltinUnit
+  , BuiltinValue
+  )
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
@@ -79,15 +84,13 @@ inline all the definitions so that the overall expression can have the right con
 type RTCompile uni fun = DefT TH.Name uni fun () Quote
 
 {-| Class for types which have a corresponding Plutus IR type. Instances should always be derived,
-do not write your own instance!
--}
+do not write your own instance! -}
 class Typeable uni (a :: k) where
   -- | Get the Plutus IR type corresponding to this type.
   typeRep :: Proxy a -> RTCompile uni fun (Type TyName uni ())
 
 {-| Class for types which can be lifted into Plutus IR. Instances should be derived, do not write
-your own instance!
--}
+your own instance! -}
 class Lift uni a where
   -- | Get a Plutus IR term corresponding to the given value.
   lift :: a -> RTCompile uni fun (Term TyName Name uni fun ())
@@ -122,70 +125,69 @@ instance Typeable uni (->) where
 
 typeRepBuiltin
   :: forall k (a :: k) uni fun
-   . (uni `PLC.HasTypeLevel` a)
+   . uni `PLC.HasTypeLevel` a
   => Proxy a -> RTCompile uni fun (Type TyName uni ())
 typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @_ @a ()
 
 liftBuiltin
   :: forall a uni fun
-   . (uni `PLC.HasTermLevel` a)
+   . uni `PLC.HasTermLevel` a
   => a -> RTCompile uni fun (Term TyName Name uni fun ())
 liftBuiltin = pure . mkConstant ()
 
 instance
-  (TypeError ('Text "Int is not supported, use Integer instead"))
+  TypeError ('Text "Int is not supported, use Integer instead")
   => Typeable uni Int
   where
   typeRep = Haskell.error "unsupported"
 
 instance
-  (TypeError ('Text "Int is not supported, use Integer instead"))
+  TypeError ('Text "Int is not supported, use Integer instead")
   => Lift uni Int
   where
   lift = Haskell.error "unsupported"
 
-instance (uni `PLC.HasTypeLevel` Integer) => Typeable uni BuiltinInteger where
+instance uni `PLC.HasTypeLevel` Integer => Typeable uni BuiltinInteger where
   typeRep = typeRepBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` Integer) => Lift uni BuiltinInteger where
+instance uni `PLC.HasTermLevel` Integer => Lift uni BuiltinInteger where
   lift = liftBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` BS.ByteString) => Typeable uni BuiltinByteString where
+instance uni `PLC.HasTypeLevel` BS.ByteString => Typeable uni BuiltinByteString where
   typeRep _ = typeRepBuiltin (Proxy @BS.ByteString)
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` BS.ByteString) => Lift uni BuiltinByteString where
+instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BuiltinByteString where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` T.Text) => Typeable uni BuiltinString where
+instance uni `PLC.HasTypeLevel` T.Text => Typeable uni BuiltinString where
   typeRep _ = typeRepBuiltin (Proxy @T.Text)
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` T.Text) => Lift uni BuiltinString where
+instance uni `PLC.HasTermLevel` T.Text => Lift uni BuiltinString where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` ()) => Typeable uni BuiltinUnit where
+instance uni `PLC.HasTypeLevel` () => Typeable uni BuiltinUnit where
   typeRep _ = typeRepBuiltin (Proxy @())
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` ()) => Lift uni BuiltinUnit where
+instance uni `PLC.HasTermLevel` () => Lift uni BuiltinUnit where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` Bool) => Typeable uni Bool where
+instance uni `PLC.HasTypeLevel` Bool => Typeable uni Bool where
   typeRep _ = typeRepBuiltin (Proxy @Bool)
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` Bool) => Lift uni Bool where
+instance uni `PLC.HasTermLevel` Bool => Lift uni Bool where
   lift = liftBuiltin . fromBuiltin
 
-
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` []) => Typeable uni BuiltinList where
+instance uni `PLC.HasTypeLevel` [] => Typeable uni BuiltinList where
   typeRep _ = typeRepBuiltin (Proxy @[])
 
 -- See Note [Lift and Typeable instances for builtins]
@@ -196,7 +198,7 @@ instance
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` Strict.Vector) => Typeable uni BuiltinArray where
+instance uni `PLC.HasTypeLevel` Strict.Vector => Typeable uni BuiltinArray where
   typeRep _ = typeRepBuiltin (Proxy @Strict.Vector)
 
 -- See Note [Lift and Typeable instances for builtins]
@@ -208,7 +210,7 @@ instance
   where
   lift = liftBuiltin . fromBuiltin
 
-instance (uni `PLC.HasTypeLevel` (,)) => Typeable uni BuiltinPair where
+instance uni `PLC.HasTypeLevel` (,) => Typeable uni BuiltinPair where
   typeRep _ = typeRepBuiltin (Proxy @(,))
 
 instance
@@ -221,59 +223,59 @@ instance
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` Data) => Typeable uni BuiltinData where
+instance uni `PLC.HasTypeLevel` Data => Typeable uni BuiltinData where
   typeRep _ = typeRepBuiltin (Proxy @Data)
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTypeLevel` Value) => Typeable uni BuiltinValue where
+instance uni `PLC.HasTypeLevel` Value => Typeable uni BuiltinValue where
   typeRep _ = typeRepBuiltin (Proxy @Value)
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` Data) => Lift uni BuiltinData where
+instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance (uni `PLC.HasTermLevel` Value) => Lift uni BuiltinValue where
+instance uni `PLC.HasTermLevel` Value => Lift uni BuiltinValue where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
 instance
-  (uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G1.Element)
+  uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G1.Element
   => Typeable uni BuiltinBLS12_381_G1_Element
   where
   typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G1.Element)
 
 -- See Note [Lift and Typeable instances for builtins]
 instance
-  (uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G1.Element)
+  uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G1.Element
   => Lift uni BuiltinBLS12_381_G1_Element
   where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
 instance
-  (uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G2.Element)
+  uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G2.Element
   => Typeable uni BuiltinBLS12_381_G2_Element
   where
   typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G2.Element)
 
 -- See Note [Lift and Typeable instances for builtins]
 instance
-  (uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G2.Element)
+  uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G2.Element
   => Lift uni BuiltinBLS12_381_G2_Element
   where
   lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
 instance
-  (uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult)
+  uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult
   => Typeable uni BuiltinBLS12_381_MlResult
   where
   typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.Pairing.MlResult)
 
 -- See Note [Lift and Typeable instances for builtins]
 instance
-  (uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult)
+  uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult
   => Lift uni BuiltinBLS12_381_MlResult
   where
   lift = liftBuiltin . fromBuiltin

@@ -1,8 +1,15 @@
 module PlutusBenchmark.NoFib.Knights.Queue
-  ( Queue, createQueue, addFront, addBack,
-    addAllFront, addAllBack, inquireFront,
-    inquireBack, removeFront, removeBack,
-    emptyQueue
+  ( Queue
+  , createQueue
+  , addFront
+  , addBack
+  , addAllFront
+  , addAllBack
+  , inquireFront
+  , inquireBack
+  , removeFront
+  , removeBack
+  , emptyQueue
   ) where
 
 import PlutusTx.List qualified as List
@@ -12,50 +19,50 @@ type Queue a = [a]
 
 createQueue :: Queue a
 createQueue = []
-{-# INLINABLE createQueue #-}
+{-# INLINEABLE createQueue #-}
 
 addFront :: a -> Queue a -> Queue a
-addFront x q = x:q
-{-# INLINABLE addFront #-}
+addFront x q = x : q
+{-# INLINEABLE addFront #-}
 
 addBack :: a -> Queue a -> Queue a
 addBack x q = q List.++ [x]
-{-# INLINABLE addBack #-}
+{-# INLINEABLE addBack #-}
 
 addAllFront :: [a] -> Queue a -> Queue a
 addAllFront list q = list List.++ q
-{-# INLINABLE addAllFront #-}
+{-# INLINEABLE addAllFront #-}
 
 addAllBack :: [a] -> Queue a -> Queue a
 addAllBack list q = q List.++ list
-{-# INLINABLE addAllBack #-}
+{-# INLINEABLE addAllBack #-}
 
 inquireFront :: Queue a -> a
-inquireFront []    = Tx.error ()
-inquireFront (h:_) = h
-{-# INLINABLE inquireFront #-}
+inquireFront [] = Tx.error ()
+inquireFront (h : _) = h
+{-# INLINEABLE inquireFront #-}
 
 inquireBack :: Queue a -> a
-inquireBack []     = Tx.error ()
-inquireBack [x]    = x
-inquireBack (_:xs) = inquireBack xs
-{-# INLINABLE inquireBack #-}
+inquireBack [] = Tx.error ()
+inquireBack [x] = x
+inquireBack (_ : xs) = inquireBack xs
+{-# INLINEABLE inquireBack #-}
 
 removeFront :: Queue a -> Queue a
-removeFront []    = Tx.error ()
-removeFront (_:t) = t
-{-# INLINABLE removeFront #-}
+removeFront [] = Tx.error ()
+removeFront (_ : t) = t
+{-# INLINEABLE removeFront #-}
 
 removeBack :: Queue a -> Queue a
-removeBack []     = Tx.error ()
-removeBack [_]    =  []
-removeBack (x:xs) = x:(removeBack xs)
-{-# INLINABLE removeBack #-}
+removeBack [] = Tx.error ()
+removeBack [_] = []
+removeBack (x : xs) = x : (removeBack xs)
+{-# INLINEABLE removeBack #-}
 
 emptyQueue :: Queue a -> Bool
 emptyQueue [] = True
-emptyQueue _  = False
-{-# INLINABLE emptyQueue #-}
+emptyQueue _ = False
+{-# INLINEABLE emptyQueue #-}
 
 {-
 sizeQueue :: Queue b -> Integer

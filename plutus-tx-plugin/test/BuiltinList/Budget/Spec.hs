@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
 
 module BuiltinList.Budget.Spec where
 
@@ -12,8 +12,8 @@ import PlutusTx.Prelude hiding (mapMaybe)
 import PlutusTx.BuiltinList qualified as L
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBundle)
 import PlutusTx.TH (compile)
+import PlutusTx.Test (goldenBundle)
 import System.FilePath ((</>))
 import Test.Tasty.Extras (TestNested, testNested, testNestedGhc)
 

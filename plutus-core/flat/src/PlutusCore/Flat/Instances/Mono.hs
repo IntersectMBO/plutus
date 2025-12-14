@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE UndecidableInstances      #-}
 
 module PlutusCore.Flat.Instances.Mono
   ( sizeSequence
@@ -16,10 +16,10 @@ module PlutusCore.Flat.Instances.Mono
   , sizeMap
   , encodeMap
   , decodeMap
-  , AsArray(..)
-  , AsList(..)
-  , AsSet(..)
-  , AsMap(..)
+  , AsArray (..)
+  , AsList (..)
+  , AsSet (..)
+  , AsMap (..)
   )
 where
 
@@ -30,13 +30,12 @@ import Data.Sequences (IsSequence)
 import Data.Sequences qualified as S
 import PlutusCore.Flat.Instances.Util
 
-{- $setup
+{-$setup
 >>> import PlutusCore.Flat.Instances.Base()
 >>> import PlutusCore.Flat.Instances.Test
 >>> import Data.Word
 >>> import qualified Data.Set
->>> import qualified Data.Map
--}
+>>> import qualified Data.Map -}
 
 {-|
 Sequences are defined as Arrays:
@@ -102,57 +101,57 @@ We have the initial block with a count of 3 (3 == 00000011) followed by the elem
 (True,99,[129,128,129,1,128,65,65,1,65,129,194,0,0])
 
 >>> tst $ [AsArray [(1::Int)..3]]
-(True,42,[129,129,2,3,0,0])
--}
-newtype AsArray a =
-  AsArray
-    { unArray :: a
-    } deriving (Show,Eq,Ord)
+(True,42,[129,129,2,3,0,0]) -}
+newtype AsArray a
+  = AsArray
+  { unArray :: a
+  }
+  deriving (Show, Eq, Ord)
 
 instance (IsSequence r, Flat (Element r)) => Flat (AsArray r) where
   size (AsArray a) = sizeSequence a
   encode (AsArray a) = encodeSequence a
   decode = AsArray <$> decodeSequence
 
-{- |
+{-|
 Calculate size of an instance of IsSequence as the sum:
 
 * of the size of all the elements
 
-* plus the size of the array constructors (1 byte every 255 elements plus one final byte)
--}
+* plus the size of the array constructors (1 byte every 255 elements plus one final byte) -}
 sizeSequence
   :: (IsSequence mono, Flat (Element mono)) => mono -> NumBits -> NumBits
 sizeSequence s acc =
   let (sz, len) =
-          ofoldl' (\(acc, l) e -> (size e acc, l + 1)) (acc, 0 :: NumBits) s
-  in  sz + arrayBits len
+        ofoldl' (\(acc, l) e -> (size e acc, l + 1)) (acc, 0 :: NumBits) s
+   in sz + arrayBits len
 {-# INLINE sizeSequence #-}
 
 -- TODO: check which one is faster
 -- sizeSequence s acc = ofoldl' (flip size) acc s + arrayBits (olength s)
 
--- |Encode an instance of IsSequence, as an array
+-- | Encode an instance of IsSequence, as an array
 encodeSequence :: (Flat (Element mono), MonoFoldable mono) => mono -> Encoding
 encodeSequence = encodeArray . otoList
 {-# INLINE encodeSequence #-}
 
--- |Decode an instance of IsSequence, as an array
+-- | Decode an instance of IsSequence, as an array
 decodeSequence :: (Flat (Element b), IsSequence b) => Get b
 decodeSequence = S.fromList <$> decodeArrayWith decode
 {-# INLINE decodeSequence #-}
 
-newtype AsList a =
-  AsList
-    { unList :: a
-    } deriving (Show,Eq,Ord)
+newtype AsList a
+  = AsList
+  { unList :: a
+  }
+  deriving (Show, Eq, Ord)
 
 instance (IsSequence l, Flat (Element l)) => Flat (AsList l) where
   -- size   = sizeList . S.unpack . unList
   -- encode = encodeList . S.unpack . unList
   -- decode = AsList . S.fromList <$> decodeListotoList
 
-  size   = sizeList . unList
+  size = sizeList . unList
   encode = encodeList . unList
   decode = AsList <$> decodeList
 
@@ -173,15 +172,15 @@ decodeList = S.fromList <$> decodeListWith decode
 Sets are saved as lists of values.
 
 >>> tstBits $ AsSet (Data.Set.fromList ([False,True,False]::[Bool]))
-(True,5,"10110")
--}
-newtype AsSet a =
-  AsSet
-    { unSet :: a
-    } deriving (Show,Eq,Ord)
+(True,5,"10110") -}
+newtype AsSet a
+  = AsSet
+  { unSet :: a
+  }
+  deriving (Show, Eq, Ord)
 
 instance (IsSet set, Flat (Element set)) => Flat (AsSet set) where
-  size   = sizeSet . unSet
+  size = sizeSet . unSet
   encode = encodeSet . unSet
   decode = AsSet <$> decodeSet
 
@@ -204,15 +203,15 @@ Maps are saved as lists of (key,value) tuples.
 (True,1,[0])
 
 >>> tst (AsMap (Data.Map.fromList [(3::Word,9::Word)]))
-(True,18,[129,132,128])
--}
-newtype AsMap a =
-  AsMap
-    { unMap :: a
-    } deriving (Show,Eq,Ord)
+(True,18,[129,132,128]) -}
+newtype AsMap a
+  = AsMap
+  { unMap :: a
+  }
+  deriving (Show, Eq, Ord)
 
 instance (IsMap map, Flat (ContainerKey map), Flat (MapValue map)) => Flat (AsMap map) where
-  size   = sizeMap . unMap
+  size = sizeMap . unMap
   encode = encodeMap . unMap
   decode = AsMap <$> decodeMap
 
@@ -222,10 +221,12 @@ sizeMap m acc =
   F.foldl' (\acc' (k, v) -> size k (size v (acc' + 1))) (acc + 1)
     . mapToList
     $ m
+
 -- sizeMap l sz = ofoldl' (\s (k, v) -> size k (size v (s + 1))) (sz + 1) l
 
 {-# INLINE encodeMap #-}
--- |Encode an instance of IsMap, as a list of (Key,Value) tuples
+
+-- | Encode an instance of IsMap, as a list of (Key,Value) tuples
 encodeMap
   :: (Flat (ContainerKey map), Flat (MapValue map), IsMap map)
   => map
@@ -233,8 +234,8 @@ encodeMap
 encodeMap = encodeListWith (\(k, v) -> encode k <> encode v) . mapToList
 
 {-# INLINE decodeMap #-}
--- |Decode an instance of IsMap, as a list of (Key,Value) tuples
+
+-- | Decode an instance of IsMap, as a list of (Key,Value) tuples
 decodeMap
   :: (Flat (ContainerKey map), Flat (MapValue map), IsMap map) => Get map
 decodeMap = mapFromList <$> decodeListWith ((,) <$> decode <*> decode)
-

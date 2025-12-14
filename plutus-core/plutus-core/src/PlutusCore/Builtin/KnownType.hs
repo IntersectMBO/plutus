@@ -1,41 +1,40 @@
-{-# LANGUAGE BlockArguments           #-}
-{-# LANGUAGE ConstraintKinds          #-}
-{-# LANGUAGE DataKinds                #-}
-{-# LANGUAGE DefaultSignatures        #-}
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE FunctionalDependencies   #-}
-{-# LANGUAGE LambdaCase               #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TemplateHaskell          #-}
-{-# LANGUAGE TypeApplications         #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE TypeOperators            #-}
-{-# LANGUAGE UndecidableInstances     #-}
-
-{-# LANGUAGE StrictData               #-}
+{-# LANGUAGE StrictData #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusCore.Builtin.KnownType
-    ( BuiltinError
-    , GEqL (..)
-    , LoopBreaker (..)
-    , KnownBuiltinTypeIn
-    , KnownBuiltinType
-    , BuiltinResult (..)
-    , ReadKnownM
-    , Spine (..)
-    , HeadSpine (..)
-    , headSpine
-    , MonoHeadSpine
-    , MakeKnownIn (..)
-    , readKnownConstant
-    , MakeKnown
-    , ReadKnownIn (..)
-    , ReadKnown
-    , makeKnownOrFail
-    , readKnownSelf
-    ) where
+  ( BuiltinError
+  , GEqL (..)
+  , LoopBreaker (..)
+  , KnownBuiltinTypeIn
+  , KnownBuiltinType
+  , BuiltinResult (..)
+  , ReadKnownM
+  , Spine (..)
+  , HeadSpine (..)
+  , headSpine
+  , MonoHeadSpine
+  , MakeKnownIn (..)
+  , readKnownConstant
+  , MakeKnown
+  , ReadKnownIn (..)
+  , ReadKnown
+  , makeKnownOrFail
+  , readKnownSelf
+  ) where
 
 import PlutusPrelude
 
@@ -59,47 +58,47 @@ import Prettyprinter
 import Text.PrettyBy.Internal
 import Universe
 
--- | A version of 'GEq' that fixes @a@ in place, which allows us to create an inlinable recursive
--- implementation of 'geqL'.
---
--- The way it works is that whenever there's recursion, we look up the recursive case in the current
--- context (i.e. the dictionary) instead of actually calling 'geqL' recursively (even though it's
--- gonna look like we do exactly that, because there's no way to distinguish between a recursive
--- call and a dictionary lookup as the two share the same name, although to help GHC choose a lookup
--- we sprinkle the perhaps unreliable 'LoopBreaker' in the 'DefaultUni' instance of this class).
---
--- Alligning things this way allows us to inline arbitrarily deep recursion for as long as types
--- keep being monomorphic.
---
--- For example, the 'MapData' builtin accepts a @[(Data, Data)]@ and with 'geqL' matching on all of
--- 'DefaultUniProtoList', 'DefaultUniProtoPair' and 'DefaultUniData' gets inlined in the denotation
--- of the builtin. For the 'Constr' builtin that resulted in a 4.3% speedup at the time this comment
--- was written.
+{-| A version of 'GEq' that fixes @a@ in place, which allows us to create an inlinable recursive
+implementation of 'geqL'.
+
+The way it works is that whenever there's recursion, we look up the recursive case in the current
+context (i.e. the dictionary) instead of actually calling 'geqL' recursively (even though it's
+gonna look like we do exactly that, because there's no way to distinguish between a recursive
+call and a dictionary lookup as the two share the same name, although to help GHC choose a lookup
+we sprinkle the perhaps unreliable 'LoopBreaker' in the 'DefaultUni' instance of this class).
+
+Alligning things this way allows us to inline arbitrarily deep recursion for as long as types
+keep being monomorphic.
+
+For example, the 'MapData' builtin accepts a @[(Data, Data)]@ and with 'geqL' matching on all of
+'DefaultUniProtoList', 'DefaultUniProtoPair' and 'DefaultUniData' gets inlined in the denotation
+of the builtin. For the 'Constr' builtin that resulted in a 4.3% speedup at the time this comment
+was written. -}
 type GEqL :: (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Constraint
 class GEqL f a where
-    geqL :: f (Esc a) -> f (Esc b) -> EvaluationResult (a :~: b)
+  geqL :: f (Esc a) -> f (Esc b) -> EvaluationResult (a :~: b)
 
--- | In @f = ... f ...@ where @f@ is a class method, how do you know if @f@ is going to be a
--- recursive call or a type class method call? If both type check, then you don't really know how
--- GHC is going to play it. So we add this data type to make sure that the RHS @f@ will have to
--- become a type class method call.
---
--- Can GHC turn that method call into a recursive one once type classes are resolved? Dunno, but at
--- least we've introduced an obstacle preventing GHC from immediately creating a non-inlinable
--- recursive definition.
+{-| In @f = ... f ...@ where @f@ is a class method, how do you know if @f@ is going to be a
+recursive call or a type class method call? If both type check, then you don't really know how
+GHC is going to play it. So we add this data type to make sure that the RHS @f@ will have to
+become a type class method call.
+
+Can GHC turn that method call into a recursive one once type classes are resolved? Dunno, but at
+least we've introduced an obstacle preventing GHC from immediately creating a non-inlinable
+recursive definition. -}
 newtype LoopBreaker uni a = LoopBreaker (uni a)
 
 instance GEqL uni a => GEqL (LoopBreaker uni) a where
-    geqL = coerce $ geqL @uni
-    {-# INLINE geqL #-}
+  geqL = coerce $ geqL @uni
+  {-# INLINE geqL #-}
 
--- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
--- in @uni@\".
+{-| A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+in @uni@\". -}
 type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEqL uni a, uni `HasTermLevel` a)
+  (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEqL uni a, uni `HasTermLevel` a)
 
--- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
--- in @UniOf term@\".
+{-| A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+in @UniOf term@\". -}
 type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
 
 {- Note [Performance of ReadKnownIn and MakeKnownIn instances]
@@ -283,16 +282,17 @@ Lifting is allowed to the following classes of types:
 -}
 
 typeMismatchError
-    :: PrettyParens (SomeTypeIn uni)
-    => uni (Esc a)
-    -> uni (Esc b)
-    -> UnliftingEvaluationError
+  :: PrettyParens (SomeTypeIn uni)
+  => uni (Esc a)
+  -> uni (Esc b)
+  -> UnliftingEvaluationError
 typeMismatchError uniExp uniAct =
-    MkUnliftingEvaluationError . StructuralError . fromString $ concat
-        [ "Type mismatch: "
-        , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
-        , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
-        ]
+  MkUnliftingEvaluationError . StructuralError . fromString $
+    concat
+      [ "Type mismatch: "
+      , "expected: " ++ displayBy botRenderContext (SomeTypeIn uniExp)
+      , "; actual: " ++ displayBy botRenderContext (SomeTypeIn uniAct)
+      ]
 -- See Note [INLINE and OPAQUE on error-related definitions].
 {-# OPAQUE typeMismatchError #-}
 
@@ -309,128 +309,144 @@ type ReadKnownM = Either BuiltinError
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances]
-readKnownConstant val = asConstant val >>= oneShot \case
+readKnownConstant val =
+  asConstant val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
-        let uniExp = knownUni @_ @(UniOf val) @a
-        -- 'geq' matches on its first argument first, so we make the type tag that will be known
-        -- statically (because this function will be inlined) go first in order for GHC to
-        -- optimize some of the matching away.
-        case uniExp `geqL` uniAct of
-            EvaluationSuccess Refl -> pure x
-            EvaluationFailure ->
-                throwError . BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
+      let uniExp = knownUni @_ @(UniOf val) @a
+      -- 'geq' matches on its first argument first, so we make the type tag that will be known
+      -- statically (because this function will be inlined) go first in order for GHC to
+      -- optimize some of the matching away.
+      case uniExp `geqL` uniAct of
+        EvaluationSuccess Refl -> pure x
+        EvaluationFailure ->
+          throwError . BuiltinUnliftingEvaluationError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
--- | A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
--- recursive data type.
+{-| A non-empty spine. Isomorphic to 'NonEmpty', except is strict and is defined as a single
+recursive data type. -}
 data Spine a
-    = SpineLast a
-    | SpineCons a (Spine a)
-    deriving stock (Show, Eq, Foldable, Functor)
+  = SpineLast a
+  | SpineCons a (Spine a)
+  deriving stock (Show, Eq, Foldable, Functor)
 
--- | The head-spine form of an iterated application. Provides O(1) access to the head of the
--- application. @NonEmpty a ~ HeadSpine a a@, except is strict and the no-spine case is made a separate
--- constructor for performance reasons (it only takes a single pattern match to access the head when
--- there's no spine this way, while otherwise we'd also need to match on the spine to ensure that
--- it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
---
--- Used in built-in functions returning function applications such as 'CaseList'.
-data HeadSpine a b
-    = HeadOnly a
-    | HeadSpine a (Spine b)
-    deriving stock (Show, Eq, Functor)
+{-| The head-spine form of an iterated application. Provides O(1) access to the head of the
+application. @NonEmpty a ~ HeadSpine a a@, except is strict and the no-spine case is made a separate
+constructor for performance reasons (it only takes a single pattern match to access the head when
+there's no spine this way, while otherwise we'd also need to match on the spine to ensure that
+it's empty -- and the no-spine case is by far the most common one, hence we want to optimize it).
+
+Used in built-in functions returning function applications such as 'CaseList'. -}
+data HeadSpine err a b
+  = HeadOnly a
+  | HeadSpine a (Spine b)
+  | HeadError ~err
+  deriving stock (Show, Eq, Functor)
 
 -- | @HeadSpine@ but the type of head and spine is same
-type MonoHeadSpine a = HeadSpine a a
+type MonoHeadSpine err a = HeadSpine err a a
 
-instance Bifunctor HeadSpine where
-  bimap headF _ (HeadOnly a)         = HeadOnly $ headF a
+instance Bifunctor (HeadSpine err) where
+  bimap _ _ (HeadError x) = HeadError x
+  bimap headF _ (HeadOnly a) = HeadOnly $ headF a
   bimap headF spineF (HeadSpine a b) = HeadSpine (headF a) (spineF <$> b)
 
 -- | Construct @HeadSpine@ from head and list.
-headSpine :: a -> [b] -> HeadSpine a b
+headSpine :: a -> [b] -> HeadSpine err a b
 headSpine h [] = HeadOnly h
-headSpine h (x:xs) =
+headSpine h (x : xs) =
   -- It's critical to use 'foldr' here, so that deforestation kicks in.
   -- See Note [Definition of foldl'] in "GHC.List" and related Notes around for an explanation
   -- of the trick.
   HeadSpine h $ foldr (\x2 r x1 -> SpineCons x1 $ r x2) SpineLast xs x
 {-# INLINE headSpine #-}
 
--- |
---
--- >>> import Text.Pretty
--- >>> pretty (SpineCons 'a' $ SpineLast 'b')
--- [a, b]
-instance Pretty a => Pretty (Spine a) where pretty = pretty . map Identity . toList
-instance PrettyBy config a => DefaultPrettyBy config (Spine a)
-deriving via PrettyCommon (Spine a)
-    instance PrettyDefaultBy config (Spine a) => PrettyBy config (Spine a)
+{-|
 
--- |
---
--- >>> import Text.Pretty
--- >>> pretty (HeadOnly 'z')
--- z
--- >>> pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
--- f `applyN` [x, y]
-instance (Pretty a, Pretty b) => Pretty (HeadSpine a b) where
-    pretty (HeadOnly x)     = pretty x
-    pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
-instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (HeadSpine a b)
-deriving via PrettyCommon (HeadSpine a b)
-    instance PrettyDefaultBy config (HeadSpine a b) => PrettyBy config (HeadSpine a b)
+>>> import Text.Pretty
+>>> pretty (SpineCons 'a' $ SpineLast 'b')
+[a, b] -}
+instance Pretty a => Pretty (Spine a) where pretty = pretty . map Identity . toList
+
+instance PrettyBy config a => DefaultPrettyBy config (Spine a)
+deriving via
+  PrettyCommon (Spine a)
+  instance
+    PrettyDefaultBy config (Spine a) => PrettyBy config (Spine a)
+
+{-|
+
+>>> import Text.Pretty
+>>> pretty (HeadOnly 'z')
+z
+>>> pretty (HeadSpine 'f' (SpineCons 'x' $ SpineLast 'y'))
+f `applyN` [x, y] -}
+instance (Pretty err, Pretty a, Pretty b) => Pretty (HeadSpine err a b) where
+  pretty (HeadError x) = "HeadError" <+> pretty x
+  pretty (HeadOnly x) = pretty x
+  pretty (HeadSpine f xs) = pretty f <+> "`applyN`" <+> pretty xs
+
+instance
+  (PrettyBy config err, PrettyBy config a, PrettyBy config (Spine b))
+  => DefaultPrettyBy config (HeadSpine err a b)
+  where
+  defaultPrettyBy config (HeadError x) = "HeadError" <+> prettyBy config x
+  defaultPrettyBy config (HeadOnly x) = prettyBy config x
+  defaultPrettyBy config (HeadSpine f xs) = prettyBy config f <+> "`applyN`" <+> prettyBy config xs
+deriving via
+  PrettyCommon (HeadSpine err a b)
+  instance
+    PrettyDefaultBy config (HeadSpine err a b) => PrettyBy config (HeadSpine err a b)
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
-    -- | Convert a Haskell value to the corresponding PLC value.
-    -- The inverse of 'readKnown'.
-    makeKnown :: a -> BuiltinResult val
-    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
-    -- Everything on evaluation path has to be strict in production, so in theory we don't need to
-    -- force anything here. In practice however all kinds of weird things happen in tests and @val@
-    -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
-    -- generated Core, the forcing amounts to pulling a @case@ out of the 'fromConstant' call,
-    -- which doesn't affect the overall cost and benchmarking results suggest the same.
-    --
-    -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
-    -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromValue $! x
-    {-# INLINE makeKnown #-}
+  {-| Convert a Haskell value to the corresponding PLC value.
+  The inverse of 'readKnown'. -}
+  makeKnown :: a -> BuiltinResult val
+  default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
+  -- Everything on evaluation path has to be strict in production, so in theory we don't need to
+  -- force anything here. In practice however all kinds of weird things happen in tests and @val@
+  -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
+  -- generated Core, the forcing amounts to pulling a @case@ out of the 'fromConstant' call,
+  -- which doesn't affect the overall cost and benchmarking results suggest the same.
+  --
+  -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
+  -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
+  makeKnown x = pure . fromValue $! x
+  {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => ReadKnownIn uni val a where
-    -- | Convert a PLC value to the corresponding Haskell value.
-    -- The inverse of 'makeKnown'.
-    readKnown :: val -> ReadKnownM a
-    default readKnown :: KnownBuiltinType val a => val -> ReadKnownM a
-    -- If 'inline' is not used, proper inlining does not happen for whatever reason.
-    readKnown = inline readKnownConstant
-    {-# INLINE readKnown #-}
+  {-| Convert a PLC value to the corresponding Haskell value.
+  The inverse of 'makeKnown'. -}
+  readKnown :: val -> ReadKnownM a
+  default readKnown :: KnownBuiltinType val a => val -> ReadKnownM a
+  -- If 'inline' is not used, proper inlining does not happen for whatever reason.
+  readKnown = inline readKnownConstant
+  {-# INLINE readKnown #-}
 
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
 makeKnownOrFail x = case makeKnown x of
-    BuiltinSuccess val           -> EvaluationSuccess val
-    BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
-    BuiltinFailure _ _           -> EvaluationFailure
+  BuiltinSuccess val -> EvaluationSuccess val
+  BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
+  BuiltinFailure _ _ -> EvaluationFailure
 {-# INLINE makeKnownOrFail #-}
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
 readKnownSelf
-    :: (ReadKnown val a, BuiltinErrorToEvaluationError structural operational)
-    => val -> Either (ErrorWithCause (EvaluationError structural operational) val) a
+  :: (ReadKnown val a, BuiltinErrorToEvaluationError structural operational)
+  => val -> Either (ErrorWithCause (EvaluationError structural operational) val) a
 readKnownSelf val =
-    fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
+  fromRightM (flip throwErrorWithCause val . builtinErrorToEvaluationError) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
-    makeKnown res = res >>= makeKnown
-    {-# INLINE makeKnown #-}
+  makeKnown res = res >>= makeKnown
+  {-# INLINE makeKnown #-}
 
 -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
 -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -439,38 +455,44 @@ instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
 -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
 -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
 instance
-        ( TypeError ('Text "‘BuiltinResult’ cannot appear in the type of an argument")
-        , uni ~ UniOf val
-        ) => ReadKnownIn uni val (BuiltinResult a) where
-    readKnown _ = throwError underTypeError
-    {-# INLINE readKnown #-}
+  ( TypeError ('Text "‘BuiltinResult’ cannot appear in the type of an argument")
+  , uni ~ UniOf val
+  )
+  => ReadKnownIn uni val (BuiltinResult a)
+  where
+  readKnown _ = throwError underTypeError
+  {-# INLINE readKnown #-}
 
 instance
-        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
-        , uni ~ UniOf val
-        ) => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown _ = throwError underTypeError
-    {-# INLINE makeKnown #-}
+  ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
+  , uni ~ UniOf val
+  )
+  => MakeKnownIn uni val (EvaluationResult a)
+  where
+  makeKnown _ = throwError underTypeError
+  {-# INLINE makeKnown #-}
 
 instance
-        ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
-        , uni ~ UniOf val
-        ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwError underTypeError
-    {-# INLINE readKnown #-}
+  ( TypeError ('Text "Use ‘BuiltinResult’ instead of ‘EvaluationResult’")
+  , uni ~ UniOf val
+  )
+  => ReadKnownIn uni val (EvaluationResult a)
+  where
+  readKnown _ = throwError underTypeError
+  {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
-    makeKnown = coerceArg $ pure . fromConstant
-    {-# INLINE makeKnown #-}
+  makeKnown = coerceArg $ pure . fromConstant
+  {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
-    readKnown = fmap SomeConstant #. asConstant
-    {-# INLINE readKnown #-}
+  readKnown = fmap SomeConstant #. asConstant
+  {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg pure
-    {-# INLINE makeKnown #-}
+  makeKnown = coerceArg pure
+  {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
-    readKnown = coerceArg pure
-    {-# INLINE readKnown #-}
+  readKnown = coerceArg pure
+  {-# INLINE readKnown #-}

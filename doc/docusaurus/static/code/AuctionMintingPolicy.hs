@@ -1,15 +1,15 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ImportQualifiedPost        #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE PatternSynonyms            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE Strict                     #-}
-{-# LANGUAGE TemplateHaskell            #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE Strict #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -35,11 +35,11 @@ import PlutusLedgerApi.V3.Contexts (ownCurrencySymbol, txSignedBy)
 type AuctionMintingParams = PubKeyHash
 type AuctionMintingRedeemer = ()
 
-auctionTypedMintingPolicy ::
-  AuctionMintingParams ->
-  AuctionMintingRedeemer ->
-  ScriptContext ->
-  Bool
+auctionTypedMintingPolicy
+  :: AuctionMintingParams
+  -> AuctionMintingRedeemer
+  -> ScriptContext
+  -> Bool
 auctionTypedMintingPolicy pkh _redeemer ctx =
   txSignedBy txInfo pkh && mintedExactlyOneToken
   where
@@ -52,11 +52,11 @@ auctionTypedMintingPolicy pkh _redeemer ctx =
 -- BLOCK2
 {-# INLINEABLE auctionTypedMintingPolicy #-}
 
-auctionUntypedMintingPolicy ::
-  AuctionMintingParams ->
-  BuiltinData ->
-  BuiltinData ->
-  BuiltinUnit
+auctionUntypedMintingPolicy
+  :: AuctionMintingParams
+  -> BuiltinData
+  -> BuiltinData
+  -> BuiltinUnit
 auctionUntypedMintingPolicy pkh redeemer ctx =
   check
     ( auctionTypedMintingPolicy
@@ -65,9 +65,9 @@ auctionUntypedMintingPolicy pkh redeemer ctx =
         (unsafeFromBuiltinData ctx)
     )
 
-auctionMintingPolicyScript ::
-  AuctionMintingParams ->
-  CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
+auctionMintingPolicyScript
+  :: AuctionMintingParams
+  -> CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
 auctionMintingPolicyScript pkh =
   $$(compile [||auctionUntypedMintingPolicy||])
     `unsafeApplyCode` liftCode plcVersion110 pkh

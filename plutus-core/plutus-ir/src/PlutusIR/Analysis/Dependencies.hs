@@ -1,19 +1,18 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
-{- | Functions for computing the dependency graph of variables within a term or type.
+{-| Functions for computing the dependency graph of variables within a term or type.
 A "dependency" between two nodes "A depends on B" means that B cannot be removed
-from the program without also removing A.
--}
-module PlutusIR.Analysis.Dependencies (
-  Node (..),
-  DepGraph,
-  runTermDeps,
-) where
+from the program without also removing A. -}
+module PlutusIR.Analysis.Dependencies
+  ( Node (..)
+  , DepGraph
+  , runTermDeps
+  ) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
@@ -34,26 +33,24 @@ import Data.List.NonEmpty qualified as NE
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
 
-{- | A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
+{-| A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
 node indicating the root of the graph. We need the root node because when computing the
 dependency graph of, say, a term, there will not be a binding for the term itself which
-we can use to represent it in the graph.
--}
+we can use to represent it in the graph. -}
 data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
 data DepCtx tyname name uni fun a = DepCtx
-  { _depNode         :: Node
+  { _depNode :: Node
   , _depBuiltinsInfo :: BuiltinsInfo uni fun
-  , _depVarInfo      :: VarsInfo tyname name uni a
+  , _depVarInfo :: VarsInfo tyname name uni a
   }
 makeLenses ''DepCtx
 
-{- | A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from
-it), whose vertices are 'Node's.
--}
+{-| A constraint requiring @g@ to be a 'G.Graph' (so we can compute e.g. a @Relation@ from
+it), whose vertices are 'Node's. -}
 type DepGraph g = (G.Graph g, G.Vertex g ~ Node)
 
-{- | Compute the dependency graph of a 'Term'. The 'Root' node will correspond to the term itself.
+{-| Compute the dependency graph of a 'Term'. The 'Root' node will correspond to the term itself.
 
 For example, the graph of @[(let (nonrec) (vardecl x t) y) [x z]]@ is
 @
@@ -61,35 +58,34 @@ For example, the graph of @[(let (nonrec) (vardecl x t) y) [x z]]@ is
     ROOT -> z
     x -> y
     x -> t
-@
--}
-runTermDeps ::
-  ( DepGraph g
-  , PLC.HasUnique tyname PLC.TypeUnique
-  , PLC.HasUnique name PLC.TermUnique
-  , PLC.ToBuiltinMeaning uni fun
-  ) =>
-  BuiltinsInfo uni fun ->
-  VarsInfo tyname name uni a ->
-  Term tyname name uni fun a ->
-  g
+@ -}
+runTermDeps
+  :: ( DepGraph g
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.HasUnique name PLC.TermUnique
+     , PLC.ToBuiltinMeaning uni fun
+     )
+  => BuiltinsInfo uni fun
+  -> VarsInfo tyname name uni a
+  -> Term tyname name uni fun a
+  -> g
 runTermDeps binfo vinfo t = flip runReader (DepCtx Root binfo vinfo) $ termDeps t
 
 -- | Record some dependencies on the current node.
-currentDependsOn ::
-  (DepGraph g, MonadReader (DepCtx tyname name uni fun a) m) =>
-  [PLC.Unique] ->
-  m g
+currentDependsOn
+  :: (DepGraph g, MonadReader (DepCtx tyname name uni fun a) m)
+  => [PLC.Unique]
+  -> m g
 currentDependsOn us = do
   current <- view depNode
   pure $ G.connect (G.vertices [current]) (G.vertices (fmap Variable us))
 
 -- | Process the given action with the given name as the current node.
-withCurrent ::
-  (MonadReader (DepCtx tyname name uni fun a) m, PLC.HasUnique n u) =>
-  n ->
-  m g ->
-  m g
+withCurrent
+  :: (MonadReader (DepCtx tyname name uni fun a) m, PLC.HasUnique n u)
+  => n
+  -> m g
+  -> m g
 withCurrent n = local $ set depNode $ Variable $ n ^. PLC.theUnique
 
 {- Note [Strict term bindings and dependencies]
@@ -141,15 +137,15 @@ remove all the term level bits en masse, but only en-mass. So we need to make *t
 so that this is visible to the dependency analysis.
 -}
 
-bindingDeps ::
-  ( DepGraph g
-  , MonadReader (DepCtx tyname name uni fun a) m
-  , PLC.HasUnique tyname PLC.TypeUnique
-  , PLC.HasUnique name PLC.TermUnique
-  , PLC.ToBuiltinMeaning uni fun
-  ) =>
-  Binding tyname name uni fun a ->
-  m g
+bindingDeps
+  :: ( DepGraph g
+     , MonadReader (DepCtx tyname name uni fun a) m
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.HasUnique name PLC.TermUnique
+     , PLC.ToBuiltinMeaning uni fun
+     )
+  => Binding tyname name uni fun a
+  -> m g
 bindingDeps b = case b of
   TermBind _ strictness d@(VarDecl _ n _) rhs -> do
     vDeps <- varDeclDeps d
@@ -160,7 +156,7 @@ bindingDeps b = case b of
     vinfo <- view depVarInfo
     evalDeps <- case strictness of
       Strict | not (isPure binfo vinfo rhs) -> currentDependsOn [n ^. PLC.theUnique]
-      _                                     -> pure G.empty
+      _ -> pure G.empty
 
     pure $ G.overlays [vDeps, tDeps, evalDeps]
   TypeBind _ d@(TyVarDecl _ n _) rhs -> do
@@ -190,35 +186,34 @@ bindingDeps b = case b of
     let nonDatatypeCircuit = G.circuit (fmap Variable tus)
     pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [destrDeps] ++ [nonDatatypeCircuit]
 
-varDeclDeps ::
-  ( DepGraph g
-  , MonadReader (DepCtx tyname name uni fun a) m
-  , PLC.HasUnique tyname PLC.TypeUnique
-  , PLC.HasUnique name PLC.TermUnique
-  ) =>
-  VarDecl tyname name uni a ->
-  m g
+varDeclDeps
+  :: ( DepGraph g
+     , MonadReader (DepCtx tyname name uni fun a) m
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.HasUnique name PLC.TermUnique
+     )
+  => VarDecl tyname name uni a
+  -> m g
 varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 
 -- Here for completeness, but doesn't do much
-tyVarDeclDeps ::
-  (G.Graph g, MonadReader (DepCtx tyname name uni fun a) m) =>
-  TyVarDecl tyname a ->
-  m g
+tyVarDeclDeps
+  :: (G.Graph g, MonadReader (DepCtx tyname name uni fun a) m)
+  => TyVarDecl tyname a
+  -> m g
 tyVarDeclDeps _ = pure G.empty
 
-{- | Compute the dependency graph of a term. Takes an initial 'Node' indicating what the
-term itself depends on (usually 'Root' if it is the real term you are interested in).
--}
-termDeps ::
-  ( DepGraph g
-  , MonadReader (DepCtx tyname name uni fun a) m
-  , PLC.HasUnique tyname PLC.TypeUnique
-  , PLC.HasUnique name PLC.TermUnique
-  , PLC.ToBuiltinMeaning uni fun
-  ) =>
-  Term tyname name uni fun a ->
-  m g
+{-| Compute the dependency graph of a term. Takes an initial 'Node' indicating what the
+term itself depends on (usually 'Root' if it is the real term you are interested in). -}
+termDeps
+  :: ( DepGraph g
+     , MonadReader (DepCtx tyname name uni fun a) m
+     , PLC.HasUnique tyname PLC.TypeUnique
+     , PLC.HasUnique name PLC.TermUnique
+     , PLC.ToBuiltinMeaning uni fun
+     )
+  => Term tyname name uni fun a
+  -> m g
 termDeps = \case
   Let _ _ bs t -> do
     bGraphs <- traverse bindingDeps bs
@@ -230,13 +225,12 @@ termDeps = \case
     tyds <- traverse typeDeps (x ^.. termSubtypes)
     pure $ G.overlays $ tds ++ tyds
 
-{- | Compute the dependency graph of a type. Takes an initial 'Node' indicating what
-the type itself depends on (usually 'Root' if it is the real type you are interested in).
--}
-typeDeps ::
-  (DepGraph g, MonadReader (DepCtx tyname name uni fun a) m, PLC.HasUnique tyname PLC.TypeUnique) =>
-  Type tyname uni a ->
-  m g
+{-| Compute the dependency graph of a type. Takes an initial 'Node' indicating what
+the type itself depends on (usually 'Root' if it is the real type you are interested in). -}
+typeDeps
+  :: (DepGraph g, MonadReader (DepCtx tyname name uni fun a) m, PLC.HasUnique tyname PLC.TypeUnique)
+  => Type tyname uni a
+  -> m g
 typeDeps ty =
   -- The dependency graph of a type is very simple since it doesn't have any internal
   -- let-bindings. So we just need to find all the used variables and mark them as

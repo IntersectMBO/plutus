@@ -7,16 +7,19 @@ import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
 import Data.List (intercalate)
 import PlutusBenchmark.Common (getDataDir)
-import PlutusBenchmark.Marlowe.BenchUtil (rolePayoutBenchmarks, semanticsBenchmarks,
-                                          tabulateResults, writeFlatUPLCs)
+import PlutusBenchmark.Marlowe.BenchUtil
+  ( rolePayoutBenchmarks
+  , semanticsBenchmarks
+  , tabulateResults
+  , writeFlatUPLCs
+  )
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout
 import PlutusBenchmark.Marlowe.Semantics qualified as Semantics
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import System.FilePath (normalise, (</>))
 
 {-| Run the benchmarks and export information about
-the validators and the benchmarking results.
--}
+the validators and the benchmarking results. -}
 main :: IO ()
 main = do
   dir <- normalise <$> getDataDir
@@ -82,9 +85,8 @@ printValidator
   -> SerialisedScript
   -- ^ The serialised validator.
   -> IO ()
-  {- ^ Action to print the information about the benchmarking,
-  and write the files.
-  -}
+  {-^ Action to print the information about the benchmarking,
+  and write the files. -}
 printValidator name file hash validator = do
   putStrLn $ name <> ":"
   putStrLn $ "  Validator hash: " <> show hash

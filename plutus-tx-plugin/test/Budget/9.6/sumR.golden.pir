@@ -15,7 +15,7 @@ letrec
           {all dead. dead}
 in
 letrec
-  !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
+  !`$dmenumFromTo_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
         case
           (all dead. List integer)
@@ -24,11 +24,11 @@ letrec
                Cons
                  {integer}
                  x
-                 (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
+                 (`$dmenumFromTo_$cenumFromTo` (addInteger 1 x) lim))
           , (/\dead -> Nil {integer}) ]
           {all dead. dead}
 in
 let
-  !ls : List integer = `$fEnumBool_$cenumFromTo` 1 1000
+  !ls : List integer = `$dmenumFromTo_$cenumFromTo` 1 1000
 in
 go ls

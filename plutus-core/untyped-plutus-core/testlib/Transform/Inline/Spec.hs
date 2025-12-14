@@ -1,6 +1,6 @@
-{-# LANGUAGE BlockArguments      #-}
-{-# LANGUAGE NumericUnderscores  #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Transform.Inline.Spec where
@@ -16,11 +16,19 @@ import PlutusCore.Quote (runQuote)
 import PlutusPrelude (def)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, testCase)
-import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.AstSize (AstSize (..))
-import UntypedPlutusCore.Transform.Inline (InlineHints (..), InlineInfo (..), InlineM, S (..),
-                                           Subst (..), TermEnv (..), effectSafe,
-                                           isFirstVarBeforeEffects, isStrictIn)
+import UntypedPlutusCore.Core (Term (..))
+import UntypedPlutusCore.Transform.Inline
+  ( InlineHints (..)
+  , InlineInfo (..)
+  , InlineM
+  , S (..)
+  , Subst (..)
+  , TermEnv (..)
+  , effectSafe
+  , isFirstVarBeforeEffects
+  , isStrictIn
+  )
 
 test_inline :: TestTree
 test_inline =
@@ -56,19 +64,19 @@ testVarBeforeAfterEffects = do
     isFirstVarBeforeEffects def b term
   assertBool "c is not evaluated before effects" $ not do
     isFirstVarBeforeEffects def c term
- where
-  term :: Term Name DefaultUni DefaultFun ()
-  term =
-    {- Evaluation order:
+  where
+    term :: Term Name DefaultUni DefaultFun ()
+    term =
+      {- Evaluation order:
 
-      1. pure work-free: a
-      2. pure work-free: b
-      3. impure? maybe work?: addInteger a b
-      4. pure work-free: c
-      5. impure? maybe work?: addInteger (addInteger a b) c
-    -}
-    addInteger (addInteger (var a) (var b)) (var c)
-  (a, b, c, _) = makeUniqueNames
+        1. pure work-free: a
+        2. pure work-free: b
+        3. impure? maybe work?: addInteger a b
+        4. pure work-free: c
+        5. impure? maybe work?: addInteger (addInteger a b) c
+      -}
+      addInteger (addInteger (var a) (var b)) (var c)
+    (a, b, c, _) = makeUniqueNames
 
 testVarIsEventuallyEvaluatedDelay :: Assertion
 testVarIsEventuallyEvaluatedDelay = do
@@ -78,11 +86,11 @@ testVarIsEventuallyEvaluatedDelay = do
     isStrictIn b term
   assertBool "it's not known if var 'c' is eventually evaluated" $
     not (isStrictIn c term)
- where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = delay (var a `addInteger` var b) `addInteger` var b
+  where
+    term :: Term Name DefaultUni DefaultFun ()
+    term = delay (var a `addInteger` var b) `addInteger` var b
 
-  (a, b, c, _) = makeUniqueNames
+    (a, b, c, _) = makeUniqueNames
 
 testVarIsEventuallyEvaluatedLambda :: Assertion
 testVarIsEventuallyEvaluatedLambda = do
@@ -92,11 +100,11 @@ testVarIsEventuallyEvaluatedLambda = do
     isStrictIn c term
   assertBool "it's not known if var 'd' is eventually evaluated" $
     not (isStrictIn d term)
- where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = lam b (var a `addInteger` var c) `app` var c
+  where
+    term :: Term Name DefaultUni DefaultFun ()
+    term = lam b (var a `addInteger` var c) `app` var c
 
-  (a, b, c, d) = makeUniqueNames
+    (a, b, c, d) = makeUniqueNames
 
 testVarIsEventuallyEvaluatedCaseBranch :: Assertion
 testVarIsEventuallyEvaluatedCaseBranch = do
@@ -106,11 +114,11 @@ testVarIsEventuallyEvaluatedCaseBranch = do
     isStrictIn b term
   assertBool "it is not known if var 'd' is eventually evaluated" $
     not (isStrictIn d term)
- where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = case_ (var b) [var a, var b, var c]
+  where
+    term :: Term Name DefaultUni DefaultFun ()
+    term = case_ (var b) [var a, var b, var c]
 
-  (a, b, c, d) = makeUniqueNames
+    (a, b, c, d) = makeUniqueNames
 
 testEffectSafePreservedLogs :: Assertion
 testEffectSafePreservedLogs = do
@@ -118,11 +126,11 @@ testEffectSafePreservedLogs = do
     runInlineWithLogging (not <$> effectSafe term c False)
   assertBool "a var before effects is \"effect safe\"" $
     runInlineWithLogging (effectSafe term a False)
- where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = (var a `addInteger` var b) `addInteger` var c
+  where
+    term :: Term Name DefaultUni DefaultFun ()
+    term = (var a `addInteger` var b) `addInteger` var c
 
-  (a, b, c, _) = makeUniqueNames
+    (a, b, c, _) = makeUniqueNames
 
 testEffectSafeWithoutPreservedLogs :: Assertion
 testEffectSafeWithoutPreservedLogs = do
@@ -130,11 +138,11 @@ testEffectSafeWithoutPreservedLogs = do
     runInlineWithoutLogging (effectSafe term c False)
   assertBool "a var before effects is \"effect safe\"" $
     runInlineWithoutLogging (effectSafe term a False)
- where
-  term :: Term Name DefaultUni DefaultFun ()
-  term = (var a `addInteger` var b) `addInteger` var c
+  where
+    term :: Term Name DefaultUni DefaultFun ()
+    term = (var a `addInteger` var b) `addInteger` var c
 
-  (a, b, c, _) = makeUniqueNames
+    (a, b, c, _) = makeUniqueNames
 
 --------------------------------------------------------------------------------
 -- InlineM runner --------------------------------------------------------------
@@ -147,21 +155,21 @@ runInlineWithLogging = runInlineM True
 
 runInlineM :: Bool -> InlineM Name DefaultUni DefaultFun () r -> r
 runInlineM preserveLogging m = result
- where
-  (result, _finalState) =
-    runQuote (runStateT (runReaderT m inlineInfo) initialState)
-  inlineInfo :: InlineInfo Name DefaultFun ()
-  inlineInfo =
-    InlineInfo
-      { _iiUsages = mempty
-      , _iiHints = InlineHints \_ann _name -> MayInline
-      , _iiBuiltinSemanticsVariant = def
-      , _iiInlineConstants = True
-      , _iiInlineCallsiteGrowth = AstSize 1_000_000
-      , _iiPreserveLogging = preserveLogging
-      }
-  initialState :: S Name DefaultUni DefaultFun ()
-  initialState = S{_subst = Subst (TermEnv mempty), _vars = mempty}
+  where
+    (result, _finalState) =
+      runQuote (runStateT (runReaderT m inlineInfo) initialState)
+    inlineInfo :: InlineInfo Name DefaultFun ()
+    inlineInfo =
+      InlineInfo
+        { _iiUsages = mempty
+        , _iiHints = InlineHints \_ann _name -> MayInline
+        , _iiBuiltinSemanticsVariant = def
+        , _iiInlineConstants = True
+        , _iiInlineCallsiteGrowth = AstSize 1_000_000
+        , _iiPreserveLogging = preserveLogging
+        }
+    initialState :: S Name DefaultUni DefaultFun ()
+    initialState = S {_subst = Subst (TermEnv mempty), _vars = mempty}
 
 --------------------------------------------------------------------------------
 -- UPLC Term constructors ------------------------------------------------------

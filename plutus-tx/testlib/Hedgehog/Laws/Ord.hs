@@ -4,9 +4,9 @@ module Hedgehog.Laws.Ord where
 
 import Hedgehog qualified
 import Hedgehog.Laws.Common
-import Prelude
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.Hedgehog (testProperty)
+import Prelude
 
 -- There is no typeclass for this, sadly
 partialOrderLaws :: (Show a, Eq a) => Hedgehog.Gen a -> (a -> a -> Bool) -> TestTree

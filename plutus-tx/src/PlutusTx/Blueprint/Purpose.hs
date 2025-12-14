@@ -1,6 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module PlutusTx.Blueprint.Purpose where
 
@@ -13,8 +13,7 @@ import Language.Haskell.TH.Syntax (Lift)
 
 {-|
   As per CIP-57, a validator arguments (redeemer, datum) and validator parameters
-  all must specify a purpose that indicates in which context they are used.
--}
+  all must specify a purpose that indicates in which context they are used. -}
 data Purpose = Spend | Mint | Withdraw | Publish
   deriving stock (Eq, Ord, Show, Lift)
 

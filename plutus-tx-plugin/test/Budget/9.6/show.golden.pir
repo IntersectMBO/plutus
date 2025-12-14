@@ -221,7 +221,7 @@ let
     = /\a -> \(b : bool) (x : a) (y : a) -> case a b [y, x]
 in
 letrec
-  !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
+  !`$dmenumFromTo_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer) (lim : integer) ->
         case
           (all dead. List integer)
@@ -230,7 +230,7 @@ letrec
                Cons
                  {integer}
                  x
-                 (`$fEnumBool_$cenumFromTo` (addInteger 1 x) lim))
+                 (`$dmenumFromTo_$cenumFromTo` (addInteger 1 x) lim))
           , (/\dead -> Nil {integer}) ]
           {all dead. dead}
 in
@@ -361,7 +361,7 @@ let
     = trace
         {integer}
         (concatBuiltinStrings
-           (go (`$fEnumBool_$cenumFromTo` 0 17) (Nil {string})))
+           (go (`$dmenumFromTo_$cenumFromTo` 0 17) (Nil {string})))
         b
   !d : integer
     = trace

@@ -21,6 +21,7 @@ let
         }];
         ghc98.compiler-nix-name = "ghc98";
         ghc910.compiler-nix-name = "ghc910";
+        ghc912.compiler-nix-name = "ghc912";
         ghc96-coverage.modules = [{
           packages.plutus-metatheory.doCoverage = true;
           packages.plutus-core.doCoverage = true;

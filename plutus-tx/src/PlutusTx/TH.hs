@@ -1,12 +1,12 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusTx.TH (
-  compile,
-  compileUntyped,
-  loadFromFile,
-) where
+module PlutusTx.TH
+  ( compile
+  , compileUntyped
+  , loadFromFile
+  ) where
 
 import Data.Proxy
 import Language.Haskell.TH qualified as TH

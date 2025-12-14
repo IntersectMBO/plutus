@@ -1,16 +1,16 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 -- CSE is very unstable and produces different output, likely depending on the version of either
@@ -34,8 +34,7 @@ import PlutusTx.These (These (..))
 
 {-| The semantics of PlutusTx maps and their operations.
 The 'PlutusTx' implementations maps ('Data.AssocMap.Map' and 'AssocMap.Map')
-are checked against the semantics to ensure correctness.
--}
+are checked against the semantics to ensure correctness. -}
 newtype AssocMapS k v = AssocMapS [(k, v)]
   deriving stock (Show, Eq)
 
@@ -67,7 +66,7 @@ toListS (AssocMapS l) = l
 unsafeFromListS :: [(k, v)] -> AssocMapS k v
 unsafeFromListS = AssocMapS
 
-safeFromListS :: (Ord k) => [(k, v)] -> AssocMapS k v
+safeFromListS :: Ord k => [(k, v)] -> AssocMapS k v
 safeFromListS = AssocMapS . Map.toList . Map.fromList
 
 lookupS :: Integer -> AssocMapS Integer Integer -> Maybe Integer
@@ -134,8 +133,7 @@ mapMaybeWithKeyS f (AssocMapS l) =
 makeLift ''AssocMapS
 
 {-| The semantics of 'union' is based on the 'AssocMap' implementation.
-The code is duplicated here to avoid any issues if the 'AssocMap' implementation changes.
--}
+The code is duplicated here to avoid any issues if the 'AssocMap' implementation changes. -}
 unionS
   :: AssocMapS Integer Integer
   -> AssocMapS Integer Integer
@@ -144,7 +142,7 @@ unionS (AssocMapS ls) (AssocMapS rs) =
   let
     f a b' = case b' of
       Nothing -> Haskell.This a
-      Just b  -> Haskell.These a b
+      Just b -> Haskell.These a b
 
     ls' = fmap (\(c, i) -> (c, f i (lookupS c (AssocMapS rs)))) ls
 
@@ -174,22 +172,21 @@ unionWithS merge (AssocMapS ls) (AssocMapS rs) =
 genAssocMapS :: Gen (AssocMapS Integer Integer)
 genAssocMapS =
   AssocMapS . Map.toList <$> Gen.map rangeLength genPair
- where
-  genPair :: Gen (Integer, Integer)
-  genPair = do
-    (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
+  where
+    genPair :: Gen (Integer, Integer)
+    genPair = do
+      (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
 
 genUnsafeAssocMapS :: Gen (AssocMapS Integer Integer)
 genUnsafeAssocMapS = do
   AssocMapS <$> Gen.list rangeLength genPair
- where
-  genPair :: Gen (Integer, Integer)
-  genPair = do
-    (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
+  where
+    genPair :: Gen (Integer, Integer)
+    genPair = do
+      (,) <$> Gen.integral rangeElem <*> Gen.integral rangeElem
 
 {-| The 'Equivalence' class is used to define an equivalence relation
-between `AssocMapS` and the 'PlutusTx' implementations.
--}
+between `AssocMapS` and the 'PlutusTx' implementations. -}
 class Equivalence l where
   (~~)
     :: ( MonadTest m

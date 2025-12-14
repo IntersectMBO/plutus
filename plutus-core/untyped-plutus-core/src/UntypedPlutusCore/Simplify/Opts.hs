@@ -20,12 +20,12 @@ import PlutusCore.AstSize
 
 data SimplifyOpts name a = SimplifyOpts
   { _soMaxSimplifierIterations :: Int
-  , _soMaxCseIterations        :: Int
-  , _soConservativeOpts        :: Bool
-  , _soInlineHints             :: InlineHints name a
-  , _soInlineConstants         :: Bool
-  , _soInlineCallsiteGrowth    :: AstSize
-  , _soPreserveLogging         :: Bool
+  , _soMaxCseIterations :: Int
+  , _soConservativeOpts :: Bool
+  , _soInlineHints :: InlineHints name a
+  , _soInlineConstants :: Bool
+  , _soInlineCallsiteGrowth :: AstSize
+  , _soPreserveLogging :: Bool
   }
   deriving stock (Show)
 

@@ -14,33 +14,33 @@ import PlutusPrelude
 
 test_retainedSize :: TestTree
 test_retainedSize =
-    runTestNested ["plutus-ir", "test", "PlutusIR", "Analysis", "RetainedSize"] $
-        map
-            (goldenPirUnique renameAndAnnotate pTerm)
-            [ "typeLet"
-            , "termLet"
-            , "strictLet"
-            , "nonstrictLet"
-            , -- @Maybe@ is referenced, so it retains all of the data type.
-              "datatypeLiveType"
-            , -- @Nothing@ is referenced, so it retains all of the data type.
-              "datatypeLiveConstr"
-            , -- @match_Maybe@ is referenced, so it retains all of the data type.
-              "datatypeLiveDestr"
-            , "datatypeDead"
-            , "singleBinding"
-            , "builtinBinding"
-            , "etaBuiltinBinding"
-            , "etaBuiltinBindingUsed"
-            , "nestedBindings"
-            , "nestedBindingsIndirect"
-            , "recBindingSimple"
-            , "recBindingComplex"
-            ]
+  runTestNested ["plutus-ir", "test", "PlutusIR", "Analysis", "RetainedSize"] $
+    map
+      (goldenPirUnique renameAndAnnotate pTerm)
+      [ "typeLet"
+      , "termLet"
+      , "strictLet"
+      , "nonstrictLet"
+      , -- @Maybe@ is referenced, so it retains all of the data type.
+        "datatypeLiveType"
+      , -- @Nothing@ is referenced, so it retains all of the data type.
+        "datatypeLiveConstr"
+      , -- @match_Maybe@ is referenced, so it retains all of the data type.
+        "datatypeLiveDestr"
+      , "datatypeDead"
+      , "singleBinding"
+      , "builtinBinding"
+      , "etaBuiltinBinding"
+      , "etaBuiltinBindingUsed"
+      , "nestedBindings"
+      , "nestedBindingsIndirect"
+      , "recBindingSimple"
+      , "recBindingComplex"
+      ]
   where
     displayAnnsConfig = PLC.PrettyConfigClassic PLC.prettyConfigNameSimple True
     renameAndAnnotate =
-        PLC.AttachPrettyConfig displayAnnsConfig
-            . RetainedSize.annotateWithRetainedSize def
-            . runQuote
-            . PLC.rename
+      PLC.AttachPrettyConfig displayAnnsConfig
+        . RetainedSize.annotateWithRetainedSize def
+        . runQuote
+        . PLC.rename

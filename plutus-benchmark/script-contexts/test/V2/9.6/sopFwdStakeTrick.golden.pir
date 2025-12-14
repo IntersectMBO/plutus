@@ -370,49 +370,6 @@ letrec
           , (Nil {TxInInfo}) ]
 in
 let
-  !`$fEqStakingCredential_$c==` : StakingCredential -> StakingCredential -> bool
-    = \(ds : StakingCredential) (ds : StakingCredential) ->
-        StakingCredential_match
-          ds
-          {bool}
-          (\(l : Credential) ->
-             StakingCredential_match
-               ds
-               {bool}
-               (\(r : Credential) ->
-                  Credential_match
-                    l
-                    {bool}
-                    (\(l : bytestring) ->
-                       Credential_match
-                         r
-                         {bool}
-                         (\(r : bytestring) -> equalsByteString l r)
-                         (\(ipv : bytestring) -> False))
-                    (\(a : bytestring) ->
-                       Credential_match
-                         r
-                         {bool}
-                         (\(ipv : bytestring) -> False)
-                         (\(a' : bytestring) -> equalsByteString a a')))
-               (\(ipv : integer) (ipv : integer) (ipv : integer) -> False))
-          (\(a : integer) (b : integer) (c : integer) ->
-             StakingCredential_match
-               ds
-               {bool}
-               (\(ipv : Credential) -> False)
-               (\(a' : integer) (b' : integer) (c' : integer) ->
-                  case
-                    (all dead. bool)
-                    (equalsInteger a a')
-                    [ (/\dead -> False)
-                    , (/\dead ->
-                         case
-                           (all dead. bool)
-                           (equalsInteger b b')
-                           [(/\dead -> False), (/\dead -> equalsInteger c c')]
-                           {all dead. dead}) ]
-                    {all dead. dead}))
   !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
     = \(d : data) -> d
   !`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` : data -> bool
@@ -760,27 +717,226 @@ in
                                                (i : integer) ->
                                                 case
                                                   (all dead. Unit)
-                                                  (`$fEqStakingCredential_$c==`
+                                                  (StakingCredential_match
                                                      c'
-                                                     obsScriptCred')
+                                                     {bool}
+                                                     (\(l : Credential) ->
+                                                        StakingCredential_match
+                                                          obsScriptCred'
+                                                          {bool}
+                                                          (\(r : Credential) ->
+                                                             Credential_match
+                                                               l
+                                                               {bool}
+                                                               (\(l :
+                                                                    bytestring) ->
+                                                                  Credential_match
+                                                                    r
+                                                                    {bool}
+                                                                    (\(r :
+                                                                         bytestring) ->
+                                                                       equalsByteString
+                                                                         l
+                                                                         r)
+                                                                    (\(ipv :
+                                                                         bytestring) ->
+                                                                       False))
+                                                               (\(a :
+                                                                    bytestring) ->
+                                                                  Credential_match
+                                                                    r
+                                                                    {bool}
+                                                                    (\(ipv :
+                                                                         bytestring) ->
+                                                                       False)
+                                                                    (\(a' :
+                                                                         bytestring) ->
+                                                                       equalsByteString
+                                                                         a
+                                                                         a')))
+                                                          (\(ipv : integer)
+                                                            (ipv : integer)
+                                                            (ipv : integer) ->
+                                                             False))
+                                                     (\(a : integer)
+                                                       (b : integer)
+                                                       (c : integer) ->
+                                                        StakingCredential_match
+                                                          obsScriptCred'
+                                                          {bool}
+                                                          (\(ipv :
+                                                               Credential) ->
+                                                             False)
+                                                          (\(a' : integer)
+                                                            (b' : integer)
+                                                            (c' : integer) ->
+                                                             case
+                                                               (all dead. bool)
+                                                               (equalsInteger
+                                                                  a
+                                                                  a')
+                                                               [ (/\dead ->
+                                                                    False)
+                                                               , (/\dead ->
+                                                                    case
+                                                                      (all dead.
+                                                                         bool)
+                                                                      (equalsInteger
+                                                                         b
+                                                                         b')
+                                                                      [ (/\dead ->
+                                                                           False)
+                                                                      , (/\dead ->
+                                                                           equalsInteger
+                                                                             c
+                                                                             c') ]
+                                                                      {all dead.
+                                                                         dead}) ]
+                                                               {all dead.
+                                                                  dead})))
                                                   [ (/\dead -> go xs')
                                                   , (/\dead -> Unit) ]
                                                   {all dead. dead}))
                                       {all dead. dead}
                             in
-                            case
-                              (all dead. Unit)
-                              (`$fEqStakingCredential_$c==` obsScriptCred' a)
-                              [ (/\dead ->
-                                   case
-                                     (all dead. Unit)
-                                     (`$fEqStakingCredential_$c==`
-                                        obsScriptCred'
-                                        a)
-                                     [(/\dead -> go ds), (/\dead -> Unit)]
-                                     {all dead. dead})
-                              , (/\dead -> Unit) ]
-                              {all dead. dead}
+                            let
+                              ~`$j` : Unit = go ds
+                              ~`$j` : Unit
+                                = StakingCredential_match
+                                    obsScriptCred'
+                                    {Unit}
+                                    (\(l : Credential) ->
+                                       StakingCredential_match
+                                         a
+                                         {Unit}
+                                         (\(r : Credential) ->
+                                            Credential_match
+                                              l
+                                              {Unit}
+                                              (\(l : bytestring) ->
+                                                 Credential_match
+                                                   r
+                                                   {Unit}
+                                                   (\(r : bytestring) ->
+                                                      case
+                                                        (all dead. Unit)
+                                                        (equalsByteString l r)
+                                                        [ (/\dead -> `$j`)
+                                                        , (/\dead -> Unit) ]
+                                                        {all dead. dead})
+                                                   (\(ipv : bytestring) ->
+                                                      `$j`))
+                                              (\(a : bytestring) ->
+                                                 Credential_match
+                                                   r
+                                                   {Unit}
+                                                   (\(ipv : bytestring) -> `$j`)
+                                                   (\(a' : bytestring) ->
+                                                      case
+                                                        (all dead. Unit)
+                                                        (equalsByteString a a')
+                                                        [ (/\dead -> `$j`)
+                                                        , (/\dead -> Unit) ]
+                                                        {all dead. dead})))
+                                         (\(ipv : integer)
+                                           (ipv : integer)
+                                           (ipv : integer) ->
+                                            `$j`))
+                                    (\(a : integer)
+                                      (b : integer)
+                                      (c : integer) ->
+                                       StakingCredential_match
+                                         a
+                                         {Unit}
+                                         (\(ipv : Credential) -> `$j`)
+                                         (\(a' : integer)
+                                           (b' : integer)
+                                           (c' : integer) ->
+                                            case
+                                              (all dead. Unit)
+                                              (case
+                                                 (all dead. bool)
+                                                 (equalsInteger a a')
+                                                 [ (/\dead -> False)
+                                                 , (/\dead ->
+                                                      case
+                                                        (all dead. bool)
+                                                        (equalsInteger b b')
+                                                        [ (/\dead -> False)
+                                                        , (/\dead ->
+                                                             equalsInteger
+                                                               c
+                                                               c') ]
+                                                        {all dead. dead}) ]
+                                                 {all dead. dead})
+                                              [ (/\dead -> `$j`)
+                                              , (/\dead -> Unit) ]
+                                              {all dead. dead}))
+                            in
+                            StakingCredential_match
+                              obsScriptCred'
+                              {Unit}
+                              (\(l : Credential) ->
+                                 StakingCredential_match
+                                   a
+                                   {Unit}
+                                   (\(r : Credential) ->
+                                      Credential_match
+                                        l
+                                        {Unit}
+                                        (\(l : bytestring) ->
+                                           Credential_match
+                                             r
+                                             {Unit}
+                                             (\(r : bytestring) ->
+                                                case
+                                                  (all dead. Unit)
+                                                  (equalsByteString l r)
+                                                  [ (/\dead -> `$j`)
+                                                  , (/\dead -> Unit) ]
+                                                  {all dead. dead})
+                                             (\(ipv : bytestring) -> `$j`))
+                                        (\(a : bytestring) ->
+                                           Credential_match
+                                             r
+                                             {Unit}
+                                             (\(ipv : bytestring) -> `$j`)
+                                             (\(a' : bytestring) ->
+                                                case
+                                                  (all dead. Unit)
+                                                  (equalsByteString a a')
+                                                  [ (/\dead -> `$j`)
+                                                  , (/\dead -> Unit) ]
+                                                  {all dead. dead})))
+                                   (\(ipv : integer)
+                                     (ipv : integer)
+                                     (ipv : integer) ->
+                                      `$j`))
+                              (\(a : integer) (b : integer) (c : integer) ->
+                                 StakingCredential_match
+                                   a
+                                   {Unit}
+                                   (\(ipv : Credential) -> `$j`)
+                                   (\(a' : integer)
+                                     (b' : integer)
+                                     (c' : integer) ->
+                                      case
+                                        (all dead. Unit)
+                                        (case
+                                           (all dead. bool)
+                                           (equalsInteger a a')
+                                           [ (/\dead -> False)
+                                           , (/\dead ->
+                                                case
+                                                  (all dead. bool)
+                                                  (equalsInteger b b')
+                                                  [ (/\dead -> False)
+                                                  , (/\dead ->
+                                                       equalsInteger c c') ]
+                                                  {all dead. dead}) ]
+                                           {all dead. dead})
+                                        [(/\dead -> `$j`), (/\dead -> Unit)]
+                                        {all dead. dead}))
                       !`$j` : List (Tuple2 StakingCredential integer) -> Unit
                         = \(rest : List (Tuple2 StakingCredential integer)) ->
                             List_match

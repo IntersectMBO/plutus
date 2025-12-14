@@ -1,13 +1,13 @@
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE PatternSynonyms     #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE ViewPatterns        #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module AsData.Budget.Types where
 
@@ -33,7 +33,7 @@ newtype IntsManual = IntsManualDataCon PlutusTx.BuiltinData
   deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
 
 pattern IntsManual :: Integer -> Integer -> Integer -> Integer -> IntsManual
-pattern IntsManual{int1Manual, int2Manual, int3Manual, int4Manual} <-
+pattern IntsManual {int1Manual, int2Manual, int3Manual, int4Manual} <-
   IntsManualDataCon
     ( wrapUnsafeDataAsConstr ->
         BI.snd ->
@@ -95,7 +95,7 @@ pattern ThatDManual arg <-
       TheseDManual_
         (BI.mkConstr 1 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
 
-unpack1 :: (PlutusTx.UnsafeFromData a) => BI.BuiltinList BI.BuiltinData -> a
+unpack1 :: PlutusTx.UnsafeFromData a => BI.BuiltinList BI.BuiltinData -> a
 unpack1 =
   PlutusTx.unsafeFromBuiltinData . BI.head
 

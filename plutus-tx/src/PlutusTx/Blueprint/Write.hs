@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusTx.Blueprint.Write (
-  encodeBlueprint,
-  writeBlueprint,
-) where
+module PlutusTx.Blueprint.Write
+  ( encodeBlueprint
+  , writeBlueprint
+  ) where
 
 import Data.Aeson (toJSON)
 import Data.Aeson.Encode.Pretty (encodePretty')

@@ -1,0 +1,51 @@
+# This workflow deploys the cost-models visualization site.
+#
+# On pull requests, this workflow deploys a temporary preview
+# to gh-pages, but only if the relevant files have changed.
+#
+# On push to master or on workflow dispatch it deploys the site to:
+# https://plutus.cardano.intersectmbo.org/cost-models
+
+
+name: "📊 Cost Models Site"
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'doc/cost-models/**'
+      - '.github/workflows/cost-models-site.yml'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'doc/cost-models/**'
+      - '.github/workflows/cost-models-site.yml'
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: [self-hosted, plutus-ci]
+    permissions:
+      contents: write
+      pull-requests: write
+    environment:
+      name: github-pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Deploy Site
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
+        with:
+          folder: doc/cost-models
+          target-folder: cost-models
+          single-commit: true
+
+      - name: Deploy Preview Site
+        if: github.event_name == 'pull_request'
+        uses: rossjrw/pr-preview-action@v1.6.3
+        with:
+          source-dir: doc/cost-models
+          umbrella-dir: pr-preview/cost-models

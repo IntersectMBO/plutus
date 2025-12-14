@@ -1,12 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -O0 #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -37,57 +37,56 @@
   /Redeemer Script/
 
   /Validation Script/ is always the same Marlowe interpreter implementation,
-  available below.
--}
-module PlutusBenchmark.Marlowe.Core.V1.Semantics (
-  -- * Semantics
-  MarloweData (MarloweData, marloweParams, marloweState, marloweContract),
-  MarloweParams (..),
-  Payment (..),
-  TransactionInput (..),
-  TransactionOutput (..),
-  computeTransaction,
-  playTrace,
+  available below. -}
+module PlutusBenchmark.Marlowe.Core.V1.Semantics
+  ( -- * Semantics
+    MarloweData (MarloweData, marloweParams, marloweState, marloweContract)
+  , MarloweParams (..)
+  , Payment (..)
+  , TransactionInput (..)
+  , TransactionOutput (..)
+  , computeTransaction
+  , playTrace
 
-  -- * Supporting Functions
-  addMoneyToAccount,
-  applyAction,
-  applyAllInputs,
-  applyCases,
-  applyInput,
-  convertReduceWarnings,
-  evalObservation,
-  evalValue,
-  fixInterval,
-  getContinuation,
-  giveMoney,
-  moneyInAccount,
-  playTraceAux,
-  reduceContractStep,
-  reduceContractUntilQuiescent,
-  refundOne,
-  updateMoneyInAccount,
+    -- * Supporting Functions
+  , addMoneyToAccount
+  , applyAction
+  , applyAllInputs
+  , applyCases
+  , applyInput
+  , convertReduceWarnings
+  , evalObservation
+  , evalValue
+  , fixInterval
+  , getContinuation
+  , giveMoney
+  , moneyInAccount
+  , playTraceAux
+  , reduceContractStep
+  , reduceContractUntilQuiescent
+  , refundOne
+  , updateMoneyInAccount
 
-  -- * Supporting Types
-  ApplyAction (..),
-  ApplyAllResult (..),
-  ApplyResult (..),
-  ApplyWarning (..),
-  ReduceEffect (..),
-  ReduceResult (..),
-  ReduceStepResult (..),
-  ReduceWarning (..),
-  TransactionError (..),
-  TransactionWarning (..),
+    -- * Supporting Types
+  , ApplyAction (..)
+  , ApplyAllResult (..)
+  , ApplyResult (..)
+  , ApplyWarning (..)
+  , ReduceEffect (..)
+  , ReduceResult (..)
+  , ReduceStepResult (..)
+  , ReduceWarning (..)
+  , TransactionError (..)
+  , TransactionWarning (..)
 
-  -- * Utility Functions
-  allBalancesArePositive,
-  contractLifespanUpperBound,
-  isClose,
-  notClose,
-  paymentMoney,
-  totalBalance,
-) where
+    -- * Utility Functions
+  , allBalancesArePositive
+  , contractLifespanUpperBound
+  , isClose
+  , notClose
+  , paymentMoney
+  , totalBalance
+  ) where
 
 import Data.Data (Data)
 import GHC.Generics (Generic)
@@ -99,10 +98,24 @@ import PlutusTx.Foldable (foldMap)
 import PlutusTx.IsData (makeIsDataIndexed)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.List
-import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..), Eq (..), Integer,
-                         Maybe (..), MultiplicativeSemigroup ((*)),
-                         Ord (max, min, (<), (<=), (>), (>=)), fst, negate, not, otherwise, snd,
-                         ($), (&&), (||))
+import PlutusTx.Prelude
+  ( AdditiveGroup ((-))
+  , AdditiveSemigroup ((+))
+  , Bool (..)
+  , Eq (..)
+  , Integer
+  , Maybe (..)
+  , MultiplicativeSemigroup ((*))
+  , Ord (max, min, (<), (<=), (>), (>=))
+  , fst
+  , negate
+  , not
+  , otherwise
+  , snd
+  , ($)
+  , (&&)
+  , (||)
+  )
 
 import PlutusLedgerApi.V2 qualified as Val
 import PlutusTx.AssocMap qualified as Map
@@ -110,8 +123,7 @@ import PlutusTx.Builtins qualified as Builtins
 import Prelude qualified as Haskell
 
 {-| Payment occurs during 'Pay' contract evaluation, and
-    when positive balances are payed out on contract closure.
--}
+    when positive balances are payed out on contract closure. -}
 data Payment = Payment AccountId Payee Token Integer
   deriving stock (Haskell.Eq, Haskell.Show, Data)
 
@@ -193,7 +205,7 @@ data TransactionError
 -- | Marlowe transaction input.
 data TransactionInput = TransactionInput
   { txInterval :: TimeInterval
-  , txInputs   :: [Input]
+  , txInputs :: [Input]
   }
   deriving stock (Haskell.Show, Haskell.Eq, Data)
 
@@ -202,7 +214,7 @@ data TransactionOutput
   = TransactionOutput
       { txOutWarnings :: [TransactionWarning]
       , txOutPayments :: [Payment]
-      , txOutState    :: State
+      , txOutState :: State
       , txOutContract :: Contract
       }
   | Error TransactionError
@@ -248,8 +260,8 @@ fixInterval interval state =
             newLow = max low curMinTime
             -- We know high is greater or equal than newLow (prove)
             curInterval = (newLow, high)
-            env = Environment{timeInterval = curInterval}
-            newState = state{minTime = newLow}
+            env = Environment {timeInterval = curInterval}
+            newState = state {minTime = newLow}
            in
             if high < curMinTime
               then IntervalError (IntervalInPastError curMinTime interval)
@@ -281,7 +293,7 @@ evalValue env state value =
         -- the initial state's `choices` in Isabelle was sorted and
         -- did not contain duplicate entries.
         case Map.lookup choiceId (choices state) of
-          Just x  -> x
+          Just x -> x
           Nothing -> 0
       TimeIntervalStart -> getPOSIXTime (fst (timeInterval env))
       TimeIntervalEnd -> getPOSIXTime (snd (timeInterval env))
@@ -292,7 +304,7 @@ evalValue env state value =
         -- the initial state's `boundValues` in Isabelle was sorted
         -- and did not contain duplicate entries.
         case Map.lookup valId (boundValues state) of
-          Just x  -> x
+          Just x -> x
           Nothing -> 0
       Cond cond thn els ->
         if evalObservation env state cond
@@ -307,22 +319,22 @@ evalObservation env state obs =
     evalVal = evalValue env state
    in
     case obs of
-      AndObs lhs rhs          -> evalObs lhs && evalObs rhs
-      OrObs lhs rhs           -> evalObs lhs || evalObs rhs
-      NotObs subObs           -> not (evalObs subObs)
+      AndObs lhs rhs -> evalObs lhs && evalObs rhs
+      OrObs lhs rhs -> evalObs lhs || evalObs rhs
+      NotObs subObs -> not (evalObs subObs)
       -- SCP-5126: Given the precondition that `choices` contains no
       -- duplicate entries, this membership test behaves identically
       -- to Marlowe's Isabelle semantics given the precondition that
       -- the initial state's `choices` in Isabelle was sorted and did
       -- not contain duplicate entries.
       ChoseSomething choiceId -> choiceId `Map.member` choices state
-      ValueGE lhs rhs         -> evalVal lhs >= evalVal rhs
-      ValueGT lhs rhs         -> evalVal lhs > evalVal rhs
-      ValueLT lhs rhs         -> evalVal lhs < evalVal rhs
-      ValueLE lhs rhs         -> evalVal lhs <= evalVal rhs
-      ValueEQ lhs rhs         -> evalVal lhs == evalVal rhs
-      TrueObs                 -> True
-      FalseObs                -> False
+      ValueGE lhs rhs -> evalVal lhs >= evalVal rhs
+      ValueGT lhs rhs -> evalVal lhs > evalVal rhs
+      ValueLT lhs rhs -> evalVal lhs < evalVal rhs
+      ValueLE lhs rhs -> evalVal lhs <= evalVal rhs
+      ValueEQ lhs rhs -> evalVal lhs == evalVal rhs
+      TrueObs -> True
+      FalseObs -> False
 
 -- | Pick the first account with money in it.
 refundOne :: Accounts -> Maybe ((Party, Token, Integer), Accounts)
@@ -348,7 +360,7 @@ moneyInAccount accId token accounts =
   -- the initial state's `accounts` in Isabelle was sorted and
   -- did not contain duplicate entries.
   case Map.lookup (accId, token) accounts of
-    Just x  -> x
+    Just x -> x
     Nothing -> 0
 
 -- | Sets the amount of money available in an account.
@@ -365,8 +377,7 @@ updateMoneyInAccount accId token amount =
     else Map.insert (accId, token) amount
 
 {-| Add the given amount of money to an account (only if it is positive).
-  Return the updated Map.
--}
+  Return the updated Map. -}
 addMoneyToAccount :: AccountId -> Token -> Integer -> Accounts -> Accounts
 addMoneyToAccount accId token amount accounts =
   let
@@ -378,8 +389,7 @@ addMoneyToAccount accId token amount accounts =
       else updateMoneyInAccount accId token newBalance accounts
 
 {-| Gives the given amount of money to the given payee.
-  Returns the appropriate effect and updated accounts.
--}
+  Returns the appropriate effect and updated accounts. -}
 giveMoney
   :: AccountId
   -> Payee
@@ -390,7 +400,7 @@ giveMoney
 giveMoney accountId payee token amount accounts =
   let
     newAccounts = case payee of
-      Party _       -> accounts
+      Party _ -> accounts
       Account accId -> addMoneyToAccount accId token amount accounts
    in
     (ReduceWithPayment (Payment accountId payee token amount), newAccounts)
@@ -409,7 +419,7 @@ reduceContractStep env state contract = case contract of
   Close -> case refundOne (accounts state) of
     Just ((party, token, amount), newAccounts) ->
       let
-        newState = state{accounts = newAccounts}
+        newState = state {accounts = newAccounts}
        in
         Reduced
           ReduceNoWarning
@@ -438,7 +448,7 @@ reduceContractStep env state contract = case contract of
                 then ReducePartialPay accId payee tok paidAmount amountToPay
                 else ReduceNoWarning
             (payment, finalAccs) = giveMoney accId payee tok paidAmount newAccs
-            newState = state{accounts = finalAccs}
+            newState = state {accounts = finalAccs}
            in
             Reduced warning payment newState cont
   If obs cont1 cont2 ->
@@ -468,7 +478,7 @@ reduceContractStep env state contract = case contract of
       -- (aside from internal ordering) to Marlowe's Isabelle semantics
       -- given the precondition that the initial state's `boundValues`
       -- in Isabelle was sorted and did not contain duplicate entries.
-      newState = state{boundValues = Map.insert valId evaluatedValue boundVals}
+      newState = state {boundValues = Map.insert valId evaluatedValue boundVals}
       -- SCP-5126: Given the precondition that `boundValues` contains
       -- no duplicate entries, this lookup behaves identically to
       -- Marlowe's Isabelle semantics given the precondition that the
@@ -476,7 +486,7 @@ reduceContractStep env state contract = case contract of
       -- not contain duplicate entries.
       warn = case Map.lookup valId boundVals of
         Just oldVal -> ReduceShadowing valId oldVal evaluatedValue
-        Nothing     -> ReduceNoWarning
+        Nothing -> ReduceNoWarning
      in
       Reduced warn ReduceNoPayment newState cont
   Assert obs cont ->
@@ -510,10 +520,10 @@ reduceContractUntilQuiescent env state contract =
           let
             newWarnings = case warning of
               ReduceNoWarning -> warnings
-              _               -> warning : warnings
+              _ -> warning : warnings
             newPayments = case effect of
               ReduceWithPayment payment -> payment : payments
-              ReduceNoPayment           -> payments
+              ReduceNoPayment -> payments
            in
             reductionLoop True env newState cont newWarnings newPayments
         AmbiguousTimeIntervalReductionError -> RRAmbiguousTimeIntervalError
@@ -555,7 +565,7 @@ applyAction
                 then ApplyNoWarning
                 else ApplyNonPositiveDeposit party2 accId2 tok2 amount
             newAccounts = addMoneyToAccount accId1 tok1 amount (accounts state)
-            newState = state{accounts = newAccounts}
+            newState = state {accounts = newAccounts}
          in AppliedAction warning newState
       else NotAppliedAction
 applyAction _ state (IChoice choId1 choice) (Choice choId2 bounds) =
@@ -566,7 +576,7 @@ applyAction _ state (IChoice choId1 choice) (Choice choId2 bounds) =
     -- given the precondition that the initial state's `choices`
     -- in Isabelle was sorted and did not contain duplicate entries.
     then
-      let newState = state{choices = Map.insert choId1 choice (choices state)}
+      let newState = state {choices = Map.insert choId1 choice (choices state)}
        in AppliedAction ApplyNoWarning newState
     else NotAppliedAction
 applyAction env state INotify (Notify obs)
@@ -596,14 +606,14 @@ applyCases env state input (headCase : tailCases) =
           -- the Cardano semantics includes merkleization.
           case maybeContinuation of
             Just continuation -> Applied warning newState continuation
-            Nothing           -> ApplyHashMismatch
+            Nothing -> ApplyHashMismatch
         NotAppliedAction -> applyCases env state input tailCases
 applyCases _ _ _ [] = ApplyNoMatchError
 
 -- | Apply a single @Input@ to a current contract.
 applyInput :: Environment -> State -> Input -> Contract -> ApplyResult
 applyInput env state input (When cases _ _) = applyCases env state input cases
-applyInput _ _ _ _                          = ApplyNoMatchError
+applyInput _ _ _ _ = ApplyNoMatchError
 
 -- | Propagate 'ReduceWarning' to 'TransactionWarning'.
 convertReduceWarnings :: [ReduceWarning] -> [TransactionWarning]
@@ -667,27 +677,26 @@ applyAllInputs env state contract inputs =
                 ApplyHashMismatch -> ApplyAllHashMismatch
    in
     applyAllLoop False env state contract inputs [] []
- where
-  convertApplyWarning :: ApplyWarning -> [TransactionWarning]
-  convertApplyWarning warn =
-    case warn of
-      ApplyNoWarning -> []
-      ApplyNonPositiveDeposit party accId tok amount ->
-        [TransactionNonPositiveDeposit party accId tok amount]
+  where
+    convertApplyWarning :: ApplyWarning -> [TransactionWarning]
+    convertApplyWarning warn =
+      case warn of
+        ApplyNoWarning -> []
+        ApplyNonPositiveDeposit party accId tok amount ->
+          [TransactionNonPositiveDeposit party accId tok amount]
 
 -- | Check if a contract is just @Close@.
 isClose :: Contract -> Bool
 isClose Close = True
-isClose _     = False
+isClose _ = False
 
 -- | Check if a contract is not just @Close@.
 notClose :: Contract -> Bool
 notClose Close = False
-notClose _     = True
+notClose _ = True
 
 {-| Try to compute outputs of a transaction given its inputs,
-a contract, and it's @State@
--}
+a contract, and it's @State@ -}
 computeTransaction
   :: TransactionInput
   -> State
@@ -719,8 +728,7 @@ computeTransaction tx state contract =
       IntervalError error -> Error (TEIntervalError error)
 
 {-| Run a set of inputs starting from the results of a transaction,
-reporting the new result.
--}
+reporting the new result. -}
 playTraceAux :: TransactionOutput -> [TransactionInput] -> TransactionOutput
 playTraceAux res [] = res
 playTraceAux
@@ -733,7 +741,7 @@ playTraceAux
   (h : t) =
     let transRes = computeTransaction h state cont
      in case transRes of
-          TransactionOutput{..} ->
+          TransactionOutput {..} ->
             playTraceAux
               TransactionOutput
                 { txOutPayments = payments ++ txOutPayments
@@ -746,8 +754,7 @@ playTraceAux
 playTraceAux err@(Error _) _ = err
 
 {-| Run a set of inputs starting from a contract and empty state,
-reporting the result.
--}
+reporting the result. -}
 playTrace :: POSIXTime -> Contract -> [TransactionInput] -> TransactionOutput
 playTrace minTime c =
   playTraceAux
@@ -759,8 +766,7 @@ playTrace minTime c =
       }
 
 {-| Calculates an upper bound for the maximum lifespan of a contract
-(assuming is not merkleized)
--}
+(assuming is not merkleized) -}
 contractLifespanUpperBound :: Contract -> POSIXTime
 contractLifespanUpperBound contract = case contract of
   Close -> 0
@@ -790,7 +796,7 @@ totalBalance accounts =
 
 -- | Check that all accounts have positive balance.
 allBalancesArePositive :: State -> Bool
-allBalancesArePositive State{..} =
+allBalancesArePositive State {..} =
   all (\(_, balance) -> balance > 0) (Map.toList accounts)
 
 instance Eq Payment where
@@ -804,22 +810,22 @@ instance Eq ReduceWarning where
   ReduceNoWarning == _ = False
   ReduceNonPositivePay acc1 p1 tn1 a1 == ReduceNonPositivePay acc2 p2 tn2 a2 =
     acc1 == acc2 && p1 == p2 && tn1 == tn2 && a1 == a2
-  ReduceNonPositivePay{} == _ = False
+  ReduceNonPositivePay {} == _ = False
   ReducePartialPay acc1 p1 tn1 a1 e1 == ReducePartialPay acc2 p2 tn2 a2 e2 =
     acc1 == acc2 && p1 == p2 && tn1 == tn2 && a1 == a2 && e1 == e2
-  ReducePartialPay{} == _ = False
+  ReducePartialPay {} == _ = False
   ReduceShadowing v1 old1 new1 == ReduceShadowing v2 old2 new2 =
     v1 == v2 && old1 == old2 && new1 == new2
-  ReduceShadowing{} == _ = False
+  ReduceShadowing {} == _ = False
   ReduceAssertionFailed == ReduceAssertionFailed = True
   ReduceAssertionFailed == _ = False
 
 instance Eq ReduceEffect where
   {-# INLINEABLE (==) #-}
-  ReduceNoPayment == ReduceNoPayment           = True
-  ReduceNoPayment == _                         = False
+  ReduceNoPayment == ReduceNoPayment = True
+  ReduceNoPayment == _ = False
   ReduceWithPayment p1 == ReduceWithPayment p2 = p1 == p2
-  ReduceWithPayment _ == _                     = False
+  ReduceWithPayment _ == _ = False
 
 -- Functions that used in Plutus Core must be inlineable,
 -- so their code is available for PlutusTx compiler.

@@ -726,7 +726,7 @@
   },
   "indexArray": {
     "cpu": {
-      "arguments": 194922,
+      "arguments": 232010,
       "type": "constant_cost"
     },
     "memory": {
@@ -736,7 +736,7 @@
   },
   "lengthOfArray": {
     "cpu": {
-      "arguments": 198994,
+      "arguments": 231883,
       "type": "constant_cost"
     },
     "memory": {
@@ -747,8 +747,8 @@
   "listToArray": {
     "cpu": {
       "arguments": {
-        "intercept": 307802,
-        "slope": 8496
+        "intercept": 1000,
+        "slope": 24838
       },
       "type": "linear_in_x"
     },

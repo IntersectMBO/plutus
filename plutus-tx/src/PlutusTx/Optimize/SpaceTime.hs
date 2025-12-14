@@ -1,4 +1,4 @@
-{-# LANGUAGE BlockArguments  #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | Utilities for space-time tradeoff, such as recursion unrolling.
@@ -32,16 +32,14 @@ yields the equivalence of the following function:
                       []     -> 0
                       _ : ts -> 1 + self ts
                 ) ws
-@
--}
+@ -}
 peel
   :: forall a b
    . Int
   -- ^ How many recursion steps to move outside of the recursion loop.
   -> (TH.Code TH.Q (a -> b) -> TH.Code TH.Q (a -> b))
-  {- ^ Function that given a continuation splice returns
-  a splice representing a single recursion step calling this continuation.
-  -}
+  {-^ Function that given a continuation splice returns
+  a splice representing a single recursion step calling this continuation. -}
   -> TH.Code TH.Q (a -> b)
 peel 0 f = [||fix \self -> $$(f [||self||])||]
 peel n f
@@ -68,16 +66,14 @@ yields the equivalence of the following function:
                 []     -> 0
                 _ : ws -> 1 + self ws -- end of the "loop"
 
-@
--}
+@ -}
 unroll
   :: forall a b
    . Int
   -- ^ How many recursion steps to perform inside the recursion loop.
   -> (TH.Code TH.Q (a -> b) -> TH.Code TH.Q (a -> b))
-  {- ^ Function that given a continuation splice returns
-  a splice representing a single recursion step calling this continuation.
-  -}
+  {-^ Function that given a continuation splice returns
+  a splice representing a single recursion step calling this continuation. -}
   -> TH.Code TH.Q (a -> b)
 unroll n f = [||fix \self -> $$(nTimes n f [||self||])||]
 
