@@ -184,7 +184,7 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
   IN _ -> Left NegativeInput
   where
     mkSmall :: Int -> Int# -> ByteString
-    mkSmall desiredLength i# = BSI.unsafeCreate desiredLength $ \ptr -> do
+    mkSmall !desiredLength i# = BSI.unsafeCreate desiredLength $ \ptr -> do
       fillBytes ptr 0x00 desiredLength
       case requestedByteOrder of
         -- We use manual specialization to ensure as few branches in loop bodies
@@ -192,13 +192,13 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
         LittleEndian -> goSmallLE ptr 0 i#
         BigEndian -> goSmallBE ptr (desiredLength - 1) i#
     countZeroesAtEnd :: ByteArray# -> Int -> Int# -> Int
-    countZeroesAtEnd ba# acc ix# =
+    countZeroesAtEnd ba# !acc ix# =
       let w8# = indexWord8Array# ba# ix#
        in if isTrue# (neWord8# w8# (wordToWord8# 0##))
             then acc
             else countZeroesAtEnd ba# (acc + 1) (ix# -# 1#)
     mkLarge :: Int -> Int -> ByteArray# -> ByteString
-    mkLarge minLength desiredLength ba# = BSI.unsafeCreate desiredLength $ \ptr -> do
+    mkLarge !minLength !desiredLength ba# = BSI.unsafeCreate desiredLength $ \ptr -> do
       fillBytes ptr 0x00 desiredLength
       -- Because `copyByteArrayToAddr` is essentially `memcpy` or `copyBytes`,
       -- it may as well be a constant-time operation for anything that isn't
@@ -214,14 +214,14 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
         LittleEndian -> pure ()
         BigEndian -> reverseBuffer ptr desiredLength
     goSmallLE :: Ptr Word8 -> Int -> Int# -> IO ()
-    goSmallLE ptr offset remaining#
+    goSmallLE !ptr !offset remaining#
       | isTrue# (remaining# ==# 0#) = pure ()
       | otherwise = do
           let !(# q#, r# #) = quotRemInt# remaining# 256#
           pokeByteOff ptr offset (W8# (int8ToWord8# (intToInt8# r#)))
           goSmallLE ptr (offset + 1) q#
     goSmallBE :: Ptr Word8 -> Int -> Int# -> IO ()
-    goSmallBE ptr offset remaining#
+    goSmallBE !ptr !offset remaining#
       | isTrue# (remaining# ==# 0#) = pure ()
       | otherwise = do
           let !(# q#, r# #) = quotRemInt# remaining# 256#
@@ -236,7 +236,7 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
     --
     -- See Note [Loop sectioning] for details on why we do this.
     reverseBuffer :: Ptr Word8 -> Int -> IO ()
-    reverseBuffer ptr remainingSpan
+    reverseBuffer !ptr !remainingSpan
       | remainingSpan < 16 = finishUp ptr remainingSpan
       -- We use a standard 'two-finger' technique for reversing a buffer. We
       -- maintain a pair of pointers (or in our case, a pointer and an offset
@@ -255,7 +255,7 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
           poke pStart (byteSwap64 wEnd)
           reverseBuffer (plusPtr ptr 8) (remainingSpan - 16)
     finishUp :: Ptr Word8 -> Int -> IO ()
-    finishUp ptr remaining
+    finishUp !ptr !remaining
       -- If we have exactly zero or exactly one byte left, we've reached the
       -- middle: either our 'fingers' met, or there's one element between them.
       -- In either case, no further action is needed.
