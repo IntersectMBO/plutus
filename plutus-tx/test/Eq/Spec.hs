@@ -2,8 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
--- needed since we don't support polymorphic phantom types
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Eq.Spec (eqTests) where
 
@@ -48,8 +46,8 @@ unitTests =
         [ testCase "reflexive1" $ (v1 Tx.== v1) @?= (v1 HS.== v1)
         , testCase "reflexive2" $ (v2 Tx.== v2) @?= (v2 HS.== v2)
         , testCase "reflexive3" $ (v3 Tx.== v3) @?= (v3 HS.== v3)
-        , -- currently does not work with polymorphic phantom types, remove the type annotation when support is added
-          testCase "phantom" $ (PhantomADT @() () Tx.== PhantomADT ()) @?= (PhantomADT () HS.== PhantomADT ())
+        , -- polymorphic phantom types, no type annotation is needed
+          testCase "phantom" $ (PhantomADT () Tx.== PhantomADT ()) @?= (PhantomADT () HS.== PhantomADT ())
         , testCase "shortcircuit" $ (v3 Tx.== v3Error1) @?= (v3 Tx.== v3Error1) -- should not throw an error
         , testCase "throws" $ try @SomeException (evaluate $ v3 Tx.== v3Error2) >>= assertBool "did not throw error" . isLeft -- should throw erro
         , testCase "void" $ (v4 Tx.== v4) @?= True
