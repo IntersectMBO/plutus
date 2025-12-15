@@ -21,13 +21,20 @@ deriveBounded name = do
     , TH.datatypeCons = cons
     } <-
     TH.reifyDatatype name
+
+  roles <- reifyRoles name
+
   let
     -- The purpose of the `TH.VarT . varTToName` roundtrip is to remove the kind
     -- signatures attached to the type variables in `tyVars0`. Otherwise, the
     -- `KindSignatures` extension would be needed whenever `length tyVars0 > 0`.
     tyVars = TH.VarT . varTToName <$> tyVars0
+
+    nonPhantomTyVars = VarT . varTToName . snd <$> filter ((/= PhantomR) . fst) (zip roles tyVars0)
+
     instanceCxt :: TH.Cxt
-    instanceCxt = TH.AppT (TH.ConT ''Bounded) <$> tyVars
+    instanceCxt = TH.AppT (TH.ConT ''Bounded) <$> nonPhantomTyVars
+
     instanceType :: TH.Type
     instanceType = TH.AppT (TH.ConT ''Bounded) $ foldl' TH.AppT (TH.ConT tyConName) tyVars
 

@@ -2,8 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
--- needed since we don't support polymorphic phantom types
-{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Bounded.Spec (boundedTests) where
 
@@ -42,13 +40,13 @@ boundedTests =
    in testGroup
         "PlutusTx.Enum tests"
         [ testCase "conforms to haskell" $ (Tx.minBound @SomeVeryLargeEnum, Tx.maxBound @SomeVeryLargeEnum) @?= (HS.minBound, HS.maxBound)
-        , -- currently does not work with polymorphic phantom types, remove the type annotation when support is added
-          testCase "phantom" $ Tx.minBound @(PhantomADT ()) @?= HS.minBound
+        , testCase "phantom" $ Tx.minBound @(PhantomADT _) @?= HS.minBound
         , runTestNested
             ["test", "Bounded", "Golden"]
             [ $(goldenCodeGen "SomeVeryLargeEnum" (deriveBounded ''SomeVeryLargeEnum))
             , $(goldenCodeGen "Unit" (deriveBounded ''()))
             , $(goldenCodeGen "Ordering" (deriveBounded ''Ordering))
             , $(goldenCodeGen "SingleConstructor" (deriveBounded ''SingleConstructor))
+            , $(goldenCodeGen "PhantomADT" (deriveBounded ''PhantomADT))
             ]
         ]
