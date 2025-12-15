@@ -1289,11 +1289,11 @@
   "unionValue": {
     "cpu": {
       "arguments": {
-          "interaction_slope_x": 114467,
-          "interaction_slope_xy": 7,
-          "interaction_slope_y": 160561
+        "interaction_slope_x": 114467,
+        "interaction_slope_xy": 7,
+        "interaction_slope_y": 160561
       },
-      "type": "with_interaction"
+      "type": "with_interaction_of_x_and_y"
     },
     "memory": {
       "arguments": 1,

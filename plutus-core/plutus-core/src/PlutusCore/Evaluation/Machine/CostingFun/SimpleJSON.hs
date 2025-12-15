@@ -9,6 +9,7 @@ module PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON where
 import Data.Aeson
 import Data.Text (Text)
 import Language.Haskell.TH.Syntax (Lift)
+import PlutusCore.Evaluation.Machine.BuiltinCostModel (TwoVariableWithInteractionFunction)
 
 -------------- Types representing cost mode entries and functions for JSON parsing ----------------
 
@@ -113,7 +114,7 @@ data Model
   | QuadraticInY OneVariableQuadraticFunction
   | QuadraticInZ OneVariableQuadraticFunction
   | QuadraticInXAndY TwoVariableQuadraticFunction
-  | SquareOfSum SquareOfTwoVariableSumFunction
+  | WithInteractionOfXAndY TwoVariableWithInteractionFunction
   | -- | Linear model in x-y plus minimum value for the case x-y < 0.
     SubtractedSizes LinearFunction Integer
   | ConstAboveDiagonal Integer Model
@@ -162,7 +163,7 @@ instance FromJSON Model where
           "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
           "linear_in_max_yz" -> LinearInMaxYZ <$> parseJSON args
           "linear_in_y_and_z" -> LinearInYAndZ <$> parseJSON args
-          "square_of_sum" -> SquareOfSum <$> parseJSON args
+          "with_interaction_of_x_and_y" -> WithInteractionOfXAndY <$> parseJSON args
           "subtracted_sizes" -> SubtractedSizes <$> parseJSON args <*> objOf args .: "minimum"
           "const_above_diagonal" -> modelWithConstant ConstAboveDiagonal args
           "const_below_diagonal" -> modelWithConstant ConstBelowDiagonal args
