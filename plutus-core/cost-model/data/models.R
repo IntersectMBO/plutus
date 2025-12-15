@@ -836,8 +836,8 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ I((x_mem + y_mem)^2), filtered)
-        mk.result(m, "square_of_sum")
+        m <- lm(t ~ x_mem*y_mem + 0, filtered)
+        mk.result(m, "with_interaction_of_x_and_y")
     }
 
     # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)

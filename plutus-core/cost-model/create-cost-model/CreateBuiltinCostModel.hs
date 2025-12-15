@@ -365,11 +365,12 @@ readTwoVariableLinearFunction var1 var2 e = do
   slopeY <- Slope <$> getCoeff var2 e
   pure $ TwoVariableLinearFunction intercept slopeX slopeY
 
-readSquareOfTwoVariableSumFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m SquareOfTwoVariableSumFunction
-readSquareOfTwoVariableSumFunction var1 var2 e = do
-  c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
-  c11 <- Coefficient11 <$> getCoeff (printf "I((%s + %s)^2)" var1 var2) e
-  pure $ SquareOfTwoVariableSumFunction c00 c11
+readTwoVariableWithInteractionFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableWithInteractionFunction
+readTwoVariableWithInteractionFunction var1 var2 e = do
+  slopeX <- Slope <$> getCoeff var1 e
+  slopeY <- Slope <$> getCoeff var2 e
+  slopeXY <- Slope <$> getCoeff (printf "%s:%s" var1 var2) e
+  pure $ TwoVariableWithInteractionFunction slopeX slopeY slopeXY
 
 readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
 readTwoVariableQuadraticFunction var1 var2 e = do
@@ -436,7 +437,7 @@ readCF2AtType ty e = do
     "const_off_diagonal" -> ModelTwoArgumentsConstOffDiagonal <$> readOneVariableFunConstOr e
     "quadratic_in_y" -> ModelTwoArgumentsQuadraticInY <$> readOneVariableQuadraticFunction "y_mem" e
     "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
-    "square_of_sum" -> ModelTwoArgumentsSquareOfSum <$> readSquareOfTwoVariableSumFunction "x_mem" "y_mem" e
+    "with_interaction_of_x_and_y" -> ModelTwoArgumentsWithInteraction <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" e
     _ -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments

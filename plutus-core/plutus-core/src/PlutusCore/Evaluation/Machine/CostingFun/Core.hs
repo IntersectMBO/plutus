@@ -28,7 +28,7 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
   , OneVariableQuadraticFunction (..)
   , TwoVariableLinearFunction (..)
   , TwoVariableQuadraticFunction (..)
-  , SquareOfTwoVariableSumFunction (..)
+  , TwoVariableWithInteractionFunction (..)
   , ExpModCostingFunction (..)
   , ModelSubtractedSizes (..)
   , ModelConstantOrLinear (..) -- Deprecated: see below.
@@ -500,12 +500,29 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
 
-data SquareOfTwoVariableSumFunction = SquareOfTwoVariableSumFunction
-  { squareOfSumCoefficient00 :: Coefficient00
-  , squareOfSumCoefficient11 :: Coefficient11
+-- | a*x + b*y + c*x*y; note that the intercept is always zero
+data TwoVariableWithInteractionFunction = TwoVariableWithInteractionFunction
+  { interactionSlopeX :: Slope
+  , interactionSlopeY :: Slope
+  , interactionSlopeXY :: Slope
   }
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
+
+evaluateTwoVariableWithInteractionFunction
+  :: TwoVariableWithInteractionFunction
+  -> CostingInteger
+  -> CostingInteger
+  -> CostingInteger
+evaluateTwoVariableWithInteractionFunction
+  ( TwoVariableWithInteractionFunction
+      (Slope slopeX)
+      (Slope slopeY)
+      (Slope slopeXY)
+    )
+  x
+  y =
+    slopeX * x + slopeY * y + slopeXY * (x * y)
 
 {- Note [Backward compatibility for costing functions].  The PR at
    https://github.com/IntersectMBO/plutus/pull/5857 generalised the costing
@@ -539,7 +556,7 @@ data ModelTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
   | ModelTwoArgumentsQuadraticInY OneVariableQuadraticFunction
   | ModelTwoArgumentsQuadraticInXAndY TwoVariableQuadraticFunction
-  | ModelTwoArgumentsSquareOfSum SquareOfTwoVariableSumFunction
+  | ModelTwoArgumentsWithInteraction TwoVariableWithInteractionFunction
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
 
@@ -675,7 +692,11 @@ runTwoArgumentModel
       let !size1 = sumCostStream costs1
           !size2 = sumCostStream costs2
        in CostLast $ evaluateTwoVariableQuadraticFunction f size1 size2
-runTwoArgumentModel (ModelTwoArgumentsSquareOfSum f) = undefined
+runTwoArgumentModel (ModelTwoArgumentsWithInteraction f) =
+  lazy $ \costs1 costs2 ->
+    let !size1 = sumCostStream costs1
+        !size2 = sumCostStream costs2
+     in CostLast $ evaluateTwoVariableWithInteractionFunction f size1 size2
 {-# OPAQUE runTwoArgumentModel #-}
 
 ---------------- Three-argument costing functions ----------------

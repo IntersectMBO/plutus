@@ -30,7 +30,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
   , OneVariableQuadraticFunction (..)
   , TwoVariableLinearFunction (..)
   , TwoVariableQuadraticFunction (..)
-  , SquareOfTwoVariableSumFunction (..)
+  , TwoVariableWithInteractionFunction (..)
   , ExpModCostingFunction (..)
   , ModelSubtractedSizes (..)
   , ModelConstantOrOneArgument (..)

@@ -186,10 +186,10 @@ deriving via
   instance
     ToJSON ModelConstantOrLinear
 deriving via
-  ModelJSON "squareOfTwoVariableSumFunction" SquareOfTwoVariableSumFunction
+  ModelJSON "twoVariableWithInteractionFunction" TwoVariableWithInteractionFunction
   instance
-    FromJSON SquareOfTwoVariableSumFunction
+    FromJSON TwoVariableWithInteractionFunction
 deriving via
-  ModelJSON "squareOfTwoVariableSumFunction" SquareOfTwoVariableSumFunction
+  ModelJSON "twoVariableWithInteractionFunction" TwoVariableWithInteractionFunction
   instance
-    ToJSON SquareOfTwoVariableSumFunction
+    ToJSON TwoVariableWithInteractionFunction
