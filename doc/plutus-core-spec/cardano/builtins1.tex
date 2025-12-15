@@ -86,6 +86,13 @@ Haskell as
       | Array (Vector Data)
 \end{alltt}
 
+\noindent\textbf{Note.} The \texttt{Array} constructor will not be available until
+a future protocol version. Prior to that, the \texttt{data} type contains only
+the first five constructors: \texttt{Constr}, \texttt{Map}, \texttt{List},
+\texttt{I}, and \texttt{B}.
+
+\medskip
+
 \noindent In set-theoretic terms the denotation of $\ty{data}$ is
 defined to be the least fixed point of the endofunctor $F$ on the category of
 sets given by $F(X) = (\denote{\ty{integer}} \times X^*) \disj (X \times X)^* \disj
@@ -295,13 +302,11 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{constrData}               & $[\ty{integer}, \listOf{\ty{data}}] \to \ty{data}$          & $\inj_C$ & No & \\[2mm]
     \TT{mapData}                  & $[\listOf{\pairOf{\ty{data}}{\ty{data}}}] \to \ty{data}$     & $\inj_M$ & No & \\[2mm]
     \TT{listData}                 & $[\listOf{\ty{data}}] \to \ty{data} $      & $\inj_L$ & No & \\[2mm]
-    \TT{arrayData}                & $[\arrayOf{\ty{data}}] \to \ty{data} $      & $\inj_A$ & No & \\[2mm]
     \TT{iData}                    & $[\ty{integer}] \to \ty{data} $            & $\inj_I$ & No & \\[2mm]
     \TT{bData}                    & $[\ty{bytestring}] \to \ty{data} $         & $\inj_B$& No & \\[2mm]
     \TT{unConstrData}             & $[\ty{data}]$ \text{$\;\; \to \pairOf{\ty{integer}}{\listOf{\ty{data}}}$} & $\proj_C$ & Yes & \\[2mm]
     \TT{unMapData}                & $[\ty{data}]$ \text{$\;\; \to \listOf{\pairOf{\ty{data}}{\ty{data}}}$}  & $\proj_M$ & Yes & \\[2mm]
     \TT{unListData}               & $[\ty{data}] \to \listOf{\ty{data}} $                          & $\proj_L$ & Yes & \\[2mm]
-    \TT{unArrayData}              & $[\ty{data}] \to \arrayOf{\ty{data}} $                          & $\proj_A$ & Yes & \\[2mm]
     \TT{unIData}                  & $[\ty{data}] \to \ty{integer} $                                & $\proj_I$ & Yes & \\[2mm]
     \TT{unBData}                  & $[\ty{data}] \to \ty{bytestring} $                             & $\proj_B$ & Yes & \\[2mm]
     \TT{equalsData}               & $[\ty{data}, \ty{data}] \to \ty{bool} $                        & $ = $ & & \\[2mm]

@@ -1,0 +1,49 @@
+\newcounter{notenumberG}
+\renewcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{notenumberG}
+  \noindent\textbf{Note \thenotenumberG. #1}
+}
+\newpage
+\subsection{Batch 7}
+\label{sec:default-builtins-7}
+This section describes the \texttt{Array} constructor for the \texttt{data} type
+and associated functions. These have not been released at the time of writing
+and are expected to be released at a future protocol version.
+
+\subsubsection{Extension to the \texttt{data} type}
+\label{sec:data-array-constructor}
+Batch 7 extends the \texttt{data} type with a sixth constructor, \texttt{Array},
+which holds an array of \texttt{data} values:
+\begin{alltt}
+   | Array (Vector Data)
+\end{alltt}
+\noindent This adds the injection $\inj_A: \denote{\ty{data}}^* \to \denote{\ty{data}}$
+and projection $\proj_A: \denote{\ty{data}} \to \withError{\denote{\ty{data}}^*}$
+as described in Section~\ref{sec:built-in-types-1}.
+
+\subsubsection{Built-in functions}
+\label{sec:built-in-functions-7}
+The seventh batch adds functions for constructing and deconstructing
+\texttt{Array} values within the \texttt{data} type.
+
+\begin{table}[H]
+  \centering
+  \renewcommand*{\arraystretch}{1.25}
+    \begin{tabular}{|l|p{50mm}|p{40mm}|c|c|}
+        \hline
+        \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+        & & & fail? & \\
+        \hline
+        \TT{arrayData}   & $[\arrayOf{\ty{data}}] \to \ty{data}$ & $\inj_A$ & No & \\[2mm]
+        \TT{unArrayData} & $[\ty{data}] \to \arrayOf{\ty{data}}$ & $\proj_A$ & Yes & \\[2mm]
+        \hline
+    \end{tabular}
+    \caption{Built-in functions, Batch 7}
+    \label{table:built-in-functions-7}
+\end{table}
+
+\noindent The \texttt{arrayData} function wraps an array of \texttt{data} values
+into a \texttt{data} value using the \texttt{Array} constructor.
+The \texttt{unArrayData} function extracts the array from a \texttt{data} value,
+failing if the value is not an \texttt{Array}.
