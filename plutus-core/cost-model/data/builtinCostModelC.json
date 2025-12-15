@@ -310,7 +310,7 @@
   },
   "chooseData": {
     "cpu": {
-      "arguments": 2205982,
+      "arguments": 231589,
       "type": "constant_cost"
     },
     "memory": {
@@ -441,8 +441,8 @@
   "equalsData": {
     "cpu": {
       "arguments": {
-        "intercept": 898148,
-        "slope": 27279
+        "intercept": 1077121,
+        "slope": 26236
       },
       "type": "min_size"
     },
@@ -827,8 +827,8 @@
   "serialiseData": {
     "cpu": {
       "arguments": {
-        "intercept": 955506,
-        "slope": 213312
+        "intercept": 1164524,
+        "slope": 232703
       },
       "type": "linear_in_x"
     },
