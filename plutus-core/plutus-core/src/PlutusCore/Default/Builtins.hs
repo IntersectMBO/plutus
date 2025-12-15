@@ -1452,9 +1452,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             Constr {} -> pure xConstr
             Map {} -> pure xMap
             List {} -> pure xList
-            Array {} -> pure xArray
             I {} -> pure xI
             B {} -> pure xB
+            Array {} -> pure xArray
         {-# INLINE chooseDataDenotation #-}
      in makeBuiltinMeaning
           chooseDataDenotation

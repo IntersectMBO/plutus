@@ -45,9 +45,9 @@ data Data
   = Constr Integer [Data]
   | Map [(Data, Data)]
   | List [Data]
-  | Array (Vector Data)
   | I Integer
   | B BS.ByteString
+  | Array (Vector Data)
   deriving stock (Show, Read, Eq, Ord, Generic, Data.Data.Data)
   deriving anyclass (Hashable, NFData, NoThunks)
 
@@ -57,11 +57,11 @@ instance Pretty Data where
     Map entries ->
       braces (sep (punctuate comma (fmap (\(k, v) -> pretty k <> ":" <+> pretty v) entries)))
     List ds -> brackets (sep (punctuate comma (fmap pretty ds)))
-    Array ds -> brackets (sep (punctuate comma (Vector.toList (pretty <$> ds))))
     I i -> pretty i
     B b ->
       -- Base64 encode the ByteString since it may contain arbitrary bytes
       pretty (Text.decodeLatin1 (Base64.encode b))
+    Array ds -> brackets (sep (punctuate comma (Vector.toList (pretty <$> ds))))
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually

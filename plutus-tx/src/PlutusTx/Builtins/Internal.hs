@@ -559,9 +559,9 @@ chooseData (BuiltinData d) constrCase mapCase listCase arrayCase iCase bCase = c
   PLC.Constr {} -> constrCase
   PLC.Map {} -> mapCase
   PLC.List {} -> listCase
-  PLC.Array {} -> arrayCase
   PLC.I {} -> iCase
   PLC.B {} -> bCase
+  PLC.Array {} -> arrayCase
 {-# OPAQUE chooseData #-}
 
 -- | Creates 'Constr' data value with the given index and elements; never fails.
