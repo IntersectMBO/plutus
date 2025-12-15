@@ -305,7 +305,6 @@ library
     , base64-bytestring
     , bimap
     , bytestring
-    , bytestring-strict-builder
     , cardano-crypto-class        ^>=2.2.3
     , cassava
     , cborg
