@@ -17,13 +17,6 @@ data-files:
   README.md
   src/**/*.lagda.md
 
-custom-setup
-  setup-depends:
-    , base
-    , Cabal
-    , process
-    , turtle   >=1.6
-
 common lang
   default-language:   Haskell2010
   default-extensions:
