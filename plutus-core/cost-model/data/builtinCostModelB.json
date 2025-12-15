@@ -1256,23 +1256,30 @@
     }
   },
   "insertCoin": {
-    "cpu": {
-      "arguments": 1000,
-      "type": "constant_cost"
-    },
-    "memory": {
-      "arguments": 10,
-      "type": "constant_cost"
-    }
+      "cpu": {
+          "arguments": {
+              "intercept": 356924,
+              "slope": 18413
+          },
+          "type": "linear_in_w"
+      },
+      "memory": {
+          "arguments": 1,
+          "type": "constant_cost"
+      }
   },
   "unionValue": {
-    "cpu": {
-      "arguments": 1000,
-      "type": "constant_cost"
-    },
-    "memory": {
-      "arguments": 10,
-      "type": "constant_cost"
+      "cpu": {
+          "arguments": {
+              "interaction_slope_x": 114467,
+              "interaction_slope_xy": 7,
+              "interaction_slope_y": 160561
+          },
+          "type": "with_interaction"
+      },
+      "memory": {
+          "arguments": 1,
+          "type": "constant_cost"
+      }
     }
   }
-}
