@@ -1,4 +1,0 @@
-# Plutus Core cost model benchmark results
-# Started at 2025-12-08 13:46:48.688549671 UTC
-benchmark,t,t.mean.lb,t.mean.ub,t.sd,t.sd.lb,t.sd.ub
-UnionValue/1/87465,1.3889185943724285e-2,1.3068843289581087e-2,1.619736840823812e-2,3.1531774024563123e-3,1.4270910600990248e-3,5.793187455426946e-3
