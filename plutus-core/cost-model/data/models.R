@@ -765,9 +765,9 @@ modelFun <- function(path) {
     ## a quadratic model with a small nonzero (and possibly negative) leading
     ## coefficient.  This can become significant when scaled up to a costing
     ## integer, so we check that it's relatively small and set it to zero if so,
-    ## makeing the model effectively linear; if the leading coefficient is
-    ## bigger than expected then we leave it unaltered and return the original
-    ## quadratic model.
+    ## making the model effectively linear; if the leading coefficient is bigger
+    ## than expected then we leave it unaltered and return the full quadratic
+    ## model.
 
     integerToByteStringModel <- {
         fname <- "IntegerToByteString"
