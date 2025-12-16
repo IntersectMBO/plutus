@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE EmptyDataDeriving #-}
 
 module Eq.Spec (eqTests) where
 
@@ -20,6 +21,7 @@ import Prelude hiding (Eq (..), error)
 import Prelude qualified as HS (Eq (..))
 
 data SomeVoid
+  deriving stock (HS.Eq)
 deriveEq ''SomeVoid
 
 data SomeLargeADT a b c d e
@@ -50,7 +52,7 @@ unitTests =
           testCase "phantom" $ (PhantomADT () Tx.== PhantomADT ()) @?= (PhantomADT () HS.== PhantomADT ())
         , testCase "shortcircuit" $ (v3 Tx.== v3Error1) @?= (v3 Tx.== v3Error1) -- should not throw an error
         , testCase "throws" $ try @SomeException (evaluate $ v3 Tx.== v3Error2) >>= assertBool "did not throw error" . isLeft -- should throw erro
-        , testCase "void" $ (v4 Tx.== v4) @?= True
+        , testCase "void" $ (v4 Tx.== v4) @?= (v4 HS.== v4)
         ]
 
 goldenTests :: TestTree

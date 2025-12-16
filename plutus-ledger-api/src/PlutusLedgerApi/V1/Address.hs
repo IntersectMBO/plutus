@@ -26,7 +26,6 @@ import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusTx qualified
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
-import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import Prettyprinter (Pretty (pretty), parens, (<+>))
 
@@ -41,18 +40,12 @@ data Address = Address
   deriving stock (Eq, Ord, Show, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''Address
+
 instance Pretty Address where
   pretty (Address cred stakingCred) =
     let staking = maybe "no staking credential" pretty stakingCred
      in pretty cred <+> parens staking
-
-instance PlutusTx.Eq Address where
-  {-# INLINEABLE (==) #-}
-  Address cred stakingCred == Address cred' stakingCred' =
-    cred
-      PlutusTx.== cred'
-      PlutusTx.&& stakingCred
-      PlutusTx.== stakingCred'
 
 {-# INLINEABLE pubKeyHashAddress #-}
 

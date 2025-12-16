@@ -121,10 +121,8 @@ PlutusTx.asData
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
 
+deriveEq ''TxInInfo
 makeLift ''TxInInfo
-
-instance Eq TxInInfo where
-  TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
 
 instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =

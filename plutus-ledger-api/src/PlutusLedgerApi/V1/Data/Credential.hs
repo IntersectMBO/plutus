@@ -51,15 +51,11 @@ PlutusTx.asData
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
 
+PlutusTx.deriveEq ''Credential
+
 instance Pretty Credential where
   pretty (PubKeyCredential pkh) = "PubKeyCredential:" <+> pretty pkh
   pretty (ScriptCredential val) = "ScriptCredential:" <+> pretty val
-
-instance PlutusTx.Eq Credential where
-  {-# INLINEABLE (==) #-}
-  PubKeyCredential l == PubKeyCredential r = l PlutusTx.== r
-  ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
-  _ == _ = False
 
 {-| Staking credential used to assign rewards.
 
@@ -87,21 +83,11 @@ PlutusTx.asData
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
 
+PlutusTx.deriveEq ''StakingCredential
+
 instance Pretty StakingCredential where
   pretty (StakingHash h) = "StakingHash" <+> pretty h
   pretty (StakingPtr a b c) = "StakingPtr:" <+> pretty a <+> pretty b <+> pretty c
-
-instance PlutusTx.Eq StakingCredential where
-  {-# INLINEABLE (==) #-}
-  StakingHash l == StakingHash r = l PlutusTx.== r
-  StakingPtr a b c == StakingPtr a' b' c' =
-    a
-      PlutusTx.== a'
-      PlutusTx.&& b
-      PlutusTx.== b'
-      PlutusTx.&& c
-      PlutusTx.== c'
-  _ == _ = False
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

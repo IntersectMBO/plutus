@@ -56,18 +56,12 @@ PlutusTx.asData
       deriving anyclass (NFData, HasBlueprintDefinition)
     |]
 
+PlutusTx.deriveEq ''Address
+
 instance Pretty Address where
   pretty (Address cred stakingCred) =
     let staking = maybe "no staking credential" pretty stakingCred
      in pretty cred <+> parens staking
-
-instance PlutusTx.Eq Address where
-  {-# INLINEABLE (==) #-}
-  Address cred stakingCred == Address cred' stakingCred' =
-    cred
-      PlutusTx.== cred'
-      PlutusTx.&& stakingCred
-      PlutusTx.== stakingCred'
 
 {-# INLINEABLE pubKeyHashAddress #-}
 
