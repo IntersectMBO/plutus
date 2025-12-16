@@ -851,9 +851,12 @@ modelFun <- function(path) {
         mk.result(m, "multiplied_sizes")
     }         
 
-    # # Sizes of parameters are used as is (unwrapped):
+    # Sizes of parameters are used as is (unwrapped):
     valueDataModel            <- constantModel ("ValueData")
     unValueDataModel          <- linearInX ("UnValueData")
+    
+    # Y wrapped with `TotalSize` (contained value size)
+    scaleValueModel           <- linearInY ("ScaleValue")
 
     ##### Models to be returned to Haskell #####
 
@@ -954,7 +957,8 @@ modelFun <- function(path) {
         valueDataModel                       = valueDataModel,
         unValueDataModel                     = unValueDataModel,
         insertCoinModel                      = insertCoinModel,
-        unionValueModel                      = unionValueModel
+        unionValueModel                      = unionValueModel,
+        scaleValueModel                      = scaleValueModel
         )
 
     ## The integer division functions have a complex costing behaviour that requires some negative
