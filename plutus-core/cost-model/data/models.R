@@ -50,7 +50,7 @@ discard.upper.outliers <- function(fr) {
     nrows = nrow(fr)
     new.nrows = nrow(new.fr)
     if (new.nrows <= 0.9 * nrows) {
-        cat (sprintf ("*** WARNING: %d outliers have been discarded from %d datapoints for %s\n", nrows-new.nrows, nrows, fname ));
+        cat (sprintf ("#* WARNING [%s]: %d outliers have been discarded from %d datapoints for %s\n", fname, nrows-new.nrows, nrows));
     }
     return (new.fr)
 }
@@ -219,8 +219,8 @@ adjustModel <- function (r, fname) {
     default <- 1/1000  ## 1 ns, or 1000 ps (remember: we're working in µs here)
     ensurePositive <- function(x, name) {
         if (x<0) {
-            cat (sprintf("** WARNING: a negative coefficient %f for %s occurred in the model for %s. This has been adjusted to %s.\n",
-                         x, name, fname, default))
+            cat (sprintf("# WARNING [%s]: negative coefficient %f for %s has been adjusted to %s.\n",
+                         fname, x, name, default))
             default
         }
         else x
@@ -699,7 +699,7 @@ modelFun <- function(path) {
         fname <- "EqualsData"
         filtered <- data %>% filter.and.check.nonempty(fname)
         if (!identical(filtered$x_mem, filtered$y_mem))
-            cat(sprintf ("* WARNING: x_mem and y_mem differ in %s: inferred model may be inaccurate\n", fname))
+            cat(sprintf ("* WARNING [%s]: x_mem and y_mem differ: inferred model may be inaccurate\n", fname))
         m <- fit.fan(filtered)
         v <- coefficients(m)
         names(v) <- c("(Intercept)", "pmin(x_mem, y_mem)")
@@ -757,11 +757,33 @@ modelFun <- function(path) {
     ## pad the output to width w.  Experiments show that the padding cost is
     ## negligible in comparison to the conversion cost, so it's safe to base the
     ## cost purely on the size of n.
+
+    ## The original implementations of integerToByteString and
+    ## byteStringToInteger had quadratic time complexity, but they were later
+    ## improved to be linear.  For backward compatibility we have to maintain
+    ## the original quadratic form, and for the new implementations lm will fit
+    ## a quadratic model with a small nonzero (and possibly negative) leading
+    ## coefficient.  This can become significant when scaled up to a costing
+    ## integer, so we check that it's relatively small and set it to zero if so,
+    ## makeing the model effectively linear; if the leading coefficient is
+    ## bigger than expected then we leave it unaltered and return the original
+    ## quadratic model.
+
     integerToByteStringModel <- {
         fname <- "IntegerToByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname)
         m <- lm(t ~ I(z_mem) + I(z_mem^2), filtered)
+
+        q <- m$coefficients[3]
+        if (abs(q) > 1e-6) {
+            cat (sprintf ("# WARNING [%s]: model appears to be truly quadratic: leading coefficient is %.3g.\n",
+                         fname, q))
+        } else {
+            cat (sprintf("# INFO [%s]: insignificant quadratic coefficient %.3g has been adjusted to zero.\n", fname, q))
+            m$coefficients[3] <- 0
+        }
+
         mk.result(m, "quadratic_in_z")
     }
 
@@ -770,6 +792,17 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname)
         m <- lm(t ~ I(y_mem) + I(y_mem^2), filtered)
+
+        ## See note about quadratic versus linear model before integerToByteStringModel.
+        q <- m$coefficients[3]
+        if (abs(q) > 1e-6) {
+            cat (sprintf ("# WARNING [%s]: model appears to be truly quadratic: leading coefficient is %.3g.\n",
+                         fname, q))
+        } else {
+            cat (sprintf("# INFO [%s]: insignificant quadratic coefficient %.3g has been adjusted to zero.\n", fname, q))
+            m$coefficients[3] <- 0
+        }
+
         mk.result(m, "quadratic_in_y")
     }
 
@@ -936,7 +969,7 @@ modelFun <- function(path) {
     ## The integer division functions have a complex costing behaviour that requires some negative
     ## coefficients to get accurate results. Because of this they are excluded from adjustModels:
     ## the Haskell code receives the raw model and takes care of the (unlikely) case when a negative
-    ## value is returned itself (using a minimm value returned from R as an extra parameter).  Any
+    ## value is returned itself (using a minimum value returned from R as an extra parameter).  Any
     ## other builtins which need a non-monotonic costing function should be treated similarly.
 
     unadjusted.models <- list (
