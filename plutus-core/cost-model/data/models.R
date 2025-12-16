@@ -837,7 +837,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem*y_mem + 0, filtered)
-        mk.result(m, "with_interaction_of_x_and_y")
+        mk.result(m, "with_interaction_in_x_and_y")
     }
 
     # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)

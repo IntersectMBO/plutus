@@ -9,7 +9,6 @@ module PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON where
 import Data.Aeson
 import Data.Text (Text)
 import Language.Haskell.TH.Syntax (Lift)
-import PlutusCore.Evaluation.Machine.BuiltinCostModel (TwoVariableWithInteractionFunction)
 
 -------------- Types representing cost mode entries and functions for JSON parsing ----------------
 
@@ -64,18 +63,20 @@ instance FromJSON TwoVariableQuadraticFunction where
       <*> obj .: "c11"
       <*> obj .: "c02"
 
-data SquareOfTwoVariableSumFunction
-  = SquareOfTwoVariableSumFunction
-  { ssfcoeff00_ :: Integer
-  , ssfcoeff11_ :: Integer
+data TwoVariableWithInteractionFunction
+  = TwoVariableWithInteractionFunction
+  { interactionslopex_ :: Integer
+  , interactionslopey_ :: Integer
+  , interactionslopexy_ :: Integer
   }
   deriving stock (Show, Lift)
 
-instance FromJSON SquareOfTwoVariableSumFunction where
-  parseJSON = withObject "Square of two-variable sum function" $ \obj ->
-    SquareOfTwoVariableSumFunction
-      <$> obj .: "square_of_sum_coefficient00"
-      <*> obj .: "square_of_sum_coefficient11"
+instance FromJSON TwoVariableWithInteractionFunction where
+  parseJSON = withObject "Two variable with interaction function" $ \obj ->
+    TwoVariableWithInteractionFunction
+      <$> obj .: "interaction_slope_x"
+      <*> obj .: "interaction_slope_y"
+      <*> obj .: "interaction_slope_xy"
 
 data ExpModCostingFunction
   = ExpModCostingFunction
@@ -114,7 +115,7 @@ data Model
   | QuadraticInY OneVariableQuadraticFunction
   | QuadraticInZ OneVariableQuadraticFunction
   | QuadraticInXAndY TwoVariableQuadraticFunction
-  | WithInteractionOfXAndY TwoVariableWithInteractionFunction
+  | WithInteractionInXAndY TwoVariableWithInteractionFunction
   | -- | Linear model in x-y plus minimum value for the case x-y < 0.
     SubtractedSizes LinearFunction Integer
   | ConstAboveDiagonal Integer Model
@@ -163,7 +164,7 @@ instance FromJSON Model where
           "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
           "linear_in_max_yz" -> LinearInMaxYZ <$> parseJSON args
           "linear_in_y_and_z" -> LinearInYAndZ <$> parseJSON args
-          "with_interaction_of_x_and_y" -> WithInteractionOfXAndY <$> parseJSON args
+          "with_interaction_in_x_and_y" -> WithInteractionInXAndY <$> parseJSON args
           "subtracted_sizes" -> SubtractedSizes <$> parseJSON args <*> objOf args .: "minimum"
           "const_above_diagonal" -> modelWithConstant ConstAboveDiagonal args
           "const_below_diagonal" -> modelWithConstant ConstBelowDiagonal args

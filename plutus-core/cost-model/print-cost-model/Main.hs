@@ -92,16 +92,25 @@ renderTwoVariableQuadraticFunction
       c02
       var2
 
-renderSquareOfTwoVariableSumFunction
-  :: SquareOfTwoVariableSumFunction
+renderWithInteractionInXAndY
+  :: TwoVariableWithInteractionFunction
   -> String
   -> String
   -> String
-renderSquareOfTwoVariableSumFunction
-  (SquareOfTwoVariableSumFunction c00 c11)
+renderWithInteractionInXAndY
+  (TwoVariableWithInteractionFunction cx cy cxy)
   var1
   var2 =
-    undefined
+    printf
+      "%d + %d*%s + %d*%s + %d*%s*%s"
+      (0 :: Integer)
+      cx
+      var1
+      cy
+      var2
+      cxy
+      var1
+      var2
 
 renderExpModCostingFunction
   :: ExpModCostingFunction
@@ -147,7 +156,7 @@ renderModel =
     QuadraticInY f -> [renderOneVariableQuadraticFunction f "y"]
     QuadraticInZ f -> [renderOneVariableQuadraticFunction f "z"]
     QuadraticInXAndY f -> [renderTwoVariableQuadraticFunction f "x" "y"]
-    SquareOfSum f -> [renderSquareOfTwoVariableSumFunction f "x" "y"]
+    WithInteractionInXAndY f -> [renderWithInteractionInXAndY f "x" "y"]
     ExpModCost f -> [renderExpModCostingFunction f "y" "z"]
     LinearInMaxYZ f -> [renderLinearFunction f "max(y,z)"]
     LinearInYAndZ f -> [renderTwoVariableLinearFunction f "y" "z"]

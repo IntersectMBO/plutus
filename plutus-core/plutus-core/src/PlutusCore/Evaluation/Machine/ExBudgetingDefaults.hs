@@ -365,6 +365,7 @@ unitCostBuiltinCostModel =
     , paramUnValueData = unitCostOneArgument
     , paramInsertCoin = unitCostFourArguments
     , paramUnionValue = unitCostTwoArguments
+    , paramScaleValue = unitCostTwoArguments
     }
 
 unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)

@@ -139,6 +139,7 @@ builtinCostModelNames =
     , paramUnValueData = "unValueDataModel"
     , paramInsertCoin = "insertCoinModel"
     , paramUnionValue = "unionValueModel"
+    , paramScaleValue = "scaleValueModel"
     }
 
 {-| Loads the models from R.
@@ -293,6 +294,7 @@ createBuiltinCostModel bmfile rfile = do
   paramUnValueData <- getParams readCF1 paramUnValueData
   paramInsertCoin <- getParams readCF4 paramInsertCoin
   paramUnionValue <- getParams readCF2 paramUnionValue
+  paramScaleValue <- getParams readCF2 paramScaleValue
 
   pure $ BuiltinCostModelBase {..}
 
@@ -437,7 +439,7 @@ readCF2AtType ty e = do
     "const_off_diagonal" -> ModelTwoArgumentsConstOffDiagonal <$> readOneVariableFunConstOr e
     "quadratic_in_y" -> ModelTwoArgumentsQuadraticInY <$> readOneVariableQuadraticFunction "y_mem" e
     "quadratic_in_x_and_y" -> ModelTwoArgumentsQuadraticInXAndY <$> readTwoVariableQuadraticFunction "x_mem" "y_mem" e
-    "with_interaction_of_x_and_y" -> ModelTwoArgumentsWithInteraction <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" e
+    "with_interaction_in_x_and_y" -> ModelTwoArgumentsWithInteractionInXAndY <$> readTwoVariableWithInteractionFunction "x_mem" "y_mem" e
     _ -> error $ "Unknown two-variable model type: " ++ ty
 
 readCF2 :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments

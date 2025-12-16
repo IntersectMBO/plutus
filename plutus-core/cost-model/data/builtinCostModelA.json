@@ -1275,7 +1275,17 @@
         "interaction_slope_xy": 7,
         "interaction_slope_y": 160561
       },
-      "type": "with_interaction_of_x_and_y"
+      "type": "with_interaction_in_x_and_y"
+    },
+    "memory": {
+      "arguments": 1,
+      "type": "constant_cost"
+    }
+  },
+  "scaleValue": {
+    "cpu": {
+      "arguments": 1,
+      "type": "constant_cost"
     },
     "memory": {
       "arguments": 1,
