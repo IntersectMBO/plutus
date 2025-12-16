@@ -106,7 +106,14 @@ instance ToData (List a) where
 
 instance FromData (List a) where
   {-# INLINEABLE fromBuiltinData #-}
-  fromBuiltinData = Just . List . BI.unsafeDataAsList
+  fromBuiltinData d =
+    B.matchData'
+      d
+      (\_ _ -> Nothing)
+      (\_ -> Nothing)
+      (Just . List)
+      (\_ -> Nothing)
+      (\_ -> Nothing)
 
 instance UnsafeFromData (List a) where
   {-# INLINEABLE unsafeFromBuiltinData #-}
