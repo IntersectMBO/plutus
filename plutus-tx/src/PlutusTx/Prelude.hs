@@ -274,7 +274,7 @@ modulo :: Integer -> Integer -> Integer
 modulo = Builtins.modInteger
 {-# INLINEABLE modulo #-}
 
--- | FIXME (https://github.com/IntersectMBO/plutus-private/issues/1729)
+-- | Modular exponentiation, as defined in CIP-0109.
 expMod :: Integer -> Integer -> Integer -> Integer
 expMod = Builtins.expModInteger
 {-# INLINEABLE expMod #-}
