@@ -1284,8 +1284,11 @@
   },
   "scaleValue": {
     "cpu": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 1000,
+        "slope": 277577
+      },
+      "type": "linear_in_y"
     },
     "memory": {
       "arguments": 1,

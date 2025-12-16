@@ -158,6 +158,7 @@ arity <- function(name) {
         "UnValueData" = 1,
         "InsertCoin" = 4,
         "UnionValue" = 2,
+        "ScaleValue" = 2,
         -1  ## Default for missing values
         )
 }
