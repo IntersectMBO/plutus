@@ -837,7 +837,8 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem*y_mem + 0, filtered)
+        filtered$off <- 1 # offset to force inclusion of intercept in the model
+        m <- lm(t ~ x_mem*y_mem + offset(filtered$off), filtered)
         mk.result(m, "with_interaction_in_x_and_y")
     }
 

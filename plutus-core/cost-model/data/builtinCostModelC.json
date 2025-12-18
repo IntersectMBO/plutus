@@ -1292,9 +1292,10 @@
   "unionValue": {
     "cpu": {
       "arguments": {
-        "interaction_slope_x": 114467,
-        "interaction_slope_xy": 7,
-        "interaction_slope_y": 160561
+        "interaction_intercept": 1000,
+        "interaction_slope_x": 172116,
+        "interaction_slope_xy": 6,
+        "interaction_slope_y": 183150
       },
       "type": "with_interaction_in_x_and_y"
     },

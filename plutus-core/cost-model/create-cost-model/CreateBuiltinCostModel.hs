@@ -369,10 +369,11 @@ readTwoVariableLinearFunction var1 var2 e = do
 
 readTwoVariableWithInteractionFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableWithInteractionFunction
 readTwoVariableWithInteractionFunction var1 var2 e = do
+  intercept <- Intercept <$> getCoeff "(Intercept)" e
   slopeX <- Slope <$> getCoeff var1 e
   slopeY <- Slope <$> getCoeff var2 e
   slopeXY <- Slope <$> getCoeff (printf "%s:%s" var1 var2) e
-  pure $ TwoVariableWithInteractionFunction slopeX slopeY slopeXY
+  pure $ TwoVariableWithInteractionFunction intercept slopeX slopeY slopeXY
 
 readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
 readTwoVariableQuadraticFunction var1 var2 e = do

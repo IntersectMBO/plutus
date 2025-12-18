@@ -500,9 +500,10 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
 
--- | a*x + b*y + c*x*y; note that the intercept is always zero
+-- | a*x + b*y + c*x*y + I
 data TwoVariableWithInteractionFunction = TwoVariableWithInteractionFunction
-  { interactionSlopeX :: Slope
+  { interactionIntercept :: Intercept
+  , interactionSlopeX :: Slope
   , interactionSlopeY :: Slope
   , interactionSlopeXY :: Slope
   }
@@ -516,13 +517,14 @@ evaluateTwoVariableWithInteractionFunction
   -> CostingInteger
 evaluateTwoVariableWithInteractionFunction
   ( TwoVariableWithInteractionFunction
+      (Intercept intercept)
       (Slope slopeX)
       (Slope slopeY)
       (Slope slopeXY)
     )
   x
   y =
-    slopeX * x + slopeY * y + slopeXY * (x * y)
+    slopeX * x + slopeY * y + slopeXY * (x * y) + intercept
 
 {- Note [Backward compatibility for costing functions].  The PR at
    https://github.com/IntersectMBO/plutus/pull/5857 generalised the costing

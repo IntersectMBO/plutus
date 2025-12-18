@@ -98,12 +98,12 @@ renderWithInteractionInXAndY
   -> String
   -> String
 renderWithInteractionInXAndY
-  (TwoVariableWithInteractionFunction cx cy cxy)
+  (TwoVariableWithInteractionFunction intercept cx cy cxy)
   var1
   var2 =
     printf
-      "%d + %d*%s + %d*%s + %d*%s*%s"
-      (0 :: Integer)
+      "%d + %d + %d*%s + %d*%s + %d*%s*%s"
+      intercept
       cx
       var1
       cy

@@ -65,7 +65,8 @@ instance FromJSON TwoVariableQuadraticFunction where
 
 data TwoVariableWithInteractionFunction
   = TwoVariableWithInteractionFunction
-  { interactionslopex_ :: Integer
+  { interactionintercept_ :: Integer
+  , interactionslopex_ :: Integer
   , interactionslopey_ :: Integer
   , interactionslopexy_ :: Integer
   }
@@ -74,7 +75,8 @@ data TwoVariableWithInteractionFunction
 instance FromJSON TwoVariableWithInteractionFunction where
   parseJSON = withObject "Two variable with interaction function" $ \obj ->
     TwoVariableWithInteractionFunction
-      <$> obj .: "interaction_slope_x"
+      <$> obj .: "interaction_intercept"
+      <*> obj .: "interaction_slope_x"
       <*> obj .: "interaction_slope_y"
       <*> obj .: "interaction_slope_xy"
 
