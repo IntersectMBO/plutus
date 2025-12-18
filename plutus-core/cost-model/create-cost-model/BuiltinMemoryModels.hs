@@ -237,10 +237,10 @@ builtinMemoryModels =
     , paramUnValueData = Id $ ModelOneArgumentConstantCost 32
     , -- Cost of reallocating memory for the new 'Value', plus the memory for the possibility
       -- that a new entry was added:
-      --     21*n + 12 + 21
-      --   = 21*n + 33
+      --     21*n + 12 + 21 + 12
+      --   = 21*n + 45
       -- See Note [Memory model for Value builtins]
-      paramInsertCoin = Id $ ModelFourArgumentsLinearInW $ OneVariableLinearFunction 33 21
+      paramInsertCoin = Id $ ModelFourArgumentsLinearInW $ OneVariableLinearFunction 45 21
     , -- Cost of reallocating memory for the new 'Value', assuming the worst-case that the 'Value's
       -- are disjoint:
       --     21*n + 12 + 21*m + 12
