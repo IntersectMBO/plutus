@@ -181,9 +181,9 @@ builtinMemoryModels =
     , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
     , paramValueData = Id $ ModelOneArgumentConstantCost 32
     , paramUnValueData = Id $ ModelOneArgumentConstantCost 32
-    , paramInsertCoin = Id $ ModelFourArgumentsConstantCost 1
-    , paramUnionValue = Id $ ModelTwoArgumentsConstantCost 1
-    , paramScaleValue = Id $ ModelTwoArgumentsConstantCost 1
+    , paramInsertCoin = Id $ ModelFourArgumentsLinearInW $ OneVariableLinearFunction 33 21
+    , paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
+    , paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
     }
   where
     identityFunction = OneVariableLinearFunction 0 1
