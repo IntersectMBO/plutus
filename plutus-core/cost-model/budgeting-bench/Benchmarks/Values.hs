@@ -269,23 +269,6 @@ unionValueArgs gen = replicateM 200 $ do
       value1 = buildValue policyIdsV1 [tokenName] (mkQuantity amt)
   pure (value1, value2)
 
-{-| Build Value from given policy IDs, token names and and a single quantity
-for each (policy ID, token name) pair.
-Uses 'unsafeFromList' because 'generateKey' may generate duplicate keys, although
-it is unlikely it generates more than a few duplicates per run. -}
-buildValue :: [K] -> [K] -> Quantity -> Value
-buildValue policyIds tokenNames amt =
-  Value.unsafeFromList entries
-  where
-    entries =
-      [ ( pId
-        , [ (tName, amt)
-          | tName <- tokenNames
-          ]
-        )
-      | pId <- policyIds
-      ]
-
 ----------------------------------------------------------------------------------------------------
 -- ScaleValue --------------------------------------------------------------------------------------
 
@@ -319,6 +302,23 @@ scaleValueArgs gen = replicateM 200 $ do
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
+
+{-| Build Value from given policy IDs, token names and and a single quantity
+for each (policy ID, token name) pair.
+Uses 'unsafeFromList' because 'generateKey' may generate duplicate keys, although
+it is unlikely it generates more than a few duplicates per run. -}
+buildValue :: [K] -> [K] -> Quantity -> Value
+buildValue policyIds tokenNames amt =
+  Value.unsafeFromList entries
+  where
+    entries =
+      [ ( pId
+        , [ (tName, amt)
+          | tName <- tokenNames
+          ]
+        )
+      | pId <- policyIds
+      ]
 
 -- | Generate common test values for benchmarking
 generateTestValues :: StdGen -> [Value]
