@@ -64,6 +64,60 @@ mlResultMemSize = toMemSize Pairing.mlResultMemSizeBytes
 
 newtype Id a = Id {getId :: a}
 
+{- Note [Memory model for Value builtins]
+---------------------------------------
+The memory model for the Value builtins 'insertCoin', 'unionValue', and 'scaleValue' is based on an
+approximation of the required heap allocation for the resulting 'Value's.
+We consider memory usage as a function of the number of unique currency symbol and token name pairs in
+the 'Value'.
+It is important to note that this approximation is meant to reflect the worst-case memory usage of these builtins.
+Structurally, a 'Value' is represented as a nested 'Data.Map.Map' together with some bookeeping data.
+This bookeeping data consists of two unboxed 'Int's and an 'Data.IntMap.IntMap Int'.
+At runtime, this results in the following memory layout:
+  - 1 word for the 'Value' constructor
+  - 1 word for each of the two unboxed 'Int's
+  - 1 word for the pointer to the 'IntMap'
+  - 1 word for the pointer to the nested 'Map'
+  ... and the allocations for the 'IntMap' and nested 'Map' themselves.
+The 'Map' and 'IntMap' are implemented as a self-balancing binary tree and a big-endian patricia tree,
+respectively. Since we are interested in the worst-case memory usage, we assume that
+for each application of the builtin function both of the trees have to be completely reallocated.
+Since we are dealing with a nested 'Map' with the structure 'Map CurrencySymbol (Map TokenName Integer)',
+we can consider only the worst-case scenario where the map is flattened, i.e., each currency symbol maps
+to a single token name.
+In this case, for each unique (currency symbol, token name) pair, we have:
+  - 1 word for the 'Bin' closure for the outer 'Map' (currency symbol to inner 'Map')
+  - 1 word for the unboxed 'Int#' in the outer 'Bin'
+  - (1 + 4) words for the 'CurrencySymbol' (pointer to the bytestring and the bytestring data itself,
+  assumed 'maxBound :: K', assumed unshared)
+  - 1 word for the pointer to the inner 'Map'
+  - 1 word for the pointer to the first child of the outer 'Bin'
+  - 1 word for the pointer to second child of the outer 'Bin' (assumed to be the 'Tip' closure, shared)
+  - 1 word for the 'Bin' closure for the inner 'Map' (token name to integer)
+  - (1 + 4) words for the 'TokenName' (pointer to the bytestring and the bytestring data itself,
+  assumed 'maxBound :: K', assumed unshared)
+  - 3 words for the 'Integer' value (pointer to the integer closure and the integer data itself,
+  assumed 'maxBound :: Quantity' and unshared)
+  - 1 word for the pointer to the 'Tip' closure for the outer 'Map' (shared closure)
+  - 1 word for the pointer to the 'Tip' closure for the inner 'Map' (shared closure)
+Note that both 'CurrencySymbol' and 'TokenName' are newtypes, so they are 'ByteString's at runtime.
+So, for each unique (currency symbol, token name) pair, we have a total of 21 words allocated.
+The leafs of the tree are represented as 'Tip' constructors, which we can safely assume is a shared
+closure, so it should only be counted as allocated once, but we need to count the pointers which
+reference it.
+An invariant of 'Value' is that the 'IntMap' contains exactly as many keys as there are unique
+sizes of inner maps in the nested 'Map'. In the worst-case scenario we are considering here,
+each inner map has the same size of 1, so the memory footprint of the 'IntMap' will be constant:
+  - 1 word for the 'Tip' constructor
+  - 2 words for the key pointer and value pointer
+  - 2 words for the key 'Int' closure
+  - 2 words for the value 'Int' closure
+Putting this all together, we arrive at the following memory usage function:
+    1*n + 4 + 7 + 1
+  = 21*n + 12
+where 'n' is the number of unique (currency symbol, token name) pairs in the 'Value'.
+-}
+
 builtinMemoryModels :: BuiltinCostModelBase Id
 builtinMemoryModels =
   BuiltinCostModelBase
@@ -181,9 +235,22 @@ builtinMemoryModels =
     , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
     , paramValueData = Id $ ModelOneArgumentConstantCost 32
     , paramUnValueData = Id $ ModelOneArgumentConstantCost 32
-    , paramInsertCoin = Id $ ModelFourArgumentsLinearInW $ OneVariableLinearFunction 33 21
-    , paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
-    , paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
+    , -- Cost of reallocating memory for the new 'Value', plus the memory for the possibility
+      -- that a new entry was added:
+      --     21*n + 12 + 21
+      --   = 21*n + 33
+      -- See Note [Memory model for Value builtins]
+      paramInsertCoin = Id $ ModelFourArgumentsLinearInW $ OneVariableLinearFunction 33 21
+    , -- Cost of reallocating memory for the new 'Value', assuming the worst-case that the 'Value's
+      -- are disjoint:
+      --     21*n + 12 + 21*m + 12
+      --   = 21*(n + m) + 24
+      -- See Note [Memory model for Value builtins]
+      paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
+    , -- In the worst case, this is just the cost of reallocating memory for the new 'Value':
+      --     21*n + 12
+      -- See Note [Memory model for Value builtins]
+      paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
     }
   where
     identityFunction = OneVariableLinearFunction 0 1
