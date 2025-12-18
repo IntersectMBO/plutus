@@ -45,8 +45,11 @@ stored in `validation/data` in serialised form, so that changes in the compiler
 wont't affect the resulting UPLC and skew the execution benchmarks. The sources
 are not part of the repo anymore (the original code can be browsed here:
 [`plutus-use-cases/`](https://github.com/IntersectMBO/plutus/tree/942bd8c6de6a2d5981d91c704b0258bddd9d9d7c/plutus-use-cases)
-. The serialised scripts can therefore no longer be generated from source and
-should not change.
+.
+
+The serialised scripts can therefore no longer be generated from source and
+should not change. See note `Original generation of the .flat files` how they
+were generated.
 
 * The scripts are stored in flat-encoded form in various subdirectories of `validation/data`.
 

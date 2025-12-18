@@ -29,7 +29,14 @@ import PlutusCore.Flat
 import System.Directory (listDirectory)
 import System.FilePath
 
-{-| Benchmarks based on validations obtained using
+{- Note [Original generation of the .flat files]
+
+The corresponding .hs sources of the test inputs are not part anymore of the
+repo since 2021 (commit 0cb5c00add3809d9f247e9ec3f069d9ac3becd95). The .flat
+files can therefore not be regenerated. The following is the original
+documentation on how they used to be generated:
+
+Benchmarks based on validations obtained using
 plutus-use-cases:plutus-use-cases-scripts, which runs various contracts on the
 blockchain simulator and dumps the applied validators as flat-encoded
 scripts. Generating these scripts is a very lengthy process involving building a
@@ -47,10 +54,8 @@ benchmark the evaluator independently of other factors, and another which is
 generated anew every time to allow us to measure changes in the entire
 compilation/execution pipeline.
 
-NB. Running these benchmarks with `stack bench` will use copies of the scripts
-in `.stack_work` (and accessed via Paths_plutus_benchmark), and if a file in
-`data` is removed and the benchmarks are re-run, the benchmarking code may still
-be able to access the old copy in stack's files.  - -}
+-}
+
 {-| The name of the directory where the scripts are kept.  This must match the
    location of the files relative to the directory containing the cabal file.
    IF THE DIRECTORY IS MOVED, THIS MUST BE UPDATED. -}
