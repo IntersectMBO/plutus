@@ -1258,14 +1258,17 @@
   "insertCoin": {
     "cpu": {
       "arguments": {
-          "intercept": 356924,
-          "slope": 18413
+        "intercept": 356924,
+        "slope": 18413
       },
       "type": "linear_in_w"
     },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 33,
+        "slope": 21
+      },
+      "type": "linear_in_w"
     }
   },
   "unionValue": {
@@ -1278,8 +1281,11 @@
       "type": "with_interaction_in_x_and_y"
     },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 24,
+        "slope": 21
+      },
+      "type": "added_sizes"
     }
   },
   "scaleValue": {
@@ -1291,8 +1297,11 @@
       "type": "linear_in_y"
     },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 12,
+        "slope": 21
+      },
+      "type": "linear_in_y"
     }
   }
 }
