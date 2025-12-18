@@ -311,8 +311,8 @@ runCostingFunOneArgument (CostingFun cpu mem) =
 {-| Take an intercept, a slope and a stream and scale each element of the stream by the slope and
 cons the intercept to the stream afterwards. -}
 scaleLinearly :: Intercept -> Slope -> CostStream -> CostStream
-scaleLinearly (Intercept intercept) (Slope slope) =
-  addCostStream (CostLast intercept) . mapCostStream (slope *)
+scaleLinearly (Intercept intercept') (Slope slope) =
+  addCostStream (CostLast intercept') . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
 runOneArgumentModel
@@ -321,8 +321,8 @@ runOneArgumentModel
   -> CostStream
 runOneArgumentModel (ModelOneArgumentConstantCost c) =
   lazy $ \_ -> CostLast c
-runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
-  lazy $ \costs1 -> scaleLinearly intercept slope costs1
+runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept' slope)) =
+  lazy $ \costs1 -> scaleLinearly intercept' slope costs1
 {-# OPAQUE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
@@ -502,10 +502,10 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
 
 -- | a*x + b*y + c*x*y + I
 data TwoVariableWithInteractionFunction = TwoVariableWithInteractionFunction
-  { interactionIntercept :: Intercept
-  , interactionSlopeX :: Slope
-  , interactionSlopeY :: Slope
-  , interactionSlopeXY :: Slope
+  { intercept :: Intercept
+  , slopex :: Slope
+  , slopey :: Slope
+  , slopexy :: Slope
   }
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
@@ -517,14 +517,14 @@ evaluateTwoVariableWithInteractionFunction
   -> CostingInteger
 evaluateTwoVariableWithInteractionFunction
   ( TwoVariableWithInteractionFunction
-      (Intercept intercept)
+      (Intercept intercept')
       (Slope slopeX)
       (Slope slopeY)
       (Slope slopeXY)
     )
   x
   y =
-    slopeX * x + slopeY * y + slopeXY * (x * y) + intercept
+    slopeX * x + slopeY * y + slopeXY * (x * y) + intercept'
 
 {- Note [Backward compatibility for costing functions].  The PR at
    https://github.com/IntersectMBO/plutus/pull/5857 generalised the costing
@@ -590,9 +590,9 @@ the first stream by the first slope, each element of the second stream by the
 second slope, add the two scaled streams together, and cons the intercept to
 the stream afterwards. -}
 scaleLinearlyTwoVariables :: Intercept -> Slope -> CostStream -> Slope -> CostStream -> CostStream
-scaleLinearlyTwoVariables (Intercept intercept) (Slope slope1) stream1 (Slope slope2) stream2 =
+scaleLinearlyTwoVariables (Intercept intercept') (Slope slope1) stream1 (Slope slope2) stream2 =
   addCostStream
-    (CostLast intercept)
+    (CostLast intercept')
     ( addCostStream
         (mapCostStream (slope1 *) stream1)
         (mapCostStream (slope2 *) stream2)
@@ -607,52 +607,52 @@ runTwoArgumentModel
 runTwoArgumentModel
   (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> CostLast c
 runTwoArgumentModel
-  (ModelTwoArgumentsAddedSizes (OneVariableLinearFunction intercept slope)) =
+  (ModelTwoArgumentsAddedSizes (OneVariableLinearFunction intercept' slope)) =
     lazy $ \costs1 costs2 ->
-      scaleLinearly intercept slope $ addCostStream costs1 costs2
+      scaleLinearly intercept' slope $ addCostStream costs1 costs2
 runTwoArgumentModel
-  (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) =
+  (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept' slope minSize)) =
     lazy $ \costs1 costs2 -> do
       let !size1 = sumCostStream costs1
           !size2 = sumCostStream costs2
-      scaleLinearly intercept slope $ CostLast (max minSize $ size1 - size2)
+      scaleLinearly intercept' slope $ CostLast (max minSize $ size1 - size2)
 runTwoArgumentModel
-  (ModelTwoArgumentsMultipliedSizes (OneVariableLinearFunction intercept slope)) =
+  (ModelTwoArgumentsMultipliedSizes (OneVariableLinearFunction intercept' slope)) =
     lazy $ \costs1 costs2 -> do
       let !size1 = sumCostStream costs1
           !size2 = sumCostStream costs2
-      scaleLinearly intercept slope $ CostLast (size1 * size2)
+      scaleLinearly intercept' slope $ CostLast (size1 * size2)
 runTwoArgumentModel
-  (ModelTwoArgumentsMinSize (OneVariableLinearFunction intercept slope)) =
+  (ModelTwoArgumentsMinSize (OneVariableLinearFunction intercept' slope)) =
     lazy $ \costs1 costs2 -> do
-      scaleLinearly intercept slope $ minCostStream costs1 costs2
+      scaleLinearly intercept' slope $ minCostStream costs1 costs2
 runTwoArgumentModel
-  (ModelTwoArgumentsMaxSize (OneVariableLinearFunction intercept slope)) =
+  (ModelTwoArgumentsMaxSize (OneVariableLinearFunction intercept' slope)) =
     lazy $ \costs1 costs2 -> do
       let !size1 = sumCostStream costs1
           !size2 = sumCostStream costs2
-      scaleLinearly intercept slope $ CostLast (max size1 size2)
+      scaleLinearly intercept' slope $ CostLast (max size1 size2)
 runTwoArgumentModel
-  (ModelTwoArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
+  (ModelTwoArgumentsLinearInX (OneVariableLinearFunction intercept' slope)) =
     lazy $ \costs1 _ ->
-      scaleLinearly intercept slope costs1
+      scaleLinearly intercept' slope costs1
 runTwoArgumentModel
-  (ModelTwoArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
+  (ModelTwoArgumentsLinearInY (OneVariableLinearFunction intercept' slope)) =
     lazy $ \_ costs2 ->
-      scaleLinearly intercept slope costs2
+      scaleLinearly intercept' slope costs2
 runTwoArgumentModel
-  (ModelTwoArgumentsLinearInXAndY (TwoVariableLinearFunction intercept slope1 slope2)) =
+  (ModelTwoArgumentsLinearInXAndY (TwoVariableLinearFunction intercept' slope1 slope2)) =
     lazy $ \costs1 costs2 ->
-      scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
+      scaleLinearlyTwoVariables intercept' slope1 costs1 slope2 costs2
 runTwoArgumentModel
   -- See Note [Backward compatibility for costing functions]
   -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
-  (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
+  (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept' slope)) =
     lazy $ \costs1 costs2 -> do
       let !size1 = sumCostStream costs1
           !size2 = sumCostStream costs2
       if size1 == size2
-        then scaleLinearly intercept slope $ CostLast size1
+        then scaleLinearly intercept' slope $ CostLast size1
         else CostLast c
 runTwoArgumentModel
   -- Off the diagonal, return the constant.  On the diagonal, run the other model.
@@ -731,17 +731,17 @@ runThreeArgumentModel
   -> CostStream
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> CostLast c
 runThreeArgumentModel
-  (ModelThreeArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
+  (ModelThreeArgumentsLinearInX (OneVariableLinearFunction intercept' slope)) =
     lazy $ \costs1 _ _ ->
-      scaleLinearly intercept slope costs1
+      scaleLinearly intercept' slope costs1
 runThreeArgumentModel
-  (ModelThreeArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
+  (ModelThreeArgumentsLinearInY (OneVariableLinearFunction intercept' slope)) =
     lazy $ \_ costs2 _ ->
-      scaleLinearly intercept slope costs2
+      scaleLinearly intercept' slope costs2
 runThreeArgumentModel
-  (ModelThreeArgumentsLinearInZ (OneVariableLinearFunction intercept slope)) =
+  (ModelThreeArgumentsLinearInZ (OneVariableLinearFunction intercept' slope)) =
     lazy $ \_ _ costs3 ->
-      scaleLinearly intercept slope costs3
+      scaleLinearly intercept' slope costs3
 runThreeArgumentModel
   (ModelThreeArgumentsQuadraticInZ f) =
     lazy $ \_ _ costs3 -> CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs3
@@ -755,22 +755,22 @@ runThreeArgumentModel
    gets a number from `onMemoryUsages`).
 -}
 runThreeArgumentModel
-  (ModelThreeArgumentsLiteralInYOrLinearInZ (OneVariableLinearFunction intercept slope)) =
+  (ModelThreeArgumentsLiteralInYOrLinearInZ (OneVariableLinearFunction intercept' slope)) =
     lazy $ \_ costs2 costs3 ->
       let !width = sumCostStream costs2
        in if width == 0
-            then scaleLinearly intercept slope costs3
+            then scaleLinearly intercept' slope costs3
             else costs2
 runThreeArgumentModel
-  (ModelThreeArgumentsLinearInMaxYZ (OneVariableLinearFunction intercept slope)) =
+  (ModelThreeArgumentsLinearInMaxYZ (OneVariableLinearFunction intercept' slope)) =
     lazy $ \_ costs2 costs3 ->
       let !size2 = sumCostStream costs2
           !size3 = sumCostStream costs3
-       in scaleLinearly intercept slope $ CostLast (max size2 size3)
+       in scaleLinearly intercept' slope $ CostLast (max size2 size3)
 runThreeArgumentModel
-  (ModelThreeArgumentsLinearInYAndZ (TwoVariableLinearFunction intercept slope2 slope3)) =
+  (ModelThreeArgumentsLinearInYAndZ (TwoVariableLinearFunction intercept' slope2 slope3)) =
     lazy $ \_costs1 costs2 costs3 ->
-      scaleLinearlyTwoVariables intercept slope2 costs2 slope3 costs3
+      scaleLinearlyTwoVariables intercept' slope2 costs2 slope3 costs3
 runThreeArgumentModel
   (ModelThreeArgumentsQuadraticInYAndZ f) =
     lazy $ \_ costs2 costs3 ->
@@ -827,9 +827,9 @@ runFourArgumentModel
   -> CostStream
 runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> CostLast c
 runFourArgumentModel
-  (ModelFourArgumentsLinearInW (OneVariableLinearFunction intercept slope)) =
+  (ModelFourArgumentsLinearInW (OneVariableLinearFunction intercept' slope)) =
     lazy $ \_ _ _ costs4 ->
-      scaleLinearly intercept slope costs4
+      scaleLinearly intercept' slope costs4
 {-# OPAQUE runFourArgumentModel #-}
 
 -- See Note [runCostingFun* API].

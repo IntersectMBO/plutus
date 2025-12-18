@@ -1274,10 +1274,10 @@
   "unionValue": {
     "cpu": {
       "arguments": {
-        "interaction_intercept": 1000,
-        "interaction_slope_x": 172116,
-        "interaction_slope_xy": 6,
-        "interaction_slope_y": 183150
+        "intercept": 1000,
+        "slopex": 172116,
+        "slopexy": 6,
+        "slopey": 183150
       },
       "type": "with_interaction_in_x_and_y"
     },

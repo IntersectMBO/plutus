@@ -351,14 +351,15 @@ data ParamName
   | InsertCoin'cpu'arguments'slope
   | InsertCoin'memory'arguments'intercept
   | InsertCoin'memory'arguments'slope
-  | UnionValue'cpu'arguments'interaction'slope'x
-  | UnionValue'cpu'arguments'interaction'slope'y
-  | UnionValue'cpu'arguments'interaction'slope'xy
+  | UnionValue'cpu'arguments'intercept
+  | UnionValue'cpu'arguments'slopex
+  | UnionValue'cpu'arguments'slopey
+  | UnionValue'cpu'arguments'slopexy
   | UnionValue'memory'arguments'intercept
   | UnionValue'memory'arguments'slope
-  | ScaleInteger'cpu'arguments'intercept
-  | ScaleInteger'cpu'arguments'slope
-  | ScaleInteger'memory'arguments'intercept
-  | ScaleInteger'memory'arguments'slope
+  | ScaleValue'cpu'arguments'intercept
+  | ScaleValue'cpu'arguments'slope
+  | ScaleValue'memory'arguments'intercept
+  | ScaleValue'memory'arguments'slope
   deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
   deriving (IsParamName) via (GenericParamName ParamName)

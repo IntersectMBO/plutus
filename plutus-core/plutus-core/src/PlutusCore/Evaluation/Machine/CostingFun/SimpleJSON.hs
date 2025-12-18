@@ -65,20 +65,20 @@ instance FromJSON TwoVariableQuadraticFunction where
 
 data TwoVariableWithInteractionFunction
   = TwoVariableWithInteractionFunction
-  { interactionintercept_ :: Integer
-  , interactionslopex_ :: Integer
-  , interactionslopey_ :: Integer
-  , interactionslopexy_ :: Integer
+  { intercept''_ :: Integer
+  , slopex_ :: Integer
+  , slopey_ :: Integer
+  , slopexy_ :: Integer
   }
   deriving stock (Show, Lift)
 
 instance FromJSON TwoVariableWithInteractionFunction where
   parseJSON = withObject "Two variable with interaction function" $ \obj ->
     TwoVariableWithInteractionFunction
-      <$> obj .: "interaction_intercept"
-      <*> obj .: "interaction_slope_x"
-      <*> obj .: "interaction_slope_y"
-      <*> obj .: "interaction_slope_xy"
+      <$> obj .: "intercept"
+      <*> obj .: "slopex"
+      <*> obj .: "slopey"
+      <*> obj .: "slopexy"
 
 data ExpModCostingFunction
   = ExpModCostingFunction
