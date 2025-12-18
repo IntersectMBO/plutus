@@ -141,10 +141,11 @@ import PlutusLedgerApi.V3.Data.MintValue qualified as V3
 import PlutusLedgerApi.V3.Data.Tx qualified as V3
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
+import PlutusTx.BuiltinList qualified as BuiltinList
+import PlutusTx.Builtins.Internal qualified as Builtins
 import PlutusTx.Data.AssocMap
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
-import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Ratio (Rational)
 
@@ -636,15 +637,15 @@ findOwnInput _ = Haskell.Nothing
 findDatum :: V2.DatumHash -> TxInfo -> Haskell.Maybe V2.Datum
 findDatum dsh TxInfo {txInfoData} = lookup dsh txInfoData
 
-{-# INLINEABLE findDatumHash #-}
-
 {-| Find the hash of a datum, if it is part of the pending transaction's
 hashes -}
 findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
 findDatumHash ds TxInfo {txInfoData} =
-  PlutusTx.fst PlutusTx.<$> List.find f (toSOPList txInfoData)
+  getHash PlutusTx.<$> BuiltinList.find matchDatum (toBuiltinList txInfoData)
   where
-    f (_, ds') = ds' PlutusTx.== ds
+    getHash = PlutusTx.unsafeFromBuiltinData PlutusTx.. Builtins.fst
+    matchDatum pair = Builtins.snd pair PlutusTx.== V2.getDatum ds
+{-# INLINEABLE findDatumHash #-}
 
 {-# INLINEABLE findTxInByTxOutRef #-}
 
