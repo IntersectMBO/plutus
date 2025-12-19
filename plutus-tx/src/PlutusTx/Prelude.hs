@@ -20,6 +20,7 @@ module PlutusTx.Prelude
     module Eq
   , module Enum
   , module Ord
+  , module Bounded
   , module Semigroup
   , module Monoid
   , module Numeric
@@ -230,6 +231,7 @@ import PlutusTx.Builtins
   , verifySchnorrSecp256k1Signature
   )
 
+import PlutusTx.Bounded as Bounded
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Either as Either

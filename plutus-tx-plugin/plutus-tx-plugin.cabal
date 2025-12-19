@@ -116,6 +116,7 @@ test-suite plutus-tx-plugin-tests
   main-is:            Spec.hs
   other-modules:
     Array.Spec
+    Bounded.Spec
     AsData.Budget.Spec
     AsData.Budget.Types
     AssocMap.Golden
