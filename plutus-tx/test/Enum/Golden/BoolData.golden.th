@@ -1,0 +1,33 @@
+instance PlutusTx.Enum.Class.Enum GHC.Types.Bool
+    where {PlutusTx.Enum.Class.succ (GHC.Types.False) = GHC.Types.True
+           PlutusTx.Enum.Class.succ (GHC.Types.True) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.succBadArgumentError;
+           {-# INLINABLE PlutusTx.Enum.Class.succ #-};
+           PlutusTx.Enum.Class.pred (GHC.Types.False) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.predBadArgumentError
+           PlutusTx.Enum.Class.pred (GHC.Types.True) = GHC.Types.False;
+           {-# INLINABLE PlutusTx.Enum.Class.pred #-};
+           PlutusTx.Enum.Class.toEnum 0 = GHC.Types.False
+           PlutusTx.Enum.Class.toEnum 1 = GHC.Types.True
+           PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.toEnumBadArgumentError;
+           {-# INLINABLE PlutusTx.Enum.Class.toEnum #-};
+           PlutusTx.Enum.Class.fromEnum (GHC.Types.False) = 0
+           PlutusTx.Enum.Class.fromEnum (GHC.Types.True) = 1;
+           {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}}
+instance PlutusTx.IsData.Class.ToData GHC.Types.Bool
+    where {PlutusTx.IsData.Class.toBuiltinData (GHC.Types.False) = PlutusTx.Builtins.mkI 0
+           PlutusTx.IsData.Class.toBuiltinData (GHC.Types.True) = PlutusTx.Builtins.mkI 1;
+           {-# INLINABLE PlutusTx.IsData.Class.toBuiltinData #-}}
+instance PlutusTx.IsData.Class.FromData GHC.Types.Bool
+    where {PlutusTx.IsData.Class.fromBuiltinData input_0 = PlutusTx.Builtins.matchData' input_0 (\_ _ -> GHC.Maybe.Nothing) (\_ -> GHC.Maybe.Nothing) (\_ -> GHC.Maybe.Nothing) (\decoded_1 -> if PlutusTx.Builtins.equalsInteger decoded_1 0
+                                                                                                                                                                                                then GHC.Maybe.Just GHC.Types.False
+                                                                                                                                                                                                else if PlutusTx.Builtins.equalsInteger decoded_1 1
+                                                                                                                                                                                                      then GHC.Maybe.Just GHC.Types.True
+                                                                                                                                                                                                      else GHC.Maybe.Nothing) (\_ -> GHC.Maybe.Nothing);
+           {-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-}}
+instance PlutusTx.IsData.Class.UnsafeFromData GHC.Types.Bool
+    where {PlutusTx.IsData.Class.unsafeFromBuiltinData input_2 = let decoded_3 = PlutusTx.Builtins.unsafeDataAsI input_2
+                                                                  in if PlutusTx.Builtins.equalsInteger decoded_3 0
+                                                                      then GHC.Types.False
+                                                                      else if PlutusTx.Builtins.equalsInteger decoded_3 1
+                                                                            then GHC.Types.True
+                                                                            else PlutusTx.Builtins.error GHC.Tuple.Prim.();
+           {-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-}}

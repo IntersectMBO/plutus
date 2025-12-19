@@ -19,6 +19,7 @@ import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
 import Prelude hiding (Eq (..), error)
 import Prelude qualified as HS (Bounded (..), Enum (..), Eq (..), Show (..))
+import PlutusTx
 
 data SomeVeryLargeEnum
   = E1
@@ -32,7 +33,7 @@ data SomeVeryLargeEnum
   | E9
   | E10
   deriving stock (HS.Eq, HS.Enum, HS.Bounded, HS.Show)
-deriveEnum ''SomeVeryLargeEnum
+deriveEnumData ''SomeVeryLargeEnum
 
 -- we lack Tx.Bounded so we use Haskell's for the tests
 enumTests :: TestTree
@@ -41,12 +42,17 @@ enumTests =
    in testGroup
         "PlutusTx.Enum tests"
         [ testProperty "no dups" prop_nodups
+        , testProperty "tripping FromData" prop_trippingFromData
+        , testProperty "tripping UnsafeFromData" prop_trippingUnsafeFromData
         , testCase "full length" $ Tx.length (Tx.enumFromTo @SomeVeryLargeEnum HS.minBound HS.maxBound) @?= Tx.fromEnum @SomeVeryLargeEnum HS.maxBound + 1
         , runTestNested
             ["test", "Enum", "Golden"]
             [ $(goldenCodeGen "SomeVeryLargeEnum" (deriveEnum ''SomeVeryLargeEnum))
             , $(goldenCodeGen "Bool" (deriveEnum ''Bool))
             , $(goldenCodeGen "Unit" (deriveEnum ''()))
+            , $(goldenCodeGen "SomeVeryLargeEnumData" (deriveEnumData ''SomeVeryLargeEnum))
+            , $(goldenCodeGen "BoolData" (deriveEnumData ''Bool))
+            , $(goldenCodeGen "UnitData" (deriveEnumData ''()))
             ]
         , enumFromToTests
         , enumFromThenToTests
@@ -59,6 +65,16 @@ prop_nodups = property $ do
   to <- forAll enumBounded
   let res = Tx.enumFromTo @SomeVeryLargeEnum from to
   HS.nub res === res
+
+prop_trippingFromData :: Property
+prop_trippingFromData = property $ do
+  i :: SomeVeryLargeEnum <- forAll enumBounded
+  tripping i toBuiltinData fromBuiltinData
+
+prop_trippingUnsafeFromData :: Property
+prop_trippingUnsafeFromData = property $ do
+  i :: SomeVeryLargeEnum <- forAll enumBounded
+  tripping i toBuiltinData (Just . unsafeFromBuiltinData)
 
 enumFromToTests :: TestTree
 enumFromToTests =

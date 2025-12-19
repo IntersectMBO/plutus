@@ -1,0 +1,105 @@
+instance PlutusTx.Enum.Class.Enum Enum.Spec.SomeVeryLargeEnum
+    where {PlutusTx.Enum.Class.succ (Enum.Spec.E1) = Enum.Spec.E2
+           PlutusTx.Enum.Class.succ (Enum.Spec.E2) = Enum.Spec.E3
+           PlutusTx.Enum.Class.succ (Enum.Spec.E3) = Enum.Spec.E4
+           PlutusTx.Enum.Class.succ (Enum.Spec.E4) = Enum.Spec.E5
+           PlutusTx.Enum.Class.succ (Enum.Spec.E5) = Enum.Spec.E6
+           PlutusTx.Enum.Class.succ (Enum.Spec.E6) = Enum.Spec.E7
+           PlutusTx.Enum.Class.succ (Enum.Spec.E7) = Enum.Spec.E8
+           PlutusTx.Enum.Class.succ (Enum.Spec.E8) = Enum.Spec.E9
+           PlutusTx.Enum.Class.succ (Enum.Spec.E9) = Enum.Spec.E10
+           PlutusTx.Enum.Class.succ (Enum.Spec.E10) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.succBadArgumentError;
+           {-# INLINABLE PlutusTx.Enum.Class.succ #-};
+           PlutusTx.Enum.Class.pred (Enum.Spec.E1) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.predBadArgumentError
+           PlutusTx.Enum.Class.pred (Enum.Spec.E2) = Enum.Spec.E1
+           PlutusTx.Enum.Class.pred (Enum.Spec.E3) = Enum.Spec.E2
+           PlutusTx.Enum.Class.pred (Enum.Spec.E4) = Enum.Spec.E3
+           PlutusTx.Enum.Class.pred (Enum.Spec.E5) = Enum.Spec.E4
+           PlutusTx.Enum.Class.pred (Enum.Spec.E6) = Enum.Spec.E5
+           PlutusTx.Enum.Class.pred (Enum.Spec.E7) = Enum.Spec.E6
+           PlutusTx.Enum.Class.pred (Enum.Spec.E8) = Enum.Spec.E7
+           PlutusTx.Enum.Class.pred (Enum.Spec.E9) = Enum.Spec.E8
+           PlutusTx.Enum.Class.pred (Enum.Spec.E10) = Enum.Spec.E9;
+           {-# INLINABLE PlutusTx.Enum.Class.pred #-};
+           PlutusTx.Enum.Class.toEnum 0 = Enum.Spec.E1
+           PlutusTx.Enum.Class.toEnum 1 = Enum.Spec.E2
+           PlutusTx.Enum.Class.toEnum 2 = Enum.Spec.E3
+           PlutusTx.Enum.Class.toEnum 3 = Enum.Spec.E4
+           PlutusTx.Enum.Class.toEnum 4 = Enum.Spec.E5
+           PlutusTx.Enum.Class.toEnum 5 = Enum.Spec.E6
+           PlutusTx.Enum.Class.toEnum 6 = Enum.Spec.E7
+           PlutusTx.Enum.Class.toEnum 7 = Enum.Spec.E8
+           PlutusTx.Enum.Class.toEnum 8 = Enum.Spec.E9
+           PlutusTx.Enum.Class.toEnum 9 = Enum.Spec.E10
+           PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.toEnumBadArgumentError;
+           {-# INLINABLE PlutusTx.Enum.Class.toEnum #-};
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E1) = 0
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E2) = 1
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E3) = 2
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E4) = 3
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E5) = 4
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E6) = 5
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E7) = 6
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E8) = 7
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E9) = 8
+           PlutusTx.Enum.Class.fromEnum (Enum.Spec.E10) = 9;
+           {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}}
+instance PlutusTx.IsData.Class.ToData Enum.Spec.SomeVeryLargeEnum
+    where {PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E1) = PlutusTx.Builtins.mkI 0
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E2) = PlutusTx.Builtins.mkI 1
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E3) = PlutusTx.Builtins.mkI 2
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E4) = PlutusTx.Builtins.mkI 3
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E5) = PlutusTx.Builtins.mkI 4
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E6) = PlutusTx.Builtins.mkI 5
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E7) = PlutusTx.Builtins.mkI 6
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E8) = PlutusTx.Builtins.mkI 7
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E9) = PlutusTx.Builtins.mkI 8
+           PlutusTx.IsData.Class.toBuiltinData (Enum.Spec.E10) = PlutusTx.Builtins.mkI 9;
+           {-# INLINABLE PlutusTx.IsData.Class.toBuiltinData #-}}
+instance PlutusTx.IsData.Class.FromData Enum.Spec.SomeVeryLargeEnum
+    where {PlutusTx.IsData.Class.fromBuiltinData input_0 = PlutusTx.Builtins.matchData' input_0 (\_ _ -> GHC.Maybe.Nothing) (\_ -> GHC.Maybe.Nothing) (\_ -> GHC.Maybe.Nothing) (\decoded_1 -> if PlutusTx.Builtins.equalsInteger decoded_1 0
+                                                                                                                                                                                                then GHC.Maybe.Just Enum.Spec.E1
+                                                                                                                                                                                                else if PlutusTx.Builtins.equalsInteger decoded_1 1
+                                                                                                                                                                                                      then GHC.Maybe.Just Enum.Spec.E2
+                                                                                                                                                                                                      else if PlutusTx.Builtins.equalsInteger decoded_1 2
+                                                                                                                                                                                                            then GHC.Maybe.Just Enum.Spec.E3
+                                                                                                                                                                                                            else if PlutusTx.Builtins.equalsInteger decoded_1 3
+                                                                                                                                                                                                                  then GHC.Maybe.Just Enum.Spec.E4
+                                                                                                                                                                                                                  else if PlutusTx.Builtins.equalsInteger decoded_1 4
+                                                                                                                                                                                                                        then GHC.Maybe.Just Enum.Spec.E5
+                                                                                                                                                                                                                        else if PlutusTx.Builtins.equalsInteger decoded_1 5
+                                                                                                                                                                                                                              then GHC.Maybe.Just Enum.Spec.E6
+                                                                                                                                                                                                                              else if PlutusTx.Builtins.equalsInteger decoded_1 6
+                                                                                                                                                                                                                                    then GHC.Maybe.Just Enum.Spec.E7
+                                                                                                                                                                                                                                    else if PlutusTx.Builtins.equalsInteger decoded_1 7
+                                                                                                                                                                                                                                          then GHC.Maybe.Just Enum.Spec.E8
+                                                                                                                                                                                                                                          else if PlutusTx.Builtins.equalsInteger decoded_1 8
+                                                                                                                                                                                                                                                then GHC.Maybe.Just Enum.Spec.E9
+                                                                                                                                                                                                                                                else if PlutusTx.Builtins.equalsInteger decoded_1 9
+                                                                                                                                                                                                                                                      then GHC.Maybe.Just Enum.Spec.E10
+                                                                                                                                                                                                                                                      else GHC.Maybe.Nothing) (\_ -> GHC.Maybe.Nothing);
+           {-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-}}
+instance PlutusTx.IsData.Class.UnsafeFromData Enum.Spec.SomeVeryLargeEnum
+    where {PlutusTx.IsData.Class.unsafeFromBuiltinData input_2 = let decoded_3 = PlutusTx.Builtins.unsafeDataAsI input_2
+                                                                  in if PlutusTx.Builtins.equalsInteger decoded_3 0
+                                                                      then Enum.Spec.E1
+                                                                      else if PlutusTx.Builtins.equalsInteger decoded_3 1
+                                                                            then Enum.Spec.E2
+                                                                            else if PlutusTx.Builtins.equalsInteger decoded_3 2
+                                                                                  then Enum.Spec.E3
+                                                                                  else if PlutusTx.Builtins.equalsInteger decoded_3 3
+                                                                                        then Enum.Spec.E4
+                                                                                        else if PlutusTx.Builtins.equalsInteger decoded_3 4
+                                                                                              then Enum.Spec.E5
+                                                                                              else if PlutusTx.Builtins.equalsInteger decoded_3 5
+                                                                                                    then Enum.Spec.E6
+                                                                                                    else if PlutusTx.Builtins.equalsInteger decoded_3 6
+                                                                                                          then Enum.Spec.E7
+                                                                                                          else if PlutusTx.Builtins.equalsInteger decoded_3 7
+                                                                                                                then Enum.Spec.E8
+                                                                                                                else if PlutusTx.Builtins.equalsInteger decoded_3 8
+                                                                                                                      then Enum.Spec.E9
+                                                                                                                      else if PlutusTx.Builtins.equalsInteger decoded_3 9
+                                                                                                                            then Enum.Spec.E10
+                                                                                                                            else PlutusTx.Builtins.error GHC.Tuple.Prim.();
+           {-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-}}
