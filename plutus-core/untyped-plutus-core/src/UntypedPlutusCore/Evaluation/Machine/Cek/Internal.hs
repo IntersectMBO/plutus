@@ -726,7 +726,7 @@ data Context uni fun ann
     FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
   | -- | @[_ N]@
     FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
-  | -- | @[_ V]@
+  | -- | @[_ K1 .. Kn]@
     FrameAwaitFunConN !(Spine (Some (ValueOf uni))) !(Context uni fun ann)
   | -- | @[_ V1 .. Vn]@
     FrameAwaitFunValueN !(ArgStackNonEmpty uni fun ann) !(Context uni fun ann)
@@ -822,7 +822,7 @@ enterComputeCek = computeCek
       -> CekValEnv uni fun ann
       -> NTerm uni fun ann
       -> CekM uni fun s (DischargeResult uni fun)
-    -- s ; ρ ▻ {L A}  ↦ s , {_ A} ; ρ ▻ L
+    -- s ; ρ ▻ x  ↦ s ◅  ρ(x)    if x is bound in ρ
     computeCek !ctx !env (Var _ varName) = do
       stepAndMaybeSpend BVar
       val <- lookupVarName varName env
@@ -853,7 +853,7 @@ enterComputeCek = computeCek
       let meaning = lookupBuiltin bn ?cekRuntime
       -- 'Builtin' is fully discharged.
       returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
-    -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
+    -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I [] _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
       stepAndMaybeSpend BConstr
       case es of
@@ -895,7 +895,7 @@ enterComputeCek = computeCek
     -- add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
       applyEvaluate ctx fun arg
-    -- s , [_ V] ◅ lam x (M,ρ) ↦ s ; ρ [ x  ↦  V ] ▻ M
+    -- s , [_ K1 .. Kn] ◅ lam x (M,ρ) ↦ s , [_ K2 .. Kn]; ρ [ x  ↦  VCon K1 ] ▻ M
     returnCek (FrameAwaitFunConN args ctx) fun =
       -- In the future, if we want to revert back to more general
       -- 'FrameAwaitFunValue (CekValue uni fun ann)', we can use optimization proposed in
@@ -922,10 +922,8 @@ enterComputeCek = computeCek
            in returnCek ctx $ VConstr i (MultiStack $ go (LastStackNonEmpty e) done)
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
-      -- If the index is larger than the max bound of an Int, or negative, then it's a bad index
-      -- As it happens, this will currently never trigger, since i is a Word64, and the largest
-      -- Word64 value wraps to -1 as an Int64. So you can't wrap around enough to get an
-      -- "apparently good" value.
+      -- If the index is larger than the max bound of an Int, then it cannot be
+      -- used for indexing into the vector.
       (VConstr i _)
         | i > fromIntegral @Int @Word64 maxBound ->
             throwErrorDischarged (StructuralError (MissingCaseBranchMachineError i)) e
