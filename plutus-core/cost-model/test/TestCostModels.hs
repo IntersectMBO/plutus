@@ -76,7 +76,7 @@ epsilon = 2 / 100
 
 -- How many tests to run for each costing function
 numberOfTests :: TestLimit
-numberOfTests = 100
+numberOfTests = 500
 
 -- Generate inputs for costing functions, making sure that we test a large range
 -- of inputs, but that we also get small inputs.
@@ -89,9 +89,12 @@ memUsageGen =
 
 -- Smaller inputs for testing the piecewise costing functions for integer
 -- division operations, where the Haskell model differs from the R one for
--- larger values.
-memUsageGen40 :: Gen CostingInteger
-memUsageGen40 = unsafeToSatInt <$> Gen.integral (Range.linear 0 40)
+-- larger values.  We're dealing with sizes here, so this covers inputs up to
+-- 2^256.  To deal with this properly we'd need to read the mimimum value from R
+-- as well and then mimic the baqhaviour of the Haskell version by having
+-- something like `max (predictH x y) mimimum`.
+memUsageGen32 :: Gen CostingInteger
+memUsageGen32 = unsafeToSatInt <$> Gen.integral (Range.linear 0 32)
 
 -- A type alias to make our signatures more concise.  This type is a record in
 -- which every field refers to an R SEXP (over some state s), the lm model for
@@ -223,7 +226,7 @@ testPredictTwo costingFunH modelR domain =
           BelowDiagonal' -> Gen.filter (uncurry (>=)) twoArgs'
           where
             twoArgs = (,) <$> memUsageGen <*> memUsageGen
-            twoArgs' = (,) <$> memUsageGen40 <*> memUsageGen40
+            twoArgs' = (,) <$> memUsageGen32 <*> memUsageGen32
      in do
           (x, y) <- forAll sizeGen
           byR <- lift $ predictR x y
@@ -233,8 +236,9 @@ testPredictTwo costingFunH modelR domain =
 testPredictThree
   :: CostingFun ModelThreeArguments
   -> SomeSEXP s
+  -> ((CostingInteger, CostingInteger, CostingInteger) -> Bool)
   -> Property
-testPredictThree costingFunH modelR =
+testPredictThree costingFunH modelR predicate =
   propertyR $
     let predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
         predictR x y z =
@@ -251,7 +255,8 @@ testPredictThree costingFunH modelR =
             exBudgetCPU $
               sumExBudgetStream $
                 runCostingFunThreeArguments costingFunH (ExM x) (ExM y) (ExM z)
-        sizeGen = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
+        sizeGen = Gen.filter predicate threeArgs
+        threeArgs = (,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen
      in do
           (x, y, z) <- forAll sizeGen
           byR <- lift $ predictR x y z
@@ -338,7 +343,17 @@ makeProp3
   -> RModels s
   -> (PropertyName, Property)
 makeProp3 name getField modelsH modelsR =
-  (fromString name, testPredictThree (getField modelsH) (getConst $ getField modelsR))
+  (fromString name, testPredictThree (getField modelsH) (getConst $ getField modelsR) (const True))
+
+makeProp3WithFilter
+  :: String
+  -> (forall f. BuiltinCostModelBase f -> f ModelThreeArguments)
+  -> HModels
+  -> RModels s
+  -> ((CostingInteger, CostingInteger, CostingInteger) -> Bool)
+  -> (PropertyName, Property)
+makeProp3WithFilter name getField modelsH modelsR predicate =
+  (fromString name, testPredictThree (getField modelsH) (getConst $ getField modelsR) predicate)
 
 makeProp6
   :: String
@@ -368,10 +383,7 @@ main =
       , $(genTest 2 "lessThanInteger") Everywhere
       , $(genTest 2 "lessThanEqualsInteger") Everywhere
       , $(genTest 2 "equalsInteger") Everywhere
-      , -- , $(genTest 3 "expModInteger")
-        -- \^ Doesn't work because of the penalty for initial modular reduction.
-
-        -- Bytestrings
+      , -- Bytestrings
         $(genTest 2 "appendByteString") Everywhere
       , $(genTest 2 "consByteString") Everywhere
       , $(genTest 3 "sliceByteString")
@@ -471,4 +483,16 @@ main =
       , $(genTest 2 "rotateByteString") Everywhere
       , $(genTest 1 "countSetBits")
       , $(genTest 1 "findFirstSetBit")
+      , -- Batch 6
+        $(genTest 2 "dropList") Everywhere
+      , makeProp3WithFilter "expModInteger" paramExpModInteger modelsH modelsR (\(a, _, m) -> a <= m)
+      , -- \^ We have to restrict to the case a^e mod m with `size a <= size m`
+        -- because there's an extra charge for large values of `a` in the
+        -- Haskell costing code that the R code doesn't include.
+        $(genTest 2 "bls12_381_G1_multiScalarMul") Everywhere
+      , $(genTest 2 "bls12_381_G2_multiScalarMul") Everywhere
+      , $(genTest 1 "lengthOfArray")
+      , $(genTest 1 "listToArray")
+      , $(genTest 2 "indexArray") Everywhere
+      -- Value builtins to follow when costing is complete.
       ]
