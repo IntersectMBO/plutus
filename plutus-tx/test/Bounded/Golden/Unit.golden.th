@@ -1,0 +1,5 @@
+instance PlutusTx.Bounded.Class.Bounded GHC.Tuple.Prim.()
+    where {PlutusTx.Bounded.Class.minBound = GHC.Tuple.Prim.();
+           {-# INLINABLE PlutusTx.Bounded.Class.minBound #-};
+           PlutusTx.Bounded.Class.maxBound = GHC.Tuple.Prim.();
+           {-# INLINABLE PlutusTx.Bounded.Class.maxBound #-}}

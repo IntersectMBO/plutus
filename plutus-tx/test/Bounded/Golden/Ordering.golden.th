@@ -1,0 +1,5 @@
+instance PlutusTx.Bounded.Class.Bounded GHC.Types.Ordering
+    where {PlutusTx.Bounded.Class.minBound = GHC.Types.LT;
+           {-# INLINABLE PlutusTx.Bounded.Class.minBound #-};
+           PlutusTx.Bounded.Class.maxBound = GHC.Types.GT;
+           {-# INLINABLE PlutusTx.Bounded.Class.maxBound #-}}

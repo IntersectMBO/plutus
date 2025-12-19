@@ -72,6 +72,8 @@ library
     PlutusTx.Blueprint.Validator
     PlutusTx.Blueprint.Write
     PlutusTx.Bool
+    PlutusTx.Bounded
+    PlutusTx.Bounded.Class
     PlutusTx.BuiltinList
     PlutusTx.Builtins
     PlutusTx.Builtins.HasBuiltin
@@ -118,6 +120,7 @@ library
     PlutusTx.Utils
 
   other-modules:
+    PlutusTx.Bounded.TH
     PlutusTx.Enum.TH
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
@@ -210,6 +213,7 @@ test-suite plutus-tx-test
     Blueprint.Definition.Spec
     Blueprint.Spec
     Bool.Spec
+    Bounded.Spec
     Enum.Spec
     List.Spec
     Rational.Laws
