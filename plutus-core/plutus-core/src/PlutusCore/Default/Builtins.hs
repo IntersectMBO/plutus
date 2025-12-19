@@ -1963,8 +1963,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           bls12_381_G2_multiScalarMulDenotation
           (runCostingFunTwoArguments . paramBls12_381_G2_multiScalarMul)
   toBuiltinMeaning _semvar InsertCoin =
-    let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
-        insertCoinDenotation = Value.insertCoin
+    let insertCoinDenotation
+          :: ByteString
+          -> ByteString
+          -> Integer
+          -> ValueLogOuterSizeAddLogMaxInnerSize
+          -> BuiltinResult Value
+        insertCoinDenotation pid tokn amt (ValueLogOuterSizeAddLogMaxInnerSize v) =
+          Value.insertCoin pid tokn amt v
         {-# INLINE insertCoinDenotation #-}
      in makeBuiltinMeaning
           insertCoinDenotation
@@ -1977,8 +1983,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           lookupCoinDenotation
           (runCostingFunThreeArguments . paramLookupCoin)
   toBuiltinMeaning _semvar UnionValue =
-    let unionValueDenotation :: Value -> Value -> BuiltinResult Value
-        unionValueDenotation = Value.unionValue
+    let unionValueDenotation :: ValueTotalSize -> ValueTotalSize -> BuiltinResult Value
+        unionValueDenotation (ValueTotalSize v1) (ValueTotalSize v2) = Value.unionValue v1 v2
         {-# INLINE unionValueDenotation #-}
      in makeBuiltinMeaning
           unionValueDenotation
@@ -2006,8 +2012,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           unValueDataDenotation
           (runCostingFunOneArgument . paramUnValueData)
   toBuiltinMeaning _semvar ScaleValue =
-    let unValueDataDenotation :: Integer -> Value -> BuiltinResult Value
-        unValueDataDenotation = Value.scaleValue
+    let unValueDataDenotation :: Integer -> ValueTotalSize -> BuiltinResult Value
+        unValueDataDenotation scalar (ValueTotalSize v) = Value.scaleValue scalar v
         {-# INLINE unValueDataDenotation #-}
      in makeBuiltinMeaning
           unValueDataDenotation
