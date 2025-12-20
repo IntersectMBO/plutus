@@ -1,1 +1,1 @@
-ByteString -> ByteString -> Integer -> ValueLogOuterSizeAddLogMaxInnerSize -> BuiltinResult Value
+ByteString -> ByteString -> Integer -> ValueMaxDepth -> BuiltinResult Value

@@ -16,12 +16,13 @@ import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.List (find, sort)
+import Data.Map.Strict qualified as Map
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ValueLogOuterSizeAddLogMaxInnerSize (..)
+  ( ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
 import PlutusCore.Value (K, Quantity (..), Value)
@@ -48,7 +49,7 @@ makeBenchmarks gen =
 lookupCoinBenchmark :: StdGen -> Benchmark
 lookupCoinBenchmark gen =
   createThreeTermBuiltinBenchElementwiseWithWrappers
-    (id, id, ValueLogOuterSizeAddLogMaxInnerSize) -- Wrap Value argument to report sum of log sizes
+    (id, id, ValueMaxDepth) -- Wrap Value argument to report sum of log sizes
     LookupCoin -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
     (runBenchGen gen lookupCoinArgs) -- the argument combos to generate benchmarks for
@@ -102,7 +103,7 @@ withWorstCaseSearchKeys genValueWithKeys = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueLogOuterSizeAddLogMaxInnerSize, ValueTotalSize)
+    (ValueMaxDepth, ValueTotalSize)
     -- Container: sum of log sizes, Contained: totalSize
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
@@ -221,7 +222,7 @@ unValueDataBenchmark gen =
 insertCoinBenchmark :: StdGen -> Benchmark
 insertCoinBenchmark gen =
   createFourTermBuiltinBenchElementwiseWithWrappers
-    (id, id, id, ValueLogOuterSizeAddLogMaxInnerSize)
+    (id, id, id, ValueMaxDepth)
     InsertCoin
     []
     (runBenchGen gen insertCoinArgs)
@@ -309,7 +310,7 @@ Uses 'unsafeFromList' because 'generateKey' may generate duplicate keys, althoug
 it is unlikely it generates more than a few duplicates per run. -}
 buildValue :: [K] -> [K] -> Quantity -> Value
 buildValue policyIds tokenNames amt =
-  Value.unsafeFromList entries
+  unsafeFromList entries
   where
     entries =
       [ ( pId
@@ -485,3 +486,7 @@ mkQuantity :: Integer -> Value.Quantity
 mkQuantity qty = case Value.quantity qty of
   Just q -> q
   Nothing -> error "mkQuantity: out of bounds user supplied integer as quantity"
+
+-- | Left biased unsafe fromList.
+unsafeFromList :: [(K, [(K, Quantity)])] -> Value
+unsafeFromList xs = Value.pack $ Map.fromList $ fmap Map.fromList <$> xs

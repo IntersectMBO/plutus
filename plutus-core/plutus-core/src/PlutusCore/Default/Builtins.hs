@@ -27,7 +27,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( ExMemoryUsage
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
-  , ValueLogOuterSizeAddLogMaxInnerSize (..)
+  , ValueMaxDepth (..)
   , ValueTotalSize (..)
   , memoryUsage
   , singletonRose
@@ -1967,17 +1967,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           :: ByteString
           -> ByteString
           -> Integer
-          -> ValueLogOuterSizeAddLogMaxInnerSize
+          -> ValueMaxDepth
           -> BuiltinResult Value
-        insertCoinDenotation pid tokn amt (ValueLogOuterSizeAddLogMaxInnerSize v) =
+        insertCoinDenotation pid tokn amt (ValueMaxDepth v) =
           Value.insertCoin pid tokn amt v
         {-# INLINE insertCoinDenotation #-}
      in makeBuiltinMeaning
           insertCoinDenotation
           (runCostingFunFourArguments . paramInsertCoin)
   toBuiltinMeaning _semvar LookupCoin =
-    let lookupCoinDenotation :: ByteString -> ByteString -> ValueLogOuterSizeAddLogMaxInnerSize -> Integer
-        lookupCoinDenotation p t (ValueLogOuterSizeAddLogMaxInnerSize v) = Value.lookupCoin p t v
+    let lookupCoinDenotation :: ByteString -> ByteString -> ValueMaxDepth -> Integer
+        lookupCoinDenotation p t (ValueMaxDepth v) = Value.lookupCoin p t v
         {-# INLINE lookupCoinDenotation #-}
      in makeBuiltinMeaning
           lookupCoinDenotation
@@ -1990,8 +1990,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           unionValueDenotation
           (runCostingFunTwoArguments . paramUnionValue)
   toBuiltinMeaning _semvar ValueContains =
-    let valueContainsDenotation :: ValueLogOuterSizeAddLogMaxInnerSize -> ValueTotalSize -> BuiltinResult Bool
-        valueContainsDenotation (ValueLogOuterSizeAddLogMaxInnerSize v1) (ValueTotalSize v2) =
+    let valueContainsDenotation :: ValueMaxDepth -> ValueTotalSize -> BuiltinResult Bool
+        valueContainsDenotation (ValueMaxDepth v1) (ValueTotalSize v2) =
           Value.valueContains v1 v2
         {-# INLINE valueContainsDenotation #-}
      in makeBuiltinMeaning
@@ -2012,11 +2012,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           unValueDataDenotation
           (runCostingFunOneArgument . paramUnValueData)
   toBuiltinMeaning _semvar ScaleValue =
-    let unValueDataDenotation :: Integer -> ValueTotalSize -> BuiltinResult Value
-        unValueDataDenotation scalar (ValueTotalSize v) = Value.scaleValue scalar v
-        {-# INLINE unValueDataDenotation #-}
+    let scaleValueDenotation :: Integer -> ValueTotalSize -> BuiltinResult Value
+        scaleValueDenotation scalar (ValueTotalSize v) = Value.scaleValue scalar v
+        {-# INLINE scaleValueDenotation #-}
      in makeBuiltinMeaning
-          unValueDataDenotation
+          scaleValueDenotation
           (runCostingFunTwoArguments . paramScaleValue)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}

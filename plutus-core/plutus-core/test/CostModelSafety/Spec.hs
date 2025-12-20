@@ -40,7 +40,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( IntegerCostedLiterally
   , NumBytesCostedAsNumWords
-  , ValueLogOuterSizeAddLogMaxInnerSize
+  , ValueMaxDepth
   , ValueTotalSize
   )
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
@@ -139,7 +139,7 @@ smallConstant tr
           BLS12_381.G2.offchain_zero
   | Just HRefl <- eqTypeRep tr (typeRep @Value) = SomeConst Value.empty
   | Just HRefl <- eqTypeRep tr (typeRep @ValueTotalSize) = SomeConst Value.empty
-  | Just HRefl <- eqTypeRep tr (typeRep @ValueLogOuterSizeAddLogMaxInnerSize) = SomeConst Value.empty
+  | Just HRefl <- eqTypeRep tr (typeRep @ValueMaxDepth) = SomeConst Value.empty
   | trPair `App` tr1 `App` tr2 <- tr
   , Just HRefl <- eqTypeRep trPair (typeRep @(,)) =
       case (smallConstant tr1, smallConstant tr2) of

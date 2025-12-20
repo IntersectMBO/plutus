@@ -842,7 +842,7 @@ modelFun <- function(path) {
         mk.result(m, "with_interaction_in_x_and_y")
     }
 
-    # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)
+    # X wrapped with `ValueMaxDepth` (sum of logarithmic sizes)
     # Y wrapped with `ValueTotalSize` (contained value size)
     valueContainsModel        <- {
         fname <- "ValueContains"

@@ -22,7 +22,6 @@ module PlutusCore.Value
   , pack
   , empty
   , fromList
-  , unsafeFromList
   , toList
   , toFlatList
   , totalSize
@@ -261,10 +260,6 @@ fromList xs = do
   -- Validate all quantities are within bounds
   pack <$> validateQuantities outerMap
 {-# INLINEABLE fromList #-}
-
--- | Left biased unsafe fromList.
-unsafeFromList :: [(K, [(K, Quantity)])] -> Value
-unsafeFromList xs = pack $ Map.fromList $ fmap Map.fromList <$> xs
 
 -- | Unsafe addition of quantities without bounds checking.
 unsafeAddQuantity :: Quantity -> Quantity -> Quantity
