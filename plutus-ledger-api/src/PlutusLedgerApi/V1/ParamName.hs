@@ -325,9 +325,11 @@ data ParamName
   | ValueContains'cpu'arguments'slope
   | ValueContains'memory'arguments
   | ValueData'cpu'arguments
-  | ValueData'memory'arguments
+  | ValueData'memory'arguments'intercept
+  | ValueData'memory'arguments'slope
   | UnValueData'cpu'arguments'intercept
   | UnValueData'cpu'arguments'slope
-  | UnValueData'memory'arguments
+  | UnValueData'memory'arguments'intercept
+  | UnValueData'memory'arguments'slope
   deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
   deriving (IsParamName) via (GenericParamName ParamName)
