@@ -24,7 +24,8 @@ import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ExMemoryUsage
+  ( DataNodeCount (..)
+  , ExMemoryUsage
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
   , ValueLogOuterSizeAddLogMaxInnerSize (..)
@@ -1926,7 +1927,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
         listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
           case uniListA of
-            DefaultUniList uniA -> 
+            DefaultUniList uniA ->
               pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromListN (length xs) xs
             _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
         {-# INLINE listToArrayDenotation #-}
@@ -1992,15 +1993,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           valueContainsDenotation
           (runCostingFunTwoArguments . paramValueContains)
   toBuiltinMeaning _semvar ValueData =
-    let valueDataDenotation :: Value -> Data
-        valueDataDenotation = Value.valueData
+    let valueDataDenotation :: ValueTotalSize -> Data
+        valueDataDenotation (ValueTotalSize v) = Value.valueData v
         {-# INLINE valueDataDenotation #-}
      in makeBuiltinMeaning
           valueDataDenotation
           (runCostingFunOneArgument . paramValueData)
   toBuiltinMeaning _semvar UnValueData =
-    let unValueDataDenotation :: Data -> BuiltinResult Value
-        unValueDataDenotation = Value.unValueData
+    let unValueDataDenotation :: DataNodeCount -> BuiltinResult Value
+        unValueDataDenotation (DataNodeCount d) = Value.unValueData d
         {-# INLINE unValueDataDenotation #-}
      in makeBuiltinMeaning
           unValueDataDenotation
