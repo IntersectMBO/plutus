@@ -863,6 +863,34 @@ test-suite cardano-loans-test
     , plutus-tx:plutus-tx-testlib
     , tasty
 
+executable memory-analysis
+  import:             lang, ghc-version-support, os-support
+  main-is:            Main.hs
+  hs-source-dirs:     memory-analysis/src
+  other-modules:
+    PlutusBenchmark.MemoryAnalysis
+    PlutusBenchmark.MemoryAnalysis.Experiments
+    PlutusBenchmark.MemoryAnalysis.Generators
+    PlutusBenchmark.MemoryAnalysis.Helpers
+    PlutusBenchmark.MemoryAnalysis.Types
+    PlutusBenchmark.Plotting
+    PlutusBenchmark.RegressionInteger
+
+  default-extensions: BlockArguments
+  ghc-options:        -Wno-unused-packages
+  build-depends:
+    , base            >=4.9   && <5
+    , bytestring
+    , Chart           >=1.9
+    , Chart-diagrams  >=1.9
+    , colour
+    , containers
+    , deepseq
+    , directory
+    , ghc-datasize
+    , plutus-core     ^>=1.56
+    , random
+
 benchmark flat-decode
   import:         lang, ghc-version-support, os-support
   type:           exitcode-stdio-1.0
