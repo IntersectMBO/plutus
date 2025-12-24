@@ -100,31 +100,31 @@ term =
       ]
   where
     tryAppTerm :: Parser PTerm
-    tryAppTerm = do
-      withSpan $ \sp -> do
-        _ <- try (symbol "[")
-        t <- appTerm sp
-        _ <- char ']'
-        return t
+    tryAppTerm =
+      withSpan $ \sp ->
+        between
+          (symbol "[" <?> "opening bracket '['")
+          (char ']' <?> "closing bracket ']'")
+          (appTerm sp)
 
     tryTermInParens :: Parser PTerm
     tryTermInParens =
-      withSpan $ \sp -> do
-        _ <- try (symbol "(")
-        t <-
-          choice
-            [ try (symbol "builtin") *> builtinTerm sp
-            , try (symbol "lam") *> lamTerm sp
-            , try (symbol "constr") *> constrTerm sp -- "constr" must come before "con"
-            , try (symbol "con") *> conTerm sp
-            , try (symbol "delay") *> delayTerm sp
-            , try (symbol "force") *> forceTerm sp
-            , try (symbol "error") *> errorTerm sp
-            , try (symbol "constr") *> constrTerm sp
-            , try (symbol "case") *> caseTerm sp
-            ]
-        _ <- char ')'
-        return t
+      withSpan $ \sp ->
+        between
+          (symbol "(" <?> "opening parenthesis '('")
+          (char ')' <?> "closing parenthesis ')'")
+          ( choice
+              [ symbol "builtin" *> builtinTerm sp
+              , symbol "lam" *> lamTerm sp
+              , symbol "constr" *> constrTerm sp -- "constr" must come before "con"
+              , symbol "con" *> conTerm sp
+              , symbol "delay" *> delayTerm sp
+              , symbol "force" *> forceTerm sp
+              , symbol "error" *> errorTerm sp
+              , symbol "case" *> caseTerm sp
+              ]
+              <?> "term keyword (builtin, lam, constr, con, delay, force, error, case)"
+          )
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
