@@ -1,0 +1,6 @@
+test:2:38:
+  |
+2 | [ (builtin integerToByteString) (con boot True) (con integer 0) (con integer 712372356934756347862573452345342345) ]
+  |                                      ^^^^^^^^^^^^^^^^^^^^
+unexpected "boot True) (con inte"
+expecting type name (integer, bytestring, string, unit, bool, list, array, pair, data, value, bls12_381_G1_element, bls12_381_G2_element, bls12_381_mlresult, or type application)

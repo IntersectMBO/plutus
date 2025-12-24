@@ -1,0 +1,6 @@
+test:3:64:
+  |
+3 |  (force (builtin mkCons)) (con integer 4) (con (list integer) [true]) ]
+  |                                                                ^
+unexpected 't'
+expecting '+', '-', ']', or integer
