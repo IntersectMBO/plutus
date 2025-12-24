@@ -1,0 +1,6 @@
+test:1:18:
+  |
+1 | (program 1.1.0 [(var x))
+  |                  ^^^^^^^
+unexpected "var x))"
+expecting term keyword (builtin, lam, constr, con, delay, force, error, case)

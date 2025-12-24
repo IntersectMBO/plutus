@@ -1,0 +1,6 @@
+test:1:20:
+  |
+1 | (program 1.1.0 (con))
+  |                    ^^
+unexpected "))"
+expecting type name (integer, bytestring, string, unit, bool, list, array, pair, data, value, bls12_381_G1_element, bls12_381_G2_element, bls12_381_mlresult, or type application)
