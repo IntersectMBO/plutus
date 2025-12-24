@@ -1,6 +1,11 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -14,6 +19,8 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , IntegerCostedLiterally (..)
   , ValueTotalSize (..)
   , ValueMaxDepth (..)
+  , DataNodeCount (..)
+  , countNodesRoseScaled
   ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -455,6 +462,31 @@ mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResul
 {-# OPAQUE mlResultElementCost #-}
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where
-  memoryUsage _ = mlResultElementCost
+  memoryUsage _ = mlResultElementCost -- Should be 72
 
--- Should be 72
+{-| A wrapper for 'Data' whose 'ExMemoryUsage' counts nodes via lazy traversal.
+Used by UnValueData builtin: measures INPUT Data node count.
+The actual memory formula (slope × nodeCount + intercept) is applied in the JSON cost model. -}
+newtype DataNodeCount = DataNodeCount Data
+
+instance ExMemoryUsage DataNodeCount where
+  -- Just count nodes without applying coefficients.
+  -- The JSON cost model applies: 8 * nodeCount + 0
+  -- See MemoryAnalysis analyzeCrossConversionModels experiment for derivation.
+  memoryUsage (DataNodeCount dat) =
+    countNodesRoseScaled 1 dat
+  {-# INLINE memoryUsage #-}
+
+-- Helper function to count nodes in a Data object, returning a lazy CostRose
+-- with the slope applied per node. The intercept is applied once at the root
+-- in the ExMemoryUsage instance.
+countNodesRoseScaled :: CostingInteger -> Data -> CostRose
+countNodesRoseScaled s = go
+  where
+    -- Each node contributes `s` (slope) to the cost
+    go d = CostRose s case d of
+      Constr _ ds -> ds <&> go
+      Map pairs -> pairs >>= \(d1, d2) -> [d1, d2] <&> go
+      List ds -> ds <&> go
+      I _ -> []
+      B _ -> []

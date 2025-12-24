@@ -22,7 +22,8 @@ import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ValueMaxDepth (..)
+  ( DataNodeCount (..)
+  , ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
 import PlutusCore.Value (K, Quantity (..), Value)
@@ -207,14 +208,23 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
 -- ValueData ---------------------------------------------------------------------------------------
 
 valueDataBenchmark :: StdGen -> Benchmark
-valueDataBenchmark gen = createOneTermBuiltinBench ValueData [] (generateTestValues gen)
+valueDataBenchmark gen =
+  createOneTermBuiltinBenchWithWrapper
+    ValueTotalSize
+    ValueData
+    []
+    (generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
 
 unValueDataBenchmark :: StdGen -> Benchmark
 unValueDataBenchmark gen =
-  createOneTermBuiltinBench UnValueData [] (Value.valueData <$> generateTestValues gen)
+  createOneTermBuiltinBenchWithWrapper
+    DataNodeCount
+    UnValueData
+    []
+    (Value.valueData <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------

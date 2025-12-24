@@ -24,7 +24,8 @@ import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ExMemoryUsage
+  ( DataNodeCount (..)
+  , ExMemoryUsage
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
   , ValueMaxDepth (..)
@@ -1998,15 +1999,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           valueContainsDenotation
           (runCostingFunTwoArguments . paramValueContains)
   toBuiltinMeaning _semvar ValueData =
-    let valueDataDenotation :: Value -> Data
-        valueDataDenotation = Value.valueData
+    let valueDataDenotation :: ValueTotalSize -> Data
+        valueDataDenotation (ValueTotalSize v) = Value.valueData v
         {-# INLINE valueDataDenotation #-}
      in makeBuiltinMeaning
           valueDataDenotation
           (runCostingFunOneArgument . paramValueData)
   toBuiltinMeaning _semvar UnValueData =
-    let unValueDataDenotation :: Data -> BuiltinResult Value
-        unValueDataDenotation = Value.unValueData
+    let unValueDataDenotation :: DataNodeCount -> BuiltinResult Value
+        unValueDataDenotation (DataNodeCount d) = Value.unValueData d
         {-# INLINE unValueDataDenotation #-}
      in makeBuiltinMeaning
           unValueDataDenotation
