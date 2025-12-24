@@ -34,6 +34,20 @@ data SomeVeryLargeEnum
   deriving stock (HS.Eq, HS.Enum, HS.Bounded, HS.Show)
 deriveEnum ''SomeVeryLargeEnum
 
+data SomeVeryLargePhantom a b c d e f g h
+  = P1
+  | P2
+  | P3
+  | P4
+  | P5
+  | P6
+  | P7
+  | P8
+  | P9
+  | P10
+  deriving stock (HS.Eq, HS.Enum, HS.Bounded, HS.Show)
+deriveEnum ''SomeVeryLargePhantom
+
 -- we lack Tx.Bounded so we use Haskell's for the tests
 enumTests :: TestTree
 enumTests =
@@ -45,6 +59,7 @@ enumTests =
         , runTestNested
             ["test", "Enum", "Golden"]
             [ $(goldenCodeGen "SomeVeryLargeEnum" (deriveEnum ''SomeVeryLargeEnum))
+            , $(goldenCodeGen "SomeVeryLargePhantom" (deriveEnum ''SomeVeryLargePhantom))
             , $(goldenCodeGen "Bool" (deriveEnum ''Bool))
             , $(goldenCodeGen "Unit" (deriveEnum ''()))
             ]
