@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
@@ -8,6 +9,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | 'Eq' instances for core data types.
+
 module PlutusCore.Core.Instance.Eq () where
 
 import PlutusPrelude
@@ -55,15 +57,14 @@ deriving stock instance
   (GEq uni, Closed uni, uni `Everywhere` Eq, Eq ann)
   => Eq (Type TyDeBruijn uni ann)
 
-deriving stock instance
-  ( GEq uni
-  , Closed uni
-  , uni `Everywhere` Eq
-  , Eq fun
-  , Eq ann
-  , Eq (Term tyname name uni fun ann)
-  )
-  => Eq (Program tyname name uni fun ann)
+deriving stock instance (
+#if __GLASGOW_HASKELL__ < 914
+  -- These constraints are REQUIRED for ghc < 9.14 but REDUNDANT for ghc >= 9.14
+  -- See https://gitlab.haskell.org/ghc/ghc/-/issues/26381#note_637863
+  GEq uni, Closed uni, Eq fun,
+#endif
+  uni `Everywhere` Eq, Eq ann,
+                  Eq (Term tyname name uni fun ann)                  ) =>  Eq (Program tyname name uni fun ann)
 
 type EqRenameOf ren a = HasUniques a => a -> a -> EqRename ren
 
