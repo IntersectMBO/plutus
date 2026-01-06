@@ -12,11 +12,16 @@
 module Benchmarks.Nops (makeBenchmarks) where
 
 import Common
-import Generators (randBool, randNwords)
+import Generators
+  ( randBool
+  , randNwords
+  )
 
 import PlutusCore
 import PlutusCore.Builtin
-import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
+import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding
+  ( BuiltinCostModel
+  )
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -24,7 +29,10 @@ import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Criterion.Main (Benchmark, bgroup)
+import Criterion.Main
+  ( Benchmark
+  , bgroup
+  )
 
 import Data.Ix (Ix)
 import System.Random (StdGen)
@@ -73,7 +81,7 @@ data NopFun
   | Nop5o
   | Nop6o
   deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
-  deriving anyclass (PrettyBy PrettyConfigPlc)
+  deriving anyclass (PrettyBy PrettyConfigPlc, NFData)
 
 instance Pretty NopFun where
   pretty fun = pretty $ lowerInitialChar $ show fun
