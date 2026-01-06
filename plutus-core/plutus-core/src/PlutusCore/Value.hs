@@ -52,7 +52,11 @@ import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
-import GHC.Stack (HasCallStack, callStack, getCallStack)
+import GHC.Stack
+  ( HasCallStack
+  , callStack
+  , getCallStack
+  )
 
 import PlutusCore.Builtin.Result
 import PlutusCore.Data (Data (..))
@@ -410,10 +414,10 @@ unionValue (unpack -> vA) (unpack -> vB) =
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
 This is the denotation of @ValueData@ in Plutus V1, V2 and V3. -}
 valueData :: Value -> Data
-valueData = Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack
+valueData v = Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack $ v
   where
     tokensData :: Map K Quantity -> Data
-    tokensData = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList
+    tokensData m = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList $ m
 {-# INLINEABLE valueData #-}
 
 {-| \(O(n \log n)\). Decodes `Data` into `Value`, in the same way as non-builtin @Value@.
