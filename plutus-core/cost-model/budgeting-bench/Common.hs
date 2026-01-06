@@ -41,7 +41,7 @@ import Criterion.Main
   ( Benchmark
   , bench
   , bgroup
-  , nf
+  , whnf
   )
 import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
@@ -106,7 +106,7 @@ benchWith
 -- gets back a 'Data' value it'll traverse all of it.
 benchWith params name term =
   bench name $
-    nf (handleEvaluationErrors . evaluateCekNoEmit params) term
+    whnf (handleEvaluationErrors . evaluateCekNoEmit params) term
   where
     handleEvaluationErrors = \case
       Right res -> res
