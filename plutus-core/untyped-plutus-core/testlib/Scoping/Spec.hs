@@ -93,7 +93,7 @@ test_names =
         (genTerm @DefaultFun)
         T.BindingRemovalOk
         T.PrerenameYes
-        (evalSimplifierT . cse maxBound)
+        (evalSimplifierT . cse ExcludeWorkFree maxBound)
     , T.test_scopingGood
         "float-delay"
         (genTerm @DefaultFun)
