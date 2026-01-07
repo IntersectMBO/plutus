@@ -10,7 +10,14 @@ import PlutusCore.MkPlc (mkConstant, mkIterApp, mkIterAppNoAnn)
 import PlutusCore.Quote (Quote, freshName, runQuote)
 import Test.Tasty (TestTree, testGroup)
 import Transform.Simplify.Lib (goldenVsCse, goldenVsSimplified)
-import UntypedPlutusCore (DefaultFun, DefaultUni, Name, Term (..), UVarDecl (..))
+import UntypedPlutusCore
+  ( CseWhichSubterms (..)
+  , DefaultFun
+  , DefaultUni
+  , Name
+  , Term (..)
+  , UVarDecl (..)
+  )
 import UntypedPlutusCore.MkUPlc (mkIterLamAbs)
 
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -559,6 +566,30 @@ cseExpensive = plus arg arg'
     arg = mkArg [0 .. 200]
     arg' = mkArg [0 .. 200]
 
+-- tree where nodes are + and leaves are constants
+csePlusTree :: Term Name DefaultUni DefaultFun ()
+csePlusTree = go 5
+  where
+    go :: Int -> Term Name DefaultUni DefaultFun ()
+    go 0 = con 1
+    go n = plus (go (n - 1)) (go (n - 1))
+
+    plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+    con = mkConstant @Integer ()
+
+-- (1 + (1 + ... + 0))
+-- optimised to
+-- let f = (1 +) in f (f (... 0))
+cseRepeatPlus :: Term Name DefaultUni DefaultFun ()
+cseRepeatPlus = go 5
+  where
+    go :: Int -> Term Name DefaultUni DefaultFun ()
+    go 0 = con 0
+    go n = plus (con 1) (go (n - 1))
+
+    plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+    con = mkConstant @Integer ()
+
 testSimplifyInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
 testSimplifyInputs =
   [ ("basic", basic)
@@ -601,9 +632,17 @@ testCseInputs =
   , ("cseExpensive", cseExpensive)
   ]
 
+testCseInputsWorkFree :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testCseInputsWorkFree =
+  [ ("cse1WorkFree", cse1)
+  , ("csePlusTree", csePlusTree)
+  , ("cseRepeatPlus", cseRepeatPlus)
+  ]
+
 test_simplify :: TestTree
 test_simplify =
   testGroup
     "simplify"
     $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
-      <> fmap (uncurry goldenVsCse) testCseInputs
+      <> fmap (uncurry (goldenVsCse ExcludeWorkFree)) testCseInputs
+      <> fmap (uncurry (goldenVsCse AllSubterms)) testCseInputsWorkFree

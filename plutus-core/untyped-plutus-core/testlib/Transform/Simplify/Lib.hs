@@ -12,11 +12,13 @@ import PlutusPrelude (Default (def))
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsString)
 import UntypedPlutusCore
-  ( Name
+  ( CseWhichSubterms
+  , Name
   , SimplifierTrace
   , Term
   , defaultSimplifyOpts
   , runSimplifierT
+  , soCseWhichSubterms
   , soInlineCallsiteGrowth
   , soMaxCseIterations
   , soMaxSimplifierIterations
@@ -56,26 +58,32 @@ testSimplify =
       )
       (def :: BuiltinSemanticsVariant PLC.DefaultFun)
 
-goldenVsCse :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
-goldenVsCse name =
+goldenVsCse
+  :: CseWhichSubterms
+  -> String
+  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
+  -> TestTree
+goldenVsCse whichSubterms name =
   goldenVsPretty ".golden.uplc" name
     . PLC.runQuote
     . fmap fst
-    . testCse
+    . testCse whichSubterms
 
 testCse
-  :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+  :: CseWhichSubterms
+  -> Term Name PLC.DefaultUni PLC.DefaultFun ()
   -> PLC.Quote
        ( Term Name PLC.DefaultUni PLC.DefaultFun ()
        , SimplifierTrace Name PLC.DefaultUni PLC.DefaultFun ()
        )
-testCse =
+testCse whichSubterms =
   runSimplifierT
     . termSimplifier
       ( defaultSimplifyOpts
           -- Just run one iteration, to see what that does
           & soMaxSimplifierIterations .~ 0
           & soMaxCseIterations .~ 1
+          & soCseWhichSubterms .~ whichSubterms
           & soInlineCallsiteGrowth .~ 0
           & soPreserveLogging .~ False
       )
