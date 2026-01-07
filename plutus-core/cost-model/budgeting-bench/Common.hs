@@ -8,20 +8,41 @@
 module Common
 where
 
-import PlutusCore hiding (Constr)
+import PlutusCore hiding
+  ( Constr
+  )
 import PlutusCore.Compiler.Erase
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn, mkTyBuiltin)
-import PlutusCore.Pretty (Pretty, display)
-import UntypedPlutusCore as UPLC hiding (Constr)
+import PlutusCore.MkPlc
+  ( builtin
+  , mkConstant
+  , mkIterAppNoAnn
+  , mkIterInstNoAnn
+  , mkTyBuiltin
+  )
+import PlutusCore.Pretty
+  ( Pretty
+  , display
+  )
+import UntypedPlutusCore as UPLC hiding
+  ( Constr
+  )
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Control.DeepSeq (NFData, force)
-import Criterion.Main (Benchmark, bench, bgroup, whnf)
+import Control.DeepSeq
+  ( NFData
+  , force
+  )
+import Criterion.Main
+  ( Benchmark
+  , bench
+  , bgroup
+  , nf
+  )
 import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
 import Data.Text qualified as T
@@ -76,7 +97,7 @@ pairWith f = fmap (\a -> (a, f a))
 
 benchWith
   :: forall fun
-   . (Pretty fun, Typeable fun)
+   . (Pretty fun, Typeable fun, NFData fun)
   => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
   -> String
   -> PlainTerm DefaultUni fun
@@ -87,7 +108,7 @@ benchWith
 -- gets back a 'Data' value it'll traverse all of it.
 benchWith params name term =
   bench name $
-    whnf (runEvalCek params) term
+    nf (runEvalCek params) term
   where
     runEvalCek
       :: MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
