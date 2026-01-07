@@ -32,10 +32,11 @@ Types](#supported-types) for more detail.
 ## Compiling to `case` in Plinth
 
 When compiling Plinth code with the [option](./plinth-compiler-options)
-`datatypes=BuiltinCasing`, many standard library functions will be compiled into
-this use of `case`, such as `fstPair`, `ifThenElse` and `caseList`. Note that
-Plinth's `case ... of ...` syntax is not necessarily compiled to UPLC, as it can
-be more expressive.
+`datatypes=BuiltinCasing` (which in the future be achieved with
+`datatypes=SumsOfProducts), many standard library functions will be compiled
+into this use of `case`, such as `fstPair`, `ifThenElse` and `caseList`. Note
+that Plinth's `case ... of ...` syntax is not necessarily compiled to UPLC, as
+it can be more expressive.
 
 ## Supported types
 
@@ -53,6 +54,18 @@ boolean evaluates to `True`.
 
 Using a single branch is appropriate when the second branch was supposed to fail
 already, saving script size.
+
+
+:::info
+
+When compiling without `datatypes=BuiltinCasing`, Plinth's `ifThenElse` is
+compiled into UPLC's `ifThenElse` built-in function, which usually requires more
+AST nodes since each branch argument needs to be delayed (function application is
+strict), and finally force the chosen branch. This impacts the size and
+execution cost.
+
+:::
+
 
 ### Unit
 
@@ -74,6 +87,14 @@ This example sums the two integer constants in a pair.
 ```uplc
 lam x (case x (lam a (lam b [(builtin addInteger) a b])))
 ```
+
+:::info
+
+When compiling without `datatypes=BuiltinCasing`, Plinth's `choosePair` is
+compiled into multiple built-in function calls to project out the pair's
+components, impacting size and execution cost.
+
+:::
 
 ### Integer
 
@@ -111,6 +132,20 @@ Caused by: 4
 
 Note that there is no way to provide a "catch-all" case for integers.
 
+:::info
+
+In Plinth, using `caseInteger` with `datatypes=BuiltinCasing` will be compiled into
+the above `case` construct in PIR, provided the second argument is given as a
+literal list (otherwise this is a compile error).
+
+When not using `datatypes=BuiltinCasing`, Plinth's `caseInteger` is compiled
+into a much less efficient implementation that turns the second argument in a
+list (of which the representation depends on the chosen `datatypes=` flag), and
+does a recursive lookup in that list.
+
+:::
+
+
 ### List
 
 A `case` on built-in lists may be given one or two branches (similar to
@@ -123,3 +158,12 @@ This example implements the `head` function, which fails if the list if empty.
 ```uplc
 lam xs (case xs (lam y (lam ys y)))
 ```
+
+:::info
+
+When compiling without `datatypes=BuiltinCasing`, Plinth's `caseList` is
+compiled into a combination of built-in calls such as `chooseList`, `headList`
+and `tailList`. Similarly to booleans, the branches are also thunked, impacting
+script size and execution cost.
+
+:::
