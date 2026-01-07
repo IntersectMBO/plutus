@@ -37,7 +37,7 @@ module PlutusCore.Value
   ) where
 
 import Codec.Serialise qualified as CBOR
-import Control.DeepSeq (NFData, ($!!))
+import Control.DeepSeq (NFData, (<$!!>))
 import Data.Bifunctor
 import Data.Bitraversable
 import Data.ByteString (ByteString)
@@ -414,10 +414,10 @@ unionValue (unpack -> vA) (unpack -> vB) =
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
 This is the denotation of @ValueData@ in Plutus V1, V2 and V3. -}
 valueData :: Value -> Data
-valueData v = Map $!! (fmap (bimap (B . unK) tokensData) . Map.toList . unpack $ v)
+valueData = Map <$!!> (fmap (bimap (B . unK) tokensData) . Map.toList . unpack)
   where
     tokensData :: Map K Quantity -> Data
-    tokensData m = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList $ m
+    tokensData = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList
 {-# INLINEABLE valueData #-}
 
 {-| \(O(n \log n)\). Decodes `Data` into `Value`, in the same way as non-builtin @Value@.
