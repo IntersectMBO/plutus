@@ -418,6 +418,7 @@ valueData = Map <$!!> (fmap (bimap (B . unK) tokensData) . Map.toList . unpack)
   where
     tokensData :: Map K Quantity -> Data
     tokensData = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList
+    {-# INLINE tokensData #-}
 {-# INLINEABLE valueData #-}
 
 {-| \(O(n \log n)\). Decodes `Data` into `Value`, in the same way as non-builtin @Value@.
