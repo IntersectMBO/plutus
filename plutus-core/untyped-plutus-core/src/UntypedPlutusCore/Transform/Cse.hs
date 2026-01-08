@@ -34,6 +34,7 @@ import Data.Ord (Down (..))
 import Data.Proxy (Proxy (..))
 import Data.Traversable (for)
 import Data.Tuple.Extra (snd3, thd3)
+import Debug.Trace
 import PlutusCore.Arity (builtinArity)
 
 {- Note [CSE]
@@ -232,6 +233,8 @@ cse
 cse whichSubterms builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
+      occMap = countOccs whichSubterms builtinSemanticsVariant annotated
+      mapElemsJoined = join $ Map.elems occMap
       commonSubexprs =
         -- Processed the common subexpressions in descending order of `termAstSize`.
         -- See Note [CSE].
@@ -239,9 +242,10 @@ cse whichSubterms builtinSemanticsVariant t0 = do
           . fmap snd3
           -- A subexpression is common if the count is greater than 1.
           . filter ((> 1) . thd3)
-          . join
-          . Map.elems
-          $ countOccs whichSubterms builtinSemanticsVariant annotated
+          $ mapElemsJoined
+  let elems = length mapElemsJoined
+  let filtered = length commonSubexprs
+  trace ("elems: " ++ show elems ++ " , filtered: " ++ show filtered) (return ())
   result <- mkCseTerm commonSubexprs annotated
   recordSimplification t0 CSE result
   return result
@@ -303,6 +307,27 @@ isWorkFree' builtinSemanticsVariant term =
       Builtin {} -> True
       Force _ t -> isForcingBuiltin t
       _ -> False
+
+-- | The third pass. See Note [CSE].
+count
+  :: forall name uni fun ann
+   . (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun)
+  => CseWhichSubterms
+  -> BuiltinSemanticsVariant fun
+  -> Term name uni fun (Path, ann)
+  -> (Int, Int)
+  {-^ Here, the value of the inner map not only contains the count, but also contains
+  the annotated term, corresponding to the term that is the key of the outer map.
+  The annotated terms need to be recorded since they will be used for substitution. -}
+count whichSubterms builtinSemanticsVariant =
+  foldrOf
+    termSubtermsDeep
+    (case whichSubterms of AllSubterms -> addOrSkip; ExcludeWorkFree -> \_ (x, y) -> (x + 1, y + 1))
+    (0, 0)
+  where
+    addOrSkip t0 (x, y)
+      | isWorkFree' builtinSemanticsVariant t0 = (x, y + 1)
+      | otherwise = (x + 1, y + 1)
 
 -- | The third pass. See Note [CSE].
 countOccs

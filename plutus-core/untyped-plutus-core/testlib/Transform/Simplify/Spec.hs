@@ -624,19 +624,14 @@ testSimplifyInputs =
   , ("forceCaseDelayWithApps2Fail", forceCaseDelayWithApps2Fail)
   ]
 
-testCseInputs :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
-testCseInputs =
-  [ ("cse1", cse1)
-  , ("cse2", cse2)
-  , ("cse3", cse3)
-  , ("cseExpensive", cseExpensive)
-  ]
-
-testCseInputsWorkFree :: [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
-testCseInputsWorkFree =
-  [ ("cse1WorkFree", cse1)
-  , ("csePlusTree", csePlusTree)
-  , ("cseRepeatPlus", cseRepeatPlus)
+testCseInputs :: String -> [(String, Term Name PLC.DefaultUni PLC.DefaultFun ())]
+testCseInputs suffix =
+  [ ("cse1" ++ suffix, cse1)
+  , ("cse2" ++ suffix, cse2)
+  , ("cse3" ++ suffix, cse3)
+  , ("cseExpensive" ++ suffix, cseExpensive)
+  , ("csePlusTree" ++ suffix, csePlusTree)
+  , ("cseRepeatPlus" ++ suffix, cseRepeatPlus)
   ]
 
 test_simplify :: TestTree
@@ -644,5 +639,9 @@ test_simplify =
   testGroup
     "simplify"
     $ fmap (uncurry goldenVsSimplified) testSimplifyInputs
-      <> fmap (uncurry (goldenVsCse ExcludeWorkFree)) testCseInputs
-      <> fmap (uncurry (goldenVsCse AllSubterms)) testCseInputsWorkFree
+      <> [ testGroup
+             "cse"
+             [ testGroup "AllSubterms" $ fmap (uncurry (goldenVsCse AllSubterms)) (testCseInputs "_AllSubterms")
+             , testGroup "ExcludeWorkFree" $ fmap (uncurry (goldenVsCse ExcludeWorkFree)) (testCseInputs "_ExcludeWorkFree")
+             ]
+         ]
