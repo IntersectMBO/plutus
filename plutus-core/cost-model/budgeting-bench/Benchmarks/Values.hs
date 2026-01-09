@@ -15,6 +15,7 @@ import Control.Monad.State.Strict (State)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.Int (Int64)
 import Data.List (find, sort)
 import Data.Map.Strict qualified as Map
 import Data.Word (Word8)
@@ -230,8 +231,8 @@ insertCoinBenchmark gen =
 insertCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Integer, Value)]
 insertCoinArgs gen = do
   lookupArgs <- lookupCoinArgs gen
-  let noOfBenchs = length lookupArgs
-  amounts <- genZeroOrMaxAmount gen noOfBenchs
+  let noOfBenches = length lookupArgs
+  amounts <- genZeroOrMaxAmount gen noOfBenches
   pure $ reorderArgs <$> zip lookupArgs amounts
   where
     reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
@@ -363,21 +364,16 @@ generateConstrainedValueWithMaxPolicy
   -> Int -- Number of tokens per policy
   -> g
   -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
-generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy =
-  generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy maxBound
-
--- | Generate constrained Value with information about max-size policy and quantity
-generateConstrainedValueWithMaxPolicyAndQuantity
-  :: StatefulGen g m
-  => Int -- Number of policies
-  -> Int -- Number of tokens per policy
-  -> Quantity -- Each token gets user defined quantity
-  -> g
-  -> m (Value, K, K) -- Returns (value, maxPolicyId, deepestTokenInMaxPolicy)
-generateConstrainedValueWithMaxPolicyAndQuantity numPolicies tokensPerPolicy qty g = do
+generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g = do
   policyIds <- replicateM numPolicies (generateKey g)
   tokenNames <- replicateM tokensPerPolicy (generateKey g)
+
   let
+    qty :: Value.Quantity
+    qty = case Value.quantity (fromIntegral (maxBound :: Int64)) of
+      Just q -> q
+      Nothing -> error "generateConstrainedValueWithMaxPolicy: Int64 maxBound should be valid Quantity"
+
     -- Sort policy IDs to establish BST ordering
     sortedPolicyIds = sort policyIds
 

@@ -369,11 +369,11 @@ readTwoVariableLinearFunction var1 var2 e = do
 
 readTwoVariableWithInteractionFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableWithInteractionFunction
 readTwoVariableWithInteractionFunction var1 var2 e = do
-  intercept <- Intercept <$> getCoeff "(Intercept)" e
-  slopeX <- Slope <$> getCoeff var1 e
-  slopeY <- Slope <$> getCoeff var2 e
-  slopeXY <- Slope <$> getCoeff (printf "%s:%s" var1 var2) e
-  pure $ TwoVariableWithInteractionFunction intercept slopeX slopeY slopeXY
+  c00 <- Coefficient00 <$> getCoeff "(Intercept)" e
+  c10 <- Coefficient10 <$> getCoeff var1 e
+  c01 <- Coefficient01 <$> getCoeff var2 e
+  c11 <- Coefficient11 <$> getCoeff (printf "%s:%s" var1 var2) e
+  pure $ TwoVariableWithInteractionFunction c00 c10 c01 c11
 
 readTwoVariableQuadraticFunction :: MonadR m => String -> String -> SomeSEXP (Region m) -> m TwoVariableQuadraticFunction
 readTwoVariableQuadraticFunction var1 var2 e = do
@@ -467,7 +467,7 @@ readCF4 e = do
   ty <- getType e
   case ty of
     "constant_cost" -> ModelFourArgumentsConstantCost <$> getConstant e
-    "linear_in_w" -> ModelFourArgumentsLinearInW <$> readOneVariableLinearFunction "w_mem" e
+    "linear_in_u" -> ModelFourArgumentsLinearInU <$> readOneVariableLinearFunction "u_mem" e
     _ -> error $ "Unknown four-variable model type: " ++ ty
 
 readCF6 :: MonadR m => SomeSEXP (Region m) -> m ModelSixArguments

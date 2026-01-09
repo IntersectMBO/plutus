@@ -174,13 +174,13 @@ const CostModelEvaluators = {
     return c0 + cx * args[0] + cy * args[1] + cxy * args[0] * args[1];
   },
 
-  linear_in_w: (coeffs, args) => {
-    // linear_in_w is linear in the fourth argument (args[3])
-    // The "w" refers to the fourth parameter's cost stream
+  linear_in_u: (coeffs, args) => {
+    // linear_in_u is linear in the fourth argument (args[3])
+    // The "u" refers to the fourth parameter's cost stream
     const c0 = coeffs.c0 ?? coeffs.intercept ?? 0;
     const c1 = coeffs.c1 ?? coeffs.slope ?? 0;
-    const w = args.length > 3 ? args[3] : 0;
-    return c0 + c1 * w;
+    const u = args.length > 3 ? args[3] : 0;
+    return c0 + c1 * u;
   }
 };
 
@@ -341,7 +341,7 @@ function formatModelFormula(modelType, coefficients) {
       return `${formatCoeff(c0)} + ${formatCoeff(cx)} × (arg1) + ${formatCoeff(cy)} × (arg2) + ${formatCoeff(cxy)} × (arg1×arg2) picoseconds`;
     }
 
-    case 'linear_in_w':
+    case 'linear_in_u':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg4) picoseconds`;
 
     default:

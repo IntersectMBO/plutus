@@ -175,9 +175,8 @@ get.bench.data <- function(path) {
 
     benchname <- regex("([[:alnum:]_]+)/(\\d+)(?:/(\\d+))?(?:/(\\d+))?(?:/(\\d+))?")
     ## We have benchmark names like "AddInteger/11/22", the numbers representing the sizes of
-    ## the inputs to the benchmark.  This extracts the name and up to three numbers, returning
-    ## "NA" for any that are missing.  If we ever have builtins with more than three arguments
-    ## we'll need to extend this and add names for the new arguments.
+    ## the inputs to the benchmark.  This extracts the name and up to four numbers, returning
+    ## "NA" for any that are missing.
 
     ## FIXME: the benchmarks for Nop4, Nop5, and Nop6 do have more than three
     ## arguments, but we're not paying any attention to the extra ones because
@@ -185,7 +184,7 @@ get.bench.data <- function(path) {
     ## the size of the first one because the others are terms (and the time is
     ## constant anyway).
 
-    numbercols = c("x_mem", "y_mem", "z_mem", "w_mem")
+    numbercols = c("x_mem", "y_mem", "z_mem", "u_mem")
 
     benchmark.name.to.numbers <- function(name) {
         a <- str_match(name, benchname)
@@ -435,12 +434,12 @@ modelFun <- function(path) {
         return (mk.result(m, "linear_in_z"))
    }
 
-   linearInW <- function (fname) {
+   linearInU <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ w_mem, filtered)
-        return (mk.result(m, "linear_in_w"))
+        m <- lm(t ~ u_mem, filtered)
+        return (mk.result(m, "linear_in_u"))
    }
 
     ##### Integers #####
@@ -828,8 +827,8 @@ modelFun <- function(path) {
 
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
     lookupCoinModel           <- linearInZ ("LookupCoin")    
-    # W wrapped with `Logarithmic . ValueOuterOrMaxInner`
-    insertCoinModel           <- linearInW ("InsertCoin")    
+    # U wrapped with `Logarithmic . ValueOuterOrMaxInner`
+    insertCoinModel           <- linearInU ("InsertCoin")    
 
     # X and Y wrapped with `ValueTotalSize` (contained value size)
     unionValueModel         <- {
@@ -837,8 +836,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        filtered$off <- 1 # offset to force inclusion of intercept in the model
-        m <- lm(t ~ x_mem*y_mem + offset(filtered$off), filtered)
+        m <- lm(t ~ x_mem*y_mem, filtered)
         mk.result(m, "with_interaction_in_x_and_y")
     }
 

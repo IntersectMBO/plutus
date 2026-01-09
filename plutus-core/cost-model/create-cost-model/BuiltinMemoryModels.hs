@@ -69,8 +69,8 @@ newtype Id a = Id {getId :: a}
 
 ## Overview
 
-The memory model for the Value builtin 'unionValue' estimates the heap allocation
-required for the resulting 'Value'. Memory usage is modeled as a function of the
+The memory models for the Value builtins estimate the heap allocation
+required for the resulting 'Value's. Memory usage is modeled as a function of the
 number of unique (currency symbol, token name) pairs, based on worst-case allocation.
 
 ## Value Structure
@@ -79,7 +79,8 @@ Structurally, a 'Value' consists of:
   - A nested 'Data.Map.Map': Map CurrencySymbol (Map TokenName Integer)
   - Bookkeeping data: two unboxed 'Int's and a 'Data.IntMap.IntMap Int'
 
-Runtime memory layout breakdown:
+Based on the [ghc runtime memory layout](https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/rts/storage/heap-objects),
+we can model the top-level memory allocation for a 'Value' as:
   - 1 word for the 'Value' constructor
   - 1 word for each of the two unboxed 'Int's
   - 1 word for the pointer to the 'IntMap'
@@ -95,6 +96,12 @@ We assume for each builtin application:
   4. Deeper trees would require more reallocation, but accounting for this is too complex
 
 ## Per-Pair Allocation (Outer and Inner Maps)
+
+'Map' is implemented as a balanced binary tree (Data.Map.Internal):
+@
+  data Map k a  = Bin {-# UNPACK #-} !Int !k a !(Map k a) !(Map k a)
+                | Tip
+@
 
 For each unique (currency symbol, token name) pair:
 
@@ -130,7 +137,7 @@ In our worst-case flat scenario (all inner maps have size 1), the footprint is c
 
 \**Total for IntMap: 7 words (constant)**
 
-## Final Formula
+## Final formulas for calculating each builtin's memory usage
 
 Combining per-pair and bookkeeping allocations:
 
@@ -138,7 +145,7 @@ Combining per-pair and bookkeeping allocations:
 
 where 'n' is the number of unique (currency symbol, token name) pairs in the 'Value'.
 
-This formula is used for the cost models of 'unionValue', 'insertCoin', and 'scaleValue'.
+This formula is used for the cost models of 'insertCoin', 'unionValue' and 'scaleValue'.
 
 For 'insertCoin', the worst-case allocation occurs when a new pair is inserted into the map.
 Given the balanced tree representation, the memory allocation is based on 'ValueMaxDepth'
@@ -149,13 +156,14 @@ which calculates the logarithmic depth of the tree. Thus, for 'insertCoin':
 For 'unionValue', worst-case assumes disjoint sets of pairs in both 'Value's being united:
 
     Memory = 21*n + 12 + 21*m + 12 = 21*(n + m) + 24
+  where 'n' and 'm' are the total sizes of each input 'Value'.
 
-For 'scaleValue', since there is no change in the number of unique pairs, the cost is
-estimated based on reallocating the 'Quantity' values for each pair in the input 'Value'.
-Remember, an integer is allocated as 3 words (pointer + closure data, where the data is max
-of two words size), so for 'scaleValue':
+For 'scaleValue', since every quantity in the 'Value' is modified, a new 'Value' of the same
+size must be allocated:
 
-    Memory = 3*n
+    Memory = 21*n + 12
+
+where 'n' is the total size of the input 'Value'.
 -}
 
 builtinMemoryModels :: BuiltinCostModelBase Id
@@ -276,11 +284,11 @@ builtinMemoryModels =
     , paramValueData = Id $ ModelOneArgumentConstantCost 32
     , paramUnValueData = Id $ ModelOneArgumentConstantCost 32
     , -- See Note [Memory model for Value builtins]
-      paramInsertCoin = Id $ ModelFourArgumentsLinearInW $ OneVariableLinearFunction 45 21
+      paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 45 21
     , -- See Note [Memory model for Value builtins]
       paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
     , -- See Note [Memory model for Value builtins]
-      paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 0 3
+      paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

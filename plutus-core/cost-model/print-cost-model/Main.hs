@@ -102,7 +102,7 @@ renderWithInteractionInXAndY
   var1
   var2 =
     printf
-      "%d + %d + %d*%s + %d*%s + %d*%s*%s"
+      "%d + %d*%s + %d*%s + %d*%s*%s"
       intercept
       cx
       var1

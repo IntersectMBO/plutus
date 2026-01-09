@@ -320,9 +320,19 @@ data ParamName
   | Bls12_381_G2_multiScalarMul'cpu'arguments'intercept
   | Bls12_381_G2_multiScalarMul'cpu'arguments'slope
   | Bls12_381_G2_multiScalarMul'memory'arguments
+  | InsertCoin'cpu'arguments'intercept
+  | InsertCoin'cpu'arguments'slope
+  | InsertCoin'memory'arguments'intercept
+  | InsertCoin'memory'arguments'slope
   | LookupCoin'cpu'arguments'intercept
   | LookupCoin'cpu'arguments'slope
   | LookupCoin'memory'arguments
+  | UnionValue'cpu'arguments'c00
+  | UnionValue'cpu'arguments'c10
+  | UnionValue'cpu'arguments'c01
+  | UnionValue'cpu'arguments'c11
+  | UnionValue'memory'arguments'intercept
+  | UnionValue'memory'arguments'slope
   | ValueContains'cpu'arguments'intercept
   | ValueContains'cpu'arguments'slope
   | ValueContains'memory'arguments
@@ -331,16 +341,6 @@ data ParamName
   | UnValueData'cpu'arguments'intercept
   | UnValueData'cpu'arguments'slope
   | UnValueData'memory'arguments
-  | InsertCoin'cpu'arguments'intercept
-  | InsertCoin'cpu'arguments'slope
-  | InsertCoin'memory'arguments'intercept
-  | InsertCoin'memory'arguments'slope
-  | UnionValue'cpu'arguments'intercept
-  | UnionValue'cpu'arguments'slopex
-  | UnionValue'cpu'arguments'slopey
-  | UnionValue'cpu'arguments'slopexy
-  | UnionValue'memory'arguments'intercept
-  | UnionValue'memory'arguments'slope
   | ScaleValue'cpu'arguments'intercept
   | ScaleValue'cpu'arguments'slope
   | ScaleValue'memory'arguments'intercept

@@ -1261,23 +1261,23 @@
         "intercept": 356924,
         "slope": 18413
       },
-      "type": "linear_in_w"
+      "type": "linear_in_u"
     },
     "memory": {
       "arguments": {
         "intercept": 45,
         "slope": 21
       },
-      "type": "linear_in_w"
+      "type": "linear_in_u"
     }
   },
   "unionValue": {
     "cpu": {
       "arguments": {
-        "intercept": 1000,
-        "slopex": 172116,
-        "slopexy": 6,
-        "slopey": 183150
+        "c00": 1000,
+        "c01": 183150,
+        "c10": 172116,
+        "c11": 6
       },
       "type": "with_interaction_in_x_and_y"
     },
@@ -1299,8 +1299,8 @@
     },
     "memory": {
       "arguments": {
-        "intercept": 0,
-        "slope": 3
+        "intercept": 12,
+        "slope": 21
       },
       "type": "linear_in_y"
     }
