@@ -41,14 +41,14 @@ d_ScopedTy_14 a0 = ()
 data T_ScopedTy_14
   = C_'96'_18 MAlonzo.Code.Data.Fin.Base.T_Fin_10 |
     C__'8658'__20 T_ScopedTy_14 T_ScopedTy_14 |
-    C_Π_22 MAlonzo.Code.Utils.T_Kind_652 T_ScopedTy_14 |
-    C_ƛ_24 MAlonzo.Code.Utils.T_Kind_652 T_ScopedTy_14 |
+    C_Π_22 MAlonzo.Code.Utils.T_Kind_682 T_ScopedTy_14 |
+    C_ƛ_24 MAlonzo.Code.Utils.T_Kind_682 T_ScopedTy_14 |
     C__'183'__26 T_ScopedTy_14 T_ScopedTy_14 |
-    C_con_30 MAlonzo.Code.Utils.T_Kind_652
+    C_con_30 MAlonzo.Code.Utils.T_Kind_682
              MAlonzo.Code.Builtin.Constant.Type.T_TyCon_6 |
     C_μ_32 T_ScopedTy_14 T_ScopedTy_14 |
-    C_SOP_34 (MAlonzo.Code.Utils.T_List_384
-                (MAlonzo.Code.Utils.T_List_384 T_ScopedTy_14))
+    C_SOP_34 (MAlonzo.Code.Utils.T_List_414
+                (MAlonzo.Code.Utils.T_List_414 T_ScopedTy_14))
 -- Scoped.Tel⋆
 d_Tel'8902'_36 :: Integer -> Integer -> ()
 d_Tel'8902'_36 = erased
@@ -133,8 +133,8 @@ du_lookupWTm_116 v0 v1
                 C_Z_44 -> coe MAlonzo.Code.Agda.Builtin.Maybe.C_nothing_18
                 C_S_48 v4
                   -> coe
-                       MAlonzo.Code.Utils.du_fmap_224
-                       (coe MAlonzo.Code.Utils.d_MaybeMonad_240)
+                       MAlonzo.Code.Utils.du_fmap_254
+                       (coe MAlonzo.Code.Utils.d_MaybeMonad_270)
                        (coe (\ v5 -> addInt (coe (1 :: Integer)) (coe v5)))
                        (coe du_lookupWTm_116 (coe v2) (coe v4))
                 C_T_52 v4 -> coe du_lookupWTm_116 (coe v2) (coe v4)
@@ -160,8 +160,8 @@ du_lookupWTy_138 v0 v1
                 C_S_48 v4 -> coe du_lookupWTy_138 (coe v2) (coe v4)
                 C_T_52 v4
                   -> coe
-                       MAlonzo.Code.Utils.du_fmap_224
-                       (coe MAlonzo.Code.Utils.d_MaybeMonad_240)
+                       MAlonzo.Code.Utils.du_fmap_254
+                       (coe MAlonzo.Code.Utils.d_MaybeMonad_270)
                        (coe (\ v5 -> addInt (coe (1 :: Integer)) (coe v5)))
                        (coe du_lookupWTy_138 (coe v2) (coe v4))
                 _ -> MAlonzo.RTE.mazUnreachableError)
@@ -261,14 +261,14 @@ d_shifterTy_194 v0 v1 v2
 d_shifterTyList_200 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2
 d_shifterTyList_200 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v2
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v2
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_shifterTy_194 (coe v0) (coe v1) (coe v3))
              (coe d_shifterTyList_200 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -276,16 +276,16 @@ d_shifterTyList_200 v0 v1 v2
 d_shifterTyListList_206 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384
-    (MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2) ->
-  MAlonzo.Code.Utils.T_List_384
-    (MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2)
+  MAlonzo.Code.Utils.T_List_414
+    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2) ->
+  MAlonzo.Code.Utils.T_List_414
+    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2)
 d_shifterTyListList_206 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v2
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v2
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_shifterTyList_200 (coe v0) (coe v1) (coe v3))
              (coe d_shifterTyListList_206 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -361,14 +361,14 @@ d_shifter_272 v0 v1 v2
 d_shifterList_278 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTm_32 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTm_32
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTm_32 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTm_32
 d_shifterList_278 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v2
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v2
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_shifter_272 (coe v0) (coe v1) (coe v3))
              (coe d_shifterList_278 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -420,14 +420,14 @@ d_unshifterTy_360 v0 v1 v2
 d_unshifterTyList_366 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2
 d_unshifterTyList_366 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v2
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v2
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_unshifterTy_360 (coe v0) (coe v1) (coe v3))
              (coe d_unshifterTyList_366 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -435,16 +435,16 @@ d_unshifterTyList_366 v0 v1 v2
 d_unshifterTyListList_372 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384
-    (MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2) ->
-  MAlonzo.Code.Utils.T_List_384
-    (MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2)
+  MAlonzo.Code.Utils.T_List_414
+    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2) ->
+  MAlonzo.Code.Utils.T_List_414
+    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2)
 d_unshifterTyListList_372 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v2
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v2
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_unshifterTyList_366 (coe v0) (coe v1) (coe v3))
              (coe d_unshifterTyListList_372 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -512,14 +512,14 @@ d_unshifter_434 v0 v1 v2
 d_unshifterList_440 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTm_32 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTm_32
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTm_32 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTm_32
 d_unshifterList_440 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v2
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v2
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_unshifter_434 (coe v0) (coe v1) (coe v3))
              (coe d_unshifterList_440 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -527,7 +527,7 @@ d_unshifterList_440 v0 v1 v2
 d_ScopedTm_522 a0 a1 = ()
 data T_ScopedTm_522
   = C_'96'_528 T_WeirdFin_56 |
-    C_Λ_530 MAlonzo.Code.Utils.T_Kind_652 T_ScopedTm_522 |
+    C_Λ_530 MAlonzo.Code.Utils.T_Kind_682 T_ScopedTm_522 |
     C__'183''8902'__532 T_ScopedTm_522 T_ScopedTy_14 |
     C_ƛ_534 T_ScopedTy_14 T_ScopedTm_522 |
     C__'183'__536 T_ScopedTm_522 T_ScopedTm_522 |
@@ -537,9 +537,9 @@ data T_ScopedTm_522
     C_wrap_546 T_ScopedTy_14 T_ScopedTy_14 T_ScopedTm_522 |
     C_unwrap_548 T_ScopedTm_522 |
     C_constr_556 T_ScopedTy_14 Integer
-                 (MAlonzo.Code.Utils.T_List_384 T_ScopedTm_522) |
+                 (MAlonzo.Code.Utils.T_List_414 T_ScopedTm_522) |
     C_case_564 T_ScopedTy_14 T_ScopedTm_522
-               (MAlonzo.Code.Utils.T_List_384 T_ScopedTm_522)
+               (MAlonzo.Code.Utils.T_List_414 T_ScopedTm_522)
 -- Scoped.Tel
 d_Tel_568 :: Integer -> T_Weirdℕ_42 -> Integer -> ()
 d_Tel_568 = erased
@@ -581,8 +581,8 @@ d_ℕtoFin_584 v0 v1
                 _ -> let v3 = subInt (coe v1) (coe (1 :: Integer)) in
                      coe
                        (coe
-                          MAlonzo.Code.Utils.du_fmap_224
-                          (coe MAlonzo.Code.Utils.du_EitherP_274)
+                          MAlonzo.Code.Utils.du_fmap_254
+                          (coe MAlonzo.Code.Utils.du_EitherP_304)
                           (coe MAlonzo.Code.Data.Fin.Base.C_suc_16)
                           (coe d_ℕtoFin_584 (coe v2) (coe v3))))
 -- Scoped.ℕtoWeirdFin
@@ -626,8 +626,8 @@ d_scopeCheckTy_616 v0 v1
   = case coe v1 of
       MAlonzo.Code.Raw.C_'96'_6 v2
         -> coe
-             MAlonzo.Code.Utils.du_fmap_224
-             (coe MAlonzo.Code.Utils.du_EitherP_274) (coe C_'96'_18)
+             MAlonzo.Code.Utils.du_fmap_254
+             (coe MAlonzo.Code.Utils.du_EitherP_304) (coe C_'96'_18)
              (coe d_ℕtoFin_584 (coe v0) (coe v2))
       MAlonzo.Code.Raw.C__'8658'__8 v2 v3
         -> coe
@@ -645,15 +645,15 @@ d_scopeCheckTy_616 v0 v1
                              (coe C__'8658'__20 (coe v4) (coe v5))))))
       MAlonzo.Code.Raw.C_Π_10 v2 v3
         -> coe
-             MAlonzo.Code.Utils.du_fmap_224
-             (coe MAlonzo.Code.Utils.du_EitherP_274) (coe C_Π_22 (coe v2))
+             MAlonzo.Code.Utils.du_fmap_254
+             (coe MAlonzo.Code.Utils.du_EitherP_304) (coe C_Π_22 (coe v2))
              (coe
                 d_scopeCheckTy_616 (coe addInt (coe (1 :: Integer)) (coe v0))
                 (coe v3))
       MAlonzo.Code.Raw.C_ƛ_12 v2 v3
         -> coe
-             MAlonzo.Code.Utils.du_fmap_224
-             (coe MAlonzo.Code.Utils.du_EitherP_274) (coe C_ƛ_24 (coe v2))
+             MAlonzo.Code.Utils.du_fmap_254
+             (coe MAlonzo.Code.Utils.du_EitherP_304) (coe C_ƛ_24 (coe v2))
              (coe
                 d_scopeCheckTy_616 (coe addInt (coe (1 :: Integer)) (coe v0))
                 (coe v3))
@@ -677,7 +677,7 @@ d_scopeCheckTy_616 v0 v1
                -> coe
                     MAlonzo.Code.Utils.C_inj'8322'_14
                     (coe
-                       C_con_30 (coe MAlonzo.Code.Utils.C_'9839'_656)
+                       C_con_30 (coe MAlonzo.Code.Utils.C_'9839'_686)
                        (coe MAlonzo.Code.Builtin.Constant.Type.C_atomic_8 (coe v3)))
              MAlonzo.Code.Raw.C_list_26
                -> coe
@@ -685,9 +685,9 @@ d_scopeCheckTy_616 v0 v1
                     (coe
                        C_con_30
                        (coe
-                          MAlonzo.Code.Utils.C__'8658'__658
-                          (coe MAlonzo.Code.Utils.C_'9839'_656)
-                          (coe MAlonzo.Code.Utils.C_'9839'_656))
+                          MAlonzo.Code.Utils.C__'8658'__688
+                          (coe MAlonzo.Code.Utils.C_'9839'_686)
+                          (coe MAlonzo.Code.Utils.C_'9839'_686))
                        (coe MAlonzo.Code.Builtin.Constant.Type.C_list_10))
              MAlonzo.Code.Raw.C_array_28
                -> coe
@@ -695,9 +695,9 @@ d_scopeCheckTy_616 v0 v1
                     (coe
                        C_con_30
                        (coe
-                          MAlonzo.Code.Utils.C__'8658'__658
-                          (coe MAlonzo.Code.Utils.C_'9839'_656)
-                          (coe MAlonzo.Code.Utils.C_'9839'_656))
+                          MAlonzo.Code.Utils.C__'8658'__688
+                          (coe MAlonzo.Code.Utils.C_'9839'_686)
+                          (coe MAlonzo.Code.Utils.C_'9839'_686))
                        (coe MAlonzo.Code.Builtin.Constant.Type.C_array_12))
              MAlonzo.Code.Raw.C_pair_30
                -> coe
@@ -705,12 +705,12 @@ d_scopeCheckTy_616 v0 v1
                     (coe
                        C_con_30
                        (coe
-                          MAlonzo.Code.Utils.C__'8658'__658
-                          (coe MAlonzo.Code.Utils.C_'9839'_656)
+                          MAlonzo.Code.Utils.C__'8658'__688
+                          (coe MAlonzo.Code.Utils.C_'9839'_686)
                           (coe
-                             MAlonzo.Code.Utils.C__'8658'__658
-                             (coe MAlonzo.Code.Utils.C_'9839'_656)
-                             (coe MAlonzo.Code.Utils.C_'9839'_656)))
+                             MAlonzo.Code.Utils.C__'8658'__688
+                             (coe MAlonzo.Code.Utils.C_'9839'_686)
+                             (coe MAlonzo.Code.Utils.C_'9839'_686)))
                        (coe MAlonzo.Code.Builtin.Constant.Type.C_pair_14))
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Raw.C_μ_18 v2 v3
@@ -738,14 +738,14 @@ d_scopeCheckTy_616 v0 v1
 -- Scoped.scopeCheckTyList
 d_scopeCheckTyList_620 ::
   Integer ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2 ->
   MAlonzo.Code.Utils.T_Either_6
-    T_ScopeError_576 (MAlonzo.Code.Utils.T_List_384 T_ScopedTy_14)
+    T_ScopeError_576 (MAlonzo.Code.Utils.T_List_414 T_ScopedTy_14)
 d_scopeCheckTyList_620 v0 v1
   = case coe v1 of
-      MAlonzo.Code.Utils.C_'91''93'_388
+      MAlonzo.Code.Utils.C_'91''93'_418
         -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v1)
-      MAlonzo.Code.Utils.C__'8759'__390 v2 v3
+      MAlonzo.Code.Utils.C__'8759'__420 v2 v3
         -> coe
              MAlonzo.Code.Utils.du_eitherBind_42
              (coe d_scopeCheckTy_616 (coe v0) (coe v2))
@@ -758,22 +758,22 @@ d_scopeCheckTyList_620 v0 v1
                         (\ v5 ->
                            coe
                              MAlonzo.Code.Utils.C_inj'8322'_14
-                             (coe MAlonzo.Code.Utils.C__'8759'__390 (coe v4) (coe v5))))))
+                             (coe MAlonzo.Code.Utils.C__'8759'__420 (coe v4) (coe v5))))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.scopeCheckTyListList
 d_scopeCheckTyListList_624 ::
   Integer ->
-  MAlonzo.Code.Utils.T_List_384
-    (MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2) ->
+  MAlonzo.Code.Utils.T_List_414
+    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2) ->
   MAlonzo.Code.Utils.T_Either_6
     T_ScopeError_576
-    (MAlonzo.Code.Utils.T_List_384
-       (MAlonzo.Code.Utils.T_List_384 T_ScopedTy_14))
+    (MAlonzo.Code.Utils.T_List_414
+       (MAlonzo.Code.Utils.T_List_414 T_ScopedTy_14))
 d_scopeCheckTyListList_624 v0 v1
   = case coe v1 of
-      MAlonzo.Code.Utils.C_'91''93'_388
+      MAlonzo.Code.Utils.C_'91''93'_418
         -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v1)
-      MAlonzo.Code.Utils.C__'8759'__390 v2 v3
+      MAlonzo.Code.Utils.C__'8759'__420 v2 v3
         -> coe
              MAlonzo.Code.Utils.du_eitherBind_42
              (coe d_scopeCheckTyList_620 (coe v0) (coe v2))
@@ -786,7 +786,7 @@ d_scopeCheckTyListList_624 v0 v1
                         (\ v5 ->
                            coe
                              MAlonzo.Code.Utils.C_inj'8322'_14
-                             (coe MAlonzo.Code.Utils.C__'8759'__390 (coe v4) (coe v5))))))
+                             (coe MAlonzo.Code.Utils.C__'8759'__420 (coe v4) (coe v5))))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.scopeCheckTm
 d_scopeCheckTm_686 ::
@@ -798,13 +798,13 @@ d_scopeCheckTm_686 v0 v1 v2
   = case coe v2 of
       MAlonzo.Code.Raw.C_'96'_34 v3
         -> coe
-             MAlonzo.Code.Utils.du_fmap_224
-             (coe MAlonzo.Code.Utils.du_EitherP_274) (coe C_'96'_528)
+             MAlonzo.Code.Utils.du_fmap_254
+             (coe MAlonzo.Code.Utils.du_EitherP_304) (coe C_'96'_528)
              (coe du_ℕtoWeirdFin_596 (coe v1) (coe v3))
       MAlonzo.Code.Raw.C_Λ_36 v3 v4
         -> coe
-             MAlonzo.Code.Utils.du_fmap_224
-             (coe MAlonzo.Code.Utils.du_EitherP_274) (coe C_Λ_530 (coe v3))
+             MAlonzo.Code.Utils.du_fmap_254
+             (coe MAlonzo.Code.Utils.du_EitherP_304) (coe C_Λ_530 (coe v3))
              (coe
                 d_scopeCheckTm_686 (coe addInt (coe (1 :: Integer)) (coe v0))
                 (coe C_T_52 v1) (coe v4))
@@ -856,8 +856,8 @@ d_scopeCheckTm_686 v0 v1 v2
              (coe C_con_538 (coe MAlonzo.Code.RawU.d_tagCon2TmCon_256 (coe v3)))
       MAlonzo.Code.Raw.C_error_46 v3
         -> coe
-             MAlonzo.Code.Utils.du_fmap_224
-             (coe MAlonzo.Code.Utils.du_EitherP_274) (coe C_error_540)
+             MAlonzo.Code.Utils.du_fmap_254
+             (coe MAlonzo.Code.Utils.du_EitherP_304) (coe C_error_540)
              (coe d_scopeCheckTy_616 (coe v0) (coe v3))
       MAlonzo.Code.Raw.C_builtin_48 v3
         -> coe
@@ -883,8 +883,8 @@ d_scopeCheckTm_686 v0 v1 v2
                                      (coe C_wrap_546 (coe v6) (coe v7) (coe v8))))))))
       MAlonzo.Code.Raw.C_unwrap_52 v3
         -> coe
-             MAlonzo.Code.Utils.du_fmap_224
-             (coe MAlonzo.Code.Utils.du_EitherP_274) (coe C_unwrap_548)
+             MAlonzo.Code.Utils.du_fmap_254
+             (coe MAlonzo.Code.Utils.du_EitherP_304) (coe C_unwrap_548)
              (coe d_scopeCheckTm_686 (coe v0) (coe v1) (coe v3))
       MAlonzo.Code.Raw.C_constr_60 v3 v4 v5
         -> coe
@@ -924,14 +924,14 @@ d_scopeCheckTm_686 v0 v1 v2
 d_scopeCheckTmList_692 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTm_32 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTm_32 ->
   MAlonzo.Code.Utils.T_Either_6
-    T_ScopeError_576 (MAlonzo.Code.Utils.T_List_384 T_ScopedTm_522)
+    T_ScopeError_576 (MAlonzo.Code.Utils.T_List_414 T_ScopedTm_522)
 d_scopeCheckTmList_692 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388
+      MAlonzo.Code.Utils.C_'91''93'_418
         -> coe MAlonzo.Code.Utils.C_inj'8322'_14 (coe v2)
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
              MAlonzo.Code.Utils.du_eitherBind_42
              (coe d_scopeCheckTm_686 (coe v0) (coe v1) (coe v3))
@@ -944,7 +944,7 @@ d_scopeCheckTmList_692 v0 v1 v2
                         (\ v6 ->
                            coe
                              MAlonzo.Code.Utils.C_inj'8322'_14
-                             (coe MAlonzo.Code.Utils.C__'8759'__390 (coe v5) (coe v6))))))
+                             (coe MAlonzo.Code.Utils.C__'8759'__420 (coe v5) (coe v6))))))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.extricateScopeTy
 d_extricateScopeTy_780 ::
@@ -1003,30 +1003,30 @@ d_extricateScopeTy_780 v0 v1
 -- Scoped.extricateScopeTyList
 d_extricateScopeTyList_784 ::
   Integer ->
-  MAlonzo.Code.Utils.T_List_384 T_ScopedTy_14 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2
+  MAlonzo.Code.Utils.T_List_414 T_ScopedTy_14 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2
 d_extricateScopeTyList_784 v0 v1
   = case coe v1 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v1
-      MAlonzo.Code.Utils.C__'8759'__390 v2 v3
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v1
+      MAlonzo.Code.Utils.C__'8759'__420 v2 v3
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_extricateScopeTy_780 (coe v0) (coe v2))
              (coe d_extricateScopeTyList_784 (coe v0) (coe v3))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.extricateScopeTyListList
 d_extricateScopeTyListList_788 ::
   Integer ->
-  MAlonzo.Code.Utils.T_List_384
-    (MAlonzo.Code.Utils.T_List_384 T_ScopedTy_14) ->
-  MAlonzo.Code.Utils.T_List_384
-    (MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTy_2)
+  MAlonzo.Code.Utils.T_List_414
+    (MAlonzo.Code.Utils.T_List_414 T_ScopedTy_14) ->
+  MAlonzo.Code.Utils.T_List_414
+    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTy_2)
 d_extricateScopeTyListList_788 v0 v1
   = case coe v1 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v1
-      MAlonzo.Code.Utils.C__'8759'__390 v2 v3
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v1
+      MAlonzo.Code.Utils.C__'8759'__420 v2 v3
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_extricateScopeTyList_784 (coe v0) (coe v2))
              (coe d_extricateScopeTyListList_788 (coe v0) (coe v3))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -1096,14 +1096,14 @@ d_extricateScope_828 v0 v1 v2
 d_extricateScopeList_834 ::
   Integer ->
   T_Weirdℕ_42 ->
-  MAlonzo.Code.Utils.T_List_384 T_ScopedTm_522 ->
-  MAlonzo.Code.Utils.T_List_384 MAlonzo.Code.Raw.T_RawTm_32
+  MAlonzo.Code.Utils.T_List_414 T_ScopedTm_522 ->
+  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Raw.T_RawTm_32
 d_extricateScopeList_834 v0 v1 v2
   = case coe v2 of
-      MAlonzo.Code.Utils.C_'91''93'_388 -> coe v2
-      MAlonzo.Code.Utils.C__'8759'__390 v3 v4
+      MAlonzo.Code.Utils.C_'91''93'_418 -> coe v2
+      MAlonzo.Code.Utils.C__'8759'__420 v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__390
+             MAlonzo.Code.Utils.C__'8759'__420
              (coe d_extricateScope_828 (coe v0) (coe v1) (coe v3))
              (coe d_extricateScopeList_834 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError

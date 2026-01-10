@@ -21,6 +21,8 @@ open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
+open import Data.Nat using (ℕ; suc)
+open import Data.Fin using (Fin; suc; zero)
 open import Data.Empty using (⊥)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
@@ -38,14 +40,14 @@ back in would yield the original expression.
 
 ```
 data UCSE : Relation where
-  cse : {X : Set} {{ _ : DecEq X}} {x' : Maybe X ⊢} {x e : X ⊢}
+  cse : {X : ℕ} {x' : suc X ⊢} {x e : X ⊢}
     -- TODO: This should ensure that the term that is moved
     -- is still evaluated. The Haskell does this by never moving
     -- across ƛ , delay, or case.
     → Translation UCSE x (x' [ e ])
     → UCSE x ((ƛ x') · e)
 
-UntypedCSE : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+UntypedCSE : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
 UntypedCSE = Translation UCSE
 
 ```
@@ -54,10 +56,10 @@ UntypedCSE = Translation UCSE
 
 ```
 
-isUntypedCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (Translation UCSE {X})
+isUntypedCSE? : {X : ℕ} → MatchOrCE (Translation UCSE {X})
 
 {-# TERMINATING #-}
-isUCSE? : {X : Set} {{_ : DecEq X}} → MatchOrCE (UCSE {X})
+isUCSE? : {X : ℕ} → MatchOrCE (UCSE {X})
 isUCSE? ast ast' with (isApp? (isLambda? isTerm?) isTerm?) ast'
 ... | no ¬match = ce (λ { (cse pt) → ¬match (isapp (islambda (isterm _)) (isterm _))}) cseT ast ast'
 ... | yes (isapp (islambda (isterm x')) (isterm e)) with (isUntypedCSE? ast (x' [ e ]))

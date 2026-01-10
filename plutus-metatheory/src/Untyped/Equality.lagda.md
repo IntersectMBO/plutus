@@ -12,6 +12,7 @@ module Untyped.Equality where
 ```
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl; isEquivalence; cong)
+open import Data.Fin using (Fin;suc;zero)
 open import Data.Nat using (ℕ)
 open import Data.Empty using (⊥)
 open import RawU using (TmCon; tmCon; decTyTag; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon)
@@ -26,6 +27,7 @@ open import Relation.Binary.Core using (REL)
 open import Level using (Level)
 open import Builtin using (Builtin; decBuiltin)
 open import Builtin.Signature using (_⊢♯)
+import Data.Fin.Properties using (_≟_)
 import Data.Nat.Properties using (_≟_)
 open import Data.Integer using (ℤ)
 import Data.Integer.Properties using (_≟_)
@@ -39,7 +41,7 @@ open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Relation.Nullary.Decidable.Core using (isYes)
 open import Data.Product using (_,_)
 open import Relation.Nullary using (_×-dec_)
-open import Utils as U using (Maybe; nothing; just; Either; _×_; _,_)
+open import Utils as U using (Either; _×_; _,_)
 import Data.List.Properties as LP using (≡-dec)
 open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 open import Agda.Builtin.TrustMe using (primTrustMe)
@@ -89,7 +91,7 @@ decEq-TmCon : DecidableEquality TmCon
 
 decEq-⟦_⟧tag : ( t : TyTag ) → DecidableEquality ⟦ t ⟧tag
 
-decEq-⊢ : ∀{X} {{_ : DecEq X}} → DecidableEquality (X ⊢)
+decEq-⊢ : ∀{X} → DecidableEquality (X ⊢)
 
 ```
 # Pointwise Decisions
@@ -116,20 +118,13 @@ when creating translation decision procedures.
 
 ```
 instance
-  DecEq-Maybe : ∀{A} {{_ : DecEq A}} → DecEq (Maybe A)
-  DecEq-Maybe ._≟_ = M.≡-dec _≟_
-    where import Data.Maybe.Properties as M
-
-  EmptyEq : DecEq ⊥
-  EmptyEq = record { _≟_ = λ () }
-
   DecAtomicTyCon : DecEq AtomicTyCon
   DecAtomicTyCon ._≟_ = decAtomicTyCon
 
   DecEq-TmCon : DecEq TmCon
   DecEq-TmCon ._≟_ = decEq-TmCon
 
-  DecEq-⊢ : ∀{X} {{_ : DecEq X}} → DecEq (X ⊢)
+  DecEq-⊢ : ∀{X} → DecEq (X ⊢)
   DecEq-⊢ ._≟_ = decEq-⊢
 
   DecEq-List : ∀{X} {{DE : DecEq X}} → DecEq (List X)
@@ -337,7 +332,7 @@ that now.
 -- This terminating declaration shouldn't be needed?
 -- It is the mutual recursion with list equality that requires it.
 {-# TERMINATING #-}
-decEq-⊢ (` x) (` x₁) with x ≟ x₁
+decEq-⊢ (` x) (` x₁) with Data.Fin.Properties._≟_ x x₁
 ... | yes refl = yes refl
 ... | no ¬p = no λ { refl → ¬p refl }
 decEq-⊢ (` x) (ƛ t₁) = no (λ ())
