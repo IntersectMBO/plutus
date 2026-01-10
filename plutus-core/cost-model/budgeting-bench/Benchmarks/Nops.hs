@@ -42,7 +42,7 @@ import System.Random (StdGen)
    the evaluator. -}
 benchUnitTerm :: Benchmark
 benchUnitTerm =
-  bgroup "UnitTerm" [benchWith WHNF nopCostParameters (showMemoryUsage ()) $ mkUnit]
+  bgroup "UnitTerm" [benchWithWHNF (showMemoryUsage ()) $ mkUnit]
 
 {-| Arguments to builtins can be treated in several different ways.  Constants of
    built-in types are unlifted to Haskell values automatically and Opaque values
@@ -133,6 +133,10 @@ nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultU
 nopCostParameters =
   MachineParameters def . mkMachineVariantParameters def $
     CostModel defaultCekMachineCostsForTesting nopCostModel
+
+-- Benchmark a function with the nopCostParameters using `whnf`.
+benchWithWHNF :: String -> PlainTerm DefaultUni NopFun -> Benchmark
+benchWithWHNF = benchWith WHNF nopCostParameters
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
 -- functions below.  There is a Monad instance for EvaluationResult, but that
@@ -338,7 +342,7 @@ benchNop1
   -> Benchmark
 benchNop1 nop rand gen =
   let (x, _) = rand gen
-   in bgroup (show nop) [benchWith WHNF nopCostParameters (showMemoryUsage x) $ mkApp1 nop [] x]
+   in bgroup (show nop) [benchWithWHNF (showMemoryUsage x) $ mkApp1 nop [] x]
 
 benchNop2
   :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
@@ -353,7 +357,7 @@ benchNop2 nop rand gen =
         (show nop)
         [ bgroup
             (showMemoryUsage x)
-            [benchWith WHNF nopCostParameters (showMemoryUsage y) $ mkApp2 nop [] x y]
+            [benchWithWHNF (showMemoryUsage y) $ mkApp2 nop [] x y]
         ]
 
 benchNop3
@@ -372,7 +376,7 @@ benchNop3 nop rand gen =
             (showMemoryUsage x)
             [ bgroup
                 (showMemoryUsage y)
-                [benchWith WHNF nopCostParameters (showMemoryUsage z) $ mkApp3 nop [] x y z]
+                [benchWithWHNF (showMemoryUsage z) $ mkApp3 nop [] x y z]
             ]
         ]
 
@@ -395,7 +399,7 @@ benchNop4 nop rand gen =
                 (showMemoryUsage y)
                 [ bgroup
                     (showMemoryUsage z)
-                    [benchWith WHNF nopCostParameters (showMemoryUsage t) $ mkApp4 nop [] x y z t]
+                    [benchWithWHNF (showMemoryUsage t) $ mkApp4 nop [] x y z t]
                 ]
             ]
         ]
@@ -422,7 +426,7 @@ benchNop5 nop rand gen =
                     (showMemoryUsage z)
                     [ bgroup
                         (showMemoryUsage t)
-                        [benchWith WHNF nopCostParameters (showMemoryUsage u) $ mkApp5 nop [] x y z t u]
+                        [benchWithWHNF (showMemoryUsage u) $ mkApp5 nop [] x y z t u]
                     ]
                 ]
             ]
@@ -453,7 +457,7 @@ benchNop6 nop rand gen =
                         (showMemoryUsage t)
                         [ bgroup
                             (showMemoryUsage u)
-                            [benchWith WHNF nopCostParameters (showMemoryUsage v) $ mkApp6 nop [] x y z t u v]
+                            [benchWithWHNF (showMemoryUsage v) $ mkApp6 nop [] x y z t u v]
                         ]
                     ]
                 ]
