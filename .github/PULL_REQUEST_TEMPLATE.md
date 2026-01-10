@@ -1,21 +1,56 @@
+# Pull Request Template
+
+## 📋 Summary
 <!--
-IMPORTANT: if you are an external contributor, make sure you have read the "External contributors" section of CONTRIBUTING.
-
-Here are some checklists you may like to use. Use your judgement.
-
-This is just a checklist, all the normative suggestions are covered in more detail in CONTRIBUTING.
+Provide a brief summary of what this PR does and why.
+Keep it concise but clear enough for reviewers to understand the purpose.
 -->
-Pre-submit checklist:
-- Branch
-    - [ ] Tests are provided (if possible)
-    - [ ] Commit sequence broadly makes sense
-    - [ ] Key commits have useful messages
-    - [ ] Changelog fragments have been written (if appropriate)
-    - [ ] Relevant tickets are mentioned in commit messages
-    - [ ] Formatting, PNG optimization, etc. are updated
-- PR
-    - [ ] (For external contributions) Corresponding issue exists and is linked in the description
-    - [ ] Targeting master unless this is a cherry-pick backport
-    - [ ] Self-reviewed the diff
-    - [ ] Useful pull request description
-    - [ ] Reviewer requested
+- What problem does this PR solve?
+- What changes were made?
+- Why are these changes needed?
+
+## 🔗 Related Issues
+<!--
+Link any related issues or tasks, e.g. "Fixes #123".
+-->
+- Related issue(s):
+
+## 🛠 Implementation Details
+<!--
+Describe technical changes, architecture decisions, or notable updates.
+Mention any dependencies, new modules, or design considerations.
+-->
+- Key changes:
+- Dependencies added/removed:
+- Design notes:
+
+## 🧪 Testing
+<!--
+Explain how this was tested. Include instructions if necessary.
+-->
+- Manual tests performed:
+- Unit/integration tests added:
+- Steps to reproduce (if applicable):
+
+## ⚠️ Breaking Changes
+<!--
+List any breaking changes or migration steps if applicable. Otherwise, write "None".
+-->
+- Breaking changes:
+- Migration notes:
+
+## ✅ Checklist
+<!--
+Check only what applies. Remove irrelevant items instead of checking "N/A".
+-->
+- [ ] Code builds without errors
+- [ ] Tests pass
+- [ ] Documentation updated
+- [ ] Changelog updated (if applicable)
+- [ ] Code is reviewed and self-reviewed
+- [ ] Files formatted according to project style
+
+## 📎 Additional Notes
+<!--
+Any extra context or notes for reviewers. Screenshots, links, or warnings go here.
+-->
