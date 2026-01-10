@@ -36,6 +36,7 @@ For each boolean option, you can add a `no-` prefix to switch it off, such as `n
 |`inline-constants`|Bool|True|Always inline constants. Inlining constants always reduces script costs slightly, but may increase script sizes if a large constant is used more than once. Implied by `no-conservative-optimisation`.|
 |`inline-fix`|Bool|True|Always inline fixed point combinators. This is generally preferable as it often enables further optimization, though it may increase script size.|
 |`max-cse-iterations`|Int|4|Set the max iterations for CSE|
+|`cse-which-subterms`|CseWhichSubterms|ExcludeWorkFree|Which subterms should CSE consider? Either `AllSubterms` or `ExcludeWorkFree`|
 |`max-simplifier-iterations-pir`|Int|12|Set the max iterations for the PIR simplifier|
 |`max-simplifier-iterations-uplc`|Int|12|Set the max iterations for the UPLC simplifier|
 |`optimize`|Bool|True|Run optimization passes such as simplification and floating let-bindings.|
