@@ -54,7 +54,11 @@ memoryUsageAsNumBytes = (8 *) . fromSatInt . sumCostStream . flattenCostRose . m
    conversion perhaps taking a fraction longer.  We just generate a costing
    function for big-endian conversion and use that for the little-endian
    conversion as well.  A quadratic function fitted to inputs of size up to 150
-   gives a good fit and extrapolates well to larger inputs. -}
+   gives a good fit and extrapolates well to larger inputs. UPDATE: PR #7439
+   introduced a linear-time implementation of `byteStringToInteger`: this is
+   still covered by a quadratic function, but we have to do some extra work in
+   `models.R` to make sure that a very small leading term isn't rounded up to a
+   non-zero costing integer. -}
 benchByteStringToInteger :: Benchmark
 benchByteStringToInteger =
   createTwoTermBuiltinBenchElementwise ByteStringToInteger [] $ fmap (\x -> (True, x)) (makeSample seedA)
@@ -72,7 +76,11 @@ benchByteStringToInteger =
  time required for this is negligible in comparison to the conversion time.
  It's important to make sure that the memory cost does take account of the width
  though.  The sample we use gives us bytestrings up to 8*150 = 1200 bytes long.
- This is well within the 8192-byte limit. -}
+ This is well within the 8192-byte limit. UPDATE: PR #7439 introduced a
+ linear-time implementation of `integerToByteString`: this is still covered by a
+ quadratic function, but we have to do some extra work in `models.R` to make
+ sure that a very small leading term isn't rounded up to a non-zero costing
+ integer. -}
 benchIntegerToByteString :: Benchmark
 benchIntegerToByteString =
   let b = IntegerToByteString
