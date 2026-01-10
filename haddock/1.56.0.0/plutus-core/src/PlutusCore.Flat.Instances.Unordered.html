@@ -1,0 +1,660 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Instances.Unordered</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Strict.html"
+	><span class="hs-identifier"
+	  >Data.HashMap.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>MS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashSet.html"
+	><span class="hs-identifier"
+	  >Data.HashSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.html"
+	><span class="hs-identifier"
+	  >Data.Hashable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Mono</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Util.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Util</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-$setup
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Base()
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Test
+&gt;&gt;&gt; import Data.Word
+&gt;&gt;&gt; import qualified Data.HashMap.Strict
+&gt;&gt;&gt; import qualified Data.HashMap.Lazy
+&gt;&gt;&gt; import qualified Data.HashSet
+&gt;&gt;&gt; let test = tstBits -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+&gt;&gt;&gt; test (Data.HashSet.fromList [1..3::Word])
+(True,28,&quot;10000000 11000000 10100000 0110&quot;) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104933"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	  ><span class="hs-identifier hs-type"
+	    >Hashable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104933"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	  ><span class="hs-identifier hs-type"
+	    >Eq</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104933"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104933"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashSet.Internal.html#HashSet"
+	  ><span class="hs-identifier hs-type"
+	    >HashSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104933"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104965"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: HashSet a -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="#local-6989586621679104965"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashSet a -&gt; NumBits -&gt; NumBits
+forall set. (IsSet set, Flat (Element set)) =&gt; Size set
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSet"
+	><span class="hs-identifier hs-var"
+	  >sizeSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104970"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: HashSet a -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679104970"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashSet a -&gt; Encoding
+forall set. (IsSet set, Flat (Element set)) =&gt; set -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSet"
+	><span class="hs-identifier hs-var"
+	  >encodeSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104975"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (HashSet a)
+</span
+	  ><a href="#local-6989586621679104975"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (HashSet a)
+forall set. (IsSet set, Flat (Element set)) =&gt; Get set
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSet"
+	><span class="hs-identifier hs-var"
+	  >decodeSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+&gt;&gt;&gt; test (Data.HashMap.Strict.fromList [(1,11),(2,22)])
+(True,35,&quot;10000001 00001011 01000001 00001011 000&quot;)
+
+&gt;&gt;&gt; test (Data.HashMap.Lazy.fromList [(1,11),(2,22)])
+(True,35,&quot;10000001 00001011 01000001 00001011 000&quot;) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104944"
+      ><span id="local-6989586621679104945"
+	><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/hashable-1.5.0.0/docs/src/Data.Hashable.Class.html#Hashable"
+	    ><span class="hs-identifier hs-type"
+	      >Hashable</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679104944"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-type"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679104944"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679104944"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679104945"
+	    ><span class="hs-identifier hs-type"
+	      >v</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Flat.Class.html#Flat"
+	    ><span class="hs-identifier hs-type"
+	      >Flat</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#HashMap"
+	    ><span class="hs-identifier hs-type"
+	      >MS.HashMap</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679104944"
+	    ><span class="hs-identifier hs-type"
+	      >k</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679104945"
+	    ><span class="hs-identifier hs-type"
+	      >v</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104990"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: HashMap k v -&gt; NumBits -&gt; NumBits
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap k v -&gt; NumBits -&gt; NumBits
+forall r.
+(Flat (ContainerKey r), Flat (MapValue r), IsMap r) =&gt;
+Size r
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeMap"
+	><span class="hs-identifier hs-var"
+	  >sizeMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104995"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: HashMap k v -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap k v -&gt; Encoding
+forall map.
+(Flat (ContainerKey map), Flat (MapValue map), IsMap map) =&gt;
+map -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeMap"
+	><span class="hs-identifier hs-var"
+	  >encodeMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679105000"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (HashMap k v)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (HashMap k v)
+forall map.
+(Flat (ContainerKey map), Flat (MapValue map), IsMap map) =&gt;
+Get map
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeMap"
+	><span class="hs-identifier hs-var"
+	  >decodeMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-comment"
+      >-- instance (Hashable k,Eq k,Flat k,Flat v) =&gt; Flat (ML.HashMap k v) where</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >--   size   = sizeMap</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-comment"
+      >--   encode = encodeMap</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >--   decode = decodeMap</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

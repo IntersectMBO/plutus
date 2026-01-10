@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.List.NonEmpty</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Non-empty lists</a>
+<a id="125" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="199" class="Symbol">{-#</a> <a id="203" class="Keyword">OPTIONS</a> <a id="211" class="Pragma">--cubical-compatible</a> <a id="232" class="Pragma">--safe</a> <a id="239" class="Symbol">#-}</a>
+
+<a id="244" class="Keyword">module</a> <a id="251" href="Data.List.NonEmpty.html" class="Module">Data.List.NonEmpty</a> <a id="270" class="Keyword">where</a>
+
+<a id="277" class="Keyword">open</a> <a id="282" class="Keyword">import</a> <a id="289" href="Level.html" class="Module">Level</a> <a id="295" class="Keyword">using</a> <a id="301" class="Symbol">(</a><a id="302" href="Agda.Primitive.html#742" class="Postulate">Level</a><a id="307" class="Symbol">)</a>
+<a id="309" class="Keyword">open</a> <a id="314" class="Keyword">import</a> <a id="321" href="Data.List.Base.html" class="Module">Data.List.Base</a> <a id="336" class="Symbol">as</a> <a id="339" class="Module">List</a> <a id="344" class="Keyword">using</a> <a id="350" class="Symbol">(</a><a id="351" href="Agda.Builtin.List.html#147" class="Datatype">List</a><a id="355" class="Symbol">)</a>
+
+<a id="358" class="Comment">------------------------------------------------------------------------</a>
+<a id="431" class="Comment">-- Re-export basic type and operations</a>
+
+<a id="471" class="Keyword">open</a> <a id="476" class="Keyword">import</a> <a id="483" href="Data.List.NonEmpty.Base.html" class="Module">Data.List.NonEmpty.Base</a> <a id="507" class="Keyword">public</a>
+
+
+<a id="516" class="Comment">------------------------------------------------------------------------</a>
+<a id="589" class="Comment">-- DEPRECATED</a>
+<a id="603" class="Comment">------------------------------------------------------------------------</a>
+<a id="676" class="Comment">-- Please use the new names as continuing support for the old names is</a>
+<a id="747" class="Comment">-- not guaranteed.</a>
+
+<a id="767" class="Keyword">private</a>
+  <a id="777" class="Keyword">variable</a>
+    <a id="790" href="Data.List.NonEmpty.html#790" class="Generalizable">a</a> <a id="792" class="Symbol">:</a> <a id="794" href="Agda.Primitive.html#742" class="Postulate">Level</a>
+    <a id="804" href="Data.List.NonEmpty.html#804" class="Generalizable">A</a> <a id="806" class="Symbol">:</a> <a id="808" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="812" href="Data.List.NonEmpty.html#790" class="Generalizable">a</a>
+
+<a id="815" class="Comment">-- Version 1.4</a>
+
+<a id="831" class="Keyword">infixl</a> <a id="838" class="Number">5</a> <a id="840" href="Data.List.NonEmpty.html#847" class="Function Operator">_∷ʳ&#39;_</a>
+
+<a id="_∷ʳ&#39;_"></a><a id="847" href="Data.List.NonEmpty.html#847" class="Function Operator">_∷ʳ&#39;_</a> <a id="853" class="Symbol">:</a> <a id="855" class="Symbol">(</a><a id="856" href="Data.List.NonEmpty.html#856" class="Bound">xs</a> <a id="859" class="Symbol">:</a> <a id="861" href="Agda.Builtin.List.html#147" class="Datatype">List</a> <a id="866" href="Data.List.NonEmpty.html#804" class="Generalizable">A</a><a id="867" class="Symbol">)</a> <a id="869" class="Symbol">(</a><a id="870" href="Data.List.NonEmpty.html#870" class="Bound">x</a> <a id="872" class="Symbol">:</a> <a id="874" href="Data.List.NonEmpty.html#804" class="Generalizable">A</a><a id="875" class="Symbol">)</a> <a id="877" class="Symbol">→</a> <a id="879" href="Data.List.NonEmpty.Base.html#5231" class="Datatype">SnocView</a> <a id="888" class="Symbol">(</a><a id="889" href="Data.List.NonEmpty.html#856" class="Bound">xs</a> <a id="892" href="Data.List.NonEmpty.Base.html#5031" class="Function Operator">∷ʳ</a> <a id="895" href="Data.List.NonEmpty.html#870" class="Bound">x</a><a id="896" class="Symbol">)</a>
+<a id="898" href="Data.List.NonEmpty.html#847" class="Function Operator">_∷ʳ&#39;_</a> <a id="904" class="Symbol">=</a> <a id="906" href="Data.List.NonEmpty.Base.html#5278" class="InductiveConstructor Operator">SnocView._∷ʳ′_</a>
+<a id="921" class="Symbol">{-#</a> <a id="925" class="Keyword">WARNING_ON_USAGE</a> <a id="942" class="Pragma">_∷ʳ&#39;_</a>
+<a id="948" class="String">&quot;Warning: _∷ʳ&#39;_ (ending in an apostrophe) was deprecated in v1.4.
+Please use _∷ʳ′_ (ending in a prime) instead.&quot;</a>
+<a id="1061" class="Symbol">#-}</a>
+</pre></body></html>

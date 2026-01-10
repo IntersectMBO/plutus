@@ -1,0 +1,1671 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Core.Instance.Scoping</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Core.Instance.Scoping.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Core.Instance.Scoping</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:establishScopingParams"
+	      >establishScopingParams</a
+	      > &#8759; [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > ann] &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:establishScopingConstrTy"
+	      >establishScopingConstrTy</a
+	      > &#8759; (<a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > &#8594; [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >] &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:establishScopingConstrs"
+	      >establishScopingConstrs</a
+	      > &#8759; (<a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; ann &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > &#8594; [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >] &#8594; [<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni ann] &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > [<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:establishScopingBinding"
+	      >establishScopingBinding</a
+	      > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	      >ToScopedName</a
+	      > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:referenceViaBindings"
+	      >referenceViaBindings</a
+	      > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	      >ToScopedName</a
+	      > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:referenceBindingsBothWays"
+	      >referenceBindingsBothWays</a
+	      > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	      >ToScopedName</a
+	      > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:establishScopingBindings"
+	      >establishScopingBindings</a
+	      > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	      >ToScopedName</a
+	      > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann) &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	      >Quote</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	      >Binding</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      >))</li
+	    ><li class="src short"
+	    ><a href="#v:registerByRecursivity"
+	      >registerByRecursivity</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	      >ToScopedName</a
+	      > name &#8658; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	      >Recursivity</a
+	      > &#8594; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	      >NameAnn</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:firstBound"
+	      >firstBound</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; [name]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:establishScopingParams" class="def"
+	    >establishScopingParams</a
+	    > &#8759; [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > ann] &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >] <a href="src/PlutusIR.Core.Instance.Scoping.html#establishScopingParams" class="link"
+	    >Source</a
+	    > <a href="#v:establishScopingParams" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Establish scoping for each of the parameters of a datatype by only annotating every parameter
+with <code
+	      ><a href="../plutus-core/PlutusCore-Check-Scoping.html#v:introduceBound" title="PlutusCore.Check.Scoping"
+		>introduceBound</a
+		></code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:establishScopingConstrTy" class="def"
+	    >establishScopingConstrTy</a
+	    > &#8759; (<a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > &#8594; [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >] &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) <a href="src/PlutusIR.Core.Instance.Scoping.html#establishScopingConstrTy" class="link"
+	    >Source</a
+	    > <a href="#v:establishScopingConstrTy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Establish scoping for the type of a constructor. The updated constructor expects an argument
+of the &quot;the data type applied to all its parameters&quot; type (that argument is the last one) and
+always returns that exact type as a result. For example, this functions turns the following
+generated type of constructor</p
+	    ><p
+	    >integer -&gt; a -&gt; <a href="a_non_-"
+	      >a_non_-</a
+	      >_type&gt;</p
+	    ><p
+	    >into</p
+	    ><p
+	    >integer -&gt; a -&gt; D a b -&gt; D a b</p
+	    ><p
+	    >assuming the constructor is supposed to construct a data type <code
+	      >D</code
+	      > parameterized by two parameters
+<code
+	      >a</code
+	      > and <code
+	      >b</code
+	      >. Note that <code
+	      ><a href="a_non_-"
+		>a_non_-</a
+		>_type&gt;</code
+	      > can be anything as the generator is allowed to generate
+mess such as a constructor not actually constructing a value of the data type.</p
+	    ><p
+	    >Whether the name of the data type is referenced as in-scope or out-of-scope one in the types of
+arguments of constructors is controlled by the first argument, which ultimately depends on the
+recursivity of the data type. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:establishScopingConstrs" class="def"
+	    >establishScopingConstrs</a
+	    > &#8759; (<a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; ann &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > &#8594; [<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >] &#8594; [<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni ann] &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > [<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >] <a href="src/PlutusIR.Core.Instance.Scoping.html#establishScopingConstrs" class="link"
+	    >Source</a
+	    > <a href="#v:establishScopingConstrs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Establish scoping for all constructors of a data type by establishing scoping for each of them
+individually. If there are no constructors, then a dummy one is added, because we need to
+maintain the invariant that every binding is referenced as an in-scope one somewhere and the only
+place where parameters of a data type can be referenced this way is a constructor of that data
+type. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:establishScopingBinding" class="def"
+	    >establishScopingBinding</a
+	    > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	    >ToScopedName</a
+	    > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) <a href="src/PlutusIR.Core.Instance.Scoping.html#establishScopingBinding" class="link"
+	    >Source</a
+	    > <a href="#v:establishScopingBinding" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Establish scoping of a binding. Each bindings gets referenced in its own body either as an
+in-scope or out-of-scope one, which is controlled by the first argument and ultimately depends on
+the recursivity of the binding. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:referenceViaBindings" class="def"
+	    >referenceViaBindings</a
+	    > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	    >ToScopedName</a
+	    > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) <a href="src/PlutusIR.Core.Instance.Scoping.html#referenceViaBindings" class="link"
+	    >Source</a
+	    > <a href="#v:referenceViaBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reference each binding in the last one apart from itself.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:referenceBindingsBothWays" class="def"
+	    >referenceBindingsBothWays</a
+	    > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	    >ToScopedName</a
+	    > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) <a href="src/PlutusIR.Core.Instance.Scoping.html#referenceBindingsBothWays" class="link"
+	    >Source</a
+	    > <a href="#v:referenceBindingsBothWays" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reference each binding in the first one apart from itself and in the last one also apart from
+itself. Former bindings are always visible in latter ones and whether latter bindings are visible
+in former ones is controlled by the first argument and ultimately depends on the recursivity
+of the family of bindings. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:establishScopingBindings" class="def"
+	    >establishScopingBindings</a
+	    > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	    >ToScopedName</a
+	    > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann) &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+	    >Quote</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+	    >Binding</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    >)) <a href="src/PlutusIR.Core.Instance.Scoping.html#establishScopingBindings" class="link"
+	    >Source</a
+	    > <a href="#v:establishScopingBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Establish scoping for a family of bindings.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:registerByRecursivity" class="def"
+	    >registerByRecursivity</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+	    >ToScopedName</a
+	    > name &#8658; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	    >Recursivity</a
+	    > &#8594; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+	    >NameAnn</a
+	    > <a href="src/PlutusIR.Core.Instance.Scoping.html#registerByRecursivity" class="link"
+	    >Source</a
+	    > <a href="#v:registerByRecursivity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return a registering function depending on the recursivity.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:firstBound" class="def"
+	    >firstBound</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; [name] <a href="src/PlutusIR.Core.Instance.Scoping.html#firstBound" class="link"
+	    >Source</a
+	    > <a href="#v:firstBound" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:1"
+		  ></span
+		  > tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		  >VarDecl</a
+		  > tyname name uni)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-29" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceTyNameVarDecl" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name0. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name0 &#8658; name0 &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		      >TyName</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		      >VarDecl</a
+		      > tyname name uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		      >VarDecl</a
+		      > tyname name uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:2"
+		  ></span
+		  > tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		  >Datatype</a
+		  > tyname name uni)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-35" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceTyNameDatatype" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><p
+		>Scoping for data types is hard, so we employ some extra paranoia and reference the provided
+<code
+		  ><a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		    >TyName</a
+		    ></code
+		  > in the type of every single constructor, and also apply the final head to that <code
+		  ><a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		    >TyName</a
+		    ></code
+		  >. </p
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name0. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name0 &#8658; name0 &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		      >TyName</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		      >Datatype</a
+		      > tyname name uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		      >Datatype</a
+		      > tyname name uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:3"
+		  ></span
+		  > name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		  >Binding</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-61" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceNameBinding" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><p
+		>Unlike other <code
+		  ><a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		    >Reference</a
+		    ></code
+		  > instances this one does not guarantee that the name will actually be
+referenced, but it's too convenient to have this instance to give up on it, without it would be
+awkward to express &quot;reference this binding in this thing&quot;. </p
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name0. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name0 &#8658; name0 &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		      >Name</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		      >Binding</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		      >Binding</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:4"
+		  ></span
+		  > name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-26" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceNameTerm" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name0. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name0 &#8658; name0 &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		      >Name</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:5"
+		  ></span
+		  > tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		  >Binding</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-50" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceTyNameBinding" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:5"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name0. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name0 &#8658; name0 &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		      >TyName</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		      >Binding</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		      >Binding</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:6"
+		  ></span
+		  > tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-23" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceTyNameTerm" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:6"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name0. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name0 &#8658; name0 &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		      >TyName</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:CollectScopeInfo:CollectScopeInfo:7"
+		  ></span
+		  > tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:CollectScopeInfo" title="PlutusCore.Check.Scoping"
+		  >CollectScopeInfo</a
+		  > (<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+		  >TyVarDecl</a
+		  > tyname)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-277" class="link"
+		>Source</a
+		> <a href="#v:-36-fCollectScopeInfoTyVarDecl" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:CollectScopeInfo:CollectScopeInfo:7"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:collectScopeInfo"
+		      >collectScopeInfo</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+		      >TyVarDecl</a
+		      > tyname <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ScopeErrorOrInfo" title="PlutusCore.Check.Scoping"
+		      >ScopeErrorOrInfo</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:collectScopeInfo" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:8"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > tyname t &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > (<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+		  >TyVarDecl</a
+		  > tyname ann) t</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-67" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceTyVarDeclt" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:8"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+		      >TyVarDecl</a
+		      > tyname ann &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:CollectScopeInfo:CollectScopeInfo:9"
+		  ></span
+		  > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  >, name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  >) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:CollectScopeInfo" title="PlutusCore.Check.Scoping"
+		  >CollectScopeInfo</a
+		  > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		  >VarDecl</a
+		  > tyname name uni)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-280" class="link"
+		>Source</a
+		> <a href="#v:-36-fCollectScopeInfoVarDecl" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:CollectScopeInfo:CollectScopeInfo:9"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:collectScopeInfo"
+		      >collectScopeInfo</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		      >VarDecl</a
+		      > tyname name uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ScopeErrorOrInfo" title="PlutusCore.Check.Scoping"
+		      >ScopeErrorOrInfo</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:collectScopeInfo" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:CollectScopeInfo:CollectScopeInfo:10"
+		  ></span
+		  > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  >, name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  >) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:CollectScopeInfo" title="PlutusCore.Check.Scoping"
+		  >CollectScopeInfo</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		  >Datatype</a
+		  > tyname name uni)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-283" class="link"
+		>Source</a
+		> <a href="#v:-36-fCollectScopeInfoDatatype" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:CollectScopeInfo:CollectScopeInfo:10"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:collectScopeInfo"
+		      >collectScopeInfo</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		      >Datatype</a
+		      > tyname name uni <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ScopeErrorOrInfo" title="PlutusCore.Check.Scoping"
+		      >ScopeErrorOrInfo</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:collectScopeInfo" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:CollectScopeInfo:CollectScopeInfo:11"
+		  ></span
+		  > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  >, name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  >) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:CollectScopeInfo" title="PlutusCore.Check.Scoping"
+		  >CollectScopeInfo</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		  >Binding</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-292" class="link"
+		>Source</a
+		> <a href="#v:-36-fCollectScopeInfoBinding" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:CollectScopeInfo:CollectScopeInfo:11"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:collectScopeInfo"
+		      >collectScopeInfo</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		      >Binding</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ScopeErrorOrInfo" title="PlutusCore.Check.Scoping"
+		      >ScopeErrorOrInfo</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:collectScopeInfo" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:CollectScopeInfo:CollectScopeInfo:12"
+		  ></span
+		  > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  >, name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  >) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:CollectScopeInfo" title="PlutusCore.Check.Scoping"
+		  >CollectScopeInfo</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		  >Program</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-316" class="link"
+		>Source</a
+		> <a href="#v:-36-fCollectScopeInfoProgram" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:CollectScopeInfo:CollectScopeInfo:12"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:collectScopeInfo"
+		      >collectScopeInfo</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ScopeErrorOrInfo" title="PlutusCore.Check.Scoping"
+		      >ScopeErrorOrInfo</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:collectScopeInfo" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:CollectScopeInfo:CollectScopeInfo:13"
+		  ></span
+		  > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  >, name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  >) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:CollectScopeInfo" title="PlutusCore.Check.Scoping"
+		  >CollectScopeInfo</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-297" class="link"
+		>Source</a
+		> <a href="#v:-36-fCollectScopeInfoTerm" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:CollectScopeInfo:CollectScopeInfo:13"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:collectScopeInfo"
+		      >collectScopeInfo</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ScopeErrorOrInfo" title="PlutusCore.Check.Scoping"
+		      >ScopeErrorOrInfo</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:collectScopeInfo" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:EstablishScoping:EstablishScoping:14"
+		  ></span
+		  > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  >, name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  >) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:EstablishScoping" title="PlutusCore.Check.Scoping"
+		  >EstablishScoping</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		  >Program</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-274" class="link"
+		>Source</a
+		> <a href="#v:-36-fEstablishScopingProgram" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:EstablishScoping:EstablishScoping:14"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:establishScoping"
+		      >establishScoping</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > tyname name uni fun ann &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+		      >Quote</a
+		      > (<a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+		      >Program</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:establishScoping" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:EstablishScoping:EstablishScoping:15"
+		  ></span
+		  > (tyname <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  >, name <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		  >~</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  >) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:EstablishScoping" title="PlutusCore.Check.Scoping"
+		  >EstablishScoping</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun)</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-230" class="link"
+		>Source</a
+		> <a href="#v:-36-fEstablishScopingTerm" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:EstablishScoping:EstablishScoping:15"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:establishScoping"
+		      >establishScoping</a
+		      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun ann &#8594; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+		      >Quote</a
+		      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		      >Term</a
+		      > tyname name uni fun <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:establishScoping" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:16"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > name t &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		  >VarDecl</a
+		  > tyname name uni ann) t</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-70" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceVarDeclt" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:16"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name0. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name0 &#8658; name0 &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+		      >VarDecl</a
+		      > tyname name uni ann &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:17"
+		  ></span
+		  > (<a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > t, <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > t) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		  >Datatype</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > uni ann) t</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-73" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceDatatypet" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:17"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		      >Datatype</a
+		      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		      >TyName</a
+		      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		      >Name</a
+		      > uni ann &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Reference:Reference:18"
+		  ></span
+		  > (<a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > t, <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > t) &#8658; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:Reference" title="PlutusCore.Check.Scoping"
+		  >Reference</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		  >Binding</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		  >Name</a
+		  > uni fun ann) t</span
+		> <a href="src/PlutusIR.Core.Instance.Scoping.html#line-81" class="link"
+		>Source</a
+		> <a href="#v:-36-fReferenceBindingt" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Reference:Reference:18"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:referenceVia"
+		      >referenceVia</a
+		      > &#8759; (&#8704; name. <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:ToScopedName" title="PlutusCore.Check.Scoping"
+		      >ToScopedName</a
+		      > name &#8658; name &#8594; <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      >) &#8594; <a href="PlutusIR-Core-Type.html#t:Binding" title="PlutusIR.Core.Type"
+		      >Binding</a
+		      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		      >TyName</a
+		      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+		      >Name</a
+		      > uni fun ann &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > &#8594; t <a href="../plutus-core/PlutusCore-Check-Scoping.html#t:NameAnn" title="PlutusCore.Check.Scoping"
+		      >NameAnn</a
+		      > <a href="../../plutus-core/src" class="link"
+		      >Source</a
+		      > <a href="#v:referenceVia" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

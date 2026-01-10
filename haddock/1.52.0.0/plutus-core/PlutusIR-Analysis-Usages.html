@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Analysis.Usages</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Analysis.Usages.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Analysis.Usages</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Functions for computing variable usage inside terms and types.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:termUsages"
+	      >termUsages</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >) &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	      >Usages</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:typeUsages"
+	      >typeUsages</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      > &#8658; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a &#8594; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	      >Usages</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Usages"
+	      >Usages</a
+	      > = <a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/Data-MultiSet.html#t:MultiSet" title="Data.MultiSet"
+	      >MultiSet</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:getUsageCount"
+	      >getUsageCount</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > n unique &#8658; n &#8594; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	      >Usages</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:allUsed"
+	      >allUsed</a
+	      > &#8759; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	      >Usages</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	      >Unique</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termUsages" class="def"
+	    >termUsages</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >) &#8658; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	    >Usages</a
+	    > <a href="src/PlutusIR.Analysis.Usages.html#termUsages" class="link"
+	    >Source</a
+	    > <a href="#v:termUsages" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:typeUsages" class="def"
+	    >typeUsages</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    > &#8658; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a &#8594; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	    >Usages</a
+	    > <a href="src/PlutusIR.Analysis.Usages.html#typeUsages" class="link"
+	    >Source</a
+	    > <a href="#v:typeUsages" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Usages" class="def"
+	    >Usages</a
+	    > = <a href="https://hackage.haskell.org/package/multiset-0.3.4.3/docs/Data-MultiSet.html#t:MultiSet" title="Data.MultiSet"
+	    >MultiSet</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusIR.Analysis.Usages.html#Usages" class="link"
+	    >Source</a
+	    > <a href="#t:Usages" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getUsageCount" class="def"
+	    >getUsageCount</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > n unique &#8658; n &#8594; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	    >Usages</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusIR.Analysis.Usages.html#getUsageCount" class="link"
+	    >Source</a
+	    > <a href="#v:getUsageCount" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get the usage count of <code
+	      >n</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:allUsed" class="def"
+	    >allUsed</a
+	    > &#8759; <a href="PlutusIR-Analysis-Usages.html#t:Usages" title="PlutusIR.Analysis.Usages"
+	    >Usages</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+	    >Unique</a
+	    > <a href="src/PlutusIR.Analysis.Usages.html#allUsed" class="link"
+	    >Source</a
+	    > <a href="#v:allUsed" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Get a set of <code
+	      >n</code
+	      >s which are used at least once.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

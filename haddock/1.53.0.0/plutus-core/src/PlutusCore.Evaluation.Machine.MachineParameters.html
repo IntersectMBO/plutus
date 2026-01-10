@@ -1,0 +1,2254 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StrictData      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.MachineParameters</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#UniOf"
+	><span class="hs-identifier"
+	  >UniOf</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exts.html"
+	><span class="hs-identifier"
+	  >GHC.Exts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#inline"
+	><span class="hs-identifier"
+	  >inline</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| We need to account for the costs of evaluator steps and also built-in function
+   evaluation.  The models for these have different structures and are used in
+   different parts of the code, so inside the valuator we pass separate objects
+   about most of the time .  It's convenient for clients of the evaluator to
+   only have to worry about a single object, so the CostModel type bundles the
+   two together.  We could conceivably have different evaluators with different
+   internal costs, so we keep the machine costs abstract.  The model for Cek
+   machine steps is in UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CostModel"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	  ><span class="hs-identifier hs-var"
+	    >CostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949795"
+      ><span class="annot"
+	><a href="#local-6989586621681949795"
+	  ><span class="hs-identifier hs-type"
+	    >machinecosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949796"
+      ><span class="annot"
+	><a href="#local-6989586621681949796"
+	  ><span class="hs-identifier hs-type"
+	    >builtincosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span id="CostModel"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	  ><span class="hs-identifier hs-var"
+	    >CostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >      </span
+      ><span id="_machineCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall machinecosts builtincosts.
+CostModel machinecosts builtincosts -&gt; machinecosts
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#_machineCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_machineCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949795"
+	><span class="hs-identifier hs-type"
+	  >machinecosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_builtinCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall machinecosts builtincosts.
+CostModel machinecosts builtincosts -&gt; builtincosts
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#_builtinCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_builtinCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949796"
+	><span class="hs-identifier hs-type"
+	  >builtincosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681949958"
+      ><span id="local-6989586621681949962"
+	><span class="annot"
+	  ><span class="annottext"
+	    >CostModel machinecosts builtincosts
+-&gt; CostModel machinecosts builtincosts -&gt; Bool
+(CostModel machinecosts builtincosts
+ -&gt; CostModel machinecosts builtincosts -&gt; Bool)
+-&gt; (CostModel machinecosts builtincosts
+    -&gt; CostModel machinecosts builtincosts -&gt; Bool)
+-&gt; Eq (CostModel machinecosts builtincosts)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall machinecosts builtincosts.
+(Eq machinecosts, Eq builtincosts) =&gt;
+CostModel machinecosts builtincosts
+-&gt; CostModel machinecosts builtincosts -&gt; Bool
+$c== :: forall machinecosts builtincosts.
+(Eq machinecosts, Eq builtincosts) =&gt;
+CostModel machinecosts builtincosts
+-&gt; CostModel machinecosts builtincosts -&gt; Bool
+== :: CostModel machinecosts builtincosts
+-&gt; CostModel machinecosts builtincosts -&gt; Bool
+$c/= :: forall machinecosts builtincosts.
+(Eq machinecosts, Eq builtincosts) =&gt;
+CostModel machinecosts builtincosts
+-&gt; CostModel machinecosts builtincosts -&gt; Bool
+/= :: CostModel machinecosts builtincosts
+-&gt; CostModel machinecosts builtincosts -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681949969"
+      ><span id="local-6989586621681949975"
+	><span id="local-6989586621681949979"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; CostModel machinecosts builtincosts -&gt; ShowS
+[CostModel machinecosts builtincosts] -&gt; ShowS
+CostModel machinecosts builtincosts -&gt; String
+(Int -&gt; CostModel machinecosts builtincosts -&gt; ShowS)
+-&gt; (CostModel machinecosts builtincosts -&gt; String)
+-&gt; ([CostModel machinecosts builtincosts] -&gt; ShowS)
+-&gt; Show (CostModel machinecosts builtincosts)
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+forall machinecosts builtincosts.
+(Show machinecosts, Show builtincosts) =&gt;
+Int -&gt; CostModel machinecosts builtincosts -&gt; ShowS
+forall machinecosts builtincosts.
+(Show machinecosts, Show builtincosts) =&gt;
+[CostModel machinecosts builtincosts] -&gt; ShowS
+forall machinecosts builtincosts.
+(Show machinecosts, Show builtincosts) =&gt;
+CostModel machinecosts builtincosts -&gt; String
+$cshowsPrec :: forall machinecosts builtincosts.
+(Show machinecosts, Show builtincosts) =&gt;
+Int -&gt; CostModel machinecosts builtincosts -&gt; ShowS
+showsPrec :: Int -&gt; CostModel machinecosts builtincosts -&gt; ShowS
+$cshow :: forall machinecosts builtincosts.
+(Show machinecosts, Show builtincosts) =&gt;
+CostModel machinecosts builtincosts -&gt; String
+show :: CostModel machinecosts builtincosts -&gt; String
+$cshowList :: forall machinecosts builtincosts.
+(Show machinecosts, Show builtincosts) =&gt;
+[CostModel machinecosts builtincosts] -&gt; ShowS
+showList :: [CostModel machinecosts builtincosts] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="local-6989586621681949795"
+      ><span id="local-6989586621681949796"
+	><span id="local-6989586621681949814"
+	  ><span id="local-6989586621681949815"
+	    ><span id="builtinCostModel"
+	      ><span id="machineCostModel"
+		><span class="hs-identifier"
+		  >makeLenses</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >''</span
+		  ><span class="hs-identifier"
+		  >CostModel</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-comment"
+      >-- | The part of 'MachineParameters' that is individual for each semantics variant of 'DefaultFun'.</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-comment"
+      >-- 'CaserBuiltin' isn't included, because it only explicitly depends on the protocol version and not</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-comment"
+      >-- the language version (even though there's an implicit dependency on the language version: older</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-comment"
+      >-- languages don't support 'Case' in general, but it's safe to ignore that, because support for</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >-- 'Case' is controlled by the AST version, which is a separate check during deserialisation).</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="MachineVariantParameters"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+	  ><span class="hs-identifier hs-var"
+	    >MachineVariantParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949827"
+      ><span class="annot"
+	><a href="#local-6989586621681949827"
+	  ><span class="hs-identifier hs-type"
+	    >machineCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949828"
+      ><span class="annot"
+	><a href="#local-6989586621681949828"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949829"
+      ><span class="annot"
+	><a href="#local-6989586621681949829"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span id="MachineVariantParameters"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+	  ><span class="hs-identifier hs-var"
+	    >MachineVariantParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span id="machineCosts"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall machineCosts fun val.
+MachineVariantParameters machineCosts fun val -&gt; machineCosts
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#machineCosts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >machineCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949827"
+	><span class="hs-identifier hs-type"
+	  >machineCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="builtinsRuntime"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall machineCosts fun val.
+MachineVariantParameters machineCosts fun val
+-&gt; BuiltinsRuntime fun val
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#builtinsRuntime"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinsRuntime</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Runtime.html#BuiltinsRuntime"
+	><span class="hs-identifier hs-type"
+	  >BuiltinsRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949828"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949829"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950003"
+      ><span id="local-6989586621681950005"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x.
+ MachineVariantParameters machineCosts fun val
+ -&gt; Rep (MachineVariantParameters machineCosts fun val) x)
+-&gt; (forall x.
+    Rep (MachineVariantParameters machineCosts fun val) x
+    -&gt; MachineVariantParameters machineCosts fun val)
+-&gt; Generic (MachineVariantParameters machineCosts fun val)
+forall x.
+Rep (MachineVariantParameters machineCosts fun val) x
+-&gt; MachineVariantParameters machineCosts fun val
+forall x.
+MachineVariantParameters machineCosts fun val
+-&gt; Rep (MachineVariantParameters machineCosts fun val) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall machineCosts fun val x.
+Rep (MachineVariantParameters machineCosts fun val) x
+-&gt; MachineVariantParameters machineCosts fun val
+forall machineCosts fun val x.
+MachineVariantParameters machineCosts fun val
+-&gt; Rep (MachineVariantParameters machineCosts fun val) x
+$cfrom :: forall machineCosts fun val x.
+MachineVariantParameters machineCosts fun val
+-&gt; Rep (MachineVariantParameters machineCosts fun val) x
+from :: forall x.
+MachineVariantParameters machineCosts fun val
+-&gt; Rep (MachineVariantParameters machineCosts fun val) x
+$cto :: forall machineCosts fun val x.
+Rep (MachineVariantParameters machineCosts fun val) x
+-&gt; MachineVariantParameters machineCosts fun val
+to :: forall x.
+Rep (MachineVariantParameters machineCosts fun val) x
+-&gt; MachineVariantParameters machineCosts fun val
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681950012"
+      ><span class="annot"
+	><span class="annottext"
+	  >MachineVariantParameters machineCosts fun val -&gt; ()
+(MachineVariantParameters machineCosts fun val -&gt; ())
+-&gt; NFData (MachineVariantParameters machineCosts fun val)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall machineCosts fun val.
+(NFData machineCosts, Bounded fun, Enum fun) =&gt;
+MachineVariantParameters machineCosts fun val -&gt; ()
+$crnf :: forall machineCosts fun val.
+(NFData machineCosts, Bounded fun, Enum fun) =&gt;
+MachineVariantParameters machineCosts fun val -&gt; ()
+rnf :: MachineVariantParameters machineCosts fun val -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| At execution time we need a 'BuiltinsRuntime' object which includes both the cost model for
+builtins and their denotations. This bundles one of those together with the cost model for evaluator
+steps and a 'CaserBuiltin' specifying how casing on values of built-in types works.
+The @val@ type will be 'CekValue' when we're using this with the CEK machine.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="MachineParameters"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+	  ><span class="hs-identifier hs-var"
+	    >MachineParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949870"
+      ><span class="annot"
+	><a href="#local-6989586621681949870"
+	  ><span class="hs-identifier hs-type"
+	    >machineCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949871"
+      ><span class="annot"
+	><a href="#local-6989586621681949871"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681949872"
+      ><span class="annot"
+	><a href="#local-6989586621681949872"
+	  ><span class="hs-identifier hs-type"
+	    >val</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span id="MachineParameters"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+	  ><span class="hs-identifier hs-var"
+	    >MachineParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >      </span
+      ><span id="machineCaserBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall machineCosts fun val.
+MachineParameters machineCosts fun val -&gt; CaserBuiltin (UniOf val)
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#machineCaserBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >machineCaserBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Case.html#CaserBuiltin"
+	><span class="hs-identifier hs-type"
+	  >CaserBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#UniOf"
+	><span class="hs-identifier hs-type"
+	  >UniOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949872"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="machineVariantParameters"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall machineCosts fun val.
+MachineParameters machineCosts fun val
+-&gt; MachineVariantParameters machineCosts fun val
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#machineVariantParameters"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >machineVariantParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+	><span class="hs-identifier hs-type"
+	  >MachineVariantParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949870"
+	><span class="hs-identifier hs-type"
+	  >machineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949871"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681949872"
+	><span class="hs-identifier hs-type"
+	  >val</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950034"
+      ><span id="local-6989586621681950036"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x.
+ MachineParameters machineCosts fun val
+ -&gt; Rep (MachineParameters machineCosts fun val) x)
+-&gt; (forall x.
+    Rep (MachineParameters machineCosts fun val) x
+    -&gt; MachineParameters machineCosts fun val)
+-&gt; Generic (MachineParameters machineCosts fun val)
+forall x.
+Rep (MachineParameters machineCosts fun val) x
+-&gt; MachineParameters machineCosts fun val
+forall x.
+MachineParameters machineCosts fun val
+-&gt; Rep (MachineParameters machineCosts fun val) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall machineCosts fun val x.
+Rep (MachineParameters machineCosts fun val) x
+-&gt; MachineParameters machineCosts fun val
+forall machineCosts fun val x.
+MachineParameters machineCosts fun val
+-&gt; Rep (MachineParameters machineCosts fun val) x
+$cfrom :: forall machineCosts fun val x.
+MachineParameters machineCosts fun val
+-&gt; Rep (MachineParameters machineCosts fun val) x
+from :: forall x.
+MachineParameters machineCosts fun val
+-&gt; Rep (MachineParameters machineCosts fun val) x
+$cto :: forall machineCosts fun val x.
+Rep (MachineParameters machineCosts fun val) x
+-&gt; MachineParameters machineCosts fun val
+to :: forall x.
+Rep (MachineParameters machineCosts fun val) x
+-&gt; MachineParameters machineCosts fun val
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681950042"
+      ><span class="annot"
+	><span class="annottext"
+	  >MachineParameters machineCosts fun val -&gt; ()
+(MachineParameters machineCosts fun val -&gt; ())
+-&gt; NFData (MachineParameters machineCosts fun val)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall machineCosts fun val.
+(NFData machineCosts, Bounded fun, Enum fun) =&gt;
+MachineParameters machineCosts fun val -&gt; ()
+$crnf :: forall machineCosts fun val.
+(NFData machineCosts, Bounded fun, Enum fun) =&gt;
+MachineParameters machineCosts fun val -&gt; ()
+rnf :: MachineParameters machineCosts fun val -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-comment"
+      >-- For some reason the generic instance gives incorrect nothunk errors,</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >-- see https://github.com/input-output-hk/nothunks/issues/24</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681949911"
+      ><span id="local-6989586621681949912"
+	><span id="local-6989586621681949913"
+	  ><span id="local-6989586621681950061"
+	    ><span id="local-6989586621681950066"
+	      ><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+		  ><span class="hs-identifier hs-type"
+		    >NoThunks</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949911"
+		  ><span class="hs-identifier hs-type"
+		    >machinecosts</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+		  ><span class="hs-identifier hs-type"
+		    >Bounded</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949912"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+		  ><span class="hs-identifier hs-type"
+		    >Enum</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949912"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+		  ><span class="hs-identifier hs-type"
+		    >NoThunks</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+		  ><span class="hs-identifier hs-type"
+		    >MachineVariantParameters</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949911"
+		  ><span class="hs-identifier hs-type"
+		    >machinecosts</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949912"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949913"
+		  ><span class="hs-identifier hs-type"
+		    >val</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681950083"
+      ><span class="annot"
+	><span class="annottext"
+	  >wNoThunks :: Context
+-&gt; MachineVariantParameters machinecosts fun val
+-&gt; IO (Maybe ThunkInfo)
+</span
+	  ><a href="#local-6989586621681950083"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >wNoThunks</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950085"
+      ><span class="annot"
+	><span class="annottext"
+	  >Context
+</span
+	  ><a href="#local-6989586621681950085"
+	  ><span class="hs-identifier hs-var"
+	    >ctx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+	><span class="hs-identifier hs-type"
+	  >MachineVariantParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950086"
+      ><span class="annot"
+	><span class="annottext"
+	  >machinecosts
+</span
+	  ><a href="#local-6989586621681950086"
+	  ><span class="hs-identifier hs-var"
+	    >costs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950087"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinsRuntime fun val
+</span
+	  ><a href="#local-6989586621681950087"
+	  ><span class="hs-identifier hs-var"
+	    >runtime</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[IO (Maybe ThunkInfo)] -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#allNoThunks"
+	><span class="hs-identifier hs-var"
+	  >allNoThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context -&gt; machinecosts -&gt; IO (Maybe ThunkInfo)
+forall a. NoThunks a =&gt; Context -&gt; a -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#noThunks"
+	><span class="hs-identifier hs-var"
+	  >noThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681950085"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>machinecosts
+</span
+	><a href="#local-6989586621681950086"
+	><span class="hs-identifier hs-var"
+	  >costs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context -&gt; BuiltinsRuntime fun val -&gt; IO (Maybe ThunkInfo)
+forall a. NoThunks a =&gt; Context -&gt; a -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#noThunks"
+	><span class="hs-identifier hs-var"
+	  >noThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681950085"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinsRuntime fun val
+</span
+	><a href="#local-6989586621681950087"
+	><span class="hs-identifier hs-var"
+	  >runtime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681949919"
+      ><span id="local-6989586621681949920"
+	><span id="local-6989586621681949921"
+	  ><span id="local-6989586621681950094"
+	    ><span id="local-6989586621681950099"
+	      ><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+		  ><span class="hs-identifier hs-type"
+		    >NoThunks</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949919"
+		  ><span class="hs-identifier hs-type"
+		    >machinecosts</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+		  ><span class="hs-identifier hs-type"
+		    >Bounded</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949920"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+		  ><span class="hs-identifier hs-type"
+		    >Enum</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949920"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+		  ><span class="hs-identifier hs-type"
+		    >NoThunks</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+		  ><span class="hs-identifier hs-type"
+		    >MachineParameters</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949919"
+		  ><span class="hs-identifier hs-type"
+		    >machinecosts</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949920"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949921"
+		  ><span class="hs-identifier hs-type"
+		    >val</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681950112"
+      ><span class="annot"
+	><span class="annottext"
+	  >wNoThunks :: Context
+-&gt; MachineParameters machinecosts fun val -&gt; IO (Maybe ThunkInfo)
+</span
+	  ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#wNoThunks"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >wNoThunks</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950113"
+      ><span class="annot"
+	><span class="annottext"
+	  >Context
+</span
+	  ><a href="#local-6989586621681950113"
+	  ><span class="hs-identifier hs-var"
+	    >ctx</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineParameters"
+	><span class="hs-identifier hs-type"
+	  >MachineParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950114"
+      ><span class="annot"
+	><span class="annottext"
+	  >CaserBuiltin (UniOf val)
+</span
+	  ><a href="#local-6989586621681950114"
+	  ><span class="hs-identifier hs-var"
+	    >caser</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950115"
+      ><span class="annot"
+	><span class="annottext"
+	  >MachineVariantParameters machinecosts fun val
+</span
+	  ><a href="#local-6989586621681950115"
+	  ><span class="hs-identifier hs-var"
+	    >varPars</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[IO (Maybe ThunkInfo)] -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#allNoThunks"
+	><span class="hs-identifier hs-var"
+	  >allNoThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context -&gt; CaserBuiltin (UniOf val) -&gt; IO (Maybe ThunkInfo)
+forall a. NoThunks a =&gt; Context -&gt; a -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#noThunks"
+	><span class="hs-identifier hs-var"
+	  >noThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681950113"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CaserBuiltin (UniOf val)
+</span
+	><a href="#local-6989586621681950114"
+	><span class="hs-identifier hs-var"
+	  >caser</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+-&gt; MachineVariantParameters machinecosts fun val
+-&gt; IO (Maybe ThunkInfo)
+forall a. NoThunks a =&gt; Context -&gt; a -&gt; IO (Maybe ThunkInfo)
+</span
+	><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#noThunks"
+	><span class="hs-identifier hs-var"
+	  >noThunks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Context
+</span
+	><a href="#local-6989586621681950113"
+	><span class="hs-identifier hs-var"
+	  >ctx</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MachineVariantParameters machinecosts fun val
+</span
+	><a href="#local-6989586621681950115"
+	><span class="hs-identifier hs-var"
+	  >varPars</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [The CostingPart constraint in mkMachineVariantParameters]
+Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
+to fail to inline the function at its call site regardless of the @INLINE@ pragma and an explicit
+'inline' call.
+
+We think that this is because discharging the @CostingPart uni fun ~ builtincosts@ constraint in the
+type of 'mkMachineParameters' somehow causes it to be compiled into @expr `Cast@` co@ , where @co@'s
+type is
+
+    (CostingPart DefaultUni DefaultFun) ... ~R# ... BuiltinCostModel ...
+
+and this fails to inline, because in order for @inline f@ to work, @f@ must be compiled into either
+a @Var@, or an @App@ whose head is a @Var@, according to https://gitlab.haskell.org/ghc/ghc/-/blob/1f02b7430b2fbab403d7ffdde9cfd006e884678e/compiler/prelude/PrelRules.hs#L1442-1449
+And if @f@ is compiled into a @Cast@ like 'mkMachineParameters' with the discharged constraint, then
+inlining won't work. We don't know why it's implemented this way in GHC.
+
+It seems fully applying @f@ helps, i.e.
+
+    - inline mkMachineParameters unlMode &lt;$&gt; &lt;...&gt;
+    + (\x -&gt; inline (mkMachineParameters unlMode x)) &lt;$&gt; &lt;...&gt;
+
+which makes sense: if @f@ receives all its type and term args then there's less reason to throw a
+@Cast@ in there.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Inlining meanings of builtins].</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| This just uses 'toBuiltinsRuntime' function to convert a BuiltinCostModel to a BuiltinsRuntime. -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span id="local-6989586621681949923"
+      ><span id="local-6989586621681949924"
+	><span id="local-6989586621681949926"
+	  ><span id="local-6989586621681949927"
+	    ><span id="local-6989586621681949931"
+	      ><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineVariantParameters"
+		  ><span class="hs-identifier hs-type"
+		    >mkMachineVariantParameters</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		>
+</span
+		><span id="line-101"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>(</span
+		><span
+		> </span
+		><span class="hs-comment"
+		>-- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the</span
+		><span
+		>
+</span
+		><span id="line-102"
+		></span
+		><span
+		>      </span
+		><span class="hs-comment"
+		>-- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].</span
+		><span
+		>
+</span
+		><span id="line-103"
+		></span
+		><span
+		>      </span
+		><span class="annot"
+		><a href="PlutusCore.Builtin.Meaning.html#CostingPart"
+		  ><span class="hs-identifier hs-type"
+		    >CostingPart</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949923"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949924"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+		  ><span class="hs-operator hs-type"
+		    >~</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949926"
+		  ><span class="hs-identifier hs-type"
+		    >builtincosts</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-104"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Builtin.Meaning.html#HasMeaningIn"
+		  ><span class="hs-identifier hs-type"
+		    >HasMeaningIn</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949923"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949927"
+		  ><span class="hs-identifier hs-type"
+		    >val</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-105"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>,</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Builtin.Meaning.html#ToBuiltinMeaning"
+		  ><span class="hs-identifier hs-type"
+		    >ToBuiltinMeaning</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949923"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949924"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-106"
+		></span
+		><span
+		>    </span
+		><span class="hs-special"
+		>)</span
+		><span
+		>
+</span
+		><span id="line-107"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Builtin.Meaning.html#BuiltinSemanticsVariant"
+		  ><span class="hs-identifier hs-type"
+		    >BuiltinSemanticsVariant</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949924"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-108"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+		  ><span class="hs-identifier hs-type"
+		    >CostModel</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949931"
+		  ><span class="hs-identifier hs-type"
+		    >machineCosts</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949926"
+		  ><span class="hs-identifier hs-type"
+		    >builtincosts</span
+		    ></a
+		  ></span
+		><span
+		>
+</span
+		><span id="line-109"
+		></span
+		><span
+		>    </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+		  ><span class="hs-identifier hs-type"
+		    >MachineVariantParameters</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949931"
+		  ><span class="hs-identifier hs-type"
+		    >machineCosts</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949924"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621681949927"
+		  ><span class="hs-identifier hs-type"
+		    >val</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span id="mkMachineVariantParameters"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkMachineVariantParameters :: forall (uni :: * -&gt; *) fun builtincosts val machineCosts.
+(CostingPart uni fun ~ builtincosts, HasMeaningIn uni val,
+ ToBuiltinMeaning uni fun) =&gt;
+BuiltinSemanticsVariant fun
+-&gt; CostModel machineCosts builtincosts
+-&gt; MachineVariantParameters machineCosts fun val
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineVariantParameters"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkMachineVariantParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950138"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinSemanticsVariant fun
+</span
+	  ><a href="#local-6989586621681950138"
+	  ><span class="hs-identifier hs-var"
+	    >semvar</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	><span class="hs-identifier hs-type"
+	  >CostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950139"
+      ><span class="annot"
+	><span class="annottext"
+	  >machineCosts
+</span
+	  ><a href="#local-6989586621681950139"
+	  ><span class="hs-identifier hs-var"
+	    >mchnCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681950140"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtincosts
+</span
+	  ><a href="#local-6989586621681950140"
+	  ><span class="hs-identifier hs-var"
+	    >builtinCosts</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>machineCosts
+-&gt; BuiltinsRuntime fun val
+-&gt; MachineVariantParameters machineCosts fun val
+forall machineCosts fun val.
+machineCosts
+-&gt; BuiltinsRuntime fun val
+-&gt; MachineVariantParameters machineCosts fun val
+</span
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#MachineVariantParameters"
+	><span class="hs-identifier hs-var"
+	  >MachineVariantParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>machineCosts
+</span
+	><a href="#local-6989586621681950139"
+	><span class="hs-identifier hs-var"
+	  >mchnCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinsRuntime fun val
+ -&gt; MachineVariantParameters machineCosts fun val)
+-&gt; BuiltinsRuntime fun val
+-&gt; MachineVariantParameters machineCosts fun val
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinSemanticsVariant fun
+ -&gt; builtincosts -&gt; BuiltinsRuntime fun val)
+-&gt; BuiltinSemanticsVariant fun
+-&gt; builtincosts
+-&gt; BuiltinsRuntime fun val
+forall a. a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Magic.html#inline"
+	><span class="hs-identifier hs-var"
+	  >inline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+-&gt; builtincosts -&gt; BuiltinsRuntime fun val
+forall cost (uni :: * -&gt; *) fun val.
+(cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun,
+ HasMeaningIn uni val) =&gt;
+BuiltinSemanticsVariant fun -&gt; cost -&gt; BuiltinsRuntime fun val
+</span
+	><a href="PlutusCore.Builtin.Meaning.html#toBuiltinsRuntime"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinsRuntime</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinSemanticsVariant fun
+</span
+	><a href="#local-6989586621681950138"
+	><span class="hs-identifier hs-var"
+	  >semvar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>builtincosts
+</span
+	><a href="#local-6989586621681950140"
+	><span class="hs-identifier hs-var"
+	  >builtinCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#mkMachineVariantParameters"
+	><span class="hs-pragma hs-type"
+	  >mkMachineVariantParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

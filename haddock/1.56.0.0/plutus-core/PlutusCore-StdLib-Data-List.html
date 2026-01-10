@@ -1,0 +1,792 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.StdLib.Data.List</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.StdLib.Data.List.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.StdLib.Data.List</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Built-in <code
+	    >list</code
+	    > and related functions.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:list"
+	      >list</a
+	      > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeLevel`</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+	      >List</a
+	      > &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > tyname uni ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:MatchOption"
+	      >MatchOption</a
+	      > = <a href="#v:UseChoose"
+	      >UseChoose</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:matchList"
+	      >matchList</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	      >MatchOption</a
+	      > &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:foldrList"
+	      >foldrList</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	      >MatchOption</a
+	      > &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:foldList"
+	      >foldList</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	      >MatchOption</a
+	      > &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:sum"
+	      >sum</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	      >MatchOption</a
+	      > &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:sumr"
+	      >sumr</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	      >MatchOption</a
+	      > &#8594; term ()</li
+	    ><li class="src short"
+	    ><a href="#v:product"
+	      >product</a
+	      > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	      >TermLike</a
+	      > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	      >MatchOption</a
+	      > &#8594; term ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:list" class="def"
+	    >list</a
+	    > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeLevel`</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-List.html#t:List" title="GHC.List"
+	    >List</a
+	    > &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > tyname uni () <a href="src/PlutusCore.StdLib.Data.List.html#list" class="link"
+	    >Source</a
+	    > <a href="#v:list" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >[]</code
+	      > as a built-in PLC type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:MatchOption" class="def"
+	    >MatchOption</a
+	    > <a href="src/PlutusCore.StdLib.Data.MatchOption.html#MatchOption" class="link"
+	    >Source</a
+	    > <a href="#t:MatchOption" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Allows one to choose which way of doing pattern matching on built-in types to use: currently
+only <code
+	      >ChooseList</code
+	      >-like builtins are supported. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UseChoose" class="def"
+		  >UseChoose</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MatchOption"
+	    >Instances</h4
+	    ><details id="i:MatchOption" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MatchOption:Bounded:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Bounded" title="Prelude"
+		      >Bounded</a
+		      > <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+		      >MatchOption</a
+		      ></span
+		    > <a href="src/PlutusCore.StdLib.Data.MatchOption.html#line-9" class="link"
+		    >Source</a
+		    > <a href="#t:MatchOption" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MatchOption:Bounded:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-StdLib-Data-MatchOption.html"
+			>PlutusCore.StdLib.Data.MatchOption</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:minBound"
+			  >minBound</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:minBound" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:maxBound"
+			  >maxBound</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:maxBound" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MatchOption:Enum:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Enum" title="Prelude"
+		      >Enum</a
+		      > <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+		      >MatchOption</a
+		      ></span
+		    > <a href="src/PlutusCore.StdLib.Data.MatchOption.html#line-9" class="link"
+		    >Source</a
+		    > <a href="#t:MatchOption" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MatchOption:Enum:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-StdLib-Data-MatchOption.html"
+			>PlutusCore.StdLib.Data.MatchOption</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:succ"
+			  >succ</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:succ" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pred"
+			  >pred</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pred" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:toEnum"
+			  >toEnum</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromEnum"
+			  >fromEnum</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromEnum" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFrom"
+			  >enumFrom</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; [<a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFrom" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThen"
+			  >enumFromThen</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; [<a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromTo"
+			  >enumFromTo</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; [<a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromTo" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:enumFromThenTo"
+			  >enumFromThenTo</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; [<a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  >] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:enumFromThenTo" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MatchOption:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+		      >MatchOption</a
+		      ></span
+		    > <a href="src/PlutusCore.StdLib.Data.MatchOption.html#line-9" class="link"
+		    >Source</a
+		    > <a href="#t:MatchOption" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MatchOption:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-StdLib-Data-MatchOption.html"
+			>PlutusCore.StdLib.Data.MatchOption</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:MatchOption:Eq:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+		      >MatchOption</a
+		      ></span
+		    > <a href="src/PlutusCore.StdLib.Data.MatchOption.html#line-9" class="link"
+		    >Source</a
+		    > <a href="#t:MatchOption" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:MatchOption:Eq:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-StdLib-Data-MatchOption.html"
+			>PlutusCore.StdLib.Data.MatchOption</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+			  >MatchOption</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:matchList" class="def"
+	    >matchList</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	    >MatchOption</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Data.List.html#matchList" class="link"
+	    >Source</a
+	    > <a href="#v:matchList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pattern matching on built-in lists. <code
+	      >matchList {a} xs</code
+	      > on built-in lists is
+equivalent to <code
+	      >unwrap xs</code
+	      > on lists defined in PLC itself (hence why we bind <code
+	      >r</code
+	      > after <code
+	      >xs</code
+	      >).</p
+	    ><p
+	    >Either</p
+	    ><pre
+	    >/\(a :: *) -&gt; \(xs : list a) -&gt; /\(r :: *) -&gt; (z : r) (f : a -&gt; list a -&gt; r) -&gt;
+    matchList
+        {a}
+        {r}
+        z
+        f
+        xs</pre
+	    ><p
+	    >or</p
+	    ><pre
+	    >/\(a :: *) -&gt; \(xs : list a) -&gt; /\(r :: *) -&gt; (z : r) (f : a -&gt; list a -&gt; r) -&gt;
+    chooseList
+        {a}
+        {() -&gt; r}
+        xs
+        (\(u : ()) -&gt; z)
+        (\(u : ()) -&gt; f (head {a} xs) (tail {a} xs))
+        ()</pre
+	    ><p
+	    >depending on the <code
+	      ><a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+		>MatchOption</a
+		></code
+	      > argument. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldrList" class="def"
+	    >foldrList</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	    >MatchOption</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Data.List.html#foldrList" class="link"
+	    >Source</a
+	    > <a href="#v:foldrList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      >foldr</code
+	      > over built-in lists.</p
+	    ><pre
+	    >/\(a :: *) (r :: *) -&gt; \(f : a -&gt; r -&gt; r) (z : r) -&gt;
+    fix {list a} {r} \(rec : list a -&gt; r) (xs : list a) -&gt;
+        matchList {a} xs {r} z \(x : a) (xs' : list a) -&gt; f x (rec xs') </pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldList" class="def"
+	    >foldList</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	    >MatchOption</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Data.List.html#foldList" class="link"
+	    >Source</a
+	    > <a href="#v:foldList" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >'foldl'' as a PLC term.</p
+	    ><pre
+	    >/\(a :: *) (r :: *) -&gt; \(f : r -&gt; a -&gt; r) -&gt;
+    fix {r} {list a -&gt; r} \(rec : r -&gt; list a -&gt; r) (z : r) (xs : list a) -&gt;
+        matchList {a} xs {r} z \(x : a) (xs' : list a) -&gt; rec (f z x) xs' </pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sum" class="def"
+	    >sum</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	    >MatchOption</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Data.List.html#sum" class="link"
+	    >Source</a
+	    > <a href="#v:sum" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sumr" class="def"
+	    >sumr</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	    >MatchOption</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Data.List.html#sumr" class="link"
+	    >Source</a
+	    > <a href="#v:sumr" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:product" class="def"
+	    >product</a
+	    > &#8759; <a href="PlutusCore-MkPlc.html#t:TermLike" title="PlutusCore.MkPlc"
+	    >TermLike</a
+	    > term <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > <a href="PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="PlutusCore-StdLib-Data-List.html#t:MatchOption" title="PlutusCore.StdLib.Data.List"
+	    >MatchOption</a
+	    > &#8594; term () <a href="src/PlutusCore.StdLib.Data.List.html#product" class="link"
+	    >Source</a
+	    > <a href="#v:product" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><a href="PlutusCore-StdLib-Data-List.html#v:product" title="PlutusCore.StdLib.Data.List"
+		>product</a
+		></code
+	      > as a PLC term.</p
+	    ><pre
+	    >foldList {integer} {integer} multiplyInteger 1 </pre
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

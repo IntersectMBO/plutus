@@ -1,0 +1,6270 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- | Property tests for the `quotientInteger` and `remainderInteger` builtins -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Evaluation.Builtins.Integer.QuotRemProperties</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#test_integer_quot_rem_properties"
+	><span class="hs-identifier"
+	  >test_integer_quot_rem_properties</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#abs"
+	><span class="hs-identifier"
+	  >abs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Common.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html"
+	><span class="hs-identifier"
+	  >Evaluation.Builtins.Integer.Common</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.html"
+	><span class="hs-identifier"
+	  >Test.Tasty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestName"
+	><span class="hs-identifier"
+	  >TestName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html"
+	><span class="hs-identifier"
+	  >Test.Tasty.QuickCheck</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#numberOfTests"
+	><span class="hs-identifier hs-type"
+	  >numberOfTests</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="numberOfTests"
+      ><span class="annot"
+	><span class="annottext"
+	  >numberOfTests :: Int
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#numberOfTests"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >numberOfTests</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>200</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span id="local-6989586621679270155"
+      ><span class="annot"
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	  ><span class="hs-identifier hs-type"
+	    >testProp</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Testable</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679270155"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestName"
+	  ><span class="hs-identifier hs-type"
+	    >TestName</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679270155"
+	  ><span class="hs-identifier hs-type"
+	    >prop</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	  ><span class="hs-identifier hs-type"
+	    >TestTree</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span id="testProp"
+      ><span class="annot"
+	><span class="annottext"
+	  >testProp :: forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >testProp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679270233"
+      ><span class="annot"
+	><span class="annottext"
+	  >TestName
+</span
+	  ><a href="#local-6989586621679270233"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679270234"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop
+</span
+	  ><a href="#local-6989586621679270234"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; Property -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/src/Test.Tasty.QuickCheck.html#testProperty"
+	><span class="hs-identifier hs-var"
+	  >testProperty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><a href="#local-6989586621679270233"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Property -&gt; TestTree) -&gt; Property -&gt; TestTree
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; prop -&gt; Property
+forall prop. Testable prop =&gt; Int -&gt; prop -&gt; Property
+</span
+	><span class="hs-identifier hs-var"
+	>withMaxSuccess</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#numberOfTests"
+	><span class="hs-identifier hs-var"
+	  >numberOfTests</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>prop
+</span
+	><a href="#local-6989586621679270234"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- `quotientInteger _ 0` always fails.</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_0_fails"
+	><span class="hs-identifier hs-type"
+	  >prop_quot_0_fails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span id="prop_quot_0_fails"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_quot_0_fails :: BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_0_fails"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_quot_0_fails</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270239"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270239"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#fails"
+	><span class="hs-identifier hs-var"
+	  >fails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#quotientInteger"
+	><span class="hs-identifier hs-var"
+	  >quotientInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270239"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#zero"
+	><span class="hs-identifier hs-var"
+	  >zero</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- `remainderInteger _ 0` always fails.</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_0_fails"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_0_fails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span id="prop_rem_0_fails"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_0_fails :: BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_0_fails"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_0_fails</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270243"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270243"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#fails"
+	><span class="hs-identifier hs-var"
+	  >fails</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270243"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#zero"
+	><span class="hs-identifier hs-var"
+	  >zero</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-comment"
+      >-- b /= 0 =&gt; a = b * (a `quot` b) + (a `rem` b)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-comment"
+      >-- This is the crucial property relating `quotientInteger` and `remainderInteger`.</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_rem_compatible"
+	><span class="hs-identifier hs-type"
+	  >prop_quot_rem_compatible</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span id="prop_quot_rem_compatible"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_quot_rem_compatible :: BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_rem_compatible"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_quot_rem_compatible</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270245"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270245"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270247"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270247"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270248"
+      ><span class="annot"
+	><span class="annottext"
+	  >t :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270248"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#addInteger"
+	><span class="hs-identifier hs-var"
+	  >addInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#multiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >multiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270247"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#quotientInteger"
+	><span class="hs-identifier hs-var"
+	  >quotientInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270245"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270247"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270245"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270247"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270248"
+	><span class="hs-identifier hs-var"
+	  >t</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270245"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-comment"
+      >-- (k*b) `quot` b = b and (k*b) `rem` b = 0 for all k</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_rem_multiple"
+	><span class="hs-identifier hs-type"
+	  >prop_quot_rem_multiple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="prop_quot_rem_multiple"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_quot_rem_multiple :: BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_rem_multiple"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_quot_rem_multiple</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270253"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270253"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270254"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270254"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270255"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270255"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#quotientInteger"
+	><span class="hs-identifier hs-var"
+	  >quotientInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#multiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >multiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270253"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270254"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270254"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679270256"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270256"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#multiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >multiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270253"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270254"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270254"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270255"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270253"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Property -&gt; Property
+forall prop1 prop2.
+(Testable prop1, Testable prop2) =&gt;
+prop1 -&gt; prop2 -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>.&amp;&amp;.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270256"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#zero"
+	><span class="hs-identifier hs-var"
+	  >zero</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-comment"
+      >-- `remainderInteger _ b` is not an additive homomorphism in general (and hence</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-comment"
+      >-- not periodic) because the sign of `remainderInteger a b` is different for</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-comment"
+      >-- positive and negative a.  For example (writing `rem` for short instead of</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span class="hs-comment"
+      >-- `remainderInteger`) `rem (-1) 5 = -1` and `rem 5 5 = 0` but `rem (-1+5) 5 =</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- 4`.  However, rem (a + a') b = rem ((rem a b) + (rem a' b)) b if a and a'</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-comment"
+      >-- have the same sign, so we test that instead of checking for arbitrary a and</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-comment"
+      >-- a'.</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span class="hs-comment"
+      >-- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-negative integers</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span class="hs-comment"
+      >-- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_additive_pos"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_additive_pos</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="prop_rem_additive_pos"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_additive_pos :: NonNegative BigInteger
+-&gt; NonNegative BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_additive_pos"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_additive_pos</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270260"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270260"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270261"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270261"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270262"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270262"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270263"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270263"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#addInteger"
+	><span class="hs-identifier hs-var"
+	  >addInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270260"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270261"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270262"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679270264"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270264"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#addInteger"
+	><span class="hs-identifier hs-var"
+	  >addInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270260"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270262"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270261"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270262"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270262"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270263"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270264"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-comment"
+      >-- For fixed b, `remainderInteger _ b` is an additive homomorphism on non-postive integers</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >-- (a+a') `rem` b = ((a `rem` b) + (a' `rem` b)) `rem` b</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_additive_neg"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_additive_neg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span id="prop_rem_additive_neg"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_additive_neg :: NonPositive BigInteger
+-&gt; NonPositive BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_additive_neg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_additive_neg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270267"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270267"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270268"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270268"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270269"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270269"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270270"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270270"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#addInteger"
+	><span class="hs-identifier hs-var"
+	  >addInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270267"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270268"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270269"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679270271"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270271"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#addInteger"
+	><span class="hs-identifier hs-var"
+	  >addInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270267"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270269"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270268"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270269"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270269"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270270"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270271"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- Somewhat unexpectedly, for fixed b, `remainderInteger _ b` is a</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-comment"
+      >-- multiplicative homomorphism: : (a*a') `rem` b = ((a `rem` b) * (a' `rem` b))</span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-comment"
+      >-- `rem` b</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_multiplicative"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_multiplicative</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span id="prop_rem_multiplicative"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_multiplicative :: BigInteger -&gt; BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_multiplicative"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_multiplicative</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270273"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270273"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270274"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270274"
+	  ><span class="hs-identifier hs-var"
+	    >a'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270275"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270275"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270276"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270276"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#multiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >multiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270273"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270274"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270275"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679270277"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270277"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#multiplyInteger"
+	><span class="hs-identifier hs-var"
+	  >multiplyInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270273"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270275"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270274"
+	><span class="hs-identifier hs-var"
+	  >a'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270275"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270275"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkEq"
+	><span class="hs-identifier hs-var"
+	  >evalOkEq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270276"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270277"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-comment"
+      >-- For a &gt;= 0 and b &gt; 0, 0 &lt;= |a `rem` b| &lt; |b|</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="hs-comment"
+      >-- The sign of the remainder is a bit tricky in this case.  We test that the</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="hs-comment"
+      >-- absolute value of the remainder is in the expected range and leave the sign</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span class="hs-comment"
+      >-- to later tests.</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_size"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span id="prop_rem_size"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_size :: BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_size"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270279"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270279"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonZero</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270280"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270280"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270281"
+      ><span class="annot"
+	><span class="annottext"
+	  >r :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270281"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#abs"
+	><span class="hs-identifier hs-var"
+	  >abs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270279"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270280"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679270283"
+      ><span class="annot"
+	><span class="annottext"
+	  >t1 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270283"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#lessThanEqualsInteger"
+	><span class="hs-identifier hs-var"
+	  >lessThanEqualsInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="Evaluation.Builtins.Common.html#zero"
+	><span class="hs-identifier hs-var"
+	  >zero</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270281"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679270285"
+      ><span class="annot"
+	><span class="annottext"
+	  >t2 :: PlcTerm
+</span
+	  ><a href="#local-6989586621679270285"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >t2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#lessThanInteger"
+	><span class="hs-identifier hs-var"
+	  >lessThanInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270281"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#abs"
+	><span class="hs-identifier hs-var"
+	  >abs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270280"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270283"
+	><span class="hs-identifier hs-var"
+	  >t1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Property -&gt; Property -&gt; Property
+forall prop1 prop2.
+(Testable prop1, Testable prop2) =&gt;
+prop1 -&gt; prop2 -&gt; Property
+</span
+	><span class="hs-operator hs-var"
+	>.&amp;&amp;.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270285"
+	><span class="hs-identifier hs-var"
+	  >t2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-comment"
+      >-- a &gt;= 0 &amp;&amp; b &gt; 0  =&gt;  a `quot` b &gt;= 0  and  a `rem` b &gt;= 0</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-comment"
+      >-- a &lt;= 0 &amp;&amp; b &gt; 0  =&gt;  a `quot` b &lt;= 0  and  a `rem` b &lt;= 0</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span class="hs-comment"
+      >-- a &gt;= 0 &amp;&amp; b &lt; 0  =&gt;  a `quot` b &lt;= 0  and  a `rem` b &gt;= 0</span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="hs-comment"
+      >-- a &lt;= 0 &amp;&amp; b &lt; 0  =&gt;  a `quot` b &gt;= 0  and  a `rem` b &lt;= 0</span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_pos_pos"
+	><span class="hs-identifier hs-type"
+	  >prop_quot_pos_pos</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span id="prop_quot_pos_pos"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_quot_pos_pos :: NonNegative BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_pos_pos"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_quot_pos_pos</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270289"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270289"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270291"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270291"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#ge0"
+	><span class="hs-identifier hs-var"
+	  >ge0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#quotientInteger"
+	><span class="hs-identifier hs-var"
+	  >quotientInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270289"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270291"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_neg_pos"
+	><span class="hs-identifier hs-type"
+	  >prop_quot_neg_pos</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span id="prop_quot_neg_pos"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_quot_neg_pos :: NonPositive BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_neg_pos"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_quot_neg_pos</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270294"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270294"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270295"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270295"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#le0"
+	><span class="hs-identifier hs-var"
+	  >le0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#quotientInteger"
+	><span class="hs-identifier hs-var"
+	  >quotientInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270294"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270295"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_pos_neg"
+	><span class="hs-identifier hs-type"
+	  >prop_quot_pos_neg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span id="prop_quot_pos_neg"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_quot_pos_neg :: NonNegative BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_pos_neg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_quot_pos_neg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270298"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270298"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270300"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270300"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#le0"
+	><span class="hs-identifier hs-var"
+	  >le0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#quotientInteger"
+	><span class="hs-identifier hs-var"
+	  >quotientInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270298"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270300"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_neg_neg"
+	><span class="hs-identifier hs-type"
+	  >prop_quot_neg_neg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span id="prop_quot_neg_neg"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_quot_neg_neg :: NonPositive BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_neg_neg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_quot_neg_neg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270302"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270302"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270303"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270303"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#ge0"
+	><span class="hs-identifier hs-var"
+	  >ge0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#quotientInteger"
+	><span class="hs-identifier hs-var"
+	  >quotientInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270302"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270303"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_pos_pos"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_pos_pos</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="prop_rem_pos_pos"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_pos_pos :: NonNegative BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_pos_pos"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_pos_pos</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270305"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270305"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270306"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270306"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#ge0"
+	><span class="hs-identifier hs-var"
+	  >ge0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270305"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270306"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_neg_pos"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_neg_pos</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="prop_rem_neg_pos"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_neg_pos :: NonPositive BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_neg_pos"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_neg_pos</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270308"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270308"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Positive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270309"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270309"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#le0"
+	><span class="hs-identifier hs-var"
+	  >le0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270308"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270309"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_pos_neg"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_pos_neg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span id="prop_rem_pos_neg"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_pos_neg :: NonNegative BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_pos_neg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_pos_neg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonNegative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270311"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270311"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270312"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270312"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#ge0"
+	><span class="hs-identifier hs-var"
+	  >ge0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270311"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270312"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_neg_neg"
+	><span class="hs-identifier hs-type"
+	  >prop_rem_neg_neg</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.Common.html#BigInteger"
+	><span class="hs-identifier hs-type"
+	  >BigInteger</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Property</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span id="prop_rem_neg_neg"
+      ><span class="annot"
+	><span class="annottext"
+	  >prop_rem_neg_neg :: NonPositive BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_neg_neg"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >prop_rem_neg_neg</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>NonPositive</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270314"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270314"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Negative</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#biginteger"
+	><span class="hs-identifier hs-var"
+	  >biginteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679270315"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlcTerm
+</span
+	  ><a href="#local-6989586621679270315"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Common.html#evalOkTrue"
+	><span class="hs-identifier hs-var"
+	  >evalOkTrue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(PlcTerm -&gt; Property) -&gt; PlcTerm -&gt; Property
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#le0"
+	><span class="hs-identifier hs-var"
+	  >le0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm -&gt; PlcTerm -&gt; PlcTerm
+</span
+	><a href="Evaluation.Builtins.Integer.Common.html#remainderInteger"
+	><span class="hs-identifier hs-var"
+	  >remainderInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270314"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlcTerm
+</span
+	><a href="#local-6989586621679270315"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span class="annot"
+      ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#test_integer_quot_rem_properties"
+	><span class="hs-identifier hs-type"
+	  >test_integer_quot_rem_properties</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#TestTree"
+	><span class="hs-identifier hs-type"
+	  >TestTree</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span id="test_integer_quot_rem_properties"
+      ><span class="annot"
+	><span class="annottext"
+	  >test_integer_quot_rem_properties :: TestTree
+</span
+	  ><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#test_integer_quot_rem_properties"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >test_integer_quot_rem_properties</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; [TestTree] -&gt; TestTree
+</span
+	><a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/src/Test.Tasty.Core.html#testGroup"
+	><span class="hs-identifier hs-var"
+	  >testGroup</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;Property tests for quotientInteger and remainderInteger&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (BigInteger -&gt; Property) -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;quotientInteger _ 0 always fails&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_0_fails"
+	><span class="hs-identifier hs-var"
+	  >prop_quot_0_fails</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName -&gt; (BigInteger -&gt; Property) -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger _ 0 always fails&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_0_fails"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_0_fails</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (BigInteger -&gt; NonZero BigInteger -&gt; Property) -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;quotientInteger and remainderInteger are compatible&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_rem_compatible"
+	><span class="hs-identifier hs-var"
+	  >prop_quot_rem_compatible</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (BigInteger -&gt; NonZero BigInteger -&gt; Property) -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;quotientInteger and remainderInteger behave sensibly on multiples of the divisor&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_rem_multiple"
+	><span class="hs-identifier hs-var"
+	  >prop_quot_rem_multiple</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonNegative BigInteger
+    -&gt; NonNegative BigInteger -&gt; NonZero BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger _ b is additive on non-negative inputs&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonNegative BigInteger
+-&gt; NonNegative BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_additive_pos"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_additive_pos</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonPositive BigInteger
+    -&gt; NonPositive BigInteger -&gt; NonZero BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger _ b is additive on non-positive inputs&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonPositive BigInteger
+-&gt; NonPositive BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_additive_neg"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_additive_neg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (BigInteger -&gt; BigInteger -&gt; NonZero BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger is a multiplicative homomorphism&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_multiplicative"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_multiplicative</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (BigInteger -&gt; NonZero BigInteger -&gt; Property) -&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger size correct&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BigInteger -&gt; NonZero BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_size"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_size</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonNegative BigInteger -&gt; Positive BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;quotientInteger (&gt;= 0) (&gt; 0) &gt;= 0&quot;</span
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonNegative BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_pos_pos"
+	><span class="hs-identifier hs-var"
+	  >prop_quot_pos_pos</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonPositive BigInteger -&gt; Positive BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;quotientInteger (&lt;= 0) (&gt; 0) &lt;= 0&quot;</span
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonPositive BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_neg_pos"
+	><span class="hs-identifier hs-var"
+	  >prop_quot_neg_pos</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonNegative BigInteger -&gt; Negative BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;quotientInteger (&gt;= 0) (&lt; 0) &lt;= 0&quot;</span
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonNegative BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_pos_neg"
+	><span class="hs-identifier hs-var"
+	  >prop_quot_pos_neg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonPositive BigInteger -&gt; Negative BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;quotientInteger (&lt;= 0) (&lt; 0) &gt;= 0&quot;</span
+	></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonPositive BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_quot_neg_neg"
+	><span class="hs-identifier hs-var"
+	  >prop_quot_neg_neg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonNegative BigInteger -&gt; Positive BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger (&gt;= 0) (&gt; 0) &gt;= 0&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonNegative BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_pos_pos"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_pos_pos</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonPositive BigInteger -&gt; Positive BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger (&lt;= 0) (&gt; 0) &lt;= 0&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonPositive BigInteger -&gt; Positive BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_neg_pos"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_neg_pos</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonNegative BigInteger -&gt; Negative BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger (&gt;= 0) (&lt; 0) &gt;= 0&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonNegative BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_pos_neg"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_pos_neg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+-&gt; (NonPositive BigInteger -&gt; Negative BigInteger -&gt; Property)
+-&gt; TestTree
+forall prop. Testable prop =&gt; TestName -&gt; prop -&gt; TestTree
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#testProp"
+	><span class="hs-identifier hs-var"
+	  >testProp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TestName
+</span
+	><span class="hs-string"
+	>&quot;remainderInteger (&lt;= 0) (&lt; 0) &lt;= 0&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonPositive BigInteger -&gt; Negative BigInteger -&gt; Property
+</span
+	><a href="Evaluation.Builtins.Integer.QuotRemProperties.html#prop_rem_neg_neg"
+	><span class="hs-identifier hs-var"
+	  >prop_rem_neg_neg</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

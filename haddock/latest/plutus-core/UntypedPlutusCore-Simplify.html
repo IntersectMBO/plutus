@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Simplify</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Simplify.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Simplify</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  >module <a href="UntypedPlutusCore-Simplify-Opts.html"
+	    >UntypedPlutusCore.Simplify.Opts</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:simplifyTerm" class="def"
+	    >simplifyTerm</a
+	    > &#8759; &#8704; name uni fun m a. <a href="PlutusCore-Compiler-Types.html#t:Compiling" title="PlutusCore.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun name a &#8658; <a href="UntypedPlutusCore-Simplify-Opts.html#t:SimplifyOpts" title="UntypedPlutusCore.Simplify.Opts"
+	    >SimplifyOpts</a
+	    > name a &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a) <a href="src/UntypedPlutusCore.Simplify.html#simplifyTerm" class="link"
+	    >Source</a
+	    > <a href="#v:simplifyTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:simplifyProgram" class="def"
+	    >simplifyProgram</a
+	    > &#8759; &#8704; name uni fun m a. <a href="PlutusCore-Compiler-Types.html#t:Compiling" title="PlutusCore.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun name a &#8658; <a href="UntypedPlutusCore-Simplify-Opts.html#t:SimplifyOpts" title="UntypedPlutusCore.Simplify.Opts"
+	    >SimplifyOpts</a
+	    > name a &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun a &#8594; m (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun a) <a href="src/UntypedPlutusCore.Simplify.html#simplifyProgram" class="link"
+	    >Source</a
+	    > <a href="#v:simplifyProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:simplifyProgramWithTrace" class="def"
+	    >simplifyProgramWithTrace</a
+	    > &#8759; &#8704; name uni fun m a. <a href="PlutusCore-Compiler-Types.html#t:Compiling" title="PlutusCore.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun name a &#8658; <a href="UntypedPlutusCore-Simplify-Opts.html#t:SimplifyOpts" title="UntypedPlutusCore.Simplify.Opts"
+	    >SimplifyOpts</a
+	    > name a &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun a &#8594; m (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+	    >Program</a
+	    > name uni fun a, <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierTrace" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierTrace</a
+	    > name uni fun a) <a href="src/UntypedPlutusCore.Simplify.html#simplifyProgramWithTrace" class="link"
+	    >Source</a
+	    > <a href="#v:simplifyProgramWithTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:InlineHints" class="def"
+	    >InlineHints</a
+	    > name a <a href="src/PlutusCore.Annotation.html#InlineHints" class="link"
+	    >Source</a
+	    > <a href="#t:InlineHints" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InlineHints" class="def"
+		  >InlineHints</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:shouldInline" class="def"
+			  >shouldInline</a
+			  > &#8759; a &#8594; name &#8594; <a href="PlutusCore-Annotation.html#t:Inline" title="PlutusCore.Annotation"
+			  >Inline</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:InlineHints"
+	    >Instances</h4
+	    ><details id="i:InlineHints" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlineHints:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="UntypedPlutusCore-Simplify.html#t:InlineHints" title="UntypedPlutusCore.Simplify"
+		      >InlineHints</a
+		      > name a)</span
+		    > <a href="src/PlutusCore.Annotation.html#line-31" class="link"
+		    >Source</a
+		    > <a href="#t:InlineHints" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlineHints:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Annotation.html"
+			>PlutusCore.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="UntypedPlutusCore-Simplify.html#t:InlineHints" title="UntypedPlutusCore.Simplify"
+			  >InlineHints</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="UntypedPlutusCore-Simplify.html#t:InlineHints" title="UntypedPlutusCore.Simplify"
+			  >InlineHints</a
+			  > name a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="UntypedPlutusCore-Simplify.html#t:InlineHints" title="UntypedPlutusCore.Simplify"
+			  >InlineHints</a
+			  > name a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:InlineHints:Default:2"
+		      ></span
+		      > <a href="PlutusPrelude.html#t:Default" title="PlutusPrelude"
+		      >Default</a
+		      > (<a href="UntypedPlutusCore-Simplify.html#t:InlineHints" title="UntypedPlutusCore.Simplify"
+		      >InlineHints</a
+		      > name a)</span
+		    > <a href="src/PlutusCore.Annotation.html#line-34" class="link"
+		    >Source</a
+		    > <a href="#t:InlineHints" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:InlineHints:Default:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Annotation.html"
+			>PlutusCore.Annotation</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:def"
+			  >def</a
+			  > &#8759; <a href="UntypedPlutusCore-Simplify.html#t:InlineHints" title="UntypedPlutusCore.Simplify"
+			  >InlineHints</a
+			  > name a <a href="#v:def" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termSimplifier" class="def"
+	    >termSimplifier</a
+	    > &#8759; &#8704; name uni fun m a. <a href="PlutusCore-Compiler-Types.html#t:Compiling" title="PlutusCore.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun name a &#8658; <a href="UntypedPlutusCore-Simplify-Opts.html#t:SimplifyOpts" title="UntypedPlutusCore.Simplify.Opts"
+	    >SimplifyOpts</a
+	    > name a &#8594; <a href="PlutusCore-Builtin-Meaning.html#t:BuiltinSemanticsVariant" title="PlutusCore.Builtin.Meaning"
+	    >BuiltinSemanticsVariant</a
+	    > fun &#8594; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a &#8594; <a href="UntypedPlutusCore-Transform-Simplifier.html#t:SimplifierT" title="UntypedPlutusCore.Transform.Simplifier"
+	    >SimplifierT</a
+	    > name uni fun a m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun a) <a href="src/UntypedPlutusCore.Simplify.html#termSimplifier" class="link"
+	    >Source</a
+	    > <a href="#v:termSimplifier" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  >module <a href="UntypedPlutusCore-Transform-Simplifier.html"
+	    >UntypedPlutusCore.Transform.Simplifier</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

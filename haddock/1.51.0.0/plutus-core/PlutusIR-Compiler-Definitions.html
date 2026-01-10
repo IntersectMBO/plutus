@@ -1,0 +1,1671 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Compiler.Definitions</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Compiler.Definitions.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Compiler.Definitions</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Support for generating PIR with global definitions with dependencies between them.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:DefT"
+	      >DefT</a
+	      > key uni fun ann m a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > key) &#8658; <a href="#t:MonadDefs"
+	      >MonadDefs</a
+	      > key uni fun ann m | m &#8594; key uni fun ann <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:liftDef"
+		  >liftDef</a
+		  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		  >DefT</a
+		  > key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+		  >Identity</a
+		  > a &#8594; m a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:TermDefWithStrictness"
+	      >TermDefWithStrictness</a
+	      > uni fun ann = <a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	      >Def</a
+	      > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni ann) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann, <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	      >Strictness</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:runDefT"
+	      >runDefT</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > key) &#8658; ann &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	      >DefT</a
+	      > key uni fun ann m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:defineTerm"
+	      >defineTerm</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	      >TermDefWithStrictness</a
+	      > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > key &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:modifyTermDef"
+	      >modifyTermDef</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; (<a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	      >TermDefWithStrictness</a
+	      > uni fun ann &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	      >TermDefWithStrictness</a
+	      > uni fun ann) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:defineType"
+	      >defineType</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; <a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	      >TypeDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > key &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:modifyTypeDef"
+	      >modifyTypeDef</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; (<a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	      >TypeDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann &#8594; <a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	      >TypeDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:defineDatatype"
+	      >defineDatatype</a
+	      > &#8759; &#8704; key uni fun ann m. <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; <a href="PlutusIR-MkPir.html#t:DatatypeDef" title="PlutusIR.MkPir"
+	      >DatatypeDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni ann &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > key &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:modifyDatatypeDef"
+	      >modifyDatatypeDef</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; (<a href="PlutusIR-MkPir.html#t:DatatypeDef" title="PlutusIR.MkPir"
+	      >DatatypeDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni ann &#8594; <a href="PlutusIR-MkPir.html#t:DatatypeDef" title="PlutusIR.MkPir"
+	      >DatatypeDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni ann) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:modifyDeps"
+	      >modifyDeps</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > key &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > key) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:recordAlias"
+	      >recordAlias</a
+	      > &#8759; &#8704; key uni fun ann m. <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:lookupTerm"
+	      >lookupTerm</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann))</li
+	    ><li class="src short"
+	    ><a href="#v:lookupOrDefineTerm"
+	      >lookupOrDefineTerm</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; m (<a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	      >TermDefWithStrictness</a
+	      > uni fun ann, <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > key) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:lookupType"
+	      >lookupType</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; ann &#8594; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann))</li
+	    ><li class="src short"
+	    ><a href="#v:lookupOrDefineType"
+	      >lookupOrDefineType</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; ann &#8594; key &#8594; m (<a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	      >TypeDef</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann, <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	      >Set</a
+	      > key) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:lookupConstructors"
+	      >lookupConstructors</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > [<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann])</li
+	    ><li class="src short"
+	    ><a href="#v:lookupDestructor"
+	      >lookupDestructor</a
+	      > &#8759; &#8704; key uni fun ann m. <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	      >MonadDefs</a
+	      > key uni fun ann m &#8658; ann &#8594; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann))</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:DefT" class="def"
+	    >DefT</a
+	    > key uni fun ann m a <a href="src/PlutusIR.Compiler.Definitions.html#DefT" class="link"
+	    >Source</a
+	    > <a href="#t:DefT" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:DefT"
+	    >Instances</h4
+	    ><details id="i:DefT" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MonadDefs:1"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > key, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m) &#8658; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-183" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MonadDefs:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftDef"
+			  >liftDef</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="src/PlutusIR.Compiler.Definitions.html#liftDef" class="link"
+			  >Source</a
+			  > <a href="#v:liftDef" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MFunctor:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/Control-Monad-Morph.html#t:MFunctor" title="Control.Monad.Morph"
+		      >MFunctor</a
+		      > (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+		      >Type</a
+		      >)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MFunctor:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:hoist"
+			  >hoist</a
+			  > &#8759; &#8704; m n (b &#8759; k). <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; (&#8704; a. m a &#8594; n a) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann n b <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:hoist" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MonadError:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > e m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+		      >MonadError</a
+		      > e (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-99" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MonadError:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:throwError"
+			  >throwError</a
+			  > &#8759; e &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:throwError" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:catchError"
+			  >catchError</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; (e &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:catchError" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MonadReader:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > r m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader-Class.html#t:MonadReader" title="Control.Monad.Reader.Class"
+		      >MonadReader</a
+		      > r (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MonadReader:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:ask"
+			  >ask</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m r <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:ask" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:local"
+			  >local</a
+			  > &#8759; (r &#8594; r) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:local" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:reader"
+			  >reader</a
+			  > &#8759; (r &#8594; a) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:reader" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MonadState:5"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+		      >MonadState</a
+		      > s m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+		      >MonadState</a
+		      > s (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-106" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MonadState:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:get"
+			  >get</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m s <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:get" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:put"
+			  >put</a
+			  > &#8759; s &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m () <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:put" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:state"
+			  >state</a
+			  > &#8759; (s &#8594; (a, s)) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:state" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MonadWriter:6"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+		      >MonadWriter</a
+		      > w m &#8658; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+		      >MonadWriter</a
+		      > w (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-102" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MonadWriter:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:writer"
+			  >writer</a
+			  > &#8759; (a, w) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:writer" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tell"
+			  >tell</a
+			  > &#8759; w &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m () <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:tell" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:listen"
+			  >listen</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m (a, w) <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:listen" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:pass"
+			  >pass</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m (a, w &#8594; w) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pass" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MonadTrans:7"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/Control-Monad-Morph.html#t:MonadTrans" title="Control.Monad.Morph"
+		      >MonadTrans</a
+		      > (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-97" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MonadTrans:7"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:lift"
+			  >lift</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+			  >Monad</a
+			  > m &#8658; m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:lift" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:Applicative:8"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Applicative.html#t:Applicative" title="Control.Applicative"
+		      >Applicative</a
+		      > (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:Applicative:8"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pure"
+			  >pure</a
+			  > &#8759; a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pure" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42--62-"
+			  >(&lt;*&gt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m (a &#8594; b) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:liftA2"
+			  >liftA2</a
+			  > &#8759; (a &#8594; b &#8594; c) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m c <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftA2" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-42--62-"
+			  >(*&gt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-42--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--42-"
+			  >(&lt;*)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:Functor:9"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:Functor:9"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:Monad:10"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-96" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:Monad:10"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-62--62--61-"
+			  >(&gt;&gt;=)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; (a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b) &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--62-"
+			  >(&gt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:return"
+			  >return</a
+			  > &#8759; a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:return" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:DefT:MonadQuote:11"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:DefT" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:DefT:MonadQuote:11"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftQuote"
+			  >liftQuote</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:Quote" title="PlutusCore.Quote"
+			  >Quote</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:liftQuote" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > key) &#8658; <a id="t:MonadDefs" class="def"
+	    >MonadDefs</a
+	    > key uni fun ann m | m &#8594; key uni fun ann <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusIR.Compiler.Definitions.html#MonadDefs" class="link"
+	    >Source</a
+	    > <a href="#t:MonadDefs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs minimal"
+	  ><p class="caption"
+	    >Minimal complete definition</p
+	    ><p class="src"
+	    >Nothing</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:liftDef" class="def"
+	      >liftDef</a
+	      > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	      >DefT</a
+	      > key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+	      >Identity</a
+	      > a &#8594; m a <a href="src/PlutusIR.Compiler.Definitions.html#liftDef" class="link"
+	      >Source</a
+	      > <a href="#v:liftDef" class="selflink"
+	      >#</a
+	      ></p
+	    > <div class="subs default"
+	    ><p class="caption"
+	      ></p
+	      ><p class="src"
+	      ><span class="keyword"
+		>default</span
+		> <a id="v:liftDef" class="def"
+		>liftDef</a
+		> &#8759; (<a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		>MonadDefs</a
+		> key uni fun ann n, <a href="https://hackage.haskell.org/package/mmorph-1.2.1/docs/Control-Monad-Morph.html#t:MonadTrans" title="Control.Monad.Morph"
+		>MonadTrans</a
+		> t, t n <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+		>~</a
+		> m) &#8658; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		>DefT</a
+		> key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+		>Identity</a
+		> a &#8594; m a <a href="src/PlutusIR.Compiler.Definitions.html#liftDef" class="link"
+		>Source</a
+		> <a href="#v:liftDef" class="selflink"
+		>#</a
+		></p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MonadDefs"
+	    >Instances</h4
+	    ><details id="i:MonadDefs" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadDefs:MonadDefs:1"
+		      ></span
+		      > <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann m &#8658; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+		      >ExceptT</a
+		      > e m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-187" class="link"
+		    >Source</a
+		    > <a href="#t:MonadDefs" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadDefs:MonadDefs:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftDef"
+			  >liftDef</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Except.html#t:ExceptT" title="Control.Monad.Except"
+			  >ExceptT</a
+			  > e m a <a href="src/PlutusIR.Compiler.Definitions.html#liftDef" class="link"
+			  >Source</a
+			  > <a href="#v:liftDef" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadDefs:MonadDefs:2"
+		      ></span
+		      > <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann m &#8658; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+		      >ReaderT</a
+		      > r m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-188" class="link"
+		    >Source</a
+		    > <a href="#t:MonadDefs" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadDefs:MonadDefs:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftDef"
+			  >liftDef</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Reader.html#t:ReaderT" title="Control.Monad.Reader"
+			  >ReaderT</a
+			  > r m a <a href="src/PlutusIR.Compiler.Definitions.html#liftDef" class="link"
+			  >Source</a
+			  > <a href="#v:liftDef" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadDefs:MonadDefs:3"
+		      ></span
+		      > <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann m &#8658; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann (<a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+		      >StateT</a
+		      > s m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-186" class="link"
+		    >Source</a
+		    > <a href="#t:MonadDefs" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadDefs:MonadDefs:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftDef"
+			  >liftDef</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Lazy.html#t:StateT" title="Control.Monad.State.Lazy"
+			  >StateT</a
+			  > s m a <a href="src/PlutusIR.Compiler.Definitions.html#liftDef" class="link"
+			  >Source</a
+			  > <a href="#v:liftDef" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MonadDefs:MonadDefs:4"
+		      ></span
+		      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > key, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+		      >Monad</a
+		      > m) &#8658; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+		      >MonadDefs</a
+		      > key uni fun ann (<a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+		      >DefT</a
+		      > key uni fun ann m)</span
+		    > <a href="src/PlutusIR.Compiler.Definitions.html#line-183" class="link"
+		    >Source</a
+		    > <a href="#t:MonadDefs" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MonadDefs:MonadDefs:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Definitions.html"
+			>PlutusIR.Compiler.Definitions</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:liftDef"
+			  >liftDef</a
+			  > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor-Identity.html#t:Identity" title="Data.Functor.Identity"
+			  >Identity</a
+			  > a &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+			  >DefT</a
+			  > key uni fun ann m a <a href="src/PlutusIR.Compiler.Definitions.html#liftDef" class="link"
+			  >Source</a
+			  > <a href="#v:liftDef" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:TermDefWithStrictness" class="def"
+	    >TermDefWithStrictness</a
+	    > uni fun ann = <a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	    >Def</a
+	    > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni ann) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann, <a href="PlutusIR-Core-Type.html#t:Strictness" title="PlutusIR.Core.Type"
+	    >Strictness</a
+	    >) <a href="src/PlutusIR.Compiler.Definitions.html#TermDefWithStrictness" class="link"
+	    >Source</a
+	    > <a href="#t:TermDefWithStrictness" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runDefT" class="def"
+	    >runDefT</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > key) &#8658; ann &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:DefT" title="PlutusIR.Compiler.Definitions"
+	    >DefT</a
+	    > key uni fun ann m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann) <a href="src/PlutusIR.Compiler.Definitions.html#runDefT" class="link"
+	    >Source</a
+	    > <a href="#v:runDefT" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defineTerm" class="def"
+	    >defineTerm</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	    >TermDefWithStrictness</a
+	    > uni fun ann &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > key &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#defineTerm" class="link"
+	    >Source</a
+	    > <a href="#v:defineTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:modifyTermDef" class="def"
+	    >modifyTermDef</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; (<a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	    >TermDefWithStrictness</a
+	    > uni fun ann &#8594; <a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	    >TermDefWithStrictness</a
+	    > uni fun ann) &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#modifyTermDef" class="link"
+	    >Source</a
+	    > <a href="#v:modifyTermDef" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defineType" class="def"
+	    >defineType</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; <a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	    >TypeDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > key &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#defineType" class="link"
+	    >Source</a
+	    > <a href="#v:defineType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:modifyTypeDef" class="def"
+	    >modifyTypeDef</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; (<a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	    >TypeDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann &#8594; <a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	    >TypeDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann) &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#modifyTypeDef" class="link"
+	    >Source</a
+	    > <a href="#v:modifyTypeDef" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defineDatatype" class="def"
+	    >defineDatatype</a
+	    > &#8759; &#8704; key uni fun ann m. <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; <a href="PlutusIR-MkPir.html#t:DatatypeDef" title="PlutusIR.MkPir"
+	    >DatatypeDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni ann &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > key &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#defineDatatype" class="link"
+	    >Source</a
+	    > <a href="#v:defineDatatype" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:modifyDatatypeDef" class="def"
+	    >modifyDatatypeDef</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; (<a href="PlutusIR-MkPir.html#t:DatatypeDef" title="PlutusIR.MkPir"
+	    >DatatypeDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni ann &#8594; <a href="PlutusIR-MkPir.html#t:DatatypeDef" title="PlutusIR.MkPir"
+	    >DatatypeDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni ann) &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#modifyDatatypeDef" class="link"
+	    >Source</a
+	    > <a href="#v:modifyDatatypeDef" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:modifyDeps" class="def"
+	    >modifyDeps</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; (<a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > key &#8594; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > key) &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#modifyDeps" class="link"
+	    >Source</a
+	    > <a href="#v:modifyDeps" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Modifies the dependency set of a key.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:recordAlias" class="def"
+	    >recordAlias</a
+	    > &#8759; &#8704; key uni fun ann m. <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; m () <a href="src/PlutusIR.Compiler.Definitions.html#recordAlias" class="link"
+	    >Source</a
+	    > <a href="#v:recordAlias" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupTerm" class="def"
+	    >lookupTerm</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann)) <a href="src/PlutusIR.Compiler.Definitions.html#lookupTerm" class="link"
+	    >Source</a
+	    > <a href="#v:lookupTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupOrDefineTerm" class="def"
+	    >lookupOrDefineTerm</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; m (<a href="PlutusIR-Compiler-Definitions.html#t:TermDefWithStrictness" title="PlutusIR.Compiler.Definitions"
+	    >TermDefWithStrictness</a
+	    > uni fun ann, <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > key) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann) <a href="src/PlutusIR.Compiler.Definitions.html#lookupOrDefineTerm" class="link"
+	    >Source</a
+	    > <a href="#v:lookupOrDefineTerm" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupType" class="def"
+	    >lookupType</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; ann &#8594; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann)) <a href="src/PlutusIR.Compiler.Definitions.html#lookupType" class="link"
+	    >Source</a
+	    > <a href="#v:lookupType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupOrDefineType" class="def"
+	    >lookupOrDefineType</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; ann &#8594; key &#8594; m (<a href="../plutus-core/PlutusCore-MkPlc.html#t:TypeDef" title="PlutusCore.MkPlc"
+	    >TypeDef</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann, <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Set.html#t:Set" title="Data.Set"
+	    >Set</a
+	    > key) &#8594; m (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann) <a href="src/PlutusIR.Compiler.Definitions.html#lookupOrDefineType" class="link"
+	    >Source</a
+	    > <a href="#v:lookupOrDefineType" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupConstructors" class="def"
+	    >lookupConstructors</a
+	    > &#8759; <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > [<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann]) <a href="src/PlutusIR.Compiler.Definitions.html#lookupConstructors" class="link"
+	    >Source</a
+	    > <a href="#v:lookupConstructors" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lookupDestructor" class="def"
+	    >lookupDestructor</a
+	    > &#8759; &#8704; key uni fun ann m. <a href="PlutusIR-Compiler-Definitions.html#t:MonadDefs" title="PlutusIR.Compiler.Definitions"
+	    >MonadDefs</a
+	    > key uni fun ann m &#8658; ann &#8594; key &#8594; m (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann)) <a href="src/PlutusIR.Compiler.Definitions.html#lookupDestructor" class="link"
+	    >Source</a
+	    > <a href="#v:lookupDestructor" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

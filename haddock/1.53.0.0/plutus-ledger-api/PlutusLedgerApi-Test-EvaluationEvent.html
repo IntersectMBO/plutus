@@ -1,0 +1,2419 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusLedgerApi.Test.EvaluationEvent</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-ledger-api-1.53.0.0: Interface to the Plutus ledger for the Cardano ledger.</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusLedgerApi.Test.EvaluationEvent.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusLedgerApi.Test.EvaluationEvent</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptEvaluationEvents"
+	      >ScriptEvaluationEvents</a
+	      > = <a href="#v:ScriptEvaluationEvents"
+	      >ScriptEvaluationEvents</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:eventsCostParamsV1"
+		  >eventsCostParamsV1</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+		  >Int64</a
+		  >]</li
+		><li
+		><a href="#v:eventsCostParamsV2"
+		  >eventsCostParamsV2</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+		  >Int64</a
+		  >]</li
+		><li
+		><a href="#v:eventsEvents"
+		  >eventsEvents</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+		  >NonEmpty</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >ScriptEvaluationEvent</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptEvaluationEvent"
+	      >ScriptEvaluationEvent</a
+	      > = <a href="#v:PlutusEvent"
+	      >PlutusEvent</a
+	      > <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+	      >PlutusLedgerLanguage</a
+	      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+	      >ScriptEvaluationData</a
+	      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+	      >ScriptEvaluationResult</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptEvaluationData"
+	      >ScriptEvaluationData</a
+	      > = <a href="#v:ScriptEvaluationData"
+	      >ScriptEvaluationData</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:dataProtocolVersion"
+		  >dataProtocolVersion</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+		  >MajorProtocolVersion</a
+		  ></li
+		><li
+		><a href="#v:dataBudget"
+		  >dataBudget</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		><a href="#v:dataScript"
+		  >dataScript</a
+		  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >SerialisedScript</a
+		  ></li
+		><li
+		><a href="#v:dataInputs"
+		  >dataInputs</a
+		  > &#8759; [<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+		  >Data</a
+		  >]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ScriptEvaluationResult"
+	      >ScriptEvaluationResult</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:ScriptEvaluationSuccess"
+		  >ScriptEvaluationSuccess</a
+		  ></li
+		><li
+		>| <a href="#v:ScriptEvaluationFailure"
+		  >ScriptEvaluationFailure</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:UnexpectedEvaluationResult"
+	      >UnexpectedEvaluationResult</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:UnexpectedEvaluationSuccess"
+		  >UnexpectedEvaluationSuccess</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >ScriptEvaluationEvent</a
+		  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+		  >Int64</a
+		  >] <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		  >ExBudget</a
+		  ></li
+		><li
+		>| <a href="#v:UnexpectedEvaluationFailure"
+		  >UnexpectedEvaluationFailure</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >ScriptEvaluationEvent</a
+		  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+		  >Int64</a
+		  >] <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+		  >EvaluationError</a
+		  ></li
+		><li
+		>| <a href="#v:DecodeError"
+		  >DecodeError</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptDecodeError</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:TestFailure"
+	      >TestFailure</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:InvalidResult"
+		  >InvalidResult</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >UnexpectedEvaluationResult</a
+		  ></li
+		><li
+		>| <a href="#v:MissingCostParametersFor"
+		  >MissingCostParametersFor</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:renderTestFailure"
+	      >renderTestFailure</a
+	      > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:TestFailure" title="PlutusLedgerApi.Test.EvaluationEvent"
+	      >TestFailure</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:renderTestFailures"
+	      >renderTestFailures</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:TestFailure" title="PlutusLedgerApi.Test.EvaluationEvent"
+	      >TestFailure</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkEvaluationEvent"
+	      >checkEvaluationEvent</a
+	      > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+	      >EvaluationContext</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+	      >Int64</a
+	      >] &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+	      >ScriptEvaluationEvent</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+	      >UnexpectedEvaluationResult</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptEvaluationEvents" class="def"
+	    >ScriptEvaluationEvents</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#ScriptEvaluationEvents" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptEvaluationEvents" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This type contains a list of on-chain script evaluation events. All PlutusV1
+ evaluations (if any) share the same cost parameters. Same with PlutusV2.</p
+	    ><p
+	    >Sharing the cost parameters lets us avoid creating a new <code
+	      ><a href="../plutus-ledger-api/PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		>EvaluationContext</a
+		></code
+	      > for
+ each <code
+	      ><a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		>ScriptEvaluationEvent</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ScriptEvaluationEvents" class="def"
+		  >ScriptEvaluationEvents</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:eventsCostParamsV1" class="def"
+			  >eventsCostParamsV1</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			  >Int64</a
+			  >]</dfn
+			><div class="doc"
+			><p
+			  >Cost parameters shared by all PlutusV1 evaluation events in <code
+			    ><a href="PlutusLedgerApi-Test-EvaluationEvent.html#v:eventsEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			      >eventsEvents</a
+			      ></code
+			    >, if any.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:eventsCostParamsV2" class="def"
+			  >eventsCostParamsV2</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			  >Int64</a
+			  >]</dfn
+			><div class="doc"
+			><p
+			  >Cost parameters shared by all PlutusV2 evaluation events in <code
+			    ><a href="PlutusLedgerApi-Test-EvaluationEvent.html#v:eventsEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			      >eventsEvents</a
+			      ></code
+			    >, if any.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:eventsEvents" class="def"
+			  >eventsEvents</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptEvaluationEvents"
+	    >Instances</h4
+	    ><details id="i:ScriptEvaluationEvents" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvents:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvents</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvents" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvents:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  > x &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvents:Serialise:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvents</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-95" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvents" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvents:Serialise:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvents</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvents:Rep:3"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvents</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-94" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvents" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvents:Rep:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvents" title="PlutusLedgerApi.Test.EvaluationEvent"
+			>ScriptEvaluationEvents</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ScriptEvaluationEvents&quot; &quot;PlutusLedgerApi.Test.EvaluationEvent&quot; &quot;plutus-ledger-api-1.53.0.0-inplace-plutus-ledger-api-testlib&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ScriptEvaluationEvents&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;eventsCostParamsV1&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			>Int64</a
+			>])) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;eventsCostParamsV2&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			>Int64</a
+			>])) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;eventsEvents&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			>NonEmpty</a
+			> <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			>ScriptEvaluationEvent</a
+			>)))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptEvaluationEvent" class="def"
+	    >ScriptEvaluationEvent</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#ScriptEvaluationEvent" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptEvaluationEvent" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Information about an on-chain script evaluation event, specifically the information needed
+ to evaluate the script, and the expected result.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PlutusEvent" class="def"
+		  >PlutusEvent</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >ScriptEvaluationData</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >ScriptEvaluationResult</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptEvaluationEvent"
+	    >Instances</h4
+	    ><details id="i:ScriptEvaluationEvent" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvent:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvent</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvent:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > x &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvent:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvent</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvent:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvent:Pretty:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvent</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-71" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvent:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvent:Serialise:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvent</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-69" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvent:Serialise:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationEvent:Rep:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationEvent</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationEvent" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationEvent:Rep:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			>ScriptEvaluationEvent</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ScriptEvaluationEvent&quot; &quot;PlutusLedgerApi.Test.EvaluationEvent&quot; &quot;plutus-ledger-api-1.53.0.0-inplace-plutus-ledger-api-testlib&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;PlutusEvent&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+			>PlutusLedgerLanguage</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			>ScriptEvaluationData</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+			>Nothing</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			>Maybe</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-TypeLits.html#t:Symbol" title="GHC.TypeLits"
+			>Symbol</a
+			>) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			>ScriptEvaluationResult</a
+			>))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptEvaluationData" class="def"
+	    >ScriptEvaluationData</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#ScriptEvaluationData" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptEvaluationData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >All the data needed to evaluate a script using the ledger API, except for the cost model
+ parameters, as these are tracked separately.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ScriptEvaluationData" class="def"
+		  >ScriptEvaluationData</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:dataProtocolVersion" class="def"
+			  >dataProtocolVersion</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			  >MajorProtocolVersion</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:dataBudget" class="def"
+			  >dataBudget</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:dataScript" class="def"
+			  >dataScript</a
+			  > &#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+			  >SerialisedScript</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:dataInputs" class="def"
+			  >dataInputs</a
+			  > &#8759; [<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			  >Data</a
+			  >]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptEvaluationData"
+	    >Instances</h4
+	    ><details id="i:ScriptEvaluationData" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationData:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationData</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-51" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationData:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > x &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationData:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationData</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-51" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationData:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationData:Pretty:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationData</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationData:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationData:Serialise:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationData</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-52" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationData:Serialise:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationData</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationData:Rep:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationData</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-51" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationData" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationData:Rep:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationData" title="PlutusLedgerApi.Test.EvaluationEvent"
+			>ScriptEvaluationData</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ScriptEvaluationData&quot; &quot;PlutusLedgerApi.Test.EvaluationEvent&quot; &quot;plutus-ledger-api-1.53.0.0-inplace-plutus-ledger-api-testlib&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ScriptEvaluationData&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:True" title="Data.Bool"
+			>True</a
+			>) ((<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;dataProtocolVersion&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="../plutus-ledger-api/PlutusLedgerApi-Common-ProtocolVersions.html#t:MajorProtocolVersion" title="PlutusLedgerApi.Common.ProtocolVersions"
+			>MajorProtocolVersion</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;dataBudget&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			>ExBudget</a
+			>)) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;dataScript&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> <a href="../plutus-ledger-api/PlutusLedgerApi-Common-SerialisedScript.html#t:SerialisedScript" title="PlutusLedgerApi.Common.SerialisedScript"
+			>SerialisedScript</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-42-:" title="GHC.Generics"
+			>:*:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:S1" title="GHC.Generics"
+			>S1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaSel" title="GHC.Generics"
+			>MetaSel</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Just" title="Data.Maybe"
+			>Just</a
+			> &quot;dataInputs&quot;) '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceUnpackedness" title="GHC.Generics"
+			>NoSourceUnpackedness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:NoSourceStrictness" title="GHC.Generics"
+			>NoSourceStrictness</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:DecidedLazy" title="GHC.Generics"
+			>DecidedLazy</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rec0" title="GHC.Generics"
+			>Rec0</a
+			> [<a href="../plutus-core/PlutusCore-Data.html#t:Data" title="PlutusCore.Data"
+			>Data</a
+			>]))))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ScriptEvaluationResult" class="def"
+	    >ScriptEvaluationResult</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#ScriptEvaluationResult" class="link"
+	    >Source</a
+	    > <a href="#t:ScriptEvaluationResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ScriptEvaluationSuccess" class="def"
+		  >ScriptEvaluationSuccess</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:ScriptEvaluationFailure" class="def"
+		  >ScriptEvaluationFailure</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ScriptEvaluationResult"
+	    >Instances</h4
+	    ><details id="i:ScriptEvaluationResult" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationResult:Generic:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Generic" title="GHC.Generics"
+		      >Generic</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationResult</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationResult:Generic:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs associated-types"
+		      ><p class="caption"
+			>Associated Types</p
+			><p class="src"
+			><span class="keyword"
+			  >type</span
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			  >Type</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#t:Rep" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:from"
+			  >from</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > x <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:from" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:to"
+			  >to</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			  >Rep</a
+			  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > x &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:to" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationResult:Show:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationResult</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationResult:Show:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationResult:Pretty:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationResult</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-39" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationResult:Pretty:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationResult:Serialise:4"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/Codec-Serialise-Class.html#t:Serialise" title="Codec.Serialise.Class"
+		      >Serialise</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationResult</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationResult:Serialise:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:encodeList"
+			  >encodeList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Encoding.html#t:Encoding" title="Codec.CBOR.Encoding"
+			  >Encoding</a
+			  > <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:encodeList" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decodeList"
+			  >decodeList</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/cborg-0.2.10.0/docs/Codec-CBOR-Decoding.html#t:Decoder" title="Codec.CBOR.Decoding"
+			  >Decoder</a
+			  > s [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationResult</a
+			  >] <a href="https://hackage.haskell.org/package/serialise-0.2.6.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:decodeList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ScriptEvaluationResult:Rep:5"
+		      ></span
+		      > <span class="keyword"
+		      >type</span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+		      >Rep</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >ScriptEvaluationResult</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:ScriptEvaluationResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ScriptEvaluationResult:Rep:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="src"
+		      ><span class="keyword"
+			>type</span
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:Rep" title="GHC.Generics"
+			>Rep</a
+			> <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			>ScriptEvaluationResult</a
+			> = <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:D1" title="GHC.Generics"
+			>D1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaData" title="GHC.Generics"
+			>MetaData</a
+			> &quot;ScriptEvaluationResult&quot; &quot;PlutusLedgerApi.Test.EvaluationEvent&quot; &quot;plutus-ledger-api-1.53.0.0-inplace-plutus-ledger-api-testlib&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ScriptEvaluationSuccess&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>) <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t::-43-:" title="GHC.Generics"
+			>:+:</a
+			> <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:C1" title="GHC.Generics"
+			>C1</a
+			> ('<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:MetaCons" title="GHC.Generics"
+			>MetaCons</a
+			> &quot;ScriptEvaluationFailure&quot; '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#v:PrefixI" title="GHC.Generics"
+			>PrefixI</a
+			> '<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#v:False" title="Data.Bool"
+			>False</a
+			>) (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/GHC-Generics.html#t:U1" title="GHC.Generics"
+			>U1</a
+			> &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			> &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+			>Type</a
+			>))</div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:UnexpectedEvaluationResult" class="def"
+	    >UnexpectedEvaluationResult</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#UnexpectedEvaluationResult" class="link"
+	    >Source</a
+	    > <a href="#t:UnexpectedEvaluationResult" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Error type when re-evaluating a <code
+	      ><a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		>ScriptEvaluationEvent</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:UnexpectedEvaluationSuccess" class="def"
+		  >UnexpectedEvaluationSuccess</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			>[<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			  >Int64</a
+			  >]</dfn
+			><div class="doc"
+			><p
+			  >Cost parameters</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+			  >ExBudget</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Actual budget consumed</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnexpectedEvaluationFailure" class="def"
+		  >UnexpectedEvaluationFailure</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >ScriptEvaluationEvent</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			>[<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+			  >Int64</a
+			  >]</dfn
+			><div class="doc"
+			><p
+			  >Cost parameters</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a href="../plutus-ledger-api/PlutusLedgerApi-Common-Eval.html#t:EvaluationError" title="PlutusLedgerApi.Common.Eval"
+			  >EvaluationError</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:DecodeError" class="def"
+		  >DecodeError</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-Common-SerialisedScript.html#t:ScriptDecodeError" title="PlutusLedgerApi.Common.SerialisedScript"
+		  >ScriptDecodeError</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:UnexpectedEvaluationResult"
+	    >Instances</h4
+	    ><details id="i:UnexpectedEvaluationResult" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnexpectedEvaluationResult:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >UnexpectedEvaluationResult</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:UnexpectedEvaluationResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnexpectedEvaluationResult:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >UnexpectedEvaluationResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >UnexpectedEvaluationResult</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >UnexpectedEvaluationResult</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:UnexpectedEvaluationResult:Pretty:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		      >Pretty</a
+		      > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		      >UnexpectedEvaluationResult</a
+		      ></span
+		    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#line-113" class="link"
+		    >Source</a
+		    > <a href="#t:UnexpectedEvaluationResult" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:UnexpectedEvaluationResult:Pretty:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusLedgerApi-Test-EvaluationEvent.html"
+			>PlutusLedgerApi.Test.EvaluationEvent</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >UnexpectedEvaluationResult</a
+			  > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+			  >UnexpectedEvaluationResult</a
+			  >] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:TestFailure" class="def"
+	    >TestFailure</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#TestFailure" class="link"
+	    >Source</a
+	    > <a href="#t:TestFailure" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:InvalidResult" class="def"
+		  >InvalidResult</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >UnexpectedEvaluationResult</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MissingCostParametersFor" class="def"
+		  >MissingCostParametersFor</a
+		  > <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Versions.html#t:PlutusLedgerLanguage" title="PlutusLedgerApi.Common.Versions"
+		  >PlutusLedgerLanguage</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renderTestFailure" class="def"
+	    >renderTestFailure</a
+	    > &#8759; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:TestFailure" title="PlutusLedgerApi.Test.EvaluationEvent"
+	    >TestFailure</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#renderTestFailure" class="link"
+	    >Source</a
+	    > <a href="#v:renderTestFailure" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renderTestFailures" class="def"
+	    >renderTestFailures</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:TestFailure" title="PlutusLedgerApi.Test.EvaluationEvent"
+	    >TestFailure</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#renderTestFailures" class="link"
+	    >Source</a
+	    > <a href="#v:renderTestFailures" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkEvaluationEvent" class="def"
+	    >checkEvaluationEvent</a
+	    > <a href="src/PlutusLedgerApi.Test.EvaluationEvent.html#checkEvaluationEvent" class="link"
+	    >Source</a
+	    > <a href="#v:checkEvaluationEvent" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; <a href="../plutus-ledger-api/PlutusLedgerApi-Common-Eval.html#t:EvaluationContext" title="PlutusLedgerApi.Common.Eval"
+		  >EvaluationContext</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int64" title="Data.Int"
+		  >Int64</a
+		  >]</td
+		><td class="doc"
+		><p
+		  >Cost parameters</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:ScriptEvaluationEvent" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >ScriptEvaluationEvent</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="PlutusLedgerApi-Test-EvaluationEvent.html#t:UnexpectedEvaluationResult" title="PlutusLedgerApi.Test.EvaluationEvent"
+		  >UnexpectedEvaluationResult</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Re-evaluate an on-chain script evaluation event.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

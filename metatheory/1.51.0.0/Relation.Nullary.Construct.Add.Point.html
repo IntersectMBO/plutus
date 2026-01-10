@@ -1,0 +1,17 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Relation.Nullary.Construct.Add.Point</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Notation for adding an additional point to any set</a>
+<a id="160" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="234" class="Symbol">{-#</a> <a id="238" class="Keyword">OPTIONS</a> <a id="246" class="Pragma">--cubical-compatible</a> <a id="267" class="Pragma">--safe</a> <a id="274" class="Symbol">#-}</a>
+
+<a id="279" class="Keyword">module</a> <a id="286" href="Relation.Nullary.Construct.Add.Point.html" class="Module">Relation.Nullary.Construct.Add.Point</a> <a id="323" class="Keyword">where</a>
+
+<a id="330" class="Keyword">open</a> <a id="335" class="Keyword">import</a> <a id="342" href="Data.Maybe.Base.html" class="Module">Data.Maybe.Base</a> <a id="358" class="Keyword">public</a>
+  <a id="367" class="Keyword">using</a> <a id="373" class="Symbol">()</a> <a id="376" class="Keyword">renaming</a> <a id="385" class="Symbol">(</a><a id="386" href="Agda.Builtin.Maybe.html#135" class="Datatype">Maybe</a> <a id="392" class="Symbol">to</a> <a id="395" class="Datatype">Pointed</a><a id="402" class="Symbol">;</a> <a id="404" href="Agda.Builtin.Maybe.html#194" class="InductiveConstructor">nothing</a> <a id="412" class="Symbol">to</a> <a id="415" class="InductiveConstructor">∙</a><a id="416" class="Symbol">;</a> <a id="418" href="Agda.Builtin.Maybe.html#173" class="InductiveConstructor">just</a> <a id="423" class="Symbol">to</a> <a id="426" class="InductiveConstructor">[_]</a><a id="429" class="Symbol">)</a>
+
+<a id="432" class="Keyword">open</a> <a id="437" class="Keyword">import</a> <a id="444" href="Data.Maybe.Properties.html" class="Module">Data.Maybe.Properties</a> <a id="466" class="Keyword">public</a>
+  <a id="475" class="Keyword">using</a> <a id="481" class="Symbol">(</a><a id="482" href="Data.Maybe.Properties.html#1367" class="Function">≡-dec</a><a id="487" class="Symbol">)</a> <a id="489" class="Keyword">renaming</a> <a id="498" class="Symbol">(</a><a id="499" href="Data.Maybe.Properties.html#1276" class="Function">just-injective</a> <a id="514" class="Symbol">to</a> <a id="517" class="Function">[]-injective</a><a id="529" class="Symbol">)</a>
+</pre></body></html>

@@ -1,0 +1,1033 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Algebra.Lattice.Properties.Lattice where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Builtin.Sigma qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   18 </span>import MAlonzo.Code.Algebra.Lattice.Bundles qualified
+<span class="lineno">   19 </span>import MAlonzo.Code.Algebra.Lattice.Properties.Semilattice qualified
+<span class="lineno">   20 </span>import MAlonzo.Code.Algebra.Lattice.Structures qualified
+<span class="lineno">   21 </span>import MAlonzo.Code.Algebra.Structures qualified
+<span class="lineno">   22 </span>import MAlonzo.Code.Data.Product.Base qualified
+<span class="lineno">   23 </span>import MAlonzo.Code.Relation.Binary.Bundles qualified
+<span class="lineno">   24 </span>import MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left qualified
+<span class="lineno">   25 </span>import MAlonzo.Code.Relation.Binary.Lattice.Bundles qualified
+<span class="lineno">   26 </span>import MAlonzo.Code.Relation.Binary.Lattice.Structures qualified
+<span class="lineno">   27 </span>import MAlonzo.Code.Relation.Binary.Reasoning.Base.Single qualified
+<span class="lineno">   28 </span>import MAlonzo.Code.Relation.Binary.Reasoning.Syntax qualified
+<span class="lineno">   29 </span>import MAlonzo.Code.Relation.Binary.Structures qualified
+<span class="lineno">   30 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   31 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   32 </span>                    word64ToNat)
+<span class="lineno">   33 </span>import MAlonzo.RTE qualified
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>-- Algebra.Lattice.Properties.Lattice._.Idempotent
+<span class="lineno">   36 </span>d_Idempotent_112 ::
+<span class="lineno">   37 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   38 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   39 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">   40 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">   41 </span><span class="decl"><span class="nottickedoff">d_Idempotent_112 = erased</span></span>
+<span class="lineno">   42 </span>-- Algebra.Lattice.Properties.Lattice._.IsBand
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">d_IsBand_210 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">   44 </span>-- Algebra.Lattice.Properties.Lattice._.IsMagma
+<span class="lineno">   45 </span><span class="decl"><span class="nottickedoff">d_IsMagma_250 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">   46 </span>-- Algebra.Lattice.Properties.Lattice._.IsSemigroup
+<span class="lineno">   47 </span><span class="decl"><span class="nottickedoff">d_IsSemigroup_278 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">   48 </span>-- Algebra.Lattice.Properties.Lattice._.IsBand.idem
+<span class="lineno">   49 </span>d_idem_392 ::
+<span class="lineno">   50 </span>  MAlonzo.Code.Algebra.Structures.T_IsBand_508 -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   51 </span><span class="decl"><span class="nottickedoff">d_idem_392 v0</span>
+<span class="lineno">   52 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_idem_518 (coe v0)</span></span>
+<span class="lineno">   53 </span>-- Algebra.Lattice.Properties.Lattice._.IsBand.isSemigroup
+<span class="lineno">   54 </span>d_isSemigroup_400 ::
+<span class="lineno">   55 </span>  MAlonzo.Code.Algebra.Structures.T_IsBand_508 -&gt;
+<span class="lineno">   56 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">   57 </span><span class="decl"><span class="nottickedoff">d_isSemigroup_400 v0</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_isSemigroup_516 (coe v0)</span></span>
+<span class="lineno">   59 </span>-- Algebra.Lattice.Properties.Lattice._.IsMagma.isEquivalence
+<span class="lineno">   60 </span>d_isEquivalence_1550 ::
+<span class="lineno">   61 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176 -&gt;
+<span class="lineno">   62 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">d_isEquivalence_1550 v0</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_isEquivalence_184 (coe v0)</span></span>
+<span class="lineno">   65 </span>-- Algebra.Lattice.Properties.Lattice._.IsMagma.∙-cong
+<span class="lineno">   66 </span>d_'8729''45'cong_1564 ::
+<span class="lineno">   67 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176 -&gt;
+<span class="lineno">   68 </span>  AgdaAny -&gt;
+<span class="lineno">   69 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">d_'8729''45'cong_1564 v0</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_'8729''45'cong_186 (coe v0)</span></span>
+<span class="lineno">   72 </span>-- Algebra.Lattice.Properties.Lattice._.IsSemigroup.assoc
+<span class="lineno">   73 </span>d_assoc_2404 ::
+<span class="lineno">   74 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472 -&gt;
+<span class="lineno">   75 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   76 </span><span class="decl"><span class="nottickedoff">d_assoc_2404 v0</span>
+<span class="lineno">   77 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_assoc_482 (coe v0)</span></span>
+<span class="lineno">   78 </span>-- Algebra.Lattice.Properties.Lattice._.IsSemigroup.isMagma
+<span class="lineno">   79 </span>d_isMagma_2408 ::
+<span class="lineno">   80 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472 -&gt;
+<span class="lineno">   81 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">d_isMagma_2408 v0</span>
+<span class="lineno">   83 </span><span class="spaces">  </span><span class="nottickedoff">= coe MAlonzo.Code.Algebra.Structures.d_isMagma_480 (coe v0)</span></span>
+<span class="lineno">   84 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice
+<span class="lineno">   85 </span><span class="decl"><span class="nottickedoff">d_IsLattice_2732 a0 a1 a2 a3 a4 = ()</span></span>
+<span class="lineno">   86 </span>-- Algebra.Lattice.Properties.Lattice._.IsSemilattice
+<span class="lineno">   87 </span>d_IsSemilattice_2736 ::
+<span class="lineno">   88 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   89 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   90 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">   91 </span>  (AgdaAny -&gt; AgdaAny -&gt; AgdaAny) -&gt; ()
+<span class="lineno">   92 </span><span class="decl"><span class="nottickedoff">d_IsSemilattice_2736 = erased</span></span>
+<span class="lineno">   93 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.absorptive
+<span class="lineno">   94 </span>d_absorptive_3036 ::
+<span class="lineno">   95 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">   96 </span>  MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">   97 </span><span class="decl"><span class="nottickedoff">d_absorptive_3036 v0</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   99 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_absorptive_2998 (coe v0)</span></span>
+<span class="lineno">  100 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.isEquivalence
+<span class="lineno">  101 </span>d_isEquivalence_3038 ::
+<span class="lineno">  102 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">  103 </span>  MAlonzo.Code.Relation.Binary.Structures.T_IsEquivalence_26
+<span class="lineno">  104 </span><span class="decl"><span class="nottickedoff">d_isEquivalence_3038 v0</span>
+<span class="lineno">  105 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  106 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  107 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  108 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.∧-assoc
+<span class="lineno">  109 </span>d_'8743''45'assoc_3052 ::
+<span class="lineno">  110 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">  111 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  112 </span><span class="decl"><span class="nottickedoff">d_'8743''45'assoc_3052 v0</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  114 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'assoc_2994</span>
+<span class="lineno">  115 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  116 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.∧-comm
+<span class="lineno">  117 </span>d_'8743''45'comm_3054 ::
+<span class="lineno">  118 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">  119 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  120 </span><span class="decl"><span class="nottickedoff">d_'8743''45'comm_3054 v0</span>
+<span class="lineno">  121 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'comm_2992</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  124 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.∧-cong
+<span class="lineno">  125 </span>d_'8743''45'cong_3056 ::
+<span class="lineno">  126 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">  127 </span>  AgdaAny -&gt;
+<span class="lineno">  128 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  129 </span><span class="decl"><span class="nottickedoff">d_'8743''45'cong_3056 v0</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  131 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'cong_2996</span>
+<span class="lineno">  132 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  133 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.∨-assoc
+<span class="lineno">  134 </span>d_'8744''45'assoc_3064 ::
+<span class="lineno">  135 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">  136 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">d_'8744''45'assoc_3064 v0</span>
+<span class="lineno">  138 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  139 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'assoc_2988</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  141 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.∨-comm
+<span class="lineno">  142 </span>d_'8744''45'comm_3066 ::
+<span class="lineno">  143 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">  144 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">d_'8744''45'comm_3066 v0</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  147 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'comm_2986</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  149 </span>-- Algebra.Lattice.Properties.Lattice._.IsLattice.∨-cong
+<span class="lineno">  150 </span>d_'8744''45'cong_3068 ::
+<span class="lineno">  151 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962 -&gt;
+<span class="lineno">  152 </span>  AgdaAny -&gt;
+<span class="lineno">  153 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  154 </span><span class="decl"><span class="nottickedoff">d_'8744''45'cong_3068 v0</span>
+<span class="lineno">  155 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  156 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'cong_2990</span>
+<span class="lineno">  157 </span><span class="spaces">      </span><span class="nottickedoff">(coe v0)</span></span>
+<span class="lineno">  158 </span>-- Algebra.Lattice.Properties.Lattice.∧-idem
+<span class="lineno">  159 </span>d_'8743''45'idem_3182 ::
+<span class="lineno">  160 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  161 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  162 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  163 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  164 </span><span class="decl"><span class="nottickedoff">d_'8743''45'idem_3182 ~v0 ~v1 v2 v3 = du_'8743''45'idem_3182 v2 v3</span></span>
+<span class="lineno">  165 </span>du_'8743''45'idem_3182 ::
+<span class="lineno">  166 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  167 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  168 </span><span class="decl"><span class="nottickedoff">du_'8743''45'idem_3182 v0 v1</span>
+<span class="lineno">  169 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  170 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno">  171 </span><span class="spaces">      </span><span class="nottickedoff">(\ v2 v3 v4 -&gt;</span>
+<span class="lineno">  172 </span><span class="spaces">         </span><span class="nottickedoff">coe</span>
+<span class="lineno">  173 </span><span class="spaces">           </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_start_36 v4)</span>
+<span class="lineno">  174 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1)</span>
+<span class="lineno">  175 </span><span class="spaces">      </span><span class="nottickedoff">v1</span>
+<span class="lineno">  176 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  177 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10216'_370</span>
+<span class="lineno">  178 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  179 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  180 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  181 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  182 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  183 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  184 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  185 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  186 </span><span class="spaces">         </span><span class="nottickedoff">(MAlonzo.Code.Relation.Binary.Structures.d_sym_36</span>
+<span class="lineno">  187 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  188 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  189 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  190 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))))</span>
+<span class="lineno">  191 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1)</span>
+<span class="lineno">  192 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  193 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1</span>
+<span class="lineno">  194 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  195 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1</span>
+<span class="lineno">  196 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  197 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1)))</span>
+<span class="lineno">  198 </span><span class="spaces">         </span><span class="nottickedoff">v1</span>
+<span class="lineno">  199 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  200 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  201 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  202 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  203 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  204 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  205 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  206 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  207 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  208 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  209 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  210 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1</span>
+<span class="lineno">  211 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  212 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1</span>
+<span class="lineno">  213 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  214 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1)))</span>
+<span class="lineno">  215 </span><span class="spaces">            </span><span class="nottickedoff">v1 v1</span>
+<span class="lineno">  216 </span><span class="spaces">            </span><span class="nottickedoff">(let v2</span>
+<span class="lineno">  217 </span><span class="spaces">                   </span><span class="nottickedoff">= MAlonzo.Code.Relation.Binary.Structures.d_refl_34</span>
+<span class="lineno">  218 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  219 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  220 </span><span class="spaces">                          </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  221 </span><span class="spaces">                             </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))) in</span>
+<span class="lineno">  222 </span><span class="spaces">             </span><span class="nottickedoff">coe</span>
+<span class="lineno">  223 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  224 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  225 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  226 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_stop_54</span>
+<span class="lineno">  227 </span><span class="spaces">                     </span><span class="nottickedoff">(coe v2))</span>
+<span class="lineno">  228 </span><span class="spaces">                  </span><span class="nottickedoff">(coe v1)))</span>
+<span class="lineno">  229 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  230 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8743''45'absorbs'45''8744'_3014</span>
+<span class="lineno">  231 </span><span class="spaces">               </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)) v1</span>
+<span class="lineno">  232 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  233 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1)))</span>
+<span class="lineno">  234 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  235 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8743''45'cong'737'_3016</span>
+<span class="lineno">  236 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))</span>
+<span class="lineno">  237 </span><span class="spaces">            </span><span class="nottickedoff">(coe v1)</span>
+<span class="lineno">  238 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  239 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1</span>
+<span class="lineno">  240 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1))</span>
+<span class="lineno">  241 </span><span class="spaces">            </span><span class="nottickedoff">(coe v1)</span>
+<span class="lineno">  242 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  243 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8744''45'absorbs'45''8743'_3012</span>
+<span class="lineno">  244 </span><span class="spaces">               </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)) v1</span>
+<span class="lineno">  245 </span><span class="spaces">               </span><span class="nottickedoff">v1)))</span></span>
+<span class="lineno">  246 </span>-- Algebra.Lattice.Properties.Lattice.∧-isMagma
+<span class="lineno">  247 </span>d_'8743''45'isMagma_3186 ::
+<span class="lineno">  248 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  249 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  250 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  251 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">  252 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isMagma_3186 ~v0 ~v1 v2 = du_'8743''45'isMagma_3186 v2</span></span>
+<span class="lineno">  253 </span>du_'8743''45'isMagma_3186 ::
+<span class="lineno">  254 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  255 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">  256 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isMagma_3186 v0</span>
+<span class="lineno">  257 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  258 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsMagma'46'constructor_1867</span>
+<span class="lineno">  259 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  260 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  261 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  262 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  264 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'cong_2996</span>
+<span class="lineno">  265 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  266 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span></span>
+<span class="lineno">  267 </span>-- Algebra.Lattice.Properties.Lattice.∧-isSemigroup
+<span class="lineno">  268 </span>d_'8743''45'isSemigroup_3188 ::
+<span class="lineno">  269 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  270 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  271 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  272 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">  273 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isSemigroup_3188 ~v0 ~v1 v2</span>
+<span class="lineno">  274 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'isSemigroup_3188 v2</span></span>
+<span class="lineno">  275 </span>du_'8743''45'isSemigroup_3188 ::
+<span class="lineno">  276 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  277 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">  278 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isSemigroup_3188 v0</span>
+<span class="lineno">  279 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  280 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsSemigroup'46'constructor_10417</span>
+<span class="lineno">  281 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'isMagma_3186 (coe v0))</span>
+<span class="lineno">  282 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  283 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'assoc_2994</span>
+<span class="lineno">  284 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  285 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span></span>
+<span class="lineno">  286 </span>-- Algebra.Lattice.Properties.Lattice.∧-isBand
+<span class="lineno">  287 </span>d_'8743''45'isBand_3190 ::
+<span class="lineno">  288 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  289 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  290 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  291 </span>  MAlonzo.Code.Algebra.Structures.T_IsBand_508
+<span class="lineno">  292 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isBand_3190 ~v0 ~v1 v2 = du_'8743''45'isBand_3190 v2</span></span>
+<span class="lineno">  293 </span>du_'8743''45'isBand_3190 ::
+<span class="lineno">  294 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  295 </span>  MAlonzo.Code.Algebra.Structures.T_IsBand_508
+<span class="lineno">  296 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isBand_3190 v0</span>
+<span class="lineno">  297 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  298 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsBand'46'constructor_11205</span>
+<span class="lineno">  299 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'isSemigroup_3188 (coe v0))</span>
+<span class="lineno">  300 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'idem_3182 (coe v0))</span></span>
+<span class="lineno">  301 </span>-- Algebra.Lattice.Properties.Lattice.∧-isSemilattice
+<span class="lineno">  302 </span>d_'8743''45'isSemilattice_3192 ::
+<span class="lineno">  303 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  304 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  305 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  306 </span>  MAlonzo.Code.Algebra.Structures.T_IsCommutativeBand_590
+<span class="lineno">  307 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isSemilattice_3192 ~v0 ~v1 v2</span>
+<span class="lineno">  308 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'isSemilattice_3192 v2</span></span>
+<span class="lineno">  309 </span>du_'8743''45'isSemilattice_3192 ::
+<span class="lineno">  310 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  311 </span>  MAlonzo.Code.Algebra.Structures.T_IsCommutativeBand_590
+<span class="lineno">  312 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isSemilattice_3192 v0</span>
+<span class="lineno">  313 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  314 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsCommutativeBand'46'constructor_13109</span>
+<span class="lineno">  315 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'isBand_3190 (coe v0))</span>
+<span class="lineno">  316 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  317 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'comm_2992</span>
+<span class="lineno">  318 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  319 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span></span>
+<span class="lineno">  320 </span>-- Algebra.Lattice.Properties.Lattice.∧-semilattice
+<span class="lineno">  321 </span>d_'8743''45'semilattice_3194 ::
+<span class="lineno">  322 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  323 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  324 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  325 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10
+<span class="lineno">  326 </span><span class="decl"><span class="nottickedoff">d_'8743''45'semilattice_3194 ~v0 ~v1 v2</span>
+<span class="lineno">  327 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'semilattice_3194 v2</span></span>
+<span class="lineno">  328 </span>du_'8743''45'semilattice_3194 ::
+<span class="lineno">  329 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  330 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10
+<span class="lineno">  331 </span><span class="decl"><span class="nottickedoff">du_'8743''45'semilattice_3194 v0</span>
+<span class="lineno">  332 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  333 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.C_Semilattice'46'constructor_193</span>
+<span class="lineno">  334 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 (coe v0))</span>
+<span class="lineno">  335 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'isSemilattice_3192 (coe v0))</span></span>
+<span class="lineno">  336 </span>-- Algebra.Lattice.Properties.Lattice._.∧-isOrderTheoreticJoinSemilattice
+<span class="lineno">  337 </span>d_'8743''45'isOrderTheoreticJoinSemilattice_3198 ::
+<span class="lineno">  338 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  339 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  340 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  341 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsJoinSemilattice_22
+<span class="lineno">  342 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isOrderTheoreticJoinSemilattice_3198 ~v0 ~v1 v2</span>
+<span class="lineno">  343 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'isOrderTheoreticJoinSemilattice_3198 v2</span></span>
+<span class="lineno">  344 </span>du_'8743''45'isOrderTheoreticJoinSemilattice_3198 ::
+<span class="lineno">  345 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  346 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsJoinSemilattice_22
+<span class="lineno">  347 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isOrderTheoreticJoinSemilattice_3198 v0</span>
+<span class="lineno">  348 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  349 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'isOrderTheoreticJoinSemilattice_178</span>
+<span class="lineno">  350 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'semilattice_3194 (coe v0))</span></span>
+<span class="lineno">  351 </span>-- Algebra.Lattice.Properties.Lattice._.∧-isOrderTheoreticMeetSemilattice
+<span class="lineno">  352 </span>d_'8743''45'isOrderTheoreticMeetSemilattice_3200 ::
+<span class="lineno">  353 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  354 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  355 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  356 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsMeetSemilattice_180
+<span class="lineno">  357 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isOrderTheoreticMeetSemilattice_3200 ~v0 ~v1 v2</span>
+<span class="lineno">  358 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'isOrderTheoreticMeetSemilattice_3200 v2</span></span>
+<span class="lineno">  359 </span>du_'8743''45'isOrderTheoreticMeetSemilattice_3200 ::
+<span class="lineno">  360 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  361 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsMeetSemilattice_180
+<span class="lineno">  362 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isOrderTheoreticMeetSemilattice_3200 v0</span>
+<span class="lineno">  363 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  364 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'isOrderTheoreticMeetSemilattice_176</span>
+<span class="lineno">  365 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'semilattice_3194 (coe v0))</span></span>
+<span class="lineno">  366 </span>-- Algebra.Lattice.Properties.Lattice._.∧-orderTheoreticJoinSemilattice
+<span class="lineno">  367 </span>d_'8743''45'orderTheoreticJoinSemilattice_3202 ::
+<span class="lineno">  368 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  369 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  370 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  371 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_JoinSemilattice_14
+<span class="lineno">  372 </span><span class="decl"><span class="nottickedoff">d_'8743''45'orderTheoreticJoinSemilattice_3202 ~v0 ~v1 v2</span>
+<span class="lineno">  373 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'orderTheoreticJoinSemilattice_3202 v2</span></span>
+<span class="lineno">  374 </span>du_'8743''45'orderTheoreticJoinSemilattice_3202 ::
+<span class="lineno">  375 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  376 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_JoinSemilattice_14
+<span class="lineno">  377 </span><span class="decl"><span class="nottickedoff">du_'8743''45'orderTheoreticJoinSemilattice_3202 v0</span>
+<span class="lineno">  378 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  379 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'orderTheoreticJoinSemilattice_182</span>
+<span class="lineno">  380 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'semilattice_3194 (coe v0))</span></span>
+<span class="lineno">  381 </span>-- Algebra.Lattice.Properties.Lattice._.∧-orderTheoreticMeetSemilattice
+<span class="lineno">  382 </span>d_'8743''45'orderTheoreticMeetSemilattice_3204 ::
+<span class="lineno">  383 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  384 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  385 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  386 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_MeetSemilattice_200
+<span class="lineno">  387 </span><span class="decl"><span class="nottickedoff">d_'8743''45'orderTheoreticMeetSemilattice_3204 ~v0 ~v1 v2</span>
+<span class="lineno">  388 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'orderTheoreticMeetSemilattice_3204 v2</span></span>
+<span class="lineno">  389 </span>du_'8743''45'orderTheoreticMeetSemilattice_3204 ::
+<span class="lineno">  390 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  391 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_MeetSemilattice_200
+<span class="lineno">  392 </span><span class="decl"><span class="nottickedoff">du_'8743''45'orderTheoreticMeetSemilattice_3204 v0</span>
+<span class="lineno">  393 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  394 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'orderTheoreticMeetSemilattice_180</span>
+<span class="lineno">  395 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'semilattice_3194 (coe v0))</span></span>
+<span class="lineno">  396 </span>-- Algebra.Lattice.Properties.Lattice.∨-idem
+<span class="lineno">  397 </span>d_'8744''45'idem_3206 ::
+<span class="lineno">  398 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  399 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  400 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  401 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  402 </span><span class="decl"><span class="nottickedoff">d_'8744''45'idem_3206 ~v0 ~v1 v2 v3 = du_'8744''45'idem_3206 v2 v3</span></span>
+<span class="lineno">  403 </span>du_'8744''45'idem_3206 ::
+<span class="lineno">  404 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  405 </span>  AgdaAny -&gt; AgdaAny
+<span class="lineno">  406 </span><span class="decl"><span class="nottickedoff">du_'8744''45'idem_3206 v0 v1</span>
+<span class="lineno">  407 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  408 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno">  409 </span><span class="spaces">      </span><span class="nottickedoff">(\ v2 v3 v4 -&gt;</span>
+<span class="lineno">  410 </span><span class="spaces">         </span><span class="nottickedoff">coe</span>
+<span class="lineno">  411 </span><span class="spaces">           </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_start_36 v4)</span>
+<span class="lineno">  412 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v1)</span>
+<span class="lineno">  413 </span><span class="spaces">      </span><span class="nottickedoff">v1</span>
+<span class="lineno">  414 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  415 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10216'_370</span>
+<span class="lineno">  416 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  417 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  418 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  419 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  420 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  421 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  422 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  423 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  424 </span><span class="spaces">         </span><span class="nottickedoff">(MAlonzo.Code.Relation.Binary.Structures.d_sym_36</span>
+<span class="lineno">  425 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  426 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  427 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  428 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))))</span>
+<span class="lineno">  429 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v1)</span>
+<span class="lineno">  430 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  431 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1</span>
+<span class="lineno">  432 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1))</span>
+<span class="lineno">  433 </span><span class="spaces">         </span><span class="nottickedoff">v1</span>
+<span class="lineno">  434 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  435 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  436 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  437 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  438 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  439 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  440 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  441 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  442 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  443 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  444 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  445 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1</span>
+<span class="lineno">  446 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1))</span>
+<span class="lineno">  447 </span><span class="spaces">            </span><span class="nottickedoff">v1 v1</span>
+<span class="lineno">  448 </span><span class="spaces">            </span><span class="nottickedoff">(let v2</span>
+<span class="lineno">  449 </span><span class="spaces">                   </span><span class="nottickedoff">= MAlonzo.Code.Relation.Binary.Structures.d_refl_34</span>
+<span class="lineno">  450 </span><span class="spaces">                       </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  451 </span><span class="spaces">                          </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  452 </span><span class="spaces">                          </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  453 </span><span class="spaces">                             </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))) in</span>
+<span class="lineno">  454 </span><span class="spaces">             </span><span class="nottickedoff">coe</span>
+<span class="lineno">  455 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  456 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  457 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  458 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_stop_54</span>
+<span class="lineno">  459 </span><span class="spaces">                     </span><span class="nottickedoff">(coe v2))</span>
+<span class="lineno">  460 </span><span class="spaces">                  </span><span class="nottickedoff">(coe v1)))</span>
+<span class="lineno">  461 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  462 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8744''45'absorbs'45''8743'_3012</span>
+<span class="lineno">  463 </span><span class="spaces">               </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)) v1</span>
+<span class="lineno">  464 </span><span class="spaces">               </span><span class="nottickedoff">v1))</span>
+<span class="lineno">  465 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  466 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8744''45'cong'737'_3024</span>
+<span class="lineno">  467 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))</span>
+<span class="lineno">  468 </span><span class="spaces">            </span><span class="nottickedoff">(coe v1)</span>
+<span class="lineno">  469 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v1)</span>
+<span class="lineno">  470 </span><span class="spaces">            </span><span class="nottickedoff">(coe v1) (coe du_'8743''45'idem_3182 (coe v0) (coe v1))))</span></span>
+<span class="lineno">  471 </span>-- Algebra.Lattice.Properties.Lattice.∨-isMagma
+<span class="lineno">  472 </span>d_'8744''45'isMagma_3210 ::
+<span class="lineno">  473 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  474 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  475 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  476 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">  477 </span><span class="decl"><span class="nottickedoff">d_'8744''45'isMagma_3210 ~v0 ~v1 v2 = du_'8744''45'isMagma_3210 v2</span></span>
+<span class="lineno">  478 </span>du_'8744''45'isMagma_3210 ::
+<span class="lineno">  479 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  480 </span>  MAlonzo.Code.Algebra.Structures.T_IsMagma_176
+<span class="lineno">  481 </span><span class="decl"><span class="nottickedoff">du_'8744''45'isMagma_3210 v0</span>
+<span class="lineno">  482 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  483 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsMagma'46'constructor_1867</span>
+<span class="lineno">  484 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  485 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  486 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  487 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  488 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  489 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'cong_2990</span>
+<span class="lineno">  490 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  491 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span></span>
+<span class="lineno">  492 </span>-- Algebra.Lattice.Properties.Lattice.∨-isSemigroup
+<span class="lineno">  493 </span>d_'8744''45'isSemigroup_3212 ::
+<span class="lineno">  494 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  495 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  496 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  497 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">  498 </span><span class="decl"><span class="nottickedoff">d_'8744''45'isSemigroup_3212 ~v0 ~v1 v2</span>
+<span class="lineno">  499 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8744''45'isSemigroup_3212 v2</span></span>
+<span class="lineno">  500 </span>du_'8744''45'isSemigroup_3212 ::
+<span class="lineno">  501 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  502 </span>  MAlonzo.Code.Algebra.Structures.T_IsSemigroup_472
+<span class="lineno">  503 </span><span class="decl"><span class="nottickedoff">du_'8744''45'isSemigroup_3212 v0</span>
+<span class="lineno">  504 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  505 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsSemigroup'46'constructor_10417</span>
+<span class="lineno">  506 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'isMagma_3210 (coe v0))</span>
+<span class="lineno">  507 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  508 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'assoc_2988</span>
+<span class="lineno">  509 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  510 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span></span>
+<span class="lineno">  511 </span>-- Algebra.Lattice.Properties.Lattice.∨-isBand
+<span class="lineno">  512 </span>d_'8744''45'isBand_3214 ::
+<span class="lineno">  513 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  514 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  515 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  516 </span>  MAlonzo.Code.Algebra.Structures.T_IsBand_508
+<span class="lineno">  517 </span><span class="decl"><span class="nottickedoff">d_'8744''45'isBand_3214 ~v0 ~v1 v2 = du_'8744''45'isBand_3214 v2</span></span>
+<span class="lineno">  518 </span>du_'8744''45'isBand_3214 ::
+<span class="lineno">  519 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  520 </span>  MAlonzo.Code.Algebra.Structures.T_IsBand_508
+<span class="lineno">  521 </span><span class="decl"><span class="nottickedoff">du_'8744''45'isBand_3214 v0</span>
+<span class="lineno">  522 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  523 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsBand'46'constructor_11205</span>
+<span class="lineno">  524 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'isSemigroup_3212 (coe v0))</span>
+<span class="lineno">  525 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'idem_3206 (coe v0))</span></span>
+<span class="lineno">  526 </span>-- Algebra.Lattice.Properties.Lattice.∨-isSemilattice
+<span class="lineno">  527 </span>d_'8744''45'isSemilattice_3216 ::
+<span class="lineno">  528 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  529 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  530 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  531 </span>  MAlonzo.Code.Algebra.Structures.T_IsCommutativeBand_590
+<span class="lineno">  532 </span><span class="decl"><span class="nottickedoff">d_'8744''45'isSemilattice_3216 ~v0 ~v1 v2</span>
+<span class="lineno">  533 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8744''45'isSemilattice_3216 v2</span></span>
+<span class="lineno">  534 </span>du_'8744''45'isSemilattice_3216 ::
+<span class="lineno">  535 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  536 </span>  MAlonzo.Code.Algebra.Structures.T_IsCommutativeBand_590
+<span class="lineno">  537 </span><span class="decl"><span class="nottickedoff">du_'8744''45'isSemilattice_3216 v0</span>
+<span class="lineno">  538 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  539 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Structures.C_IsCommutativeBand'46'constructor_13109</span>
+<span class="lineno">  540 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'isBand_3214 (coe v0))</span>
+<span class="lineno">  541 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  542 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'comm_2986</span>
+<span class="lineno">  543 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  544 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span></span>
+<span class="lineno">  545 </span>-- Algebra.Lattice.Properties.Lattice.∨-semilattice
+<span class="lineno">  546 </span>d_'8744''45'semilattice_3218 ::
+<span class="lineno">  547 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  548 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  549 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  550 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10
+<span class="lineno">  551 </span><span class="decl"><span class="nottickedoff">d_'8744''45'semilattice_3218 ~v0 ~v1 v2</span>
+<span class="lineno">  552 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8744''45'semilattice_3218 v2</span></span>
+<span class="lineno">  553 </span>du_'8744''45'semilattice_3218 ::
+<span class="lineno">  554 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  555 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10
+<span class="lineno">  556 </span><span class="decl"><span class="nottickedoff">du_'8744''45'semilattice_3218 v0</span>
+<span class="lineno">  557 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  558 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.C_Semilattice'46'constructor_193</span>
+<span class="lineno">  559 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 (coe v0))</span>
+<span class="lineno">  560 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'isSemilattice_3216 (coe v0))</span></span>
+<span class="lineno">  561 </span>-- Algebra.Lattice.Properties.Lattice._.∧-isOrderTheoreticJoinSemilattice
+<span class="lineno">  562 </span>d_'8743''45'isOrderTheoreticJoinSemilattice_3222 ::
+<span class="lineno">  563 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  564 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  565 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  566 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsJoinSemilattice_22
+<span class="lineno">  567 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isOrderTheoreticJoinSemilattice_3222 ~v0 ~v1 v2</span>
+<span class="lineno">  568 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'isOrderTheoreticJoinSemilattice_3222 v2</span></span>
+<span class="lineno">  569 </span>du_'8743''45'isOrderTheoreticJoinSemilattice_3222 ::
+<span class="lineno">  570 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  571 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsJoinSemilattice_22
+<span class="lineno">  572 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isOrderTheoreticJoinSemilattice_3222 v0</span>
+<span class="lineno">  573 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  574 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'isOrderTheoreticJoinSemilattice_178</span>
+<span class="lineno">  575 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'semilattice_3218 (coe v0))</span></span>
+<span class="lineno">  576 </span>-- Algebra.Lattice.Properties.Lattice._.∧-isOrderTheoreticMeetSemilattice
+<span class="lineno">  577 </span>d_'8743''45'isOrderTheoreticMeetSemilattice_3224 ::
+<span class="lineno">  578 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  579 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  580 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  581 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsMeetSemilattice_180
+<span class="lineno">  582 </span><span class="decl"><span class="nottickedoff">d_'8743''45'isOrderTheoreticMeetSemilattice_3224 ~v0 ~v1 v2</span>
+<span class="lineno">  583 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'isOrderTheoreticMeetSemilattice_3224 v2</span></span>
+<span class="lineno">  584 </span>du_'8743''45'isOrderTheoreticMeetSemilattice_3224 ::
+<span class="lineno">  585 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  586 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsMeetSemilattice_180
+<span class="lineno">  587 </span><span class="decl"><span class="nottickedoff">du_'8743''45'isOrderTheoreticMeetSemilattice_3224 v0</span>
+<span class="lineno">  588 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  589 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'isOrderTheoreticMeetSemilattice_176</span>
+<span class="lineno">  590 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'semilattice_3218 (coe v0))</span></span>
+<span class="lineno">  591 </span>-- Algebra.Lattice.Properties.Lattice._.∧-orderTheoreticJoinSemilattice
+<span class="lineno">  592 </span>d_'8743''45'orderTheoreticJoinSemilattice_3226 ::
+<span class="lineno">  593 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  594 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  595 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  596 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_JoinSemilattice_14
+<span class="lineno">  597 </span><span class="decl"><span class="nottickedoff">d_'8743''45'orderTheoreticJoinSemilattice_3226 ~v0 ~v1 v2</span>
+<span class="lineno">  598 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'orderTheoreticJoinSemilattice_3226 v2</span></span>
+<span class="lineno">  599 </span>du_'8743''45'orderTheoreticJoinSemilattice_3226 ::
+<span class="lineno">  600 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  601 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_JoinSemilattice_14
+<span class="lineno">  602 </span><span class="decl"><span class="nottickedoff">du_'8743''45'orderTheoreticJoinSemilattice_3226 v0</span>
+<span class="lineno">  603 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  604 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'orderTheoreticJoinSemilattice_182</span>
+<span class="lineno">  605 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'semilattice_3218 (coe v0))</span></span>
+<span class="lineno">  606 </span>-- Algebra.Lattice.Properties.Lattice._.∧-orderTheoreticMeetSemilattice
+<span class="lineno">  607 </span>d_'8743''45'orderTheoreticMeetSemilattice_3228 ::
+<span class="lineno">  608 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  609 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  610 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  611 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_MeetSemilattice_200
+<span class="lineno">  612 </span><span class="decl"><span class="nottickedoff">d_'8743''45'orderTheoreticMeetSemilattice_3228 ~v0 ~v1 v2</span>
+<span class="lineno">  613 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45'orderTheoreticMeetSemilattice_3228 v2</span></span>
+<span class="lineno">  614 </span>du_'8743''45'orderTheoreticMeetSemilattice_3228 ::
+<span class="lineno">  615 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  616 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_MeetSemilattice_200
+<span class="lineno">  617 </span><span class="decl"><span class="nottickedoff">du_'8743''45'orderTheoreticMeetSemilattice_3228 v0</span>
+<span class="lineno">  618 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  619 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'orderTheoreticMeetSemilattice_180</span>
+<span class="lineno">  620 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45'semilattice_3218 (coe v0))</span></span>
+<span class="lineno">  621 </span>-- Algebra.Lattice.Properties.Lattice.∧-∨-isLattice
+<span class="lineno">  622 </span>d_'8743''45''8744''45'isLattice_3230 ::
+<span class="lineno">  623 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  624 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  625 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  626 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962
+<span class="lineno">  627 </span><span class="decl"><span class="nottickedoff">d_'8743''45''8744''45'isLattice_3230 ~v0 ~v1 v2</span>
+<span class="lineno">  628 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45''8744''45'isLattice_3230 v2</span></span>
+<span class="lineno">  629 </span>du_'8743''45''8744''45'isLattice_3230 ::
+<span class="lineno">  630 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  631 </span>  MAlonzo.Code.Algebra.Lattice.Structures.T_IsLattice_2962
+<span class="lineno">  632 </span><span class="decl"><span class="nottickedoff">du_'8743''45''8744''45'isLattice_3230 v0</span>
+<span class="lineno">  633 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  634 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.C_IsLattice'46'constructor_36793</span>
+<span class="lineno">  635 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  636 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  637 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  638 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  639 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  640 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'comm_2992</span>
+<span class="lineno">  641 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  642 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  643 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  644 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'assoc_2994</span>
+<span class="lineno">  645 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  646 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  647 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  648 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'cong_2996</span>
+<span class="lineno">  649 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  650 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  651 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  652 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'comm_2986</span>
+<span class="lineno">  653 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  654 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  655 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  656 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'assoc_2988</span>
+<span class="lineno">  657 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  658 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  659 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  660 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'cong_2990</span>
+<span class="lineno">  661 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  662 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  663 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  664 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Data.Product.Base.du_swap_370</span>
+<span class="lineno">  665 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  666 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_absorptive_2998</span>
+<span class="lineno">  667 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  668 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))))</span></span>
+<span class="lineno">  669 </span>-- Algebra.Lattice.Properties.Lattice.∧-∨-lattice
+<span class="lineno">  670 </span>d_'8743''45''8744''45'lattice_3232 ::
+<span class="lineno">  671 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  672 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  673 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  674 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500
+<span class="lineno">  675 </span><span class="decl"><span class="nottickedoff">d_'8743''45''8744''45'lattice_3232 ~v0 ~v1 v2</span>
+<span class="lineno">  676 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8743''45''8744''45'lattice_3232 v2</span></span>
+<span class="lineno">  677 </span>du_'8743''45''8744''45'lattice_3232 ::
+<span class="lineno">  678 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  679 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500
+<span class="lineno">  680 </span><span class="decl"><span class="nottickedoff">du_'8743''45''8744''45'lattice_3232 v0</span>
+<span class="lineno">  681 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  682 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.C_Lattice'46'constructor_7925</span>
+<span class="lineno">  683 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 (coe v0))</span>
+<span class="lineno">  684 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 (coe v0))</span>
+<span class="lineno">  685 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45''8744''45'isLattice_3230 (coe v0))</span></span>
+<span class="lineno">  686 </span>-- Algebra.Lattice.Properties.Lattice._.poset
+<span class="lineno">  687 </span>d_poset_3236 ::
+<span class="lineno">  688 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  689 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  690 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  691 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Poset_314
+<span class="lineno">  692 </span><span class="decl"><span class="nottickedoff">d_poset_3236 ~v0 ~v1 v2 = du_poset_3236 v2</span></span>
+<span class="lineno">  693 </span>du_poset_3236 ::
+<span class="lineno">  694 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  695 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_Poset_314
+<span class="lineno">  696 </span><span class="decl"><span class="nottickedoff">du_poset_3236 v0</span>
+<span class="lineno">  697 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  698 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_poset_162</span>
+<span class="lineno">  699 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8743''45'semilattice_3194 (coe v0))</span></span>
+<span class="lineno">  700 </span>-- Algebra.Lattice.Properties.Lattice._._≤_
+<span class="lineno">  701 </span>d__'8804'__3240 ::
+<span class="lineno">  702 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  703 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  704 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  705 </span>  AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  706 </span><span class="decl"><span class="nottickedoff">d__'8804'__3240 = erased</span></span>
+<span class="lineno">  707 </span>-- Algebra.Lattice.Properties.Lattice.∨-∧-isOrderTheoreticLattice
+<span class="lineno">  708 </span>d_'8744''45''8743''45'isOrderTheoreticLattice_3244 ::
+<span class="lineno">  709 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  710 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  711 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  712 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsLattice_340
+<span class="lineno">  713 </span><span class="decl"><span class="nottickedoff">d_'8744''45''8743''45'isOrderTheoreticLattice_3244 ~v0 ~v1 v2</span>
+<span class="lineno">  714 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8744''45''8743''45'isOrderTheoreticLattice_3244 v2</span></span>
+<span class="lineno">  715 </span>du_'8744''45''8743''45'isOrderTheoreticLattice_3244 ::
+<span class="lineno">  716 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  717 </span>  MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsLattice_340
+<span class="lineno">  718 </span><span class="decl"><span class="nottickedoff">du_'8744''45''8743''45'isOrderTheoreticLattice_3244 v0</span>
+<span class="lineno">  719 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  720 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Lattice.Structures.C_IsLattice'46'constructor_14941</span>
+<span class="lineno">  721 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  722 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Bundles.d_isPartialOrder_336</span>
+<span class="lineno">  723 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  724 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_poset_162</span>
+<span class="lineno">  725 </span><span class="spaces">            </span><span class="nottickedoff">(coe du_'8743''45'semilattice_3194 (coe v0))))</span>
+<span class="lineno">  726 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_supremum_3288 (coe v0))</span>
+<span class="lineno">  727 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  728 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.du_infimum_3640</span>
+<span class="lineno">  729 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 (coe v0))</span>
+<span class="lineno">  730 </span><span class="spaces">         </span><span class="nottickedoff">(coe du_'8743''45'isSemilattice_3192 (coe v0)))</span></span>
+<span class="lineno">  731 </span>-- Algebra.Lattice.Properties.Lattice._._._≤_
+<span class="lineno">  732 </span>d__'8804'__3256 ::
+<span class="lineno">  733 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  734 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  735 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  736 </span>  AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">  737 </span><span class="decl"><span class="nottickedoff">d__'8804'__3256 = erased</span></span>
+<span class="lineno">  738 </span>-- Algebra.Lattice.Properties.Lattice._.sound
+<span class="lineno">  739 </span>d_sound_3268 ::
+<span class="lineno">  740 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  741 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  742 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  743 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  744 </span><span class="decl"><span class="nottickedoff">d_sound_3268 ~v0 ~v1 v2 v3 v4 v5 = du_sound_3268 v2 v3 v4 v5</span></span>
+<span class="lineno">  745 </span>du_sound_3268 ::
+<span class="lineno">  746 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  747 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  748 </span><span class="decl"><span class="nottickedoff">du_sound_3268 v0 v1 v2 v3</span>
+<span class="lineno">  749 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  750 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_sym_36</span>
+<span class="lineno">  751 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  752 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  753 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  754 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v2)</span>
+<span class="lineno">  755 </span><span class="spaces">      </span><span class="nottickedoff">v1</span>
+<span class="lineno">  756 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  757 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno">  758 </span><span class="spaces">         </span><span class="nottickedoff">(\ v4 v5 v6 -&gt;</span>
+<span class="lineno">  759 </span><span class="spaces">            </span><span class="nottickedoff">coe</span>
+<span class="lineno">  760 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_start_36 v6)</span>
+<span class="lineno">  761 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v2)</span>
+<span class="lineno">  762 </span><span class="spaces">         </span><span class="nottickedoff">v1</span>
+<span class="lineno">  763 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  764 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  765 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  766 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  767 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  768 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  769 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  770 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  771 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  772 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  773 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v2)</span>
+<span class="lineno">  774 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  775 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1</span>
+<span class="lineno">  776 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2 v1))</span>
+<span class="lineno">  777 </span><span class="spaces">            </span><span class="nottickedoff">v1</span>
+<span class="lineno">  778 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  779 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  780 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  781 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  782 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  783 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  784 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  785 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  786 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  787 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  788 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  789 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1</span>
+<span class="lineno">  790 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2 v1))</span>
+<span class="lineno">  791 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  792 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1</span>
+<span class="lineno">  793 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v2))</span>
+<span class="lineno">  794 </span><span class="spaces">               </span><span class="nottickedoff">v1</span>
+<span class="lineno">  795 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  796 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  797 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  798 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  799 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  800 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  801 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  802 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  803 </span><span class="spaces">                           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  804 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  805 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  806 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1</span>
+<span class="lineno">  807 </span><span class="spaces">                     </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v2))</span>
+<span class="lineno">  808 </span><span class="spaces">                  </span><span class="nottickedoff">v1 v1</span>
+<span class="lineno">  809 </span><span class="spaces">                  </span><span class="nottickedoff">(let v4</span>
+<span class="lineno">  810 </span><span class="spaces">                         </span><span class="nottickedoff">= MAlonzo.Code.Relation.Binary.Structures.d_refl_34</span>
+<span class="lineno">  811 </span><span class="spaces">                             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  812 </span><span class="spaces">                                </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  813 </span><span class="spaces">                                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  814 </span><span class="spaces">                                   </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524</span>
+<span class="lineno">  815 </span><span class="spaces">                                   </span><span class="nottickedoff">(coe v0))) in</span>
+<span class="lineno">  816 </span><span class="spaces">                   </span><span class="nottickedoff">coe</span>
+<span class="lineno">  817 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  818 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  819 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  820 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_stop_54</span>
+<span class="lineno">  821 </span><span class="spaces">                           </span><span class="nottickedoff">(coe v4))</span>
+<span class="lineno">  822 </span><span class="spaces">                        </span><span class="nottickedoff">(coe v1)))</span>
+<span class="lineno">  823 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  824 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8743''45'absorbs'45''8744'_3014</span>
+<span class="lineno">  825 </span><span class="spaces">                     </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)) v1</span>
+<span class="lineno">  826 </span><span class="spaces">                     </span><span class="nottickedoff">v2))</span>
+<span class="lineno">  827 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  828 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8743''45'cong'737'_3016</span>
+<span class="lineno">  829 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))</span>
+<span class="lineno">  830 </span><span class="spaces">                  </span><span class="nottickedoff">(coe v1)</span>
+<span class="lineno">  831 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2 v1)</span>
+<span class="lineno">  832 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v2)</span>
+<span class="lineno">  833 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  834 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8744''45'comm_2986</span>
+<span class="lineno">  835 </span><span class="spaces">                     </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)) v2</span>
+<span class="lineno">  836 </span><span class="spaces">                     </span><span class="nottickedoff">v1)))</span>
+<span class="lineno">  837 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  838 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8743''45'cong'737'_3016</span>
+<span class="lineno">  839 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))</span>
+<span class="lineno">  840 </span><span class="spaces">               </span><span class="nottickedoff">(coe v1) (coe v2)</span>
+<span class="lineno">  841 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2 v1)</span>
+<span class="lineno">  842 </span><span class="spaces">               </span><span class="nottickedoff">(coe v3))))</span></span>
+<span class="lineno">  843 </span>-- Algebra.Lattice.Properties.Lattice._.complete
+<span class="lineno">  844 </span>d_complete_3280 ::
+<span class="lineno">  845 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  846 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  847 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  848 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  849 </span><span class="decl"><span class="nottickedoff">d_complete_3280 ~v0 ~v1 v2 v3 v4 v5 = du_complete_3280 v2 v3 v4 v5</span></span>
+<span class="lineno">  850 </span>du_complete_3280 ::
+<span class="lineno">  851 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  852 </span>  AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  853 </span><span class="decl"><span class="nottickedoff">du_complete_3280 v0 v1 v2 v3</span>
+<span class="lineno">  854 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  855 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_sym_36</span>
+<span class="lineno">  856 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  857 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  858 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))</span>
+<span class="lineno">  859 </span><span class="spaces">      </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2 v1)</span>
+<span class="lineno">  860 </span><span class="spaces">      </span><span class="nottickedoff">v2</span>
+<span class="lineno">  861 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  862 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_begin__46</span>
+<span class="lineno">  863 </span><span class="spaces">         </span><span class="nottickedoff">(\ v4 v5 v6 -&gt;</span>
+<span class="lineno">  864 </span><span class="spaces">            </span><span class="nottickedoff">coe</span>
+<span class="lineno">  865 </span><span class="spaces">              </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_start_36 v6)</span>
+<span class="lineno">  866 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2 v1)</span>
+<span class="lineno">  867 </span><span class="spaces">         </span><span class="nottickedoff">v2</span>
+<span class="lineno">  868 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  869 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  870 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  871 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  872 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  873 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  874 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  875 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  876 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  877 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  878 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2 v1)</span>
+<span class="lineno">  879 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  880 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2</span>
+<span class="lineno">  881 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v2))</span>
+<span class="lineno">  882 </span><span class="spaces">            </span><span class="nottickedoff">v2</span>
+<span class="lineno">  883 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  884 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  885 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  886 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  887 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  888 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  889 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  890 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  891 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  892 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  893 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  894 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2</span>
+<span class="lineno">  895 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v2))</span>
+<span class="lineno">  896 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  897 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2</span>
+<span class="lineno">  898 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v2 v1))</span>
+<span class="lineno">  899 </span><span class="spaces">               </span><span class="nottickedoff">v2</span>
+<span class="lineno">  900 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  901 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du_step'45''8776''45''10217'_368</span>
+<span class="lineno">  902 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  903 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_'8764''45'go_40</span>
+<span class="lineno">  904 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  905 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Structures.d_trans_38</span>
+<span class="lineno">  906 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  907 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  908 </span><span class="spaces">                           </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  909 </span><span class="spaces">                              </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)))))</span>
+<span class="lineno">  910 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  911 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v2</span>
+<span class="lineno">  912 </span><span class="spaces">                     </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v2 v1))</span>
+<span class="lineno">  913 </span><span class="spaces">                  </span><span class="nottickedoff">v2 v2</span>
+<span class="lineno">  914 </span><span class="spaces">                  </span><span class="nottickedoff">(let v4</span>
+<span class="lineno">  915 </span><span class="spaces">                         </span><span class="nottickedoff">= MAlonzo.Code.Relation.Binary.Structures.d_refl_34</span>
+<span class="lineno">  916 </span><span class="spaces">                             </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  917 </span><span class="spaces">                                </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_isEquivalence_2984</span>
+<span class="lineno">  918 </span><span class="spaces">                                </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  919 </span><span class="spaces">                                   </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524</span>
+<span class="lineno">  920 </span><span class="spaces">                                   </span><span class="nottickedoff">(coe v0))) in</span>
+<span class="lineno">  921 </span><span class="spaces">                   </span><span class="nottickedoff">coe</span>
+<span class="lineno">  922 </span><span class="spaces">                     </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  923 </span><span class="spaces">                        </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Syntax.du__'8718'_492</span>
+<span class="lineno">  924 </span><span class="spaces">                        </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  925 </span><span class="spaces">                           </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Reasoning.Base.Single.du_stop_54</span>
+<span class="lineno">  926 </span><span class="spaces">                           </span><span class="nottickedoff">(coe v4))</span>
+<span class="lineno">  927 </span><span class="spaces">                        </span><span class="nottickedoff">(coe v2)))</span>
+<span class="lineno">  928 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  929 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8744''45'absorbs'45''8743'_3012</span>
+<span class="lineno">  930 </span><span class="spaces">                     </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)) v2</span>
+<span class="lineno">  931 </span><span class="spaces">                     </span><span class="nottickedoff">v1))</span>
+<span class="lineno">  932 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  933 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8744''45'cong'737'_3024</span>
+<span class="lineno">  934 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))</span>
+<span class="lineno">  935 </span><span class="spaces">                  </span><span class="nottickedoff">(coe v2)</span>
+<span class="lineno">  936 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v2)</span>
+<span class="lineno">  937 </span><span class="spaces">                  </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v2 v1)</span>
+<span class="lineno">  938 </span><span class="spaces">                  </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  939 </span><span class="spaces">                     </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.d_'8743''45'comm_2992</span>
+<span class="lineno">  940 </span><span class="spaces">                     </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0)) v1</span>
+<span class="lineno">  941 </span><span class="spaces">                     </span><span class="nottickedoff">v2)))</span>
+<span class="lineno">  942 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  943 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Structures.du_'8744''45'cong'737'_3024</span>
+<span class="lineno">  944 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d_isLattice_524 (coe v0))</span>
+<span class="lineno">  945 </span><span class="spaces">               </span><span class="nottickedoff">(coe v2) (coe v1)</span>
+<span class="lineno">  946 </span><span class="spaces">               </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 v0 v1 v2)</span>
+<span class="lineno">  947 </span><span class="spaces">               </span><span class="nottickedoff">(coe v3))))</span></span>
+<span class="lineno">  948 </span>-- Algebra.Lattice.Properties.Lattice._.supremum
+<span class="lineno">  949 </span>d_supremum_3288 ::
+<span class="lineno">  950 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  951 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  952 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  953 </span>  AgdaAny -&gt; AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  954 </span><span class="decl"><span class="nottickedoff">d_supremum_3288 ~v0 ~v1 v2 v3 v4 = du_supremum_3288 v2 v3 v4</span></span>
+<span class="lineno">  955 </span>du_supremum_3288 ::
+<span class="lineno">  956 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  957 </span>  AgdaAny -&gt; AgdaAny -&gt; MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
+<span class="lineno">  958 </span><span class="decl"><span class="nottickedoff">du_supremum_3288 v0 v1 v2</span>
+<span class="lineno">  959 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  960 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32</span>
+<span class="lineno">  961 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  962 </span><span class="spaces">         </span><span class="nottickedoff">du_sound_3268 (coe v0) (coe v1)</span>
+<span class="lineno">  963 </span><span class="spaces">         </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v2)</span>
+<span class="lineno">  964 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  965 </span><span class="spaces">            </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Lattice.Structures.du_x'8804'x'8744'y_38</span>
+<span class="lineno">  966 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  967 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'isOrderTheoreticJoinSemilattice_178</span>
+<span class="lineno">  968 </span><span class="spaces">               </span><span class="nottickedoff">(coe du_'8744''45'semilattice_3218 (coe v0)))</span>
+<span class="lineno">  969 </span><span class="spaces">            </span><span class="nottickedoff">(coe v1) (coe v2)))</span>
+<span class="lineno">  970 </span><span class="spaces">      </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  971 </span><span class="spaces">         </span><span class="nottickedoff">MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32</span>
+<span class="lineno">  972 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  973 </span><span class="spaces">            </span><span class="nottickedoff">du_sound_3268 (coe v0) (coe v2)</span>
+<span class="lineno">  974 </span><span class="spaces">            </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v2)</span>
+<span class="lineno">  975 </span><span class="spaces">            </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  976 </span><span class="spaces">               </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Lattice.Structures.du_y'8804'x'8744'y_50</span>
+<span class="lineno">  977 </span><span class="spaces">               </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  978 </span><span class="spaces">                  </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'isOrderTheoreticJoinSemilattice_178</span>
+<span class="lineno">  979 </span><span class="spaces">                  </span><span class="nottickedoff">(coe du_'8744''45'semilattice_3218 (coe v0)))</span>
+<span class="lineno">  980 </span><span class="spaces">               </span><span class="nottickedoff">(coe v1) (coe v2)))</span>
+<span class="lineno">  981 </span><span class="spaces">         </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  982 </span><span class="spaces">            </span><span class="nottickedoff">(\ v3 v4 v5 -&gt;</span>
+<span class="lineno">  983 </span><span class="spaces">               </span><span class="nottickedoff">coe</span>
+<span class="lineno">  984 </span><span class="spaces">                 </span><span class="nottickedoff">du_sound_3268 (coe v0)</span>
+<span class="lineno">  985 </span><span class="spaces">                 </span><span class="nottickedoff">(coe MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 v0 v1 v2)</span>
+<span class="lineno">  986 </span><span class="spaces">                 </span><span class="nottickedoff">(coe v3)</span>
+<span class="lineno">  987 </span><span class="spaces">                 </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  988 </span><span class="spaces">                    </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Lattice.Structures.du_'8744''45'least_64</span>
+<span class="lineno">  989 </span><span class="spaces">                    </span><span class="nottickedoff">(coe</span>
+<span class="lineno">  990 </span><span class="spaces">                       </span><span class="nottickedoff">MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.du_'8743''45'isOrderTheoreticJoinSemilattice_178</span>
+<span class="lineno">  991 </span><span class="spaces">                       </span><span class="nottickedoff">(coe du_'8744''45'semilattice_3218 (coe v0)))</span>
+<span class="lineno">  992 </span><span class="spaces">                    </span><span class="nottickedoff">v1 v2 v3 (coe du_complete_3280 (coe v0) (coe v1) (coe v3) (coe v4))</span>
+<span class="lineno">  993 </span><span class="spaces">                    </span><span class="nottickedoff">(coe du_complete_3280 (coe v0) (coe v2) (coe v3) (coe v5))))))</span></span>
+<span class="lineno">  994 </span>-- Algebra.Lattice.Properties.Lattice.∨-∧-orderTheoreticLattice
+<span class="lineno">  995 </span>d_'8744''45''8743''45'orderTheoreticLattice_3300 ::
+<span class="lineno">  996 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  997 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  998 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno">  999 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_Lattice_386
+<span class="lineno"> 1000 </span><span class="decl"><span class="nottickedoff">d_'8744''45''8743''45'orderTheoreticLattice_3300 ~v0 ~v1 v2</span>
+<span class="lineno"> 1001 </span><span class="spaces">  </span><span class="nottickedoff">= du_'8744''45''8743''45'orderTheoreticLattice_3300 v2</span></span>
+<span class="lineno"> 1002 </span>du_'8744''45''8743''45'orderTheoreticLattice_3300 ::
+<span class="lineno"> 1003 </span>  MAlonzo.Code.Algebra.Lattice.Bundles.T_Lattice_500 -&gt;
+<span class="lineno"> 1004 </span>  MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_Lattice_386
+<span class="lineno"> 1005 </span><span class="decl"><span class="nottickedoff">du_'8744''45''8743''45'orderTheoreticLattice_3300 v0</span>
+<span class="lineno"> 1006 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno"> 1007 </span><span class="spaces">      </span><span class="nottickedoff">MAlonzo.Code.Relation.Binary.Lattice.Bundles.C_Lattice'46'constructor_8977</span>
+<span class="lineno"> 1008 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d__'8744'__520 (coe v0))</span>
+<span class="lineno"> 1009 </span><span class="spaces">      </span><span class="nottickedoff">(MAlonzo.Code.Algebra.Lattice.Bundles.d__'8743'__522 (coe v0))</span>
+<span class="lineno"> 1010 </span><span class="spaces">      </span><span class="nottickedoff">(coe du_'8744''45''8743''45'isOrderTheoreticLattice_3244 (coe v0))</span></span>
+
+</pre>
+</body>
+</html>

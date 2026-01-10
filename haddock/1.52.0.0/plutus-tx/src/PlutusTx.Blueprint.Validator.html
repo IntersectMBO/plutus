@@ -1,0 +1,2474 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds          #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DerivingStrategies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE KindSignatures     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RecordWildCards    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Blueprint.Validator</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Prelude.html"
+	><span class="hs-identifier"
+	  >Prelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ToJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html"
+	><span class="hs-identifier"
+	  >Data.Aeson.Extra</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html#buildObject"
+	><span class="hs-identifier"
+	  >buildObject</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Extra.html#requiredField"
+	><span class="hs-identifier"
+	  >requiredField</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html"
+	><span class="hs-identifier"
+	  >Data.ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BS</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.ByteString.Base16</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Base16</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Kind.html"
+	><span class="hs-identifier"
+	  >Data.Kind</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html"
+	><span class="hs-identifier"
+	  >Data.List.NonEmpty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>NE</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Encoding.html"
+	><span class="hs-identifier"
+	  >Data.Text.Encoding</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.Hash.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Crypto.Hash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Crypto.Hash.html#blake2b_224"
+	><span class="hs-identifier"
+	  >blake2b_224</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Argument.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Argument</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Argument.html#ArgumentBlueprint"
+	><span class="hs-identifier"
+	  >ArgumentBlueprint</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Parameter.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.Parameter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Parameter.html#ParameterBlueprint"
+	><span class="hs-identifier"
+	  >ParameterBlueprint</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.PlutusVersion.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Blueprint.PlutusVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusVersion"
+	><span class="hs-identifier"
+	  >PlutusVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A blueprint of a validator, as defined by the CIP-0057
+
+The 'referencedTypes' phantom type parameter is used to track the types used in the contract
+making sure their schemas are included in the blueprint and that they are referenced
+in a type-safe way.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ValidatorBlueprint"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Validator.html#ValidatorBlueprint"
+	  ><span class="hs-identifier hs-var"
+	    >ValidatorBlueprint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680015134"
+      ><span class="annot"
+	><a href="#local-6989586621680015134"
+	  ><span class="hs-identifier hs-type"
+	    >referencedTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Type"
+	><span class="hs-identifier hs-type"
+	  >Type</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkValidatorBlueprint"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Validator.html#MkValidatorBlueprint"
+	  ><span class="hs-identifier hs-var"
+	    >MkValidatorBlueprint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="validatorTitle"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; Text
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#validatorTitle"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatorTitle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A short and descriptive name for the validator.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="validatorDescription"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; Maybe Text
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#validatorDescription"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatorDescription</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ An informative description of the validator.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="validatorRedeemer"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ArgumentBlueprint referencedTypes
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#validatorRedeemer"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatorRedeemer</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Argument.html#ArgumentBlueprint"
+	><span class="hs-identifier hs-type"
+	  >ArgumentBlueprint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680015134"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A description of the redeemer format expected by this validator.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="validatorDatum"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; Maybe (ArgumentBlueprint referencedTypes)
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#validatorDatum"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatorDatum</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Argument.html#ArgumentBlueprint"
+	><span class="hs-identifier hs-type"
+	  >ArgumentBlueprint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680015134"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A description of the datum format expected by this validator.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="validatorParameters"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; [ParameterBlueprint referencedTypes]
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#validatorParameters"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatorParameters</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Parameter.html#ParameterBlueprint"
+	><span class="hs-identifier hs-type"
+	  >ParameterBlueprint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621680015134"
+	><span class="hs-identifier hs-type"
+	  >referencedTypes</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A list of parameters required by the script.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="validatorCompiled"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; Maybe CompiledValidator
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#validatorCompiled"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatorCompiled</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Validator.html#CompiledValidator"
+	><span class="hs-identifier hs-type"
+	  >CompiledValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ A full compiled and CBOR-encoded serialized flat script together with its hash.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680015207"
+      ><span id="local-6989586621680015223"
+	><span id="local-6989586621680015227"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ValidatorBlueprint referencedTypes -&gt; ShowS
+[ValidatorBlueprint referencedTypes] -&gt; ShowS
+ValidatorBlueprint referencedTypes -&gt; String
+(Int -&gt; ValidatorBlueprint referencedTypes -&gt; ShowS)
+-&gt; (ValidatorBlueprint referencedTypes -&gt; String)
+-&gt; ([ValidatorBlueprint referencedTypes] -&gt; ShowS)
+-&gt; Show (ValidatorBlueprint referencedTypes)
+forall (referencedTypes :: [*]).
+Int -&gt; ValidatorBlueprint referencedTypes -&gt; ShowS
+forall (referencedTypes :: [*]).
+[ValidatorBlueprint referencedTypes] -&gt; ShowS
+forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall (referencedTypes :: [*]).
+Int -&gt; ValidatorBlueprint referencedTypes -&gt; ShowS
+showsPrec :: Int -&gt; ValidatorBlueprint referencedTypes -&gt; ShowS
+$cshow :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; String
+show :: ValidatorBlueprint referencedTypes -&gt; String
+$cshowList :: forall (referencedTypes :: [*]).
+[ValidatorBlueprint referencedTypes] -&gt; ShowS
+showList :: [ValidatorBlueprint referencedTypes] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680015233"
+      ><span id="local-6989586621680015247"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+(ValidatorBlueprint referencedTypes
+ -&gt; ValidatorBlueprint referencedTypes -&gt; Bool)
+-&gt; (ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes -&gt; Bool)
+-&gt; Eq (ValidatorBlueprint referencedTypes)
+forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+== :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+$c/= :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+/= :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680015256"
+      ><span id="local-6989586621680015270"
+	><span id="local-6989586621680015280"
+	  ><span id="local-6989586621680015284"
+	    ><span id="local-6989586621680015287"
+	      ><span id="local-6989586621680015290"
+		><span id="local-6989586621680015293"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (ValidatorBlueprint referencedTypes)
+Eq (ValidatorBlueprint referencedTypes) =&gt;
+(ValidatorBlueprint referencedTypes
+ -&gt; ValidatorBlueprint referencedTypes -&gt; Ordering)
+-&gt; (ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes -&gt; Bool)
+-&gt; (ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes -&gt; Bool)
+-&gt; (ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes -&gt; Bool)
+-&gt; (ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes -&gt; Bool)
+-&gt; (ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes)
+-&gt; (ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes
+    -&gt; ValidatorBlueprint referencedTypes)
+-&gt; Ord (ValidatorBlueprint referencedTypes)
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Ordering
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+forall (referencedTypes :: [*]).
+Eq (ValidatorBlueprint referencedTypes)
+forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Ordering
+forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Ordering
+compare :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Ordering
+$c&lt; :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+&lt; :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+$c&lt;= :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+&lt;= :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+$c&gt; :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+&gt; :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+$c&gt;= :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+&gt;= :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes -&gt; Bool
+$cmax :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+max :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+$cmin :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+min :: ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+-&gt; ValidatorBlueprint referencedTypes
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CompiledValidator"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Validator.html#CompiledValidator"
+	  ><span class="hs-identifier hs-var"
+	    >CompiledValidator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkCompiledValidator"
+      ><span class="annot"
+	><a href="PlutusTx.Blueprint.Validator.html#MkCompiledValidator"
+	  ><span class="hs-identifier hs-var"
+	    >MkCompiledValidator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="compiledValidatorCode"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledValidator -&gt; ByteString
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#compiledValidatorCode"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compiledValidatorCode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="compiledValidatorHash"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompiledValidator -&gt; ByteString
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#compiledValidatorHash"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compiledValidatorHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621680015302"
+      ><span id="local-6989586621680015308"
+	><span id="local-6989586621680015311"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; CompiledValidator -&gt; ShowS
+[CompiledValidator] -&gt; ShowS
+CompiledValidator -&gt; String
+(Int -&gt; CompiledValidator -&gt; ShowS)
+-&gt; (CompiledValidator -&gt; String)
+-&gt; ([CompiledValidator] -&gt; ShowS)
+-&gt; Show CompiledValidator
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; CompiledValidator -&gt; ShowS
+showsPrec :: Int -&gt; CompiledValidator -&gt; ShowS
+$cshow :: CompiledValidator -&gt; String
+show :: CompiledValidator -&gt; String
+$cshowList :: [CompiledValidator] -&gt; ShowS
+showList :: [CompiledValidator] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680015314"
+      ><span id="local-6989586621680015319"
+	><span class="annot"
+	  ><span class="annottext"
+	    >CompiledValidator -&gt; CompiledValidator -&gt; Bool
+(CompiledValidator -&gt; CompiledValidator -&gt; Bool)
+-&gt; (CompiledValidator -&gt; CompiledValidator -&gt; Bool)
+-&gt; Eq CompiledValidator
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+== :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+$c/= :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+/= :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621680015324"
+      ><span id="local-6989586621680015329"
+	><span id="local-6989586621680015333"
+	  ><span id="local-6989586621680015336"
+	    ><span id="local-6989586621680015339"
+	      ><span id="local-6989586621680015342"
+		><span id="local-6989586621680015345"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq CompiledValidator
+Eq CompiledValidator =&gt;
+(CompiledValidator -&gt; CompiledValidator -&gt; Ordering)
+-&gt; (CompiledValidator -&gt; CompiledValidator -&gt; Bool)
+-&gt; (CompiledValidator -&gt; CompiledValidator -&gt; Bool)
+-&gt; (CompiledValidator -&gt; CompiledValidator -&gt; Bool)
+-&gt; (CompiledValidator -&gt; CompiledValidator -&gt; Bool)
+-&gt; (CompiledValidator -&gt; CompiledValidator -&gt; CompiledValidator)
+-&gt; (CompiledValidator -&gt; CompiledValidator -&gt; CompiledValidator)
+-&gt; Ord CompiledValidator
+CompiledValidator -&gt; CompiledValidator -&gt; Bool
+CompiledValidator -&gt; CompiledValidator -&gt; Ordering
+CompiledValidator -&gt; CompiledValidator -&gt; CompiledValidator
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: CompiledValidator -&gt; CompiledValidator -&gt; Ordering
+compare :: CompiledValidator -&gt; CompiledValidator -&gt; Ordering
+$c&lt; :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+&lt; :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+$c&lt;= :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+&lt;= :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+$c&gt; :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+&gt; :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+$c&gt;= :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+&gt;= :: CompiledValidator -&gt; CompiledValidator -&gt; Bool
+$cmax :: CompiledValidator -&gt; CompiledValidator -&gt; CompiledValidator
+max :: CompiledValidator -&gt; CompiledValidator -&gt; CompiledValidator
+$cmin :: CompiledValidator -&gt; CompiledValidator -&gt; CompiledValidator
+min :: CompiledValidator -&gt; CompiledValidator -&gt; CompiledValidator
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Validator.html#compiledValidator"
+	><span class="hs-identifier hs-type"
+	  >compiledValidator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusVersion"
+	><span class="hs-identifier hs-type"
+	  >PlutusVersion</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Validator.html#CompiledValidator"
+	><span class="hs-identifier hs-type"
+	  >CompiledValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span id="compiledValidator"
+      ><span class="annot"
+	><span class="annottext"
+	  >compiledValidator :: PlutusVersion -&gt; ByteString -&gt; CompiledValidator
+</span
+	  ><a href="PlutusTx.Blueprint.Validator.html#compiledValidator"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compiledValidator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680015348"
+      ><span class="annot"
+	><span class="annottext"
+	  >PlutusVersion
+</span
+	  ><a href="#local-6989586621680015348"
+	  ><span class="hs-identifier hs-var"
+	    >version</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680015349"
+      ><span class="annot"
+	><span class="annottext"
+	  >ByteString
+</span
+	  ><a href="#local-6989586621680015349"
+	  ><span class="hs-identifier hs-var"
+	    >code</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Validator.html#MkCompiledValidator"
+	><span class="hs-identifier hs-type"
+	  >MkCompiledValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>compiledValidatorCode :: ByteString
+</span
+	><a href="PlutusTx.Blueprint.Validator.html#compiledValidatorCode"
+	><span class="hs-identifier hs-var"
+	  >compiledValidatorCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621680015349"
+	><span class="hs-identifier hs-var"
+	  >code</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>compiledValidatorHash :: ByteString
+</span
+	><a href="PlutusTx.Blueprint.Validator.html#compiledValidatorHash"
+	><span class="hs-identifier hs-var"
+	  >compiledValidatorHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Crypto.Hash.html#blake2b_224"
+	><span class="hs-identifier hs-var"
+	  >blake2b_224</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8 -&gt; ByteString
+</span
+	><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >BS.singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion -&gt; Word8
+</span
+	><a href="#local-6989586621680015351"
+	><span class="hs-identifier hs-var"
+	  >versionTag</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion
+</span
+	><a href="#local-6989586621680015348"
+	><span class="hs-identifier hs-var"
+	  >version</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString -&gt; ByteString
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString
+</span
+	><a href="#local-6989586621680015349"
+	><span class="hs-identifier hs-var"
+	  >code</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680015351"
+      ><span class="annot"
+	><span class="annottext"
+	  >versionTag :: PlutusVersion -&gt; Word8
+</span
+	  ><a href="#local-6989586621680015351"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >versionTag</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion
+</span
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV1"
+	><span class="hs-identifier hs-var"
+	  >PlutusV1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion
+</span
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV2"
+	><span class="hs-identifier hs-var"
+	  >PlutusV2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x2</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PlutusVersion
+</span
+	><a href="PlutusTx.Blueprint.PlutusVersion.html#PlutusV3"
+	><span class="hs-identifier hs-var"
+	  >PlutusV3</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Word8
+</span
+	><span class="hs-number"
+	>0x3</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621680015175"
+      ><span id="local-6989586621680015361"
+	><span id="local-6989586621680015365"
+	  ><span id="local-6989586621680015368"
+	    ><span id="local-6989586621680015371"
+	      ><span class="annot"
+		><span class="hs-identifier hs-type"
+		  >ToJSON</span
+		  ></span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusTx.Blueprint.Validator.html#ValidatorBlueprint"
+		  ><span class="hs-identifier hs-type"
+		    >ValidatorBlueprint</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621680015175"
+		  ><span class="hs-identifier hs-type"
+		    >referencedTypes</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621680015397"
+      ><span class="annot"
+	><span class="annottext"
+	  >toJSON :: ValidatorBlueprint referencedTypes -&gt; Value
+</span
+	  ><a href="#local-6989586621680015397"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >toJSON</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Blueprint.Validator.html#MkValidatorBlueprint"
+	><span class="hs-identifier hs-type"
+	  >MkValidatorBlueprint</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span id="local-6989586621680015399"
+      ><span id="local-6989586621680015400"
+	><span id="local-6989586621680015401"
+	  ><span id="local-6989586621680015402"
+	    ><span id="local-6989586621680015403"
+	      ><span id="local-6989586621680015404"
+		><span class="annot"
+		  ><span class="annottext"
+		    >[ParameterBlueprint referencedTypes]
+Maybe Text
+Maybe (ArgumentBlueprint referencedTypes)
+Maybe CompiledValidator
+Text
+ArgumentBlueprint referencedTypes
+validatorTitle :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; Text
+validatorDescription :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; Maybe Text
+validatorRedeemer :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; ArgumentBlueprint referencedTypes
+validatorDatum :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; Maybe (ArgumentBlueprint referencedTypes)
+validatorParameters :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes
+-&gt; [ParameterBlueprint referencedTypes]
+validatorCompiled :: forall (referencedTypes :: [*]).
+ValidatorBlueprint referencedTypes -&gt; Maybe CompiledValidator
+validatorTitle :: Text
+validatorDescription :: Maybe Text
+validatorRedeemer :: ArgumentBlueprint referencedTypes
+validatorDatum :: Maybe (ArgumentBlueprint referencedTypes)
+validatorParameters :: [ParameterBlueprint referencedTypes]
+validatorCompiled :: Maybe CompiledValidator
+</span
+		    ><a href="PlutusTx.Blueprint.Validator.html#validatorTitle"
+		    ><span class="hs-glyph hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		      >..</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; Value
+</span
+	><a href="Data.Aeson.Extra.html#buildObject"
+	><span class="hs-identifier hs-var"
+	  >buildObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Object -&gt; Object) -&gt; Value) -&gt; (Object -&gt; Object) -&gt; Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Text -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#requiredField"
+	><span class="hs-identifier hs-var"
+	  >requiredField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;title&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621680015399"
+	><span class="hs-identifier hs-var"
+	  >validatorTitle</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; ArgumentBlueprint referencedTypes -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#requiredField"
+	><span class="hs-identifier hs-var"
+	  >requiredField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;redeemer&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ArgumentBlueprint referencedTypes
+</span
+	><a href="#local-6989586621680015401"
+	><span class="hs-identifier hs-var"
+	  >validatorRedeemer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Maybe Text -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;description&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Text
+</span
+	><a href="#local-6989586621680015400"
+	><span class="hs-identifier hs-var"
+	  >validatorDescription</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+-&gt; Maybe (ArgumentBlueprint referencedTypes) -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;datum&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (ArgumentBlueprint referencedTypes)
+</span
+	><a href="#local-6989586621680015402"
+	><span class="hs-identifier hs-var"
+	  >validatorDatum</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+-&gt; Maybe (NonEmpty (ParameterBlueprint referencedTypes))
+-&gt; Object
+-&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;parameters&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ParameterBlueprint referencedTypes]
+-&gt; Maybe (NonEmpty (ParameterBlueprint referencedTypes))
+forall a. [a] -&gt; Maybe (NonEmpty a)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html#nonEmpty"
+	><span class="hs-identifier hs-var"
+	  >NE.nonEmpty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ParameterBlueprint referencedTypes]
+</span
+	><a href="#local-6989586621680015403"
+	><span class="hs-identifier hs-var"
+	  >validatorParameters</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Maybe Text -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;compiledCode&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Text
+</span
+	><a href="#local-6989586621680015407"
+	><span class="hs-identifier hs-var"
+	  >toHex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Text)
+-&gt; (CompiledValidator -&gt; ByteString) -&gt; CompiledValidator -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledValidator -&gt; ByteString
+</span
+	><a href="PlutusTx.Blueprint.Validator.html#compiledValidatorCode"
+	><span class="hs-identifier hs-var"
+	  >compiledValidatorCode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompiledValidator -&gt; Text)
+-&gt; Maybe CompiledValidator -&gt; Maybe Text
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CompiledValidator
+</span
+	><a href="#local-6989586621680015404"
+	><span class="hs-identifier hs-var"
+	  >validatorCompiled</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; (Object -&gt; Object) -&gt; Object -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key -&gt; Maybe Text -&gt; Object -&gt; Object
+forall a. ToJSON a =&gt; Key -&gt; Maybe a -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Extra.html#optionalField"
+	><span class="hs-identifier hs-var"
+	  >optionalField</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Key
+</span
+	><span class="hs-string"
+	>&quot;hash&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Text
+</span
+	><a href="#local-6989586621680015407"
+	><span class="hs-identifier hs-var"
+	  >toHex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Text)
+-&gt; (CompiledValidator -&gt; ByteString) -&gt; CompiledValidator -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompiledValidator -&gt; ByteString
+</span
+	><a href="PlutusTx.Blueprint.Validator.html#compiledValidatorHash"
+	><span class="hs-identifier hs-var"
+	  >compiledValidatorHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompiledValidator -&gt; Text)
+-&gt; Maybe CompiledValidator -&gt; Maybe Text
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CompiledValidator
+</span
+	><a href="#local-6989586621680015404"
+	><span class="hs-identifier hs-var"
+	  >validatorCompiled</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621680015407"
+	><span class="hs-identifier hs-type"
+	  >toHex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/src/Data.ByteString.Internal.Type.html#ByteString"
+	><span class="hs-identifier hs-type"
+	  >ByteString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621680015407"
+      ><span class="annot"
+	><span class="annottext"
+	  >toHex :: ByteString -&gt; Text
+</span
+	  ><a href="#local-6989586621680015407"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toHex</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Encoding.html#decodeUtf8"
+	><span class="hs-identifier hs-var"
+	  >Text.decodeUtf8</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; Text)
+-&gt; (ByteString -&gt; ByteString) -&gt; ByteString -&gt; Text
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; ByteString
+</span
+	><span class="hs-identifier hs-var"
+	>Base16.encode</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

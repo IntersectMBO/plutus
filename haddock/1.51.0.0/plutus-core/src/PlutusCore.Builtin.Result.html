@@ -1,0 +1,6006 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FunctionalDependencies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE StrictData             #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TemplateHaskell        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Builtin.Result</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	><span class="hs-identifier"
+	  >EvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#UnliftingError"
+	><span class="hs-identifier"
+	  >UnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#UnliftingEvaluationError"
+	><span class="hs-identifier"
+	  >UnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	><span class="hs-identifier"
+	  >BuiltinError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#notAConstant"
+	><span class="hs-identifier"
+	  >notAConstant</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#underTypeError"
+	><span class="hs-identifier"
+	  >underTypeError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#operationalUnliftingError"
+	><span class="hs-identifier"
+	  >operationalUnliftingError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#structuralUnliftingError"
+	><span class="hs-identifier"
+	  >structuralUnliftingError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#emit"
+	><span class="hs-identifier"
+	  >emit</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#withLogs"
+	><span class="hs-identifier"
+	  >withLogs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>throwing</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>throwing_</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#builtinResultFailure"
+	><span class="hs-identifier"
+	  >builtinResultFailure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Monad.Error.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>throwing</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>throwing_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.html"
+	><span class="hs-identifier"
+	  >Data.DList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#DList"
+	><span class="hs-identifier"
+	  >DList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html"
+	><span class="hs-identifier"
+	  >Data.String</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html#IsString"
+	><span class="hs-identifier"
+	  >IsString</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The error message part of an 'UnliftingEvaluationError'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="UnliftingError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#UnliftingError"
+	  ><span class="hs-identifier hs-var"
+	    >UnliftingError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkUnliftingError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#MkUnliftingError"
+	  ><span class="hs-identifier hs-var"
+	    >MkUnliftingError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unUnliftingError"
+      ><span class="annot"
+	><span class="annottext"
+	  >UnliftingError -&gt; Text
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#unUnliftingError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unUnliftingError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681827797"
+      ><span id="local-6989586621681827803"
+	><span id="local-6989586621681827807"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; UnliftingError -&gt; ShowS
+[UnliftingError] -&gt; ShowS
+UnliftingError -&gt; String
+(Int -&gt; UnliftingError -&gt; ShowS)
+-&gt; (UnliftingError -&gt; String)
+-&gt; ([UnliftingError] -&gt; ShowS)
+-&gt; Show UnliftingError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; UnliftingError -&gt; ShowS
+showsPrec :: Int -&gt; UnliftingError -&gt; ShowS
+$cshow :: UnliftingError -&gt; String
+show :: UnliftingError -&gt; String
+$cshowList :: [UnliftingError] -&gt; ShowS
+showList :: [UnliftingError] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827811"
+      ><span id="local-6989586621681827815"
+	><span class="annot"
+	  ><span class="annottext"
+	    >UnliftingError -&gt; UnliftingError -&gt; Bool
+(UnliftingError -&gt; UnliftingError -&gt; Bool)
+-&gt; (UnliftingError -&gt; UnliftingError -&gt; Bool) -&gt; Eq UnliftingError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: UnliftingError -&gt; UnliftingError -&gt; Bool
+== :: UnliftingError -&gt; UnliftingError -&gt; Bool
+$c/= :: UnliftingError -&gt; UnliftingError -&gt; Bool
+/= :: UnliftingError -&gt; UnliftingError -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681827820"
+      ><span class="annot"
+	><span class="annottext"
+	  >String -&gt; UnliftingError
+(String -&gt; UnliftingError) -&gt; IsString UnliftingError
+forall a. (String -&gt; a) -&gt; IsString a
+$cfromString :: String -&gt; UnliftingError
+fromString :: String -&gt; UnliftingError
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.String.html#IsString"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >IsString</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827826"
+      ><span id="local-6989586621681827831"
+	><span id="local-6989586621681827837"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >NonEmpty UnliftingError -&gt; UnliftingError
+UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+(UnliftingError -&gt; UnliftingError -&gt; UnliftingError)
+-&gt; (NonEmpty UnliftingError -&gt; UnliftingError)
+-&gt; (forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError)
+-&gt; Semigroup UnliftingError
+forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError
+forall a.
+(a -&gt; a -&gt; a)
+-&gt; (NonEmpty a -&gt; a)
+-&gt; (forall b. Integral b =&gt; b -&gt; a -&gt; a)
+-&gt; Semigroup a
+$c&lt;&gt; :: UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+&lt;&gt; :: UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+$csconcat :: NonEmpty UnliftingError -&gt; UnliftingError
+sconcat :: NonEmpty UnliftingError -&gt; UnliftingError
+$cstimes :: forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError
+stimes :: forall b. Integral b =&gt; b -&gt; UnliftingError -&gt; UnliftingError
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Semigroup"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Semigroup</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827847"
+      ><span id="local-6989586621681827852"
+	><span id="local-6989586621681827856"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Semigroup UnliftingError
+UnliftingError
+Semigroup UnliftingError =&gt;
+UnliftingError
+-&gt; (UnliftingError -&gt; UnliftingError -&gt; UnliftingError)
+-&gt; ([UnliftingError] -&gt; UnliftingError)
+-&gt; Monoid UnliftingError
+[UnliftingError] -&gt; UnliftingError
+UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+forall a.
+Semigroup a =&gt;
+a -&gt; (a -&gt; a -&gt; a) -&gt; ([a] -&gt; a) -&gt; Monoid a
+$cmempty :: UnliftingError
+mempty :: UnliftingError
+$cmappend :: UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+mappend :: UnliftingError -&gt; UnliftingError -&gt; UnliftingError
+$cmconcat :: [UnliftingError] -&gt; UnliftingError
+mconcat :: [UnliftingError] -&gt; UnliftingError
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monoid"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Monoid</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827862"
+      ><span class="annot"
+	><span class="annottext"
+	  >UnliftingError -&gt; ()
+(UnliftingError -&gt; ()) -&gt; NFData UnliftingError
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: UnliftingError -&gt; ()
+rnf :: UnliftingError -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="UnliftingEvaluationError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#UnliftingEvaluationError"
+	  ><span class="hs-identifier hs-var"
+	    >UnliftingEvaluationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="MkUnliftingEvaluationError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#MkUnliftingEvaluationError"
+	  ><span class="hs-identifier hs-var"
+	    >MkUnliftingEvaluationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unUnliftingEvaluationError"
+      ><span class="annot"
+	><span class="annottext"
+	  >UnliftingEvaluationError
+-&gt; EvaluationError UnliftingError UnliftingError
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#unUnliftingEvaluationError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unUnliftingEvaluationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#EvaluationError"
+	><span class="hs-identifier hs-type"
+	  >EvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#UnliftingError"
+	><span class="hs-identifier hs-type"
+	  >UnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#UnliftingError"
+	><span class="hs-identifier hs-type"
+	  >UnliftingError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681827871"
+      ><span id="local-6989586621681827878"
+	><span id="local-6989586621681827882"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; UnliftingEvaluationError -&gt; ShowS
+[UnliftingEvaluationError] -&gt; ShowS
+UnliftingEvaluationError -&gt; String
+(Int -&gt; UnliftingEvaluationError -&gt; ShowS)
+-&gt; (UnliftingEvaluationError -&gt; String)
+-&gt; ([UnliftingEvaluationError] -&gt; ShowS)
+-&gt; Show UnliftingEvaluationError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; UnliftingEvaluationError -&gt; ShowS
+showsPrec :: Int -&gt; UnliftingEvaluationError -&gt; ShowS
+$cshow :: UnliftingEvaluationError -&gt; String
+show :: UnliftingEvaluationError -&gt; String
+$cshowList :: [UnliftingEvaluationError] -&gt; ShowS
+showList :: [UnliftingEvaluationError] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827885"
+      ><span id="local-6989586621681827891"
+	><span class="annot"
+	  ><span class="annottext"
+	    >UnliftingEvaluationError -&gt; UnliftingEvaluationError -&gt; Bool
+(UnliftingEvaluationError -&gt; UnliftingEvaluationError -&gt; Bool)
+-&gt; (UnliftingEvaluationError -&gt; UnliftingEvaluationError -&gt; Bool)
+-&gt; Eq UnliftingEvaluationError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: UnliftingEvaluationError -&gt; UnliftingEvaluationError -&gt; Bool
+== :: UnliftingEvaluationError -&gt; UnliftingEvaluationError -&gt; Bool
+$c/= :: UnliftingEvaluationError -&gt; UnliftingEvaluationError -&gt; Bool
+/= :: UnliftingEvaluationError -&gt; UnliftingEvaluationError -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>newtype</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681827895"
+      ><span class="annot"
+	><span class="annottext"
+	  >UnliftingEvaluationError -&gt; ()
+(UnliftingEvaluationError -&gt; ()) -&gt; NFData UnliftingEvaluationError
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: UnliftingEvaluationError -&gt; ()
+rnf :: UnliftingEvaluationError -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The type of errors that 'readKnown' and 'makeKnown' can return.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="BuiltinUnliftingEvaluationError"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingEvaluationError"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinUnliftingEvaluationError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#UnliftingEvaluationError"
+	><span class="hs-identifier hs-type"
+	  >UnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="BuiltinEvaluationFailure"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinEvaluationFailure"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinEvaluationFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681827905"
+      ><span id="local-6989586621681827909"
+	><span id="local-6989586621681827913"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; BuiltinError -&gt; ShowS
+[BuiltinError] -&gt; ShowS
+BuiltinError -&gt; String
+(Int -&gt; BuiltinError -&gt; ShowS)
+-&gt; (BuiltinError -&gt; String)
+-&gt; ([BuiltinError] -&gt; ShowS)
+-&gt; Show BuiltinError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; BuiltinError -&gt; ShowS
+showsPrec :: Int -&gt; BuiltinError -&gt; ShowS
+$cshow :: BuiltinError -&gt; String
+show :: BuiltinError -&gt; String
+$cshowList :: [BuiltinError] -&gt; ShowS
+showList :: [BuiltinError] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827916"
+      ><span id="local-6989586621681827919"
+	><span class="annot"
+	  ><span class="annottext"
+	    >BuiltinError -&gt; BuiltinError -&gt; Bool
+(BuiltinError -&gt; BuiltinError -&gt; Bool)
+-&gt; (BuiltinError -&gt; BuiltinError -&gt; Bool) -&gt; Eq BuiltinError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: BuiltinError -&gt; BuiltinError -&gt; Bool
+== :: BuiltinError -&gt; BuiltinError -&gt; Bool
+$c/= :: BuiltinError -&gt; BuiltinError -&gt; Bool
+/= :: BuiltinError -&gt; BuiltinError -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-comment"
+      >-- | The monad that 'makeKnown' runs in.</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="hs-comment"
+      >-- Equivalent to @ExceptT BuiltinError (Writer (DList Text))@, except optimized in two ways:</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span class="hs-comment"
+      >-- 1. everything is strict</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span class="hs-comment"
+      >-- 2. has the 'BuiltinSuccess' constructor that is used for returning a value with no logs</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span class="hs-comment"
+      >--    attached, which is the most common case for us, so it helps a lot not to construct and</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span class="hs-comment"
+      >--    deconstruct a redundant tuple</span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="hs-comment"
+      >-- Moving from @ExceptT BuiltinError (Writer (DList Text))@ to this data type gave us a speedup of</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span class="hs-comment"
+      >-- 8% of total evaluation time.</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-comment"
+      >-- Logs are represented as a 'DList', because we don't particularly care about the efficiency of</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-comment"
+      >-- logging, since there's no logging on the chain and builtins don't emit much anyway. Otherwise</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span class="hs-comment"
+      >-- we'd have to use @text-builder@ or @text-builder-linear@ or something of this sort.</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="BuiltinResult"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681827708"
+      ><span class="annot"
+	><a href="#local-6989586621681827708"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- 'BuiltinSuccess' is the first constructor to make it a bit more likely for GHC to</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- branch-predict it (which is something that we want, because most builtins return this</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- constructor). It is however not guaranteed that GHC will predict it, because even though</span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- it's likely going to be a recursive case (it certainly is in the CEK machine) and thus the</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- constructor has precedence over 'BuiltinFailure', it doesn't have precedence over</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- 'BuiltinSuccessWithLogs', since that case is equally likely to be recursive.</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- Unfortunately, GHC doesn't offer any explicit control over branch-prediction (see this</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- ticket: https://gitlab.haskell.org/ghc/ghc/-/issues/849), so relying on hope is the best we</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- can do here.</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >      </span
+      ><span id="BuiltinSuccess"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinSuccess</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681827708"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="BuiltinSuccessWithLogs"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinSuccessWithLogs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#DList"
+	><span class="hs-identifier hs-type"
+	  >DList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681827708"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="BuiltinFailure"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	  ><span class="hs-identifier hs-var"
+	    >BuiltinFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#DList"
+	><span class="hs-identifier hs-type"
+	  >DList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681827927"
+      ><span id="local-6989586621681827939"
+	><span id="local-6989586621681827943"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; BuiltinResult a -&gt; ShowS
+[BuiltinResult a] -&gt; ShowS
+BuiltinResult a -&gt; String
+(Int -&gt; BuiltinResult a -&gt; ShowS)
+-&gt; (BuiltinResult a -&gt; String)
+-&gt; ([BuiltinResult a] -&gt; ShowS)
+-&gt; Show (BuiltinResult a)
+forall a. Show a =&gt; Int -&gt; BuiltinResult a -&gt; ShowS
+forall a. Show a =&gt; [BuiltinResult a] -&gt; ShowS
+forall a. Show a =&gt; BuiltinResult a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; BuiltinResult a -&gt; ShowS
+showsPrec :: Int -&gt; BuiltinResult a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; BuiltinResult a -&gt; String
+show :: BuiltinResult a -&gt; String
+$cshowList :: forall a. Show a =&gt; [BuiltinResult a] -&gt; ShowS
+showList :: [BuiltinResult a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681827946"
+      ><span id="local-6989586621681827952"
+	><span id="local-6989586621681827956"
+	  ><span id="local-6989586621681827961"
+	    ><span id="local-6989586621681827963"
+	      ><span id="local-6989586621681827966"
+		><span id="local-6989586621681827969"
+		  ><span id="local-6989586621681827972"
+		    ><span id="local-6989586621681827975"
+		      ><span id="local-6989586621681827978"
+			><span id="local-6989586621681827981"
+			  ><span id="local-6989586621681827983"
+			    ><span id="local-6989586621681827986"
+			      ><span id="local-6989586621681827991"
+				><span id="local-6989586621681827996"
+				  ><span id="local-6989586621681828001"
+				    ><span id="local-6989586621681828006"
+				      ><span class="annot"
+					><span class="annottext"
+					  >(forall m. Monoid m =&gt; BuiltinResult m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. BuiltinResult a -&gt; [a])
+-&gt; (forall a. BuiltinResult a -&gt; Bool)
+-&gt; (forall a. BuiltinResult a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. Ord a =&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. Num a =&gt; BuiltinResult a -&gt; a)
+-&gt; (forall a. Num a =&gt; BuiltinResult a -&gt; a)
+-&gt; Foldable BuiltinResult
+forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool
+forall a. Num a =&gt; BuiltinResult a -&gt; a
+forall a. Ord a =&gt; BuiltinResult a -&gt; a
+forall m. Monoid m =&gt; BuiltinResult m -&gt; m
+forall a. BuiltinResult a -&gt; Bool
+forall a. BuiltinResult a -&gt; Int
+forall a. BuiltinResult a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall m. Monoid m =&gt; BuiltinResult m -&gt; m
+fold :: forall m. Monoid m =&gt; BuiltinResult m -&gt; m
+$cfoldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+$cfoldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; BuiltinResult a -&gt; m
+$cfoldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; BuiltinResult a -&gt; b
+$cfoldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+$cfoldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; BuiltinResult a -&gt; a
+$ctoList :: forall a. BuiltinResult a -&gt; [a]
+toList :: forall a. BuiltinResult a -&gt; [a]
+$cnull :: forall a. BuiltinResult a -&gt; Bool
+null :: forall a. BuiltinResult a -&gt; Bool
+$clength :: forall a. BuiltinResult a -&gt; Int
+length :: forall a. BuiltinResult a -&gt; Int
+$celem :: forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; BuiltinResult a -&gt; Bool
+$cmaximum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+maximum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+$cminimum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+minimum :: forall a. Ord a =&gt; BuiltinResult a -&gt; a
+$csum :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+sum :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+$cproduct :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+product :: forall a. Num a =&gt; BuiltinResult a -&gt; a
+</span
+					  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+					    >Foldable</span
+					    ></a
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#MonadFail"
+	><span class="hs-identifier hs-type"
+	  >MonadFail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828018"
+      ><span class="annot"
+	><span class="annottext"
+	  >fail :: forall a. String -&gt; BuiltinResult a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >fail</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828019"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621681828019"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DList Text
+forall a. a -&gt; DList a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; DList Text) -&gt; Text -&gt; DList Text
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Text
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#pack"
+	><span class="hs-identifier hs-var"
+	  >Text.pack</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621681828019"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinEvaluationFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinEvaluationFailure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.Fail.html#fail"
+	><span class="hs-pragma hs-type"
+	  >fail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681828023"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#UnliftingError"
+	  ><span class="hs-identifier hs-type"
+	    >UnliftingError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828035"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. UnliftingError -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681828035"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#MkUnliftingError"
+	><span class="hs-identifier hs-type"
+	  >MkUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828037"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681828037"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc ann] -&gt; Doc ann
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Could not unlift a value:&quot;</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall ann. Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#hardline"
+	><span class="hs-identifier hs-var"
+	  >hardline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681828037"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="local-6989586621681828041"
+      ><span id="local-6989586621681828048"
+	><span class="hs-keyword"
+	  >deriving</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-keyword"
+	    >newtype</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-keyword"
+	  >instance</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	    ><span class="hs-identifier hs-type"
+	      >Pretty</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Result.html#UnliftingEvaluationError"
+	    ><span class="hs-identifier hs-type"
+	      >UnliftingEvaluationError</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681828056"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828062"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. BuiltinError -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingEvaluationError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinUnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828063"
+      ><span class="annot"
+	><span class="annottext"
+	  >UnliftingEvaluationError
+</span
+	  ><a href="#local-6989586621681828063"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Builtin evaluation failure:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UnliftingEvaluationError -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. UnliftingEvaluationError -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UnliftingEvaluationError
+</span
+	><a href="#local-6989586621681828063"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinEvaluationFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinEvaluationFailure</span
+	  ></a
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Builtin evaluation failure&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [INLINE and OPAQUE on error-related definitions]
+We mark error-related definitions such as prisms like 'structuralUnliftingError' and regular
+functions like 'notAConstant' with @INLINE@, because this produces significantly less cluttered
+GHC Core. Not doing so results in 20+% larger Core for builtins.
+
+However in a few specific cases we use @OPAQUE@ instead to get tighter Core. @OPAQUE@ is the
+same as @NOINLINE@ except the former _actually_ prevents GHC from inlining the definition unlike the
+former. See this for details: https://github.com/ghc-proposals/ghc-proposals/blob/5577fd008924de8d89cfa9855fa454512e7dcc75/proposals/0415-opaque-pragma.rst
+
+It's hard to predict where @OPAQUE@ instead of @INLINE@ will help to make GHC Core tidier, so it's
+mostly just looking into the Core and seeing where there's obvious duplication that can be removed.
+Such cases tend to be functions returning a value of a concrete error type (as opposed to a type
+variable).
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Ignoring context in OperationalError].</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span class="hs-comment"
+      >-- | Construct a prism focusing on the @*EvaluationFailure@ part of @err@ by taking</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span class="hs-comment"
+      >-- that @*EvaluationFailure@ and</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span class="hs-comment"
+      >-- 1. pretty-printing and embedding it into an 'UnliftingError' for the setter part of the prism</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span class="hs-comment"
+      >-- 2. returning it directly for the opposite direction (there's no other way to convert an</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span class="hs-comment"
+      >--    'UnliftingError' to an evaluation failure, since the latter doesn't carry any content)</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span class="hs-comment"
+      >-- This is useful for providing 'AsUnliftingError' instances for types such as 'CkUserError' and</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span class="hs-comment"
+      >-- 'CekUserError'.</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#operationalUnliftingError"
+	><span class="hs-identifier hs-type"
+	  >operationalUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span id="operationalUnliftingError"
+      ><span class="annot"
+	><span class="annottext"
+	  >operationalUnliftingError :: Text -&gt; BuiltinError
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#operationalUnliftingError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >operationalUnliftingError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UnliftingEvaluationError -&gt; BuiltinError
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingEvaluationError"
+	><span class="hs-identifier hs-var"
+	  >BuiltinUnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UnliftingEvaluationError -&gt; BuiltinError)
+-&gt; (Text -&gt; UnliftingEvaluationError) -&gt; Text -&gt; BuiltinError
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationError UnliftingError UnliftingError
+-&gt; UnliftingEvaluationError
+</span
+	><a href="PlutusCore.Builtin.Result.html#MkUnliftingEvaluationError"
+	><span class="hs-identifier hs-var"
+	  >MkUnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(EvaluationError UnliftingError UnliftingError
+ -&gt; UnliftingEvaluationError)
+-&gt; (Text -&gt; EvaluationError UnliftingError UnliftingError)
+-&gt; Text
+-&gt; UnliftingEvaluationError
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UnliftingError -&gt; EvaluationError UnliftingError UnliftingError
+forall structural operational.
+operational -&gt; EvaluationError structural operational
+</span
+	><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-var"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UnliftingError -&gt; EvaluationError UnliftingError UnliftingError)
+-&gt; (Text -&gt; UnliftingError)
+-&gt; Text
+-&gt; EvaluationError UnliftingError UnliftingError
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; UnliftingError
+</span
+	><a href="PlutusCore.Builtin.Result.html#MkUnliftingError"
+	><span class="hs-identifier hs-var"
+	  >MkUnliftingError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#operationalUnliftingError"
+	><span class="hs-pragma hs-type"
+	  >operationalUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#structuralUnliftingError"
+	><span class="hs-identifier hs-type"
+	  >structuralUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span id="structuralUnliftingError"
+      ><span class="annot"
+	><span class="annottext"
+	  >structuralUnliftingError :: Text -&gt; BuiltinError
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#structuralUnliftingError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >structuralUnliftingError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UnliftingEvaluationError -&gt; BuiltinError
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingEvaluationError"
+	><span class="hs-identifier hs-var"
+	  >BuiltinUnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UnliftingEvaluationError -&gt; BuiltinError)
+-&gt; (Text -&gt; UnliftingEvaluationError) -&gt; Text -&gt; BuiltinError
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>EvaluationError UnliftingError UnliftingError
+-&gt; UnliftingEvaluationError
+</span
+	><a href="PlutusCore.Builtin.Result.html#MkUnliftingEvaluationError"
+	><span class="hs-identifier hs-var"
+	  >MkUnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(EvaluationError UnliftingError UnliftingError
+ -&gt; UnliftingEvaluationError)
+-&gt; (Text -&gt; EvaluationError UnliftingError UnliftingError)
+-&gt; Text
+-&gt; UnliftingEvaluationError
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UnliftingError -&gt; EvaluationError UnliftingError UnliftingError
+forall structural operational.
+structural -&gt; EvaluationError structural operational
+</span
+	><a href="PlutusCore.Evaluation.Error.html#StructuralError"
+	><span class="hs-identifier hs-var"
+	  >StructuralError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UnliftingError -&gt; EvaluationError UnliftingError UnliftingError)
+-&gt; (Text -&gt; UnliftingError)
+-&gt; Text
+-&gt; EvaluationError UnliftingError UnliftingError
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; UnliftingError
+</span
+	><a href="PlutusCore.Builtin.Result.html#MkUnliftingError"
+	><span class="hs-identifier hs-var"
+	  >MkUnliftingError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#structuralUnliftingError"
+	><span class="hs-pragma hs-type"
+	  >structuralUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#notAConstant"
+	><span class="hs-identifier hs-type"
+	  >notAConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span id="notAConstant"
+      ><span class="annot"
+	><span class="annottext"
+	  >notAConstant :: BuiltinError
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#notAConstant"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >notAConstant</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; BuiltinError
+</span
+	><a href="PlutusCore.Builtin.Result.html#structuralUnliftingError"
+	><span class="hs-identifier hs-var"
+	  >structuralUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Not a constant&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#notAConstant"
+	><span class="hs-pragma hs-type"
+	  >notAConstant</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#underTypeError"
+	><span class="hs-identifier hs-type"
+	  >underTypeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span id="underTypeError"
+      ><span class="annot"
+	><span class="annottext"
+	  >underTypeError :: BuiltinError
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#underTypeError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >underTypeError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; BuiltinError
+</span
+	><a href="PlutusCore.Builtin.Result.html#structuralUnliftingError"
+	><span class="hs-identifier hs-var"
+	  >structuralUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Panic: 'TypeError' was bypassed&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#underTypeError"
+	><span class="hs-pragma hs-type"
+	  >underTypeError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Add a log line to the logs.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#emit"
+	><span class="hs-identifier hs-type"
+	  >emit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span id="emit"
+      ><span class="annot"
+	><span class="annottext"
+	  >emit :: Text -&gt; BuiltinResult ()
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#emit"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >emit</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828068"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681828068"
+	  ><span class="hs-identifier hs-var"
+	    >txt</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; () -&gt; BuiltinResult ()
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DList Text
+forall a. a -&gt; DList a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681828068"
+	><span class="hs-identifier hs-var"
+	  >txt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#emit"
+	><span class="hs-pragma hs-type"
+	  >emit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Prepend logs to a 'BuiltinResult' computation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span id="local-6989586621681827734"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#withLogs"
+	  ><span class="hs-identifier hs-type"
+	    >withLogs</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/dlist-1.0/docs/src/Data.DList.Internal.html#DList"
+	  ><span class="hs-identifier hs-type"
+	    >DList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	  ><span class="hs-identifier hs-type"
+	    >Text</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinResult</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681827734"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinResult</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681827734"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span id="withLogs"
+      ><span class="annot"
+	><span class="annottext"
+	  >withLogs :: forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#withLogs"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withLogs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828072"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828072"
+	  ><span class="hs-identifier hs-var"
+	    >logs1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828073"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828073"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >               </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; a -&gt; BuiltinResult a
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828072"
+	><span class="hs-identifier hs-var"
+	  >logs1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828073"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828074"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828074"
+	  ><span class="hs-identifier hs-var"
+	    >logs2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828075"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828075"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; a -&gt; BuiltinResult a
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828072"
+	><span class="hs-identifier hs-var"
+	  >logs1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; DList Text -&gt; DList Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828074"
+	><span class="hs-identifier hs-var"
+	  >logs2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828075"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-type"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828076"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828076"
+	  ><span class="hs-identifier hs-var"
+	    >logs2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828077"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828077"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828072"
+	><span class="hs-identifier hs-var"
+	  >logs1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; DList Text -&gt; DList Text
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828076"
+	><span class="hs-identifier hs-var"
+	  >logs2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828077"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#withLogs"
+	><span class="hs-pragma hs-type"
+	  >withLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	><span class="hs-identifier hs-type"
+	  >Functor</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828082"
+      ><span class="annot"
+	><span class="annottext"
+	  >fmap :: forall a b. (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >fmap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828083"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621681828083"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828084"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828084"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; BuiltinResult b
+forall a. a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621681828083"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828084"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828085"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621681828085"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828086"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828086"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828087"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828087"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; b -&gt; BuiltinResult b
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828086"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621681828085"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828087"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-type"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828088"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828088"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828089"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828089"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828088"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828089"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-pragma hs-type"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Written out explicitly just in case.</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828090"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828090"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828091"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;$ :: forall a b. a -&gt; BuiltinResult b -&gt; BuiltinResult a
+</span
+	  ><a href="#local-6989586621681828091"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >&lt;$</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >              </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinResult a
+forall a. a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828090"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828093"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828093"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828094"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828094"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; a -&gt; BuiltinResult a
+forall a. DList Text -&gt; a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828094"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828093"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-type"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828095"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828095"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828096"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828096"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828095"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828096"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;$</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681828102"
+      ><span id="local-6989586621681828107"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Applicative"
+	    ><span class="hs-identifier hs-type"
+	      >Applicative</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	    ><span class="hs-identifier hs-type"
+	      >BuiltinResult</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828110"
+      ><span class="annot"
+	><span class="annottext"
+	  >pure :: forall a. a -&gt; BuiltinResult a
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinResult a
+forall a. a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-var"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-pragma hs-type"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828113"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621681828113"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span id="local-6989586621681828114"
+      ><span class="annot"
+	><span class="annottext"
+	  >&lt;*&gt; :: forall a b.
+BuiltinResult (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >&lt;*&gt;</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828115"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinResult a
+</span
+	  ><a href="#local-6989586621681828115"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621681828113"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult a
+</span
+	><a href="#local-6989586621681828115"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828116"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828116"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828117"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621681828117"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828118"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinResult a
+</span
+	  ><a href="#local-6989586621681828118"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#withLogs"
+	><span class="hs-identifier hs-var"
+	  >withLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828116"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinResult b -&gt; BuiltinResult b)
+-&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; BuiltinResult a -&gt; BuiltinResult b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621681828117"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult a
+</span
+	><a href="#local-6989586621681828118"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-type"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828119"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828119"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828120"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828120"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828119"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828120"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&lt;*&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Better than the default implementation, because the value in the 'BuiltinSuccess' case</span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- doesn't need to be retained.</span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >              </span
+      ><span id="local-6989586621681828121"
+      ><span class="annot"
+	><span class="annottext"
+	  >*&gt; :: forall a b. BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >*&gt;</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828122"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinResult b
+</span
+	  ><a href="#local-6989586621681828122"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult b
+</span
+	><a href="#local-6989586621681828122"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828123"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828123"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828124"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinResult b
+</span
+	  ><a href="#local-6989586621681828124"
+	  ><span class="hs-identifier hs-var"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#withLogs"
+	><span class="hs-identifier hs-var"
+	  >withLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828123"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult b
+</span
+	><a href="#local-6989586621681828124"
+	><span class="hs-identifier hs-var"
+	  >b</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-type"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828125"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828125"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828126"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828126"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828125"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828126"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >*&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681828132"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+	  ><span class="hs-identifier hs-type"
+	    >Monad</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinResult</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccess"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccess</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828135"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828135"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >              </span
+      ><span id="local-6989586621681828136"
+      ><span class="annot"
+	><span class="annottext"
+	  >&gt;&gt;= :: forall a b.
+BuiltinResult a -&gt; (a -&gt; BuiltinResult b) -&gt; BuiltinResult b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >&gt;&gt;=</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828137"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; BuiltinResult b
+</span
+	  ><a href="#local-6989586621681828137"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinResult b
+</span
+	><a href="#local-6989586621681828137"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828135"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinSuccessWithLogs"
+	><span class="hs-identifier hs-type"
+	  >BuiltinSuccessWithLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828138"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828138"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828139"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681828139"
+	  ><span class="hs-identifier hs-var"
+	    >x</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828140"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; BuiltinResult b
+</span
+	  ><a href="#local-6989586621681828140"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinResult a -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#withLogs"
+	><span class="hs-identifier hs-var"
+	  >withLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828138"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinResult b -&gt; BuiltinResult b)
+-&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinResult b
+</span
+	><a href="#local-6989586621681828140"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681828139"
+	><span class="hs-identifier hs-var"
+	  >x</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-type"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828141"
+      ><span class="annot"
+	><span class="annottext"
+	  >DList Text
+</span
+	  ><a href="#local-6989586621681828141"
+	  ><span class="hs-identifier hs-var"
+	    >logs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828142"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828142"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E%3D"
+	><span class="hs-operator hs-var"
+	  >&gt;&gt;=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; BuiltinResult b
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult b
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828141"
+	><span class="hs-identifier hs-var"
+	  >logs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828142"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;&gt;=</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828144"
+      ><span class="annot"
+	><span class="annottext"
+	  >&gt;&gt; :: forall a b. BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+</span
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3E%3E"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >(&gt;&gt;)</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall a b. BuiltinResult a -&gt; BuiltinResult b -&gt; BuiltinResult b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%2A%3E"
+	><span class="hs-operator hs-var"
+	  >(*&gt;)</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >(</span
+      ><span class="hs-pragma"
+      >&gt;&gt;</span
+      ><span class="hs-pragma"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span class="hs-comment"
+      >-- | 'throwError' puts every operational unlifting error into the 'BuiltinFailure' logs. This is to</span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span class="hs-comment"
+      >-- compensate for the historical lack of error message content in operational errors (structural</span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span class="hs-comment"
+      >-- ones don't have this problem) in our evaluators (the CK and CEK machines). It would be better to</span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span class="hs-comment"
+      >-- fix the underlying issue and allow operational evaluation errors to carry some form of content,</span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span class="hs-comment"
+      >-- but for now we just fix the symptom in order for the end user to see the error message that they</span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span class="hs-comment"
+      >-- are supposed to see. The fix even makes some sense: what we do here is we emulate logging when</span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span class="hs-comment"
+      >-- the thrown unlifting error is an operational one, i.e. this is similar to what some builtins do</span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span class="hs-comment"
+      >-- manually (like when a crypto builtin fails and puts info about the failure into the logs).</span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	><span class="hs-identifier hs-type"
+	  >MonadError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	><span class="hs-identifier hs-type"
+	  >BuiltinResult</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828152"
+      ><span class="annot"
+	><span class="annottext"
+	  >throwError :: forall a. BuiltinError -&gt; BuiltinResult a
+</span
+	  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >throwError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828153"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828153"
+	  ><span class="hs-identifier hs-var"
+	    >builtinErr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><a href="#local-6989586621681828154"
+	><span class="hs-identifier hs-var"
+	  >operationalLogs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828153"
+	><span class="hs-identifier hs-var"
+	  >builtinErr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681828154"
+      ><span class="annot"
+	><span class="annottext"
+	  >operationalLogs :: DList Text
+</span
+	  ><a href="#local-6989586621681828154"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >operationalLogs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828153"
+	><span class="hs-identifier hs-var"
+	  >builtinErr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinUnliftingEvaluationError"
+	><span class="hs-identifier hs-type"
+	  >BuiltinUnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >                </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#MkUnliftingEvaluationError"
+	><span class="hs-identifier hs-type"
+	  >MkUnliftingEvaluationError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >                    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Error.html#OperationalError"
+	><span class="hs-identifier hs-type"
+	  >OperationalError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >                        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#MkUnliftingError"
+	><span class="hs-identifier hs-type"
+	  >MkUnliftingError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828161"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621681828161"
+	  ><span class="hs-identifier hs-var"
+	    >operationalErr</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; DList Text
+forall a. a -&gt; DList a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621681828161"
+	><span class="hs-identifier hs-var"
+	  >operationalErr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-pragma hs-type"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Throwing logs out is lame, but embedding them into the error would be weird, since that</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- would change the error. Not that any of that matters, we only implement this because it's a</span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- method of 'MonadError' and we can't not implement it.</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- We could make it @MonadError (DList Text, BuiltinError)@, but logs are arbitrary and are not</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- necessarily an inherent part of an error, so preserving them is as questionable as not doing</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- so.</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-type"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828162"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError
+</span
+	  ><a href="#local-6989586621681828162"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828163"
+      ><span class="annot"
+	><span class="annottext"
+	  >catchError :: forall a.
+BuiltinResult a
+-&gt; (BuiltinError -&gt; BuiltinResult a) -&gt; BuiltinResult a
+</span
+	  ><a href="#local-6989586621681828163"
+	  ><span class="hs-operator hs-var hs-var hs-var hs-var"
+	    >`catchError`</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681828165"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinError -&gt; BuiltinResult a
+</span
+	  ><a href="#local-6989586621681828165"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="#local-6989586621681828165"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="#local-6989586621681828162"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681828166"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinResult a
+</span
+	  ><a href="#local-6989586621681828166"
+	  ><span class="hs-identifier hs-var"
+	    >res</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >                  </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#catchError"
+	><span class="hs-operator hs-var"
+	  >`catchError`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError -&gt; BuiltinResult a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinResult a
+</span
+	><a href="#local-6989586621681828166"
+	><span class="hs-identifier hs-var"
+	  >res</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#catchError"
+	><span class="hs-pragma hs-type"
+	  >catchError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span id="local-6989586621681827778"
+      ><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#builtinResultFailure"
+	  ><span class="hs-identifier hs-type"
+	    >builtinResultFailure</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Builtin.Result.html#BuiltinResult"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinResult</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621681827778"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span id="builtinResultFailure"
+      ><span class="annot"
+	><span class="annottext"
+	  >builtinResultFailure :: forall a. BuiltinResult a
+</span
+	  ><a href="PlutusCore.Builtin.Result.html#builtinResultFailure"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >builtinResultFailure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+forall a. DList Text -&gt; BuiltinError -&gt; BuiltinResult a
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DList Text
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinError
+</span
+	><a href="PlutusCore.Builtin.Result.html#BuiltinEvaluationFailure"
+	><span class="hs-identifier hs-var"
+	  >BuiltinEvaluationFailure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Builtin.Result.html#builtinResultFailure"
+	><span class="hs-pragma hs-type"
+	  >builtinResultFailure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

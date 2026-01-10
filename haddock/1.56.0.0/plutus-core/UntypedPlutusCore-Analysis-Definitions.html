@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Analysis.Definitions</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Analysis.Definitions.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Analysis.Definitions</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Definition analysis for untyped Plutus Core.
+This just adapts term-related code from PlutusCore.Analysis.Definitions;
+we just re-use the typed machinery to do the hard work here. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:termDefs"
+	      >termDefs</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > ann, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+	      >MonadState</a
+	      > (<a href="PlutusCore-Analysis-Definitions.html#t:UniqueInfos" title="PlutusCore.Analysis.Definitions"
+	      >UniqueInfos</a
+	      > ann) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	      >MonadWriter</a
+	      > [<a href="PlutusCore-Error.html#t:UniqueError" title="PlutusCore.Error"
+	      >UniqueError</a
+	      > ann] m) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:runTermDefs"
+	      >runTermDefs</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	      >Ord</a
+	      > ann, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	      >Monad</a
+	      > m) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	      >Term</a
+	      > name uni fun ann &#8594; m (<a href="PlutusCore-Analysis-Definitions.html#t:UniqueInfos" title="PlutusCore.Analysis.Definitions"
+	      >UniqueInfos</a
+	      > ann, [<a href="PlutusCore-Error.html#t:UniqueError" title="PlutusCore.Error"
+	      >UniqueError</a
+	      > ann])</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:termDefs" class="def"
+	    >termDefs</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > ann, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-State-Class.html#t:MonadState" title="Control.Monad.State.Class"
+	    >MonadState</a
+	    > (<a href="PlutusCore-Analysis-Definitions.html#t:UniqueInfos" title="PlutusCore.Analysis.Definitions"
+	    >UniqueInfos</a
+	    > ann) m, <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Writer-Class.html#t:MonadWriter" title="Control.Monad.Writer.Class"
+	    >MonadWriter</a
+	    > [<a href="PlutusCore-Error.html#t:UniqueError" title="PlutusCore.Error"
+	    >UniqueError</a
+	    > ann] m) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann &#8594; m () <a href="src/UntypedPlutusCore.Analysis.Definitions.html#termDefs" class="link"
+	    >Source</a
+	    > <a href="#v:termDefs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Given a UPLC term, add all of its term definitions and usages, including its subterms,
+to a global map. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTermDefs" class="def"
+	    >runTermDefs</a
+	    > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+	    >Ord</a
+	    > ann, <a href="PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Monad.html#t:Monad" title="Control.Monad"
+	    >Monad</a
+	    > m) &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+	    >Term</a
+	    > name uni fun ann &#8594; m (<a href="PlutusCore-Analysis-Definitions.html#t:UniqueInfos" title="PlutusCore.Analysis.Definitions"
+	    >UniqueInfos</a
+	    > ann, [<a href="PlutusCore-Error.html#t:UniqueError" title="PlutusCore.Error"
+	    >UniqueError</a
+	    > ann]) <a href="src/UntypedPlutusCore.Analysis.Definitions.html#runTermDefs" class="link"
+	    >Source</a
+	    > <a href="#v:runTermDefs" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,587 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >UntypedPlutusCore.Rename</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.51.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/UntypedPlutusCore.Rename.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>UntypedPlutusCore.Rename</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >The user-facing API of the untyped renamer.
+ See PlutusCore.Rename for details.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:Rename"
+	      >Rename</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:rename"
+		  >rename</a
+		  > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		  >MonadQuote</a
+		  > m &#8658; a &#8594; m a</li
+		></ul
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:Rename" class="def"
+	    >Rename</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusCore.Rename.html#Rename" class="link"
+	    >Source</a
+	    > <a href="#t:Rename" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The class of things that can be renamed.
+ I.e. things that are capable of satisfying the global uniqueness condition.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:rename" class="def"
+	      >rename</a
+	      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; a &#8594; m a <a href="src/PlutusCore.Rename.html#rename" class="link"
+	      >Source</a
+	      > <a href="#v:rename" class="selflink"
+	      >#</a
+	      ></p
+	    ><div class="doc"
+	    ><p
+	      >Rename <code
+		><a href="PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		  >Unique</a
+		  ></code
+		>s so that they're globally unique.
+ In case there are any free variables, they must be left untouched and bound variables
+ must not get renamed to free ones.
+ Must always assign new names to bound variables,
+ so that <code
+		>rename</code
+		> can be used for alpha-renaming as well.</p
+	      ></div
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Rename"
+	    >Instances</h4
+	    ><details id="i:Rename" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Rename:Rename:1"
+		      ></span
+		      > <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		      >Rename</a
+		      > a &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		      >Rename</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+		      >Normalized</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Rename.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:Rename" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Rename:Rename:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename.html"
+			>PlutusCore.Rename</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rename"
+			  >rename</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+			  >MonadQuote</a
+			  > m &#8658; <a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+			  >Normalized</a
+			  > a &#8594; m (<a href="PlutusCore-Core-Type.html#t:Normalized" title="PlutusCore.Core.Type"
+			  >Normalized</a
+			  > a) <a href="src/PlutusCore.Rename.html#rename" class="link"
+			  >Source</a
+			  > <a href="#v:rename" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Rename:Rename:2"
+		      ></span
+		      > <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		      >HasUniques</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		      >Type</a
+		      > tyname uni ann) &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		      >Rename</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		      >Type</a
+		      > tyname uni ann)</span
+		    > <a href="src/PlutusCore.Rename.html#line-55" class="link"
+		    >Source</a
+		    > <a href="#t:Rename" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Rename:Rename:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename.html"
+			>PlutusCore.Rename</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rename"
+			  >rename</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+			  >MonadQuote</a
+			  > m &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+			  >Type</a
+			  > tyname uni ann) <a href="src/PlutusCore.Rename.html#rename" class="link"
+			  >Source</a
+			  > <a href="#v:rename" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Rename:Rename:3"
+		      ></span
+		      > <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		      >HasUniques</a
+		      > (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		      >Program</a
+		      > name uni fun ann) &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		      >Rename</a
+		      > (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		      >Program</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Rename.html#line-25" class="link"
+		    >Source</a
+		    > <a href="#t:Rename" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Rename:Rename:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Rename.html"
+			>UntypedPlutusCore.Rename</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rename"
+			  >rename</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+			  >MonadQuote</a
+			  > m &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > name uni fun ann &#8594; m (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+			  >Program</a
+			  > name uni fun ann) <a href="src/PlutusCore.Rename.html#rename" class="link"
+			  >Source</a
+			  > <a href="#v:rename" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Rename:Rename:4"
+		      ></span
+		      > <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		      >HasUniques</a
+		      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		      >Term</a
+		      > name uni fun ann) &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		      >Rename</a
+		      > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		      >Term</a
+		      > name uni fun ann)</span
+		    > <a href="src/UntypedPlutusCore.Rename.html#line-21" class="link"
+		    >Source</a
+		    > <a href="#t:Rename" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Rename:Rename:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="UntypedPlutusCore-Rename.html"
+			>UntypedPlutusCore.Rename</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rename"
+			  >rename</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+			  >MonadQuote</a
+			  > m &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann &#8594; m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+			  >Term</a
+			  > name uni fun ann) <a href="src/PlutusCore.Rename.html#rename" class="link"
+			  >Source</a
+			  > <a href="#v:rename" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Rename:Rename:5"
+		      ></span
+		      > <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		      >HasUniques</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+		      >Program</a
+		      > tyname name uni fun ann) &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		      >Rename</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+		      >Program</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusCore.Rename.html#line-63" class="link"
+		    >Source</a
+		    > <a href="#t:Rename" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Rename:Rename:5"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename.html"
+			>PlutusCore.Rename</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rename"
+			  >rename</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+			  >MonadQuote</a
+			  > m &#8658; <a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+			  >Program</a
+			  > tyname name uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Program" title="PlutusCore.Core.Type"
+			  >Program</a
+			  > tyname name uni fun ann) <a href="src/PlutusCore.Rename.html#rename" class="link"
+			  >Source</a
+			  > <a href="#v:rename" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Rename:Rename:6"
+		      ></span
+		      > <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		      >HasUniques</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > tyname name uni fun ann) &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		      >Rename</a
+		      > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		      >Term</a
+		      > tyname name uni fun ann)</span
+		    > <a href="src/PlutusCore.Rename.html#line-59" class="link"
+		    >Source</a
+		    > <a href="#t:Rename" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Rename:Rename:6"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Rename.html"
+			>PlutusCore.Rename</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:rename"
+			  >rename</a
+			  > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+			  >MonadQuote</a
+			  > m &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann &#8594; m (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+			  >Term</a
+			  > tyname name uni fun ann) <a href="src/PlutusCore.Rename.html#rename" class="link"
+			  >Source</a
+			  > <a href="#v:rename" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Rename:Rename:1"
+		  ></span
+		  > <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		  >HasUniques</a
+		  > (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		  >Program</a
+		  > name uni fun ann) &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		  >Rename</a
+		  > (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		  >Program</a
+		  > name uni fun ann)</span
+		> <a href="src/UntypedPlutusCore.Rename.html#line-25" class="link"
+		>Source</a
+		> <a href="#v:-36-fRenameProgram" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Rename:Rename:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:rename"
+		      >rename</a
+		      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		      >Program</a
+		      > name uni fun ann &#8594; m (<a href="UntypedPlutusCore-Core-Type.html#t:Program" title="UntypedPlutusCore.Core.Type"
+		      >Program</a
+		      > name uni fun ann) <a href="src/PlutusCore.Rename.html#rename" class="link"
+		      >Source</a
+		      > <a href="#v:rename" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Rename:Rename:2"
+		  ></span
+		  > <a href="PlutusCore-Core-Type.html#t:HasUniques" title="PlutusCore.Core.Type"
+		  >HasUniques</a
+		  > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun ann) &#8658; <a href="UntypedPlutusCore-Rename.html#t:Rename" title="UntypedPlutusCore.Rename"
+		  >Rename</a
+		  > (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		  >Term</a
+		  > name uni fun ann)</span
+		> <a href="src/UntypedPlutusCore.Rename.html#line-21" class="link"
+		>Source</a
+		> <a href="#v:-36-fRenameTerm" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Rename:Rename:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:rename"
+		      >rename</a
+		      > &#8759; <a href="PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+		      >MonadQuote</a
+		      > m &#8658; <a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		      >Term</a
+		      > name uni fun ann &#8594; m (<a href="UntypedPlutusCore-Core-Type.html#t:Term" title="UntypedPlutusCore.Core.Type"
+		      >Term</a
+		      > name uni fun ann) <a href="src/PlutusCore.Rename.html#rename" class="link"
+		      >Source</a
+		      > <a href="#v:rename" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

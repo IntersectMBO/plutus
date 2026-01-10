@@ -1,0 +1,216 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE AllowAmbiguousTypes #-}
+<span class="lineno">    3 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    4 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    5 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    6 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    7 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    8 </span>{-# OPTIONS_GHC -Wall #-}
+<span class="lineno">    9 </span>-- FIXME (https://github.com/IntersectMBO/plutus-private/issues/1796)
+<span class="lineno">   10 </span>{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>module Raw where
+<span class="lineno">   13 </span>
+<span class="lineno">   14 </span>import Data.Text qualified as T
+<span class="lineno">   15 </span>import PlutusCore
+<span class="lineno">   16 </span>import PlutusCore.DeBruijn
+<span class="lineno">   17 </span>
+<span class="lineno">   18 </span>import PlutusCore.Error (ParserErrorBundle)
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>data KIND = Star | Sharp | Arrow KIND KIND
+<span class="lineno">   21 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>data RType
+<span class="lineno">   24 </span>  = RTyVar Integer
+<span class="lineno">   25 </span>  | RTyFun RType RType
+<span class="lineno">   26 </span>  | RTyPi KIND RType
+<span class="lineno">   27 </span>  | RTyLambda KIND RType
+<span class="lineno">   28 </span>  | RTyApp RType RType
+<span class="lineno">   29 </span>  | RTyCon RTyCon
+<span class="lineno">   30 </span>  | RTyMu RType RType
+<span class="lineno">   31 </span>  | RTySOP [[RType]]
+<span class="lineno">   32 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   33 </span>
+<span class="lineno">   34 </span>data AtomicTyCon
+<span class="lineno">   35 </span>  = ATyConInt
+<span class="lineno">   36 </span>  | ATyConBS
+<span class="lineno">   37 </span>  | ATyConStr
+<span class="lineno">   38 </span>  | ATyConUnit
+<span class="lineno">   39 </span>  | ATyConBool
+<span class="lineno">   40 </span>  | ATyConData
+<span class="lineno">   41 </span>  | ATyConBLS12_381_G1_Element
+<span class="lineno">   42 </span>  | ATyConBLS12_381_G2_Element
+<span class="lineno">   43 </span>  | ATyConBLS12_381_MlResult
+<span class="lineno">   44 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   45 </span>
+<span class="lineno">   46 </span>data RTyCon
+<span class="lineno">   47 </span>  = RTyConAtom AtomicTyCon
+<span class="lineno">   48 </span>  | RTyConList
+<span class="lineno">   49 </span>  | RTyConArray
+<span class="lineno">   50 </span>  | RTyConPair
+<span class="lineno">   51 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>data RTerm
+<span class="lineno">   54 </span>  = RVar Integer
+<span class="lineno">   55 </span>  | RTLambda KIND RTerm
+<span class="lineno">   56 </span>  | RTApp RTerm RType
+<span class="lineno">   57 </span>  | RLambda RType RTerm
+<span class="lineno">   58 </span>  | RApp RTerm RTerm
+<span class="lineno">   59 </span>  | RCon (Some (ValueOf DefaultUni))
+<span class="lineno">   60 </span>  | RError RType
+<span class="lineno">   61 </span>  | RBuiltin DefaultFun
+<span class="lineno">   62 </span>  | RWrap RType RType RTerm
+<span class="lineno">   63 </span>  | RUnWrap RTerm
+<span class="lineno">   64 </span>  | RConstr RType Integer [RTerm]
+<span class="lineno">   65 </span>  | RCase RType RTerm [RTerm]
+<span class="lineno">   66 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">   67 </span>
+<span class="lineno">   68 </span>unIndex :: Index -&gt; Integer
+<span class="lineno">   69 </span><span class="decl"><span class="istickedoff">unIndex (Index n) = toInteger n</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>convP :: Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -&gt; RTerm
+<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">convP (Program _ _ t) = conv t</span></span>
+<span class="lineno">   73 </span>
+<span class="lineno">   74 </span>convK :: Kind a -&gt; KIND
+<span class="lineno">   75 </span><span class="decl"><span class="istickedoff">convK (Type _) = Star</span>
+<span class="lineno">   76 </span><span class="spaces"></span><span class="istickedoff">convK (KindArrow _ k k') = Arrow (convK k) (convK k')</span></span>
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>convT :: Type NamedTyDeBruijn DefaultUni a -&gt; RType
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">convT (TyVar _ (NamedTyDeBruijn x)) = RTyVar (unIndex (ndbnIndex x))</span>
+<span class="lineno">   80 </span><span class="spaces"></span><span class="istickedoff">convT (TyFun _ _A _B) = RTyFun (convT _A) (convT _B)</span>
+<span class="lineno">   81 </span><span class="spaces"></span><span class="istickedoff">convT (TyForall _ _ _K _A) = RTyPi (convK _K) (convT _A)</span>
+<span class="lineno">   82 </span><span class="spaces"></span><span class="istickedoff">convT (TyLam _ _ _K _A) = RTyLambda (convK _K) (convT _A)</span>
+<span class="lineno">   83 </span><span class="spaces"></span><span class="istickedoff">convT (TyApp _ _A _B) = RTyApp (convT _A) (convT _B)</span>
+<span class="lineno">   84 </span><span class="spaces"></span><span class="istickedoff">convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">RTyApp</span></span>
+<span class="lineno">   86 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(convT (TyBuiltin ann (SomeTypeIn f)))</span></span>
+<span class="lineno">   87 </span><span class="spaces">    </span><span class="istickedoff"><span class="nottickedoff">(convT (TyBuiltin ann (SomeTypeIn x)))</span></span>
+<span class="lineno">   88 </span><span class="spaces"></span><span class="istickedoff">convT (TyBuiltin _ someUni) = convTyCon someUni</span>
+<span class="lineno">   89 </span><span class="spaces"></span><span class="istickedoff">convT (TyIFix _ a b) = RTyMu (convT a) (convT b)</span>
+<span class="lineno">   90 </span><span class="spaces"></span><span class="istickedoff">convT (TySOP _ xss) = <span class="nottickedoff">RTySOP (map (map convT) xss)</span></span></span>
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>convTyCon :: SomeTypeIn DefaultUni -&gt; RType
+<span class="lineno">   93 </span><span class="decl"><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniInteger) = RTyCon (RTyConAtom ATyConInt)</span>
+<span class="lineno">   94 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniByteString) = RTyCon (RTyConAtom ATyConBS)</span>
+<span class="lineno">   95 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniString) = RTyCon (RTyConAtom ATyConStr)</span>
+<span class="lineno">   96 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniBool) = RTyCon (RTyConAtom ATyConBool)</span>
+<span class="lineno">   97 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniUnit) = RTyCon (RTyConAtom ATyConUnit)</span>
+<span class="lineno">   98 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniData) = RTyCon (RTyConAtom ATyConData)</span>
+<span class="lineno">   99 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = <span class="nottickedoff">RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)</span></span>
+<span class="lineno">  100 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = <span class="nottickedoff">RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)</span></span>
+<span class="lineno">  101 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult) = <span class="nottickedoff">RTyCon (RTyConAtom ATyConBLS12_381_MlResult)</span></span>
+<span class="lineno">  102 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniProtoList) = <span class="nottickedoff">RTyCon RTyConList</span></span>
+<span class="lineno">  103 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniProtoArray) = <span class="nottickedoff">RTyCon RTyConArray</span></span>
+<span class="lineno">  104 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn DefaultUniProtoPair) = <span class="nottickedoff">RTyCon RTyConPair</span></span>
+<span class="lineno">  105 </span><span class="spaces"></span><span class="istickedoff">convTyCon (SomeTypeIn (DefaultUniApply _ _)) = <span class="nottickedoff">error &quot;unsupported builtin type application&quot;</span></span></span>
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -&gt; RTerm
+<span class="lineno">  108 </span><span class="decl"><span class="istickedoff">conv (Var _ x) = RVar (unIndex (ndbnIndex x))</span>
+<span class="lineno">  109 </span><span class="spaces"></span><span class="istickedoff">conv (TyAbs _ _ _K t) = RTLambda (convK _K) (conv t)</span>
+<span class="lineno">  110 </span><span class="spaces"></span><span class="istickedoff">conv (TyInst _ t _A) = RTApp (conv t) (convT _A)</span>
+<span class="lineno">  111 </span><span class="spaces"></span><span class="istickedoff">conv (LamAbs _ _ _A t) = RLambda (convT _A) (conv t)</span>
+<span class="lineno">  112 </span><span class="spaces"></span><span class="istickedoff">conv (Apply _ t u) = RApp (conv t) (conv u)</span>
+<span class="lineno">  113 </span><span class="spaces"></span><span class="istickedoff">conv (Builtin _ b) = RBuiltin b</span>
+<span class="lineno">  114 </span><span class="spaces"></span><span class="istickedoff">conv (Constant _ c) = RCon c</span>
+<span class="lineno">  115 </span><span class="spaces"></span><span class="istickedoff">conv (Unwrap _ t) = RUnWrap (conv t)</span>
+<span class="lineno">  116 </span><span class="spaces"></span><span class="istickedoff">conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)</span>
+<span class="lineno">  117 </span><span class="spaces"></span><span class="istickedoff">conv (Error _ _A) = RError (convT _A)</span>
+<span class="lineno">  118 </span><span class="spaces"></span><span class="istickedoff">conv (Constr _ _A i cs) = <span class="nottickedoff">RConstr (convT _A) (toInteger i) (fmap conv cs)</span></span>
+<span class="lineno">  119 </span><span class="spaces"></span><span class="istickedoff">conv (Case _ _A arg cs) = <span class="nottickedoff">RCase (convT _A) (conv arg) (fmap conv cs)</span></span></span>
+<span class="lineno">  120 </span>
+<span class="lineno">  121 </span>varTm :: Int -&gt; NamedDeBruijn
+<span class="lineno">  122 </span><span class="decl"><span class="istickedoff">varTm i = NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex</span></span>
+<span class="lineno">  123 </span>
+<span class="lineno">  124 </span>varTy :: Int -&gt; NamedDeBruijn
+<span class="lineno">  125 </span><span class="decl"><span class="istickedoff">varTy i = NamedDeBruijn (T.pack [tynames !! i]) deBruijnInitIndex</span></span>
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>unconvK :: KIND -&gt; Kind ()
+<span class="lineno">  128 </span><span class="decl"><span class="istickedoff">unconvK (Arrow k k') = KindArrow () (unconvK k) (unconvK k')</span>
+<span class="lineno">  129 </span><span class="spaces"></span><span class="istickedoff">unconvK _ = Type ()</span></span>
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>-- this should take a level and render levels as names
+<span class="lineno">  132 </span>unconvT :: Int -&gt; RType -&gt; Type NamedTyDeBruijn DefaultUni ()
+<span class="lineno">  133 </span><span class="decl"><span class="istickedoff">unconvT i (RTyVar x) =</span>
+<span class="lineno">  134 </span><span class="spaces">  </span><span class="istickedoff">TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (fromInteger x))))</span>
+<span class="lineno">  135 </span><span class="spaces"></span><span class="istickedoff">unconvT i (RTyFun t u) = TyFun () (unconvT i t) (unconvT i u)</span>
+<span class="lineno">  136 </span><span class="spaces"></span><span class="istickedoff">unconvT i (RTyPi k t) =</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="istickedoff">TyForall () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i + 1) t)</span>
+<span class="lineno">  138 </span><span class="spaces"></span><span class="istickedoff">unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i + 1) t)</span>
+<span class="lineno">  139 </span><span class="spaces"></span><span class="istickedoff">unconvT i (RTyApp t u) = TyApp () (unconvT i t) (unconvT i u)</span>
+<span class="lineno">  140 </span><span class="spaces"></span><span class="istickedoff">unconvT _ (RTyCon c) = TyBuiltin () (unconvTyCon c)</span>
+<span class="lineno">  141 </span><span class="spaces"></span><span class="istickedoff">unconvT i (RTyMu t u) = TyIFix () (unconvT i t) (unconvT i u)</span>
+<span class="lineno">  142 </span><span class="spaces"></span><span class="istickedoff">unconvT i (RTySOP xss) = <span class="nottickedoff">TySOP () (map (map (unconvT i)) xss)</span></span></span>
+<span class="lineno">  143 </span>
+<span class="lineno">  144 </span>unconvTyCon :: RTyCon -&gt; SomeTypeIn DefaultUni
+<span class="lineno">  145 </span><span class="decl"><span class="istickedoff">unconvTyCon (RTyConAtom ATyConInt) = SomeTypeIn DefaultUniInteger</span>
+<span class="lineno">  146 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConBS) = SomeTypeIn DefaultUniByteString</span>
+<span class="lineno">  147 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConStr) = SomeTypeIn DefaultUniString</span>
+<span class="lineno">  148 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConBool) = SomeTypeIn DefaultUniBool</span>
+<span class="lineno">  149 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConUnit) = SomeTypeIn DefaultUniUnit</span>
+<span class="lineno">  150 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConData) = SomeTypeIn DefaultUniData</span>
+<span class="lineno">  151 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConBLS12_381_G1_Element) =</span>
+<span class="lineno">  152 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">SomeTypeIn DefaultUniBLS12_381_G1_Element</span></span>
+<span class="lineno">  153 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element) =</span>
+<span class="lineno">  154 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">SomeTypeIn DefaultUniBLS12_381_G2_Element</span></span>
+<span class="lineno">  155 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult) =</span>
+<span class="lineno">  156 </span><span class="spaces">  </span><span class="istickedoff"><span class="nottickedoff">SomeTypeIn DefaultUniBLS12_381_MlResult</span></span>
+<span class="lineno">  157 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon RTyConList = <span class="nottickedoff">SomeTypeIn DefaultUniProtoList</span></span>
+<span class="lineno">  158 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon RTyConArray = <span class="nottickedoff">SomeTypeIn DefaultUniProtoArray</span></span>
+<span class="lineno">  159 </span><span class="spaces"></span><span class="istickedoff">unconvTyCon RTyConPair = <span class="nottickedoff">SomeTypeIn DefaultUniProtoPair</span></span></span>
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>tmnames, tynames :: String
+<span class="lineno">  162 </span><span class="decl"><span class="istickedoff">tmnames = ['a' .. 'z']</span></span>
+<span class="lineno">  163 </span>-- tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
+<span class="lineno">  164 </span><span class="decl"><span class="istickedoff">tynames = ['A' .. 'Z']</span></span>
+<span class="lineno">  165 </span>
+<span class="lineno">  166 </span>unconv :: Int -&gt; RTerm -&gt; Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun ()
+<span class="lineno">  167 </span><span class="decl"><span class="istickedoff">unconv i (RVar x) =</span>
+<span class="lineno">  168 </span><span class="spaces">  </span><span class="istickedoff">Var <span class="nottickedoff">()</span> (NamedDeBruijn (T.pack [tmnames !! (i - fromInteger x)]) (Index (fromInteger x)))</span>
+<span class="lineno">  169 </span><span class="spaces"></span><span class="istickedoff">unconv i (RTLambda k tm) = TyAbs <span class="nottickedoff">()</span> (NamedTyDeBruijn (varTy i)) (unconvK k) (unconv (i + 1) tm)</span>
+<span class="lineno">  170 </span><span class="spaces"></span><span class="istickedoff">unconv i (RTApp t ty) = TyInst <span class="nottickedoff">()</span> (unconv i t) (unconvT i ty)</span>
+<span class="lineno">  171 </span><span class="spaces"></span><span class="istickedoff">unconv i (RLambda ty tm) = LamAbs <span class="nottickedoff">()</span> (varTm i) (unconvT (i + 1) ty) (unconv (i + 1) tm)</span>
+<span class="lineno">  172 </span><span class="spaces"></span><span class="istickedoff">unconv i (RApp t u) = Apply <span class="nottickedoff">()</span> (unconv i t) (unconv i u)</span>
+<span class="lineno">  173 </span><span class="spaces"></span><span class="istickedoff">unconv _ (RCon c) = Constant () c</span>
+<span class="lineno">  174 </span><span class="spaces"></span><span class="istickedoff">unconv i (RError ty) = Error () (unconvT <span class="nottickedoff">i</span> ty)</span>
+<span class="lineno">  175 </span><span class="spaces"></span><span class="istickedoff">unconv _ (RBuiltin b) = Builtin <span class="nottickedoff">()</span> b</span>
+<span class="lineno">  176 </span><span class="spaces"></span><span class="istickedoff">unconv i (RWrap tyA tyB t) = <span class="nottickedoff">IWrap () (unconvT i tyA) (unconvT i tyB) (unconv i t)</span></span>
+<span class="lineno">  177 </span><span class="spaces"></span><span class="istickedoff">unconv i (RUnWrap t) = <span class="nottickedoff">Unwrap () (unconv i t)</span></span>
+<span class="lineno">  178 </span><span class="spaces"></span><span class="istickedoff">unconv i (RConstr ty j cs) = <span class="nottickedoff">Constr () (unconvT i ty) (fromInteger j) (fmap (unconv i) cs)</span></span>
+<span class="lineno">  179 </span><span class="spaces"></span><span class="istickedoff">unconv i (RCase ty arg cs) = <span class="nottickedoff">Case () (unconvT i ty) (unconv i arg) (fmap (unconv i) cs)</span></span></span>
+<span class="lineno">  180 </span>
+<span class="lineno">  181 </span>-- I have put this here as it needs to be a .hs file so that it can be
+<span class="lineno">  182 </span>-- imported in multiple places
+<span class="lineno">  183 </span>
+<span class="lineno">  184 </span>data ERROR
+<span class="lineno">  185 </span>  = TypeError T.Text
+<span class="lineno">  186 </span>  | ParseError ParserErrorBundle
+<span class="lineno">  187 </span>  | ScopeError ScopeError
+<span class="lineno">  188 </span>  | RuntimeError RuntimeError
+<span class="lineno">  189 </span>  | JsonError T.Text
+<span class="lineno">  190 </span>  deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  191 </span>
+<span class="lineno">  192 </span>data ScopeError = DeBError | FreeVariableError FreeVariableError deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+<span class="lineno">  193 </span>data RuntimeError = GasError | UserError | RuntimeTypeError deriving (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>)
+
+</pre>
+</body>
+</html>
