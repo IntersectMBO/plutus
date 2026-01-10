@@ -19,7 +19,8 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( IntegerCostedLiterally
+  ( DataNodeCount
+  , IntegerCostedLiterally
   , NumBytesCostedAsNumWords
   , ValueLogOuterSizeAddLogMaxInnerSize
   , ValueTotalSize
@@ -107,6 +108,7 @@ genConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genArbitraryBuiltin @BS.ByteString
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = genArbitraryBuiltin @Text
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = genArbitraryBuiltin @Data
+  | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = genArbitraryBuiltin @Data
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =
       genArbitraryBuiltin @BLS12_381.G1.Element
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G2.Element) =
