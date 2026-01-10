@@ -135,7 +135,7 @@ i.e. parse into @Tree Text@ and do the kind checking afterwards, but given that 
 to do the kind checking of builtins regardless (even for UPLC), we don't win much by deferring
 doing it. -}
 defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
-defaultUni =
+defaultUni = do
   choice $
     map
       try
@@ -153,6 +153,10 @@ defaultUni =
       , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
       , someType @_ @BLS12_381.Pairing.MlResult <$ symbol "bls12_381_mlresult"
       , someType @_ @Value <$ symbol "value"
+      , -- We include an explicit failure case here to produce clearer error messages.
+        -- Without this, using `choice` with `symbol` results in error messages that cover the longest possible SrcSpan,
+        -- which in this context would be 20 characters spanning the entire "bls12_381_G2_element" token.
+        fail "Unknown type, expected one of: bool, integer, bytestring, string, unit, list, array, pair, data, value, bls12_381_G1_element, bls12_381_G2_element, bls12_381_mlresult, or a type application in parens"
       ]
 
 tyName :: Parser TyName

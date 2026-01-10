@@ -23,6 +23,7 @@ import PlutusCore.Annotation
 import PlutusCore.Error qualified as PLC
 import PlutusPrelude (through)
 import Text.Megaparsec hiding (ParseError, State, parse)
+import Text.Megaparsec.Char (char)
 import Text.Megaparsec.Char.Lexer qualified as Lex
 import UntypedPlutusCore.Check.Uniques (checkProgram)
 import UntypedPlutusCore.Core.Type qualified as UPLC
@@ -40,75 +41,90 @@ import PlutusCore.Version
 -- | A parsable UPLC term.
 type PTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan
 
-conTerm :: Parser PTerm
-conTerm = withSpan $ \sp ->
-  inParens $ UPLC.Constant sp <$> (symbol "con" *> constant)
+conTerm :: SrcSpan -> Parser PTerm
+conTerm sp =
+  UPLC.Constant sp <$> constant
 
-builtinTerm :: Parser PTerm
-builtinTerm = withSpan $ \sp ->
-  inParens $ UPLC.Builtin sp <$> (symbol "builtin" *> builtinFunction)
+builtinTerm :: SrcSpan -> Parser PTerm
+builtinTerm sp =
+  UPLC.Builtin sp <$> builtinFunction
 
 varTerm :: Parser PTerm
-varTerm = withSpan $ \sp ->
-  UPLC.Var sp <$> name
+varTerm =
+  withSpan $ \sp -> UPLC.Var sp <$> name
 
-lamTerm :: Parser PTerm
-lamTerm = withSpan $ \sp ->
-  inParens $ UPLC.LamAbs sp <$> (symbol "lam" *> trailingWhitespace name) <*> term
+lamTerm :: SrcSpan -> Parser PTerm
+lamTerm sp =
+  UPLC.LamAbs sp <$> (trailingWhitespace name) <*> term
 
-appTerm :: Parser PTerm
-appTerm = withSpan $ \sp ->
+appTerm :: SrcSpan -> Parser PTerm
+appTerm sp =
   -- TODO: should not use the same `sp` for all arguments.
-  inBrackets $ mkIterApp <$> term <*> (fmap (sp,) <$> some term)
+  mkIterApp <$> term <*> (fmap (sp,) <$> some term)
 
-delayTerm :: Parser PTerm
-delayTerm = withSpan $ \sp ->
-  inParens $ UPLC.Delay sp <$> (symbol "delay" *> term)
+delayTerm :: SrcSpan -> Parser PTerm
+delayTerm sp =
+  UPLC.Delay sp <$> term
 
-forceTerm :: Parser PTerm
-forceTerm = withSpan $ \sp ->
-  inParens $ UPLC.Force sp <$> (symbol "force" *> term)
+forceTerm :: SrcSpan -> Parser PTerm
+forceTerm sp =
+  UPLC.Force sp <$> term
 
-errorTerm :: Parser PTerm
-errorTerm = withSpan $ \sp ->
-  inParens $ UPLC.Error sp <$ symbol "error"
+errorTerm :: SrcSpan -> Parser PTerm
+errorTerm sp =
+  return (UPLC.Error sp)
 
-constrTerm :: Parser PTerm
-constrTerm = withSpan $ \sp ->
-  inParens $ do
-    let maxTag = fromIntegral (maxBound :: Word64)
-    tag :: Integer <- symbol "constr" *> lexeme Lex.decimal
-    args <- many term
-    whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
-    when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
-    pure $ UPLC.Constr sp (fromIntegral tag) args
+constrTerm :: SrcSpan -> Parser PTerm
+constrTerm sp = do
+  let maxTag = fromIntegral (maxBound :: Word64)
+  tag :: Integer <- lexeme Lex.decimal
+  args <- many term
+  whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
+  when (tag > maxTag) $ fail "constr tag too large: must be a legal Word64 value"
+  pure $ UPLC.Constr sp (fromIntegral tag) args
 
-caseTerm :: Parser PTerm
-caseTerm = withSpan $ \sp ->
-  inParens $ do
-    res <- UPLC.Case sp <$> (symbol "case" *> term) <*> (V.fromList <$> many term)
-    whenVersion (\v -> v < plcVersion110) $ fail "'case' is not allowed before version 1.1.0"
-    pure res
+caseTerm :: SrcSpan -> Parser PTerm
+caseTerm sp = do
+  res <- UPLC.Case sp <$> term <*> (V.fromList <$> many term)
+  whenVersion (\v -> v < plcVersion110) $ fail "'case' is not allowed before version 1.1.0"
+  pure res
 
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
-term = leadingWhitespace go
+term =
+  leadingWhitespace $ do
+    choice
+      [ tryAppTerm
+      , tryTermInParens
+      , varTerm
+      ]
   where
-    go =
-      choice $
-        map
-          try
-          [ conTerm
-          , builtinTerm
-          , varTerm
-          , lamTerm
-          , appTerm
-          , delayTerm
-          , forceTerm
-          , errorTerm
-          , constrTerm
-          , caseTerm
-          ]
+    tryAppTerm :: Parser PTerm
+    tryAppTerm = do
+      withSpan $ \sp -> do
+        _ <- try (symbol "[")
+        t <- appTerm sp
+        _ <- char ']'
+        return t
+
+    tryTermInParens :: Parser PTerm
+    tryTermInParens =
+      withSpan $ \sp -> do
+        _ <- try (symbol "(")
+        t <-
+          choice
+            [ try (symbol "builtin") *> builtinTerm sp
+            , try (symbol "lam") *> lamTerm sp
+            , try (symbol "constr") *> constrTerm sp -- "constr" must come before "con"
+            , try (symbol "con") *> conTerm sp
+            , try (symbol "delay") *> delayTerm sp
+            , try (symbol "force") *> forceTerm sp
+            , try (symbol "error") *> errorTerm sp
+            , try (symbol "constr") *> constrTerm sp
+            , try (symbol "case") *> caseTerm sp
+            ]
+        _ <- char ')'
+        return t
 
 -- | Parser for UPLC programs.
 program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
