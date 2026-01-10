@@ -134,7 +134,7 @@ nopCostParameters =
   MachineParameters def . mkMachineVariantParameters def $
     CostModel defaultCekMachineCostsForTesting nopCostModel
 
--- Benchmark a function with the nopCostParameters using `whnf`.
+-- Benchmark a function in `NopFun` with the nopCostParameters using `whnf`.
 benchWithWHNF :: String -> PlainTerm DefaultUni NopFun -> Benchmark
 benchWithWHNF = benchWith WHNF nopCostParameters
 
