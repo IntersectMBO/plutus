@@ -32,7 +32,6 @@ import PlutusTx.Blueprint.Class (HasBlueprintSchema (..))
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition)
 import PlutusTx.Blueprint.Schema (withSchemaInfo)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo (..))
-import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Builtins.Internal qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.IsData.Class (FromData, ToData, UnsafeFromData)
@@ -81,14 +80,10 @@ PlutusTx.asData
       deriving anyclass (NFData, HasBlueprintDefinition)
     |]
 
+PlutusTx.deriveEq ''TxOutRef
+
 instance Pretty TxOutRef where
   pretty TxOutRef {txOutRefId = id', txOutRefIdx = idx} = pretty id' <> "!" <> pretty idx
-
-instance PlutusTx.Eq TxOutRef where
-  {-# INLINEABLE (==) #-}
-  l == r =
-    (txOutRefId l PlutusTx.== txOutRefId r)
-      PlutusTx.&& (txOutRefIdx l PlutusTx.== txOutRefIdx r)
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------
