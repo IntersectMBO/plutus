@@ -49,7 +49,6 @@ import Prettyprinter
 
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
-import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Ord qualified as PlutusTx
@@ -118,13 +117,7 @@ PlutusTx.asData
 instance Pretty TxOutRef where
   pretty TxOutRef {txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
 
-instance PlutusTx.Eq TxOutRef where
-  {-# INLINEABLE (==) #-}
-  l == r =
-    txOutRefId l
-      PlutusTx.== txOutRefId r
-      PlutusTx.&& txOutRefIdx l
-      PlutusTx.== txOutRefIdx r
+PlutusTx.deriveEq ''TxOutRef
 
 {-| A transaction output, consisting of a target address ('Address'), a value ('Value'),
 and optionally a datum hash ('DatumHash'). -}
@@ -143,15 +136,7 @@ instance Pretty TxOut where
   pretty TxOut {txOutAddress, txOutValue} =
     hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress]
 
-instance PlutusTx.Eq TxOut where
-  {-# INLINEABLE (==) #-}
-  l == r =
-    txOutAddress l
-      PlutusTx.== txOutAddress r
-      PlutusTx.&& txOutValue l
-      PlutusTx.== txOutValue r
-      PlutusTx.&& txOutDatumHash l
-      PlutusTx.== txOutDatumHash r
+PlutusTx.deriveEq ''TxOut
 
 -- | The datum attached to a 'TxOut', if there is one.
 txOutDatum :: TxOut -> Maybe DatumHash

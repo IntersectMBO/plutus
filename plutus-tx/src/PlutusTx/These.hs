@@ -10,7 +10,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.These
   ( These (..)
@@ -21,19 +20,21 @@ module PlutusTx.These
 import GHC.Generics (Generic)
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
-import PlutusTx.Bool
 import PlutusTx.Eq
 import PlutusTx.Lift
 import PlutusTx.Ord
 import PlutusTx.Show
 import Prelude qualified as Haskell
 
-{-| A 'These' @a@ @b@ is either an @a@, or a @b@ or an @a@ and a @b@.
-Plutus version of 'Data.These'. -}
+{- | A 'These' @a@ @b@ is either an @a@, or a @b@ or an @a@ and a @b@.
+Plutus version of 'Data.These'.
+-}
 data These a b = This a | That b | These a b
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
   deriving anyclass (HasBlueprintDefinition)
 
+deriveEq ''These
+deriveOrd ''These
 deriveShow ''These
 makeLift ''These
 makeIsDataSchemaIndexed ''These [('This, 0), ('That, 1), ('These, 2)]
@@ -53,24 +54,3 @@ these f g h = \case
   That b -> g b
   These a b -> h a b
 {-# INLINEABLE these #-}
-
-instance (Ord a, Ord b) => Ord (These a b) where
-  {-# INLINEABLE compare #-}
-  compare (This a) (This a') = compare a a'
-  compare (That b) (That b') = compare b b'
-  compare (These a b) (These a' b') =
-    case compare a a' of
-      EQ -> compare b b'
-      c -> c
-  compare (This _) _ = LT
-  compare (That _) (This _) = GT
-  compare (That _) (These _ _) = LT
-  compare (These _ _) (This _) = GT
-  compare (These _ _) (That _) = GT
-
-instance (Eq a, Eq b) => Eq (These a b) where
-  {-# INLINEABLE (==) #-}
-  (This a) == (This a') = a == a'
-  (That b) == (That b') = b == b'
-  (These a b) == (These a' b') = a == a' && b == b'
-  _ == _ = False

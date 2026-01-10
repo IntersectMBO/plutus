@@ -120,8 +120,7 @@ PlutusTx.asData
 
 makeLift ''TxInInfo
 
-instance Eq TxInInfo where
-  TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
+deriveEq ''TxInInfo
 
 instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
@@ -141,14 +140,7 @@ PlutusTx.asData
     |]
 
 makeLift ''ScriptPurpose
-
-instance Eq ScriptPurpose where
-  {-# INLINEABLE (==) #-}
-  Minting cs == Minting cs' = cs == cs'
-  Spending ref == Spending ref' = ref == ref'
-  Rewarding sc == Rewarding sc' = sc == sc'
-  Certifying cert == Certifying cert' = cert == cert'
-  _ == _ = False
+deriveEq ''ScriptPurpose
 
 {-| A pending transaction. This is the view as seen by validator scripts,
 so some details are stripped out. -}
@@ -184,30 +176,7 @@ PlutusTx.asData
     |]
 
 makeLift ''TxInfo
-
-instance Eq TxInfo where
-  {-# INLINEABLE (==) #-}
-  TxInfo i o f m c w r s d tid == TxInfo i' o' f' m' c' w' r' s' d' tid' =
-    i
-      == i'
-      && o
-      == o'
-      && f
-      == f'
-      && m
-      == m'
-      && c
-      == c'
-      && w
-      == w'
-      && r
-      == r'
-      && s
-      == s'
-      && d
-      == d'
-      && tid
-      == tid'
+deriveEq ''TxInfo
 
 instance Pretty TxInfo where
   pretty
@@ -251,10 +220,7 @@ PlutusTx.asData
     |]
 
 makeLift ''ScriptContext
-
-instance Eq ScriptContext where
-  {-# INLINEABLE (==) #-}
-  ScriptContext info purpose == ScriptContext info' purpose' = info == info' && purpose == purpose'
+deriveEq ''ScriptContext
 
 instance Pretty ScriptContext where
   pretty ScriptContext {scriptContextTxInfo, scriptContextPurpose} =
