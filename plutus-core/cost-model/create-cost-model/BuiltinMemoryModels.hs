@@ -179,8 +179,8 @@ builtinMemoryModels =
     , -- Builtin values
       paramLookupCoin = Id $ ModelThreeArgumentsConstantCost 10
     , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
-    , paramValueData = Id $ ModelOneArgumentConstantCost 32
-    , paramUnValueData = Id $ ModelOneArgumentConstantCost 32
+    , paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 9999 9999 -- Place-holder: UPDATE THIS
+    , paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 9999 9999 -- Place-holder: UPDATE THIS
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

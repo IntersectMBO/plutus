@@ -830,7 +830,7 @@ modelFun <- function(path) {
     }         
 
     # Sizes of parameters are used as is (unwrapped):
-    valueDataModel            <- constantModel ("ValueData")
+    valueDataModel            <- linearInX ("ValueData")
     unValueDataModel          <- linearInX ("UnValueData")
 
     ##### Models to be returned to Haskell #####

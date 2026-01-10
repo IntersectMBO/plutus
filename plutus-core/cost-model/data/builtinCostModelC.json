@@ -1252,12 +1252,18 @@
   },
   "valueData": {
     "cpu": {
-      "arguments": 194713,
-      "type": "constant_cost"
+        "arguments": {
+            "intercept": 1000,
+            "slope": 43200
+        },
+        "type": "linear_in_x"
     },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 9999,
+        "slope": 9999
+      },
+      "type": "linear_in_x"
     }
   },
   "unValueData": {
@@ -1269,8 +1275,11 @@
       "type": "linear_in_x"
     },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 9999,
+        "slope": 9999
+      },
+      "type": "linear_in_x"
     }
   }
 }
