@@ -1,0 +1,22 @@
+cabal-version:      3.0
+name:               voting-demo
+version:            0.1.0.0
+license:            MIT
+author:             Brother_Kev
+maintainer:         kevinmulemberi@gmail.com
+category:           Development
+build-type:         Simple
+
+library
+    exposed-modules:     VotingContract
+    hs-source-dirs:      src
+    build-depends:       base >=4.14 && <5
+    default-language:    Haskell2010
+    other-extensions:    DataKinds, OverloadedStrings, TypeApplications
+
+executable voting-demo
+    main-is:             Main.hs
+    hs-source-dirs:      app
+    build-depends:       base >=4.14 && <5, voting-demo
+    default-language:    Haskell2010
+    other-extensions:    DataKinds, OverloadedStrings, TypeApplications
