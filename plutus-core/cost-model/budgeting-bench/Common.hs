@@ -132,8 +132,8 @@ benchWith normaliser params name term =
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
 benchDefault = benchWith WHNF defaultCekParametersForTesting
 
-benchNF :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
-benchNF = benchWith NF defaultCekParametersForTesting
+benchDefault_NF :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
+benchDefault_NF = benchWith NF defaultCekParametersForTesting
 
 ---------------- Constructing Polymorphic PLC terms for benchmarking ----------------
 
@@ -355,7 +355,7 @@ createOneTermBuiltinBenchWithWrapper_NF
 createOneTermBuiltinBenchWithWrapper_NF wrapX fun tys xs =
   bgroup
     (show fun)
-    [ benchDefault (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
+    [ benchDefault_NF (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
     | x <- xs
     ]
 
