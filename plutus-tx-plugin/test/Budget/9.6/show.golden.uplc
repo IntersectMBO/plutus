@@ -24,51 +24,62 @@
                                                             (constr 1
                                                                [ "("
                                                                , (case
-                                                                    `$fShowInteger`
-                                                                    [ (\v v ->
-                                                                         v) ]
-                                                                    0
-                                                                    a
-                                                                    (constr 1
-                                                                       [ ","
-                                                                       , (case
-                                                                            `$fShowInteger`
-                                                                            [ (\v
-                                                                                v ->
-                                                                                 v) ]
-                                                                            0
-                                                                            b
-                                                                            (constr 1
-                                                                               [ ","
-                                                                               , (case
-                                                                                    `$fShowInteger`
-                                                                                    [ (\v
-                                                                                        v ->
-                                                                                         v) ]
-                                                                                    0
-                                                                                    c
-                                                                                    (constr 1
-                                                                                       [ ","
-                                                                                       , (case
-                                                                                            `$fShowInteger`
-                                                                                            [ (\v
-                                                                                                v ->
-                                                                                                 v) ]
-                                                                                            0
-                                                                                            d
-                                                                                            (constr 1
-                                                                                               [ ","
-                                                                                               , (case
-                                                                                                    `$fShowInteger`
-                                                                                                    [ (\v
-                                                                                                        v ->
-                                                                                                         v) ]
-                                                                                                    0
-                                                                                                    e
-                                                                                                    (constr 1
-                                                                                                       [ ")"
-                                                                                                       , (constr 0
-                                                                                                            [  ]) ])) ])) ])) ])) ])) ]))
+                                                                    (constr 0
+                                                                       [ 0
+                                                                       , a
+                                                                       , (constr 1
+                                                                            [ ","
+                                                                            , (case
+                                                                                 (constr 0
+                                                                                    [ 0
+                                                                                    , b
+                                                                                    , (constr 1
+                                                                                         [ ","
+                                                                                         , (case
+                                                                                              (constr 0
+                                                                                                 [ 0
+                                                                                                 , c
+                                                                                                 , (constr 1
+                                                                                                      [ ","
+                                                                                                      , (case
+                                                                                                           (constr 0
+                                                                                                              [ 0
+                                                                                                              , d
+                                                                                                              , (constr 1
+                                                                                                                   [ ","
+                                                                                                                   , (case
+                                                                                                                        (constr 0
+                                                                                                                           [ 0
+                                                                                                                           , e
+                                                                                                                           , (constr 1
+                                                                                                                                [ ")"
+                                                                                                                                , (constr 0
+                                                                                                                                     [  ]) ]) ])
+                                                                                                                        [ (case
+                                                                                                                             `$fShowInteger`
+                                                                                                                             [ (\v
+                                                                                                                                 v ->
+                                                                                                                                  v) ]) ]) ]) ])
+                                                                                                           [ (case
+                                                                                                                `$fShowInteger`
+                                                                                                                [ (\v
+                                                                                                                    v ->
+                                                                                                                     v) ]) ]) ]) ])
+                                                                                              [ (case
+                                                                                                   `$fShowInteger`
+                                                                                                   [ (\v
+                                                                                                       v ->
+                                                                                                        v) ]) ]) ]) ])
+                                                                                 [ (case
+                                                                                      `$fShowInteger`
+                                                                                      [ (\v
+                                                                                          v ->
+                                                                                           v) ]) ]) ]) ])
+                                                                    [ (case
+                                                                         `$fShowInteger`
+                                                                         [ (\v
+                                                                             v ->
+                                                                              v) ]) ]) ]))
                                                          e))
                                                    (force
                                                       trace
@@ -144,10 +155,9 @@
                                        , `$fShowInteger_$cshow` ]))
                                  (\x ->
                                     concatBuiltinStrings
-                                      (`$fShowBuiltinByteString_$cshowsPrec`
-                                         0
-                                         x
-                                         (constr 0 []))))
+                                      (case
+                                         (constr 0 [0, x, (constr 0 [])])
+                                         [ `$fShowBuiltinByteString_$cshowsPrec` ])))
                               ((\s -> s s)
                                  (\s ds ->
                                     case
@@ -256,7 +266,11 @@
                     (lessThanInteger n 0)
                     [ (go (go (constr 0 []) n))
                     , (\eta ->
-                         constr 1 ["-", (s s p (subtractInteger 0 n) eta)]) ])))
+                         constr 1
+                           [ "-"
+                           , (case
+                                (constr 0 [s, p, (subtractInteger 0 n), eta])
+                                [s]) ]) ])))
          ((\s ->
              s s)
             (\s

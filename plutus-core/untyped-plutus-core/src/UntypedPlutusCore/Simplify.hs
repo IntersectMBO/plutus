@@ -18,6 +18,7 @@ import PlutusCore.Default.Builtins
 import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Simplify.Opts as Opts
+import UntypedPlutusCore.Transform.CaseApply (caseApply)
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.Cse
@@ -73,7 +74,9 @@ termSimplifier
   -> Term name uni fun a
   -> SimplifierT name uni fun a m (Term name uni fun a)
 termSimplifier opts builtinSemanticsVariant =
-  simplifyNTimes (_soMaxSimplifierIterations opts) >=> cseNTimes cseTimes
+  simplifyNTimes (_soMaxSimplifierIterations opts)
+    >=> cseNTimes cseTimes
+    >=> if _soCaseApply opts then caseApply else pure
   where
     -- Run the simplifier @n@ times
     simplifyNTimes
