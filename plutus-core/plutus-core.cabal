@@ -945,6 +945,7 @@ executable cost-model-budgeting-bench
     , base                   >=4.9   && <5
     , bytestring
     , cardano-crypto-class
+    , containers
     , criterion
     , criterion-measurement
     , deepseq

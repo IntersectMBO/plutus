@@ -291,6 +291,13 @@ batch6 =
   , IndexArray
   , Bls12_381_G1_multiScalarMul
   , Bls12_381_G2_multiScalarMul
+  , InsertCoin
+  , LookupCoin
+  , UnionValue
+  , ValueContains
+  , ValueData
+  , UnValueData
+  , ScaleValue
   ]
 
 {-| Given a ledger language, return a map indicating which builtin functions were

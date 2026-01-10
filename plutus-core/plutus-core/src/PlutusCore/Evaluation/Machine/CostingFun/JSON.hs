@@ -185,3 +185,11 @@ deriving via
   ModelJSON "modelConstantOrLinear" ModelConstantOrLinear
   instance
     ToJSON ModelConstantOrLinear
+deriving via
+  ModelJSON "twoVariableWithInteractionFunction" TwoVariableWithInteractionFunction
+  instance
+    FromJSON TwoVariableWithInteractionFunction
+deriving via
+  ModelJSON "twoVariableWithInteractionFunction" TwoVariableWithInteractionFunction
+  instance
+    ToJSON TwoVariableWithInteractionFunction

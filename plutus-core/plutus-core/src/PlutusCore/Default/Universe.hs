@@ -53,7 +53,7 @@ import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
-  , ValueLogOuterSizeAddLogMaxInnerSize (..)
+  , ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
 import PlutusCore.Pretty.Extra (juxtRenderContext)
@@ -710,16 +710,16 @@ instance
   {-# INLINE readKnown #-}
 
 deriving newtype instance
-  KnownTypeAst tyname DefaultUni ValueLogOuterSizeAddLogMaxInnerSize
+  KnownTypeAst tyname DefaultUni ValueMaxDepth
 instance
   KnownBuiltinTypeIn DefaultUni term Value
-  => MakeKnownIn DefaultUni term ValueLogOuterSizeAddLogMaxInnerSize
+  => MakeKnownIn DefaultUni term ValueMaxDepth
   where
   makeKnown = makeKnownCoerce @Value
   {-# INLINE makeKnown #-}
 instance
   KnownBuiltinTypeIn DefaultUni term Value
-  => ReadKnownIn DefaultUni term ValueLogOuterSizeAddLogMaxInnerSize
+  => ReadKnownIn DefaultUni term ValueMaxDepth
   where
   readKnown = readKnownCoerce @Value
   {-# INLINE readKnown #-}

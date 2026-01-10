@@ -30,6 +30,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
   , OneVariableQuadraticFunction (..)
   , TwoVariableLinearFunction (..)
   , TwoVariableQuadraticFunction (..)
+  , TwoVariableWithInteractionFunction (..)
   , ExpModCostingFunction (..)
   , ModelSubtractedSizes (..)
   , ModelConstantOrOneArgument (..)
@@ -195,6 +196,9 @@ data BuiltinCostModelBase f
   , paramValueContains :: f ModelTwoArguments
   , paramValueData :: f ModelOneArgument
   , paramUnValueData :: f ModelOneArgument
+  , paramInsertCoin :: f ModelFourArguments
+  , paramUnionValue :: f ModelTwoArguments
+  , paramScaleValue :: f ModelTwoArguments
   }
   deriving stock (Generic)
   deriving anyclass (FunctorB, TraversableB, ConstraintsB)

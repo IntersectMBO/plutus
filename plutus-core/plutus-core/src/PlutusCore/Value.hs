@@ -382,29 +382,43 @@ valueContains v1 v2
 {-# INLINEABLE valueContains #-}
 
 {-| \(O(n_{1}) + O(n_{2})\), where \(n_{1}\) and \(n_{2}\) are the total sizes
-(i.e., sum of inner map sizes) of the two maps. -}
+(i.e., sum of inner map sizes) of the two maps.
+
+Shortcircuits if either value is empty.
+
+Since 'unionValue' is commutative, we switch the arguments whenever the second
+value is larger in total size than the first one. We have found through experimentation
+that this results in better performance in practice. -}
 unionValue :: Value -> Value -> BuiltinResult Value
-unionValue (unpack -> vA) (unpack -> vB) =
-  pack'
-    <$> M.mergeA
-      M.preserveMissing
-      M.preserveMissing
-      ( M.zipWithMaybeAMatched \_ innerA innerB ->
-          fmap (\inner -> if Map.null inner then Nothing else Just inner) $
-            M.mergeA
-              M.preserveMissing
-              M.preserveMissing
-              ( M.zipWithMaybeAMatched \_ x y ->
-                  case addQuantity x y of
-                    Just z -> pure if z == zeroQuantity then Nothing else Just z
-                    Nothing ->
-                      fail "unionValue: quantity is out of the signed 128-bit integer bounds"
-              )
-              innerA
-              innerB
-      )
-      vA
-      vB
+unionValue vA vB
+  | totalSize vA == 0 = BuiltinSuccess vB
+  | totalSize vB == 0 = BuiltinSuccess vA
+  | otherwise =
+      pack'
+        <$> M.mergeA
+          M.preserveMissing
+          M.preserveMissing
+          ( M.zipWithMaybeAMatched \_ innerA innerB ->
+              fmap (\inner -> if Map.null inner then Nothing else Just inner) $
+                M.mergeA
+                  M.preserveMissing
+                  M.preserveMissing
+                  ( M.zipWithMaybeAMatched \_ x y ->
+                      case addQuantity x y of
+                        Just z -> pure if z == zeroQuantity then Nothing else Just z
+                        Nothing ->
+                          fail "unionValue: quantity is out of the signed 128-bit integer bounds"
+                  )
+                  innerA
+                  innerB
+          )
+          v1
+          v2
+  where
+    (v1, v2) =
+      if totalSize vB > totalSize vA
+        then (unpack vB, unpack vA)
+        else (unpack vA, unpack vB)
 {-# INLINEABLE unionValue #-}
 
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.

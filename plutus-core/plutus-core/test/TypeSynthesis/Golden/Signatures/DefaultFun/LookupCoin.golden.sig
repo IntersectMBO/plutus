@@ -1,1 +1,1 @@
-ByteString -> ByteString -> ValueLogOuterSizeAddLogMaxInnerSize -> Integer
+ByteString -> ByteString -> ValueMaxDepth -> Integer

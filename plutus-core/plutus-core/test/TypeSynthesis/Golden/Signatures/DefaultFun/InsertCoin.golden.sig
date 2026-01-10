@@ -1,1 +1,1 @@
-ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
+ByteString -> ByteString -> Integer -> ValueMaxDepth -> BuiltinResult Value

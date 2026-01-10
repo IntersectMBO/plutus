@@ -13,7 +13,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , NumBytesCostedAsNumWords (..)
   , IntegerCostedLiterally (..)
   , ValueTotalSize (..)
-  , ValueLogOuterSizeAddLogMaxInnerSize (..)
+  , ValueMaxDepth (..)
   ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -393,7 +393,7 @@ newtype ValueTotalSize = ValueTotalSize {unValueTotalSize :: Value}
 instance ExMemoryUsage ValueTotalSize where
   memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
 
-{- Note [ValueLogOuterSizeAddLogMaxInnerSize]
+{- Note [ValueMaxDepth]
 This newtype wrapper measures the sum of logarithms of outer and max inner sizes
 for two-level map structures like Value.
 
@@ -412,11 +412,11 @@ to find the token.
 If this is used to wrap an argument in the denotation of a builtin then it *MUST* also
 be used to wrap the same argument in the relevant budgeting benchmark.
 -}
-newtype ValueLogOuterSizeAddLogMaxInnerSize
-  = ValueLogOuterSizeAddLogMaxInnerSize {unValueLogOuterSizeAddLogMaxInnerSize :: Value}
+newtype ValueMaxDepth
+  = ValueMaxDepth {unValueMaxDepth :: Value}
 
-instance ExMemoryUsage ValueLogOuterSizeAddLogMaxInnerSize where
-  memoryUsage (ValueLogOuterSizeAddLogMaxInnerSize v) =
+instance ExMemoryUsage ValueMaxDepth where
+  memoryUsage (ValueMaxDepth v) =
     let outerSize = Map.size (Value.unpack v)
         innerSize = Value.maxInnerSize v
         logOuter = if outerSize > 0 then integerLog2 (toInteger outerSize) + 1 else 0

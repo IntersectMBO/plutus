@@ -263,6 +263,41 @@ testPredictThree costingFunH modelR predicate =
           diff byR (>=) 0
           diff byR (~=) (predictH x y z)
 
+testPredictFour
+  :: CostingFun ModelFourArguments
+  -> SomeSEXP s
+  -> Property
+testPredictFour costingFunH modelR =
+  propertyR $
+    let predictR
+          :: MonadR m
+          => CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> CostingInteger
+          -> m CostingInteger
+        predictR x y z w =
+          let
+            xD = fromSatInt x :: Double
+            yD = fromSatInt y :: Double
+            zD = fromSatInt z :: Double
+            wD = fromSatInt w :: Double
+           in
+            microToPico . fromSomeSEXP
+              <$> [r|predict(modelR_hs$model, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs, w_mem=wD_hs))[[1]]|]
+        predictH :: CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger -> CostingInteger
+        predictH x y z w =
+          coerce $
+            exBudgetCPU $
+              sumExBudgetStream $
+                runCostingFunFourArguments costingFunH (ExM x) (ExM y) (ExM z) (ExM w)
+        sizeGen = (,,,) <$> memUsageGen <*> memUsageGen <*> memUsageGen <*> memUsageGen
+     in do
+          (x, y, z, w) <- forAll sizeGen
+          byR <- lift $ predictR x y z w
+          diff byR (>=) 0
+          diff byR (~=) (predictH x y z w)
+
 testPredictSix
   :: CostingFun ModelSixArguments
   -> SomeSEXP s
@@ -355,6 +390,15 @@ makeProp3WithFilter
 makeProp3WithFilter name getField modelsH modelsR predicate =
   (fromString name, testPredictThree (getField modelsH) (getConst $ getField modelsR) predicate)
 
+makeProp4
+  :: String
+  -> (forall f. BuiltinCostModelBase f -> f ModelFourArguments)
+  -> HModels
+  -> RModels s
+  -> (PropertyName, Property)
+makeProp4 name getField modelsH modelsR =
+  (fromString name, testPredictFour (getField modelsH) (getConst $ getField modelsR))
+
 makeProp6
   :: String
   -> (forall f. BuiltinCostModelBase f -> f ModelSixArguments)
@@ -429,6 +473,9 @@ main =
       , $(genTest 2 "valueContains") Everywhere
       , $(genTest 1 "valueData")
       , $(genTest 1 "unValueData")
+      , $(genTest 4 "insertCoin")
+      , $(genTest 2 "unionValue") Everywhere
+      , $(genTest 2 "scaleValue") Everywhere
       , -- Data
         $(genTest 6 "chooseData")
       , $(genTest 2 "constrData") Everywhere
