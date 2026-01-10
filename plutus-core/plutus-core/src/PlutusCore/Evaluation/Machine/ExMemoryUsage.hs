@@ -280,7 +280,7 @@ instance ExMemoryUsage Word8 where
 newtype NumBytesCostedAsNumWords = NumBytesCostedAsNumWords {unNumBytesCostedAsNumWords :: Integer}
 
 instance ExMemoryUsage NumBytesCostedAsNumWords where
-  memoryUsage (NumBytesCostedAsNumWords n) = singletonRose . fromIntegral $ ((n - 1) `div` 8) + 1
+  memoryUsage (NumBytesCostedAsNumWords n) = singletonRose . fromIntegral $ ((abs n - 1) `div` 8) + 1
   {-# INLINE memoryUsage #-}
 
 -- Note that this uses `fromIntegral`, which will narrow large values to
