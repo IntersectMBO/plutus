@@ -26,7 +26,12 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   )
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformRM)
+import System.Random.Stateful
+  ( StatefulGen
+  , StdGen
+  , runStateGen_
+  , uniformRM
+  )
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -200,10 +205,12 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
       ]
 
 ----------------------------------------------------------------------------------------------------
--- ValueData ---------------------------------------------------------------------------------------
-
+-- ValueData
+-- ---------------------------------------------------------------------------------------
+-- We use the `nf` benchmark version here because `valueData` returns an object
+-- of the form `Map . ...` and `whnf` won't evaluate anything under `Map`.
 valueDataBenchmark :: StdGen -> Benchmark
-valueDataBenchmark gen = createOneTermBuiltinBench ValueData [] (generateTestValues gen)
+valueDataBenchmark gen = createOneTermBuiltinBench_NF ValueData [] (generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
