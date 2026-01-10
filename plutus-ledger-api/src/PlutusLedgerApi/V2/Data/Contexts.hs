@@ -73,10 +73,11 @@ module PlutusLedgerApi.V2.Data.Contexts
 import GHC.Generics (Generic)
 import PlutusTx
 import PlutusTx.AsData qualified as PlutusTx
+import PlutusTx.BuiltinList qualified as BuiltinList
+import PlutusTx.Builtins.Internal qualified as Builtins
 import PlutusTx.Data.AssocMap hiding (any)
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as Data.List
-import PlutusTx.List qualified as List
 import PlutusTx.Prelude
 import Prettyprinter (Pretty (..), nest, vsep, (<+>))
 
@@ -244,9 +245,11 @@ findDatum dsh TxInfo {txInfoData} = lookup dsh txInfoData
 {-| Find the hash of a datum, if it is part of the pending transaction's
 hashes -}
 findDatumHash :: Datum -> TxInfo -> Maybe DatumHash
-findDatumHash ds TxInfo {txInfoData} = fst <$> List.find f (toSOPList txInfoData)
+findDatumHash ds TxInfo {txInfoData} = do
+  getHash <$> BuiltinList.find matchDatum (toBuiltinList txInfoData)
   where
-    f (_, ds') = ds' == ds
+    getHash = unsafeFromBuiltinData . Builtins.fst
+    matchDatum pair = Builtins.snd pair == getDatum ds
 {-# INLINEABLE findDatumHash #-}
 
 {-| Given a UTXO reference and a transaction (`TxInfo`), resolve it to one
