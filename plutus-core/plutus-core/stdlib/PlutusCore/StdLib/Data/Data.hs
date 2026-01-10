@@ -23,6 +23,7 @@ import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.Unit
 
 import Data.ByteString (ByteString)
+import Data.Vector.Strict (Vector)
 
 -- | @Data@ as a built-in PLC type.
 dataTy :: uni `HasTypeLevel` Data => Type tyname uni ()
@@ -35,6 +36,7 @@ dataTy = mkTyBuiltin @_ @Data ()
 >      \(fConstr : integer -> list data -> r)
 >       (fMap : list (pair data data) -> r)
 >       (fList : list data -> r)
+>       (fArray : array data -> r)
 >       (fI : integer -> r)
 >       (fB : bytestring -> r) ->
 >           chooseData
@@ -43,6 +45,7 @@ dataTy = mkTyBuiltin @_ @Data ()
 >               (\(u : unit) -> uncurry {integer} {list data} {r} fConstr (unConstrB d))
 >               (\(u : unit) -> fMap (unMapB d))
 >               (\(u : unit) -> fList (unListB d))
+>               (\(u : unit) -> fArray (unArrayB d))
 >               (\(u : unit) -> fI (unIB d))
 >               (\(u : unit) -> fB (unBB d))
 >               unitval -}
@@ -52,11 +55,13 @@ matchData = runQuote $ do
   fConstr <- freshName "fConstr"
   fMap <- freshName "fMap"
   fList <- freshName "fList"
+  fArray <- freshName "fArray"
   fI <- freshName "fI"
   fB <- freshName "fB"
   d <- freshName "d"
   u <- freshName "u"
   let listData = mkTyBuiltin @_ @[Data] ()
+      arrayData = mkTyBuiltin @_ @(Vector Data) ()
       listPairData = mkTyBuiltin @_ @[(Data, Data)] ()
       bytestring = mkTyBuiltin @_ @ByteString ()
   return
@@ -65,6 +70,7 @@ matchData = runQuote $ do
     . lamAbs () fConstr (TyFun () integer . TyFun () listData $ TyVar () r)
     . lamAbs () fMap (TyFun () listPairData $ TyVar () r)
     . lamAbs () fList (TyFun () listData $ TyVar () r)
+    . lamAbs () fArray (TyFun () arrayData $ TyVar () r)
     . lamAbs () fI (TyFun () integer $ TyVar () r)
     . lamAbs () fB (TyFun () bytestring $ TyVar () r)
     $ mkIterAppNoAnn
@@ -83,6 +89,10 @@ matchData = runQuote $ do
       , lamAbs () u unit
           . apply () (var () fList)
           . apply () (builtin () UnListData)
+          $ var () d
+      , lamAbs () u unit
+          . apply () (var () fArray)
+          . apply () (builtin () UnArrayData)
           $ var () d
       , lamAbs () u unit
           . apply () (var () fI)

@@ -383,6 +383,7 @@ instance ExMemoryUsage Data where
         List l -> CostRose 0 $ l <&> sizeData
         I n -> memoryUsage n
         B b -> memoryUsage b
+        Array v -> CostRose 0 $ Vector.toList v <&> sizeData
 
 instance ExMemoryUsage Value where
   memoryUsage = singletonRose . fromIntegral . Value.totalSize

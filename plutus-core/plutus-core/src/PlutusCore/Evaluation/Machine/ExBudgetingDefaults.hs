@@ -241,6 +241,9 @@ unitCostThreeArguments = CostingFun (ModelThreeArgumentsConstantCost 1) (ModelTh
 unitCostSixArguments :: CostingFun ModelSixArguments
 unitCostSixArguments = CostingFun (ModelSixArgumentsConstantCost 1) (ModelSixArgumentsConstantCost 0)
 
+unitCostSevenArguments :: CostingFun ModelSevenArguments
+unitCostSevenArguments = CostingFun (ModelSevenArgumentsConstantCost 1) (ModelSevenArgumentsConstantCost 0)
+
 unitCostBuiltinCostModel :: BuiltinCostModel
 unitCostBuiltinCostModel =
   BuiltinCostModelBase
@@ -292,7 +295,7 @@ unitCostBuiltinCostModel =
     , paramTailList = unitCostOneArgument
     , paramNullList = unitCostOneArgument
     , -- Data
-      paramChooseData = unitCostSixArguments
+      paramChooseData = unitCostSevenArguments
     , paramConstrData = unitCostTwoArguments
     , paramMapData = unitCostOneArgument
     , paramListData = unitCostOneArgument
@@ -301,6 +304,8 @@ unitCostBuiltinCostModel =
     , paramUnConstrData = unitCostOneArgument
     , paramUnMapData = unitCostOneArgument
     , paramUnListData = unitCostOneArgument
+    , paramArrayData = unitCostOneArgument
+    , paramUnArrayData = unitCostOneArgument
     , paramUnIData = unitCostOneArgument
     , paramUnBData = unitCostOneArgument
     , paramEqualsData = unitCostTwoArguments

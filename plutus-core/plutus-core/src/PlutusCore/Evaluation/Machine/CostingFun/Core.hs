@@ -39,12 +39,14 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
   , ModelFourArguments (..)
   , ModelFiveArguments (..)
   , ModelSixArguments (..)
+  , ModelSevenArguments (..)
   , runCostingFunOneArgument
   , runCostingFunTwoArguments
   , runCostingFunThreeArguments
   , runCostingFunFourArguments
   , runCostingFunFiveArguments
   , runCostingFunSixArguments
+  , runCostingFunSevenArguments
   , Hashable
   )
 where
@@ -911,3 +913,56 @@ runCostingFunSixArguments (CostingFun cpu mem) =
         (runCpu mem1 mem2 mem3 mem4 mem5 mem6)
         (runMem mem1 mem2 mem3 mem4 mem5 mem6)
 {-# INLINE runCostingFunSixArguments #-}
+
+---------------- Seven-argument costing functions ----------------
+
+data ModelSevenArguments
+  = ModelSevenArgumentsConstantCost CostingInteger
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
+
+instance Default ModelSevenArguments where
+  def = ModelSevenArgumentsConstantCost maxBound
+
+instance UnimplementedCostingFun ModelSevenArguments where
+  unimplementedCostingFun = makeUnimplementedCostingFun ModelSevenArgumentsConstantCost
+
+runSevenArgumentModel
+  :: ModelSevenArguments
+  -> CostStream
+  -> CostStream
+  -> CostStream
+  -> CostStream
+  -> CostStream
+  -> CostStream
+  -> CostStream
+  -> CostStream
+runSevenArgumentModel (ModelSevenArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ _ -> CostLast c
+{-# OPAQUE runSevenArgumentModel #-}
+
+-- See Note [runCostingFun* API].
+runCostingFunSevenArguments
+  :: ( ExMemoryUsage a1
+     , ExMemoryUsage a2
+     , ExMemoryUsage a3
+     , ExMemoryUsage a4
+     , ExMemoryUsage a5
+     , ExMemoryUsage a6
+     , ExMemoryUsage a7
+     )
+  => CostingFun ModelSevenArguments
+  -> a1
+  -> a2
+  -> a3
+  -> a4
+  -> a5
+  -> a6
+  -> a7
+  -> ExBudgetStream
+runCostingFunSevenArguments (CostingFun cpu mem) =
+  case (runSevenArgumentModel cpu, runSevenArgumentModel mem) of
+    (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 mem6 mem7 ->
+      zipCostStream
+        (runCpu mem1 mem2 mem3 mem4 mem5 mem6 mem7)
+        (runMem mem1 mem2 mem3 mem4 mem5 mem6 mem7)
+{-# INLINE runCostingFunSevenArguments #-}

@@ -814,6 +814,7 @@
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
                        (\(ds : Unit) -> Nothing {VestingRedeemer})
+                       (\(ds : Unit) -> Nothing {VestingRedeemer})
                        Unit)
                      {all dead. VestingRedeemer}
                      (\(r : VestingRedeemer) ->

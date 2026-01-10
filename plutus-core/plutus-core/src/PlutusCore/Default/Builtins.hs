@@ -132,6 +132,8 @@ data DefaultFun
   | UnConstrData
   | UnMapData
   | UnListData
+  | ArrayData
+  | UnArrayData
   | UnIData
   | UnBData
   | EqualsData
@@ -1444,18 +1446,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . paramNullList)
   -- Data
   toBuiltinMeaning _semvar ChooseData =
-    let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a
-        chooseDataDenotation d xConstr xMap xList xI xB =
+    let chooseDataDenotation :: Data -> a -> a -> a -> a -> a -> a -> BuiltinResult a
+        chooseDataDenotation d xConstr xMap xList xArray xI xB =
           case d of
-            Constr {} -> xConstr
-            Map {} -> xMap
-            List {} -> xList
-            I {} -> xI
-            B {} -> xB
+            Constr {} -> pure xConstr
+            Map {} -> pure xMap
+            List {} -> pure xList
+            I {} -> pure xI
+            B {} -> pure xB
+            Array {} -> pure xArray
         {-# INLINE chooseDataDenotation #-}
      in makeBuiltinMeaning
           chooseDataDenotation
-          (runCostingFunSixArguments . paramChooseData)
+          (runCostingFunSevenArguments . paramChooseData)
   toBuiltinMeaning _semvar ConstrData =
     let constrDataDenotation :: Integer -> [Data] -> Data
         constrDataDenotation = Constr
@@ -1477,6 +1480,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           listDataDenotation
           (runCostingFunOneArgument . paramListData)
+  toBuiltinMeaning _semvar ArrayData =
+    let arrayDataDenotation :: Vector Data -> Data
+        arrayDataDenotation = Array
+        {-# INLINE arrayDataDenotation #-}
+     in makeBuiltinMeaning
+          arrayDataDenotation
+          (runCostingFunOneArgument . paramArrayData)
   toBuiltinMeaning _semvar IData =
     let iDataDenotation :: Integer -> Data
         iDataDenotation = I
@@ -1524,6 +1534,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning
           unListDataDenotation
           (runCostingFunOneArgument . paramUnListData)
+  toBuiltinMeaning _semvar UnArrayData =
+    let unArrayDataDenotation :: Data -> BuiltinResult (Vector Data)
+        unArrayDataDenotation = \case
+          Array v -> pure v
+          _ ->
+            -- See Note [Structural vs operational errors within builtins].
+            fail "Expected the Array constructor but got a different one"
+        {-# INLINE unArrayDataDenotation #-}
+     in makeBuiltinMeaning
+          unArrayDataDenotation
+          (runCostingFunOneArgument . paramUnArrayData)
   toBuiltinMeaning _semvar UnIData =
     let unIDataDenotation :: Data -> BuiltinResult Integer
         unIDataDenotation = \case
@@ -1926,7 +1947,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
         listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
           case uniListA of
-            DefaultUniList uniA -> 
+            DefaultUniList uniA ->
               pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromListN (length xs) xs
             _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
         {-# INLINE listToArrayDenotation #-}
@@ -2099,6 +2120,8 @@ instance Flat DefaultFun where
       UnConstrData -> 42
       UnMapData -> 43
       UnListData -> 44
+      ArrayData -> 101
+      UnArrayData -> 102
       UnIData -> 45
       UnBData -> 46
       EqualsData -> 47
@@ -2259,6 +2282,8 @@ instance Flat DefaultFun where
       go 98 = pure ValueData
       go 99 = pure UnValueData
       go 100 = pure ScaleValue
+      go 101 = pure ArrayData
+      go 102 = pure UnArrayData
       go t = fail $ "Failed to decode builtin tag, got: " ++ show t
 
   size _ n = n + builtinTagWidth

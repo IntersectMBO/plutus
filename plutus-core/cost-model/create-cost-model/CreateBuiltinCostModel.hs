@@ -85,6 +85,8 @@ builtinCostModelNames =
     , paramUnConstrData = "unConstrDataModel"
     , paramUnMapData = "unMapDataModel"
     , paramUnListData = "unListDataModel"
+    , paramArrayData = "arrayDataModel"
+    , paramUnArrayData = "unArrayDataModel"
     , paramUnIData = "unIDataModel"
     , paramUnBData = "unBDataModel"
     , paramEqualsData = "equalsDataModel"
@@ -221,7 +223,7 @@ createBuiltinCostModel bmfile rfile = do
   paramTailList <- getParams readCF1 paramTailList
   paramNullList <- getParams readCF1 paramNullList
   -- Data
-  paramChooseData <- getParams readCF6 paramChooseData
+  paramChooseData <- getParams readCF7 paramChooseData
   paramConstrData <- getParams readCF2 paramConstrData
   paramMapData <- getParams readCF1 paramMapData
   paramListData <- getParams readCF1 paramListData
@@ -230,6 +232,8 @@ createBuiltinCostModel bmfile rfile = do
   paramUnConstrData <- getParams readCF1 paramUnConstrData
   paramUnMapData <- getParams readCF1 paramUnMapData
   paramUnListData <- getParams readCF1 paramUnListData
+  paramArrayData <- getParams readCF1 paramArrayData
+  paramUnArrayData <- getParams readCF1 paramUnArrayData
   paramUnIData <- getParams readCF1 paramUnIData
   paramUnBData <- getParams readCF1 paramUnBData
   paramEqualsData <- getParams readCF2 paramEqualsData
@@ -453,3 +457,10 @@ readCF6 e = do
   case ty of
     "constant_cost" -> ModelSixArgumentsConstantCost <$> getConstant e
     _ -> error $ "Unknown six-variable model type: " ++ ty
+
+readCF7 :: MonadR m => SomeSEXP (Region m) -> m ModelSevenArguments
+readCF7 e = do
+  ty <- getType e
+  case ty of
+    "constant_cost" -> ModelSevenArgumentsConstantCost <$> getConstant e
+    _ -> error $ "Unknown seven-variable model type: " ++ ty

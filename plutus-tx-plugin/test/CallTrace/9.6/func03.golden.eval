@@ -6,4 +6,4 @@ Trace:
 -> func (test/CallTrace/Spec.hs:79:1-79:4)
 -> functionFromOtherModule (test/CallTrace/Spec.hs:94:1-94:23)
 -> $
--> errorWhenTrue (test/CallTrace/OtherModule.hs:9:1-9:13)
+-> errorWhenTrue

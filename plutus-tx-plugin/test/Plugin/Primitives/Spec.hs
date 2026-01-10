@@ -266,7 +266,7 @@ matchData1 :: CompiledCode (Builtins.BuiltinData -> Maybe Integer)
 matchData1 =
   plc
     (Proxy @"matchData1")
-    (\(d :: Builtins.BuiltinData) -> (Builtins.matchData d (\_ _ -> Nothing) (const Nothing) (const Nothing) (Just) (const Nothing)))
+    (\(d :: Builtins.BuiltinData) -> (Builtins.matchData d (\_ _ -> Nothing) (const Nothing) (const Nothing) (const Nothing) (Just) (const Nothing)))
 
 writeBitsIntegerToByteString :: CompiledCode (P.BuiltinByteString)
 writeBitsIntegerToByteString =

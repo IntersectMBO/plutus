@@ -24,6 +24,9 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Data qualified
 import Data.Hashable
 import Data.Text.Encoding qualified as Text
+import Data.Vector.Orphans ()
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
 import Data.Word (Word64, Word8)
 import GHC.Generics
 import NoThunks.Class
@@ -44,6 +47,7 @@ data Data
   | List [Data]
   | I Integer
   | B BS.ByteString
+  | Array (Vector Data)
   deriving stock (Show, Read, Eq, Ord, Generic, Data.Data.Data)
   deriving anyclass (Hashable, NFData, NoThunks)
 
@@ -57,6 +61,7 @@ instance Pretty Data where
     B b ->
       -- Base64 encode the ByteString since it may contain arbitrary bytes
       pretty (Text.decodeLatin1 (Base64.encode b))
+    Array ds -> brackets (sep (punctuate comma (Vector.toList (pretty <$> ds))))
 
 {- Note [Encoding via Term]
 We want to write a custom encoder/decoder for Data (i.e. not use the Generic version), but actually
@@ -161,6 +166,10 @@ encodeData = \case
     CBOR.encodeMapLen (fromIntegral $ length es)
       <> mconcat [encode t <> encode t' | (t, t') <- es]
   List ds -> encode ds
+  Array ds ->
+    CBOR.encodeTag 128
+      <> CBOR.encodeListLen (fromIntegral $ Vector.length ds)
+      <> Vector.foldMap encodeData ds
   I i -> encodeInteger i
   B b -> encodeBs b
 
@@ -298,6 +307,7 @@ decodeConstr :: Decoder s Data
 decodeConstr =
   CBOR.decodeTag64 >>= \case
     102 -> decodeConstrExtended
+    128 -> decodeArray
     t
       | 121 <= t && t < 128 ->
           Constr (fromIntegral t - 121) <$> decodeListOf decodeData
@@ -316,3 +326,4 @@ decodeConstr =
           unless done $ fail "Expected exactly two elements"
         Just n -> unless (n == 2) $ fail "Expected exactly two elements"
       pure $ Constr (fromIntegral i) args
+    decodeArray = Array . Vector.fromList <$> decodeListOf decodeData
