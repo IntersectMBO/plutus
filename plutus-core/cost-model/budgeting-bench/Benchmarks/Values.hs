@@ -210,7 +210,7 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
 -- We use the `nf` benchmark version here because `valueData` returns an object
 -- of the form `Map . ...` and `whnf` won't evaluate anything under `Map`.
 valueDataBenchmark :: StdGen -> Benchmark
-valueDataBenchmark gen = createOneTermBuiltinBench_NF ValueData [] (generateTestValues gen)
+valueDataBenchmark gen = createOneTermBuiltinBench ValueData [] (generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
