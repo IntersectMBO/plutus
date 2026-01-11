@@ -818,9 +818,9 @@ modelFun <- function(path) {
     # Z wrapped with `Logarithmic . ValueOuterOrMaxInner`
     lookupCoinModel           <- linearInZ ("LookupCoin")    
 
-    # X wrapped with `ValueLogOuterSizeAddLogMaxInnerSize` (sum of logarithmic sizes)
-    # Y wrapped with `ValueTotalSize` (contained value size)
-    valueContainsModel        <- {
+    ## X wrapped with `ValueMaxDepth` (sum of logarithmic sizes)
+    ## Y wrapped with `ValueTotalSize` (contained value size)
+    valueContainsModel <- {
         fname <- "ValueContains"
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
@@ -829,8 +829,20 @@ modelFun <- function(path) {
         mk.result(m, "multiplied_sizes")
     }         
 
-    # Sizes of parameters are used as is (unwrapped):
-    valueDataModel            <- linearInX ("ValueData")
+    ## Really linearInX, but we want to restrict the X values for the time being
+    ## FIXME: make the benchmark inputs a bit smaller.  They currently go up to
+    ## a size that's much bigger than we're ever likely to encounter.
+    valueDataModel <- {
+        fname <- "ValueData"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            filter (x_mem < 50000) %>%
+            discard.overhead ()
+        m <- lm(t ~ I(x_mem), filtered)
+        mk.result(m, "linear_in_x")
+    }
+
+    ## X wrapped with DataNodeCount
     unValueDataModel          <- linearInX ("UnValueData")
 
     ##### Models to be returned to Haskell #####

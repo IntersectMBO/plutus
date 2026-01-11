@@ -232,6 +232,16 @@ unValueDataBenchmark gen =
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
 
+{-| Maximum number of (policyId, tokenName, quantity) entries for Value generation.
+This represents the practical limit based on execution budget constraints.
+Scripts can programmatically generate large Values, so we benchmark based on
+what's achievable within CPU execution budget, not ledger storage limits.
+
+Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
+consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
+maxValueEntries :: Int
+maxValueEntries = 100_000
+
 -- | Generate common test values for benchmarking
 generateTestValues :: StdGen -> [Value]
 generateTestValues gen = runStateGen_ gen \g ->
@@ -246,16 +256,6 @@ generateValue :: StatefulGen g m => g -> m Value
 generateValue g = do
   numEntries <- uniformRM (1, maxValueEntries) g
   generateValueMaxEntries numEntries g
-
-{-| Maximum number of (policyId, tokenName, quantity) entries for Value generation.
-This represents the practical limit based on execution budget constraints.
-Scripts can programmatically generate large Values, so we benchmark based on
-what's achievable within CPU execution budget, not ledger storage limits.
-
-Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
-consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
-maxValueEntries :: Int
-maxValueEntries = 100_000
 
 -- | Generate Value within total size budget
 generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
