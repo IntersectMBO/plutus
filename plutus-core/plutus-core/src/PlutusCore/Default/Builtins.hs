@@ -1926,7 +1926,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
         listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
           case uniListA of
-            DefaultUniList uniA -> pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromList xs
+            DefaultUniList uniA -> 
+              pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromListN (length xs) xs
             _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
         {-# INLINE listToArrayDenotation #-}
      in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)

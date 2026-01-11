@@ -52,8 +52,8 @@ function filterByFunction(parsedData, functionName) {
 function calculateOverhead(parsedData) {
   const overheadMap = {};
 
-  // Match Nop functions: Nop1b, Nop2b, Nop3b, etc.
-  const nopPattern = /^Nop(\d+)b$/;
+  // Match Nop functions: Nop1o, Nop2o, Nop3o, etc. (Opaque args, matching R's models.R)
+  const nopPattern = /^Nop(\d+)o$/;
 
   for (const row of parsedData) {
     const match = row.function.match(nopPattern);
@@ -131,33 +131,34 @@ const CostModelEvaluators = {
     return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[1] + (coeffs.c2 || 0) * args[2];
   },
 
-  addedSizes: (coeffs, args) => {
-    // addedSizes models cost as linear in sum of sizes
+  added_sizes: (coeffs, args) => {
+    // added_sizes models cost as linear in sum of sizes
     const sum = args.reduce((a, b) => a + b, 0);
-    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * sum;
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * sum;
   },
 
-  multipliedSizes: (coeffs, args) => {
-    // multipliedSizes models cost as linear in product of sizes
+  multiplied_sizes: (coeffs, args) => {
+    // multiplied_sizes models cost as linear in product of sizes
     const product = args.reduce((a, b) => a * b, 1);
     const c0 = coeffs.c0 || coeffs.intercept || 0;
     const c1 = coeffs.c1 || coeffs.slope || 0;
     return c0 + c1 * product;
   },
 
-  multiplied_sizes: (coeffs, args) => {
-    // Alias for multipliedSizes (snake_case version)
-    return CostModelEvaluators.multipliedSizes(coeffs, args);
-  },
-
-  minSize: (coeffs, args) => {
+  min_size: (coeffs, args) => {
     const min = Math.min(...args);
-    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * min;
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * min;
   },
 
-  maxSize: (coeffs, args) => {
+  max_size: (coeffs, args) => {
     const max = Math.max(...args);
-    return (coeffs.c0 || 0) + (coeffs.c1 || 0) * max;
+    const c0 = coeffs.c0 || coeffs.intercept || 0;
+    const c1 = coeffs.c1 || coeffs.slope || 0;
+    return c0 + c1 * max;
   },
 
   linear_in_max_yz: (coeffs, args) => {
@@ -301,17 +302,16 @@ function formatModelFormula(modelType, coefficients) {
     case 'linear_in_yz':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg2) + ${formatCoeff(c2)} × (arg3) picoseconds`;
 
-    case 'addedSizes':
+    case 'added_sizes':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (sum of args) picoseconds`;
 
-    case 'multipliedSizes':
     case 'multiplied_sizes':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (product of args) picoseconds`;
 
-    case 'minSize':
+    case 'min_size':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (min of args) picoseconds`;
 
-    case 'maxSize':
+    case 'max_size':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (max of args) picoseconds`;
 
     case 'linear_in_max_yz':
@@ -380,4 +380,13 @@ async function loadData(csvUrl, jsonUrl) {
     console.error('Error loading data:', error);
     throw error;
   }
+}
+
+/**
+ * Get branch name from URL query parameter
+ * @returns {string|null} Branch name or null if not specified
+ */
+function getBranchFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('branch');
 }

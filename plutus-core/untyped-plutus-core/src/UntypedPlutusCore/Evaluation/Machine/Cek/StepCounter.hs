@@ -1,24 +1,17 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter where
 
+import PlutusCore.Unroll (NatToPeano, UpwardsM (..))
+
 import Control.Monad.Primitive
 import Data.Coerce (coerce)
-import Data.Kind
 import Data.Primitive qualified as P
 import Data.Proxy
 import Data.Word
-import GHC.TypeNats (KnownNat, Nat, natVal, type (-))
+import GHC.TypeNats (KnownNat, Nat, natVal)
 
 -- See Note [Step counter data structure]
 -- You might think that since we can store whatever we like in here we might as well
@@ -80,31 +73,6 @@ modifyCounter i f c = do
   writeCounter c i modified
   pure modified
 {-# INLINE modifyCounter #-}
-
--- | The type of natural numbers in Peano form.
-data Peano
-  = Z
-  | S Peano
-
-type NatToPeano :: Nat -> Peano
-type family NatToPeano n where
-  NatToPeano 0 = 'Z
-  NatToPeano n = 'S (NatToPeano (n - 1))
-
-type UpwardsM :: (Type -> Type) -> Peano -> Constraint
-class Applicative f => UpwardsM f n where
-  {-| @upwardsM i k@ means @k i *> k (i + 1) *> ... *> k (i + n - 1)@.
-  We use this function in order to statically unroll a loop in 'itraverseCounter_' through
-  instance resolution. This makes @validation@ benchmarks a couple of percent faster. -}
-  upwardsM :: Int -> (Int -> f ()) -> f ()
-
-instance Applicative f => UpwardsM f 'Z where
-  upwardsM _ _ = pure ()
-  {-# INLINE upwardsM #-}
-
-instance UpwardsM f n => UpwardsM f ('S n) where
-  upwardsM !i k = k i *> upwardsM @f @n (i + 1) k
-  {-# INLINE upwardsM #-}
 
 -- | Traverse the counters with an effectful function.
 itraverseCounter_

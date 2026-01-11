@@ -39,10 +39,11 @@ function getFileUrls(baseUrl) {
   };
 }
 
-// Load settings from localStorage
+// Load settings from localStorage (URL param takes precedence)
 function loadSettings() {
+  const urlBranch = getBranchFromUrl();
   return {
-    branch: localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
+    branch: urlBranch || localStorage.getItem(STORAGE_KEYS.BRANCH) || DEFAULT_BRANCH,
     csvUrl: localStorage.getItem(STORAGE_KEYS.CSV_URL) || '',
     jsonUrl: localStorage.getItem(STORAGE_KEYS.JSON_URL) || '',
     collapsed: localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_COLLAPSED) === 'true'
@@ -135,6 +136,20 @@ async function init() {
 
   // Set up plot control event listeners (only once)
   setupControls();
+
+  // Set up copy link button
+  document.getElementById('copy-link').addEventListener('click', () => {
+    const branch = document.getElementById('branch-name').value.trim() || DEFAULT_BRANCH;
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.searchParams.set('branch', branch);
+    navigator.clipboard.writeText(url.toString());
+    // Brief visual feedback
+    const btn = document.getElementById('copy-link');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = original, 1500);
+  });
 
   // Initial load
   await loadAndRenderData();

@@ -33,11 +33,11 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v6.0.1
 
       - name: Deploy Site
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           folder: doc/cost-models
           target-folder: cost-models
@@ -45,7 +45,7 @@ jobs:
 
       - name: Deploy Preview Site
         if: github.event_name == 'pull_request'
-        uses: rossjrw/pr-preview-action@v1.6.2
+        uses: rossjrw/pr-preview-action@v1.8.0
         with:
           source-dir: doc/cost-models
           umbrella-dir: pr-preview/cost-models

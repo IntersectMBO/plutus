@@ -19,7 +19,7 @@ jobs:
       name: github-pages
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.3.0
+        uses: actions/checkout@v6.0.1
 
       - name: Build Report
         run: | 
@@ -39,7 +39,7 @@ jobs:
           mv out/hpc_index.html out/index.html
 
       - name: Deploy Report
-        uses: JamesIves/github-pages-deploy-action@v4.7.3
+        uses: JamesIves/github-pages-deploy-action@v4.7.6
         with:
           folder: out
           target-folder: dev/coverage

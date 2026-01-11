@@ -920,12 +920,12 @@ replicateByte
 replicateByte = BI.replicateByte
 {-# INLINEABLE replicateByte #-}
 
-{-| FIXME(https://github.com/IntersectMBO/plutus-private/issues/1609):
+{-| Modular exponentiation primitive, as defined in CIP-0109.
 
 = See also
 
 * [Operation
-description](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0109) -}
+description](https://cips.cardano.org/cip/CIP-0109) -}
 expModInteger
   :: Integer
   -> Integer

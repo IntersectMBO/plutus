@@ -46,7 +46,18 @@ plutusPreludeErrorCodes =
     , ("PT7", "PlutusTx.List.!!: index too large")
     , ("PT8", "PlutusTx.List.head: empty list")
     , ("PT9", "PlutusTx.List.tail: empty list")
-    , ("PT10", "PlutusTx.Enum.().succ: bad argument")
+    , ("PT19", "PlutusTx.List.last: empty list")
+    , ("PT20", "PlutusTx.Ratio.recip: reciprocal of zero")
+    , ("PT21", "PlutusTx.BuiltinList.!!: negative index")
+    , ("PT22", "PlutusTx.BuiltinList.!!: index too large")
+    , ("PT23", "PlutusTx.BuiltinList.head: empty list")
+    , ("PT24", "PlutusTx.BuiltinList.tail: empty list")
+    , ("PT25", "PlutusTx.BuiltinList.last: empty list")
+    , ("PT26", "PlutusTx.Enum.succ: bad argument")
+    , ("PT27", "PlutusTx.Enum.pred: bad argument")
+    , ("PT28", "PlutusTx.Enum.toEnum: bad argument")
+    , -- the following are retired
+      ("PT10", "PlutusTx.Enum.().succ: bad argument")
     , ("PT11", "PlutusTx.Enum.().pred: bad argument")
     , ("PT12", "PlutusTx.Enum.().toEnum: bad argument")
     , ("PT13", "PlutusTx.Enum.Bool.succ: bad argument")
@@ -55,13 +66,6 @@ plutusPreludeErrorCodes =
     , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
     , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
     , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
-    , ("PT19", "PlutusTx.List.last: empty list")
-    , ("PT20", "PlutusTx.Ratio.recip: reciprocal of zero")
-    , ("PT21", "PlutusTx.BuiltinList.!!: negative index")
-    , ("PT22", "PlutusTx.BuiltinList.!!: index too large")
-    , ("PT23", "PlutusTx.BuiltinList.head: empty list")
-    , ("PT24", "PlutusTx.BuiltinList.tail: empty list")
-    , ("PT25", "PlutusTx.BuiltinList.last: empty list")
     ]
 
 -- | The error happens in TH generation of indexed data
@@ -103,6 +107,23 @@ headEmptyListError = "PT8"
 tailEmptyListError :: Builtins.BuiltinString
 tailEmptyListError = "PT9"
 {-# INLINEABLE tailEmptyListError #-}
+
+-- | PlutusTx.Enum.().succ: bad argument
+succBadArgumentError :: Builtins.BuiltinString
+succBadArgumentError = "PT26"
+{-# INLINEABLE succBadArgumentError #-}
+
+-- | PlutusTx.Enum.().pred: bad argument
+predBadArgumentError :: Builtins.BuiltinString
+predBadArgumentError = "PT27"
+{-# INLINEABLE predBadArgumentError #-}
+
+-- | PlutusTx.Enum.().toEnum: bad argument
+toEnumBadArgumentError :: Builtins.BuiltinString
+toEnumBadArgumentError = "PT28"
+{-# INLINEABLE toEnumBadArgumentError #-}
+
+{-# DEPRECATED succVoidBadArgumentError, predVoidBadArgumentError, toEnumVoidBadArgumentError, succBoolBadArgumentError, predBoolBadArgumentError, toEnumBoolBadArgumentError, succOrderingBadArgumentError, predOrderingBadArgumentError, toEnumOrderingBadArgumentError "Use [succ|pred|toEnum]BadArgumentError instead." #-}
 
 -- | PlutusTx.Enum.().succ: bad argument
 succVoidBadArgumentError :: Builtins.BuiltinString
