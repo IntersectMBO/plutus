@@ -1232,27 +1232,27 @@
       "type": "constant_cost"
     }
   },
-  "valueData": {
+  "unValueData": {
     "cpu": {
         "arguments": {
             "intercept": 1000,
-            "slope": 43200
+            "slope": 288410
         },
         "type": "linear_in_x"
     },
     "memory": {
       "arguments": {
-        "intercept": 9999,
-        "slope": 9999
+          "intercept": 9999,
+          "slope": 9999
       },
       "type": "linear_in_x"
     }
   },
-  "unValueData": {
+  "valueData": {
     "cpu": {
       "arguments": {
-        "intercept": 1000,
-        "slope": 43200
+         "intercept": 1000,
+          "slope": 36593
       },
       "type": "linear_in_x"
     },
@@ -1260,8 +1260,8 @@
       "arguments": {
         "intercept": 9999,
         "slope": 9999
-      },
-      "type": "linear_in_x"
+    },
+    "type": "linear_in_x"
     }
-  }
+  }    
 }
