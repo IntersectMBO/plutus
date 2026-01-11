@@ -51,9 +51,10 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( IntegerCostedLiterally (..)
+  ( DataNodeCount (..)
+  , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
-  , ValueLogOuterSizeAddLogMaxInnerSize (..)
+  , ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
 import PlutusCore.Pretty.Extra (juxtRenderContext)
@@ -61,16 +62,29 @@ import PlutusCore.Value (Value)
 
 import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
-import Data.Int (Int16, Int32, Int64, Int8)
+import Data.Int
+  ( Int16
+  , Int32
+  , Int64
+  , Int8
+  )
 import Data.Proxy (Proxy (Proxy))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (typeRep)
 import Data.Vector qualified as Vector
 import Data.Vector.Strict qualified as Strict (Vector)
-import Data.Word (Word16, Word32, Word64)
+import Data.Word
+  ( Word16
+  , Word32
+  , Word64
+  )
 import GHC.Exts (inline, oneShot)
-import Text.PrettyBy.Fixity (RenderContext, inContextM, juxtPrettyM)
+import Text.PrettyBy.Fixity
+  ( RenderContext
+  , inContextM
+  , juxtPrettyM
+  )
 import Universe as Export
 
 {- Note [PLC types and universes]
@@ -710,18 +724,33 @@ instance
   {-# INLINE readKnown #-}
 
 deriving newtype instance
-  KnownTypeAst tyname DefaultUni ValueLogOuterSizeAddLogMaxInnerSize
+  KnownTypeAst tyname DefaultUni ValueMaxDepth
 instance
   KnownBuiltinTypeIn DefaultUni term Value
-  => MakeKnownIn DefaultUni term ValueLogOuterSizeAddLogMaxInnerSize
+  => MakeKnownIn DefaultUni term ValueMaxDepth
   where
   makeKnown = makeKnownCoerce @Value
   {-# INLINE makeKnown #-}
 instance
   KnownBuiltinTypeIn DefaultUni term Value
-  => ReadKnownIn DefaultUni term ValueLogOuterSizeAddLogMaxInnerSize
+  => ReadKnownIn DefaultUni term ValueMaxDepth
   where
   readKnown = readKnownCoerce @Value
+  {-# INLINE readKnown #-}
+
+deriving newtype instance
+  KnownTypeAst tyname DefaultUni DataNodeCount
+instance
+  KnownBuiltinTypeIn DefaultUni term Value
+  => MakeKnownIn DefaultUni term DataNodeCount
+  where
+  makeKnown = makeKnownCoerce @Data
+  {-# INLINE makeKnown #-}
+instance
+  KnownBuiltinTypeIn DefaultUni term Value
+  => ReadKnownIn DefaultUni term DataNodeCount
+  where
+  readKnown = readKnownCoerce @Data
   {-# INLINE readKnown #-}
 
 deriving via
@@ -768,12 +797,12 @@ instance AnnotateCaseBuiltin DefaultUni where
   annotateCaseBuiltin ty branches = case ty of
     TyBuiltin _ (SomeTypeIn DefaultUniUnit) ->
       case branches of
-        [x] -> Right $ [(x, [])]
+        [x] -> Right [(x, [])]
         _ -> Left "Casing on unit only allows exactly one branch"
     TyBuiltin _ (SomeTypeIn DefaultUniBool) ->
       case branches of
-        [f] -> Right $ [(f, [])]
-        [f, t] -> Right $ [(f, []), (t, [])]
+        [f] -> Right [(f, [])]
+        [f, t] -> Right [(f, []), (t, [])]
         _ -> Left "Casing on bool requires exactly one branch or two branches"
     TyBuiltin _ (SomeTypeIn DefaultUniInteger) ->
       Right $ map (,[]) branches
@@ -786,7 +815,7 @@ instance AnnotateCaseBuiltin DefaultUni where
       case branches of
         [f] -> Right [(f, [lTyArg, rTyArg])]
         _ -> Left "Casing on pair requires exactly one branch"
-    _ -> Left $ display (() <$ ty) <> " isn't supported in 'case'"
+    _ -> Left $ display (void ty) <> " isn't supported in 'case'"
 
 instance CaseBuiltin DefaultUni where
   caseBuiltin someVal@(Some (ValueOf uni x)) branches = case uni of

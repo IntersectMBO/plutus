@@ -21,7 +21,8 @@ import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ValueLogOuterSizeAddLogMaxInnerSize (..)
+  ( DataNodeCount (..)
+  , ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
 import PlutusCore.Value (K, Value)
@@ -50,7 +51,7 @@ makeBenchmarks gen =
 lookupCoinBenchmark :: StdGen -> Benchmark
 lookupCoinBenchmark gen =
   createThreeTermBuiltinBenchElementwiseWithWrappers
-    (id, id, ValueLogOuterSizeAddLogMaxInnerSize) -- Wrap Value argument to report sum of log sizes
+    (id, id, ValueMaxDepth) -- Wrap Value argument to report sum of log sizes
     LookupCoin -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
     (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
@@ -104,7 +105,7 @@ withWorstCaseSearchKeys genValueWithKeys = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueLogOuterSizeAddLogMaxInnerSize, ValueTotalSize)
+    (ValueMaxDepth, ValueTotalSize)
     -- Container: sum of log sizes, Contained: totalSize
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
@@ -210,14 +211,23 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
 -- We use the `nf` benchmark version here because `valueData` returns an object
 -- of the form `Map . ...` and `whnf` won't evaluate anything under `Map`.
 valueDataBenchmark :: StdGen -> Benchmark
-valueDataBenchmark gen = createOneTermBuiltinBench_NF ValueData [] (generateTestValues gen)
+valueDataBenchmark gen =
+  createOneTermBuiltinBenchWithWrapper_NF
+    ValueTotalSize
+    ValueData
+    []
+    (generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
 
 unValueDataBenchmark :: StdGen -> Benchmark
 unValueDataBenchmark gen =
-  createOneTermBuiltinBench UnValueData [] (Value.valueData <$> generateTestValues gen)
+  createOneTermBuiltinBenchWithWrapper
+    DataNodeCount
+    UnValueData
+    []
+    (Value.valueData <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
