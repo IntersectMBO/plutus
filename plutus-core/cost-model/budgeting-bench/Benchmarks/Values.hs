@@ -229,7 +229,8 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (generateShuffledData gen)
+    --    (generateShuffledData gen)
+    (generateReversedData gen)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
@@ -255,6 +256,16 @@ generateTestValues gen = runStateGen_ gen \g ->
 
 generateShuffledData :: StdGen -> [Data]
 generateShuffledData gen =
+  let l = generateTestValues gen
+   in fmap reverseData l
+  where
+    reverseData v =
+      case Value.valueData v of
+        Map m -> Map (reverse m)
+        _ -> error "?? Map expected ??"
+
+generateReversedData :: StdGen -> [Data]
+generateReversedData gen =
   let l = generateTestValues gen
    in fmap shuffleData l
   where
