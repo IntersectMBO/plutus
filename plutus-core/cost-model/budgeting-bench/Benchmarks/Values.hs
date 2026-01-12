@@ -20,6 +20,7 @@ import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
+import PlutusCore.Data (Data (Map))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
@@ -27,6 +28,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   )
 import PlutusCore.Value (K, Value)
 import PlutusCore.Value qualified as Value
+import System.Random.Shuffle
 import System.Random.Stateful
   ( StatefulGen
   , StdGen
@@ -227,7 +229,7 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (Value.valueData <$> generateTestValues gen)
+    (generateShuffledData gen)
 
 ----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
@@ -250,6 +252,15 @@ generateTestValues gen = runStateGen_ gen \g ->
     <$>
     -- Random tests for parameter spread (100 combinations)
     replicateM 100 (generateValue g)
+
+generateShuffledData :: StdGen -> [Data]
+generateShuffledData gen =
+  let l = Value.valueData <$> generateTestValues gen
+   in fmap (shuffleData gen) l
+  where
+    shuffleData g (Map m) =
+      Map $ shuffle' m (length m) g
+    shuffleData _ _ = error "?? Map expected ??"
 
 -- | Generate Value with random number of entries between 1 and maxValueEntries
 generateValue :: StatefulGen g m => g -> m Value
