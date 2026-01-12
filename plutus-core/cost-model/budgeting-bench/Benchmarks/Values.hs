@@ -11,22 +11,24 @@ import Prelude
 
 import Common
 import Control.Monad (replicateM)
+import Control.Monad.State.Strict (State)
 import Criterion.Main (Benchmark)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Int (Int64)
 import Data.List (find, sort)
+import Data.Map.Strict qualified as Map
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
+import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ValueLogOuterSizeAddLogMaxInnerSize (..)
+  ( ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
-import PlutusCore.Value (K, Value)
+import PlutusCore.Value (K, Quantity (..), Value)
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StatefulGen, StdGen, runStateGen_, uniformRM)
+import System.Random.Stateful (StateGenM, StatefulGen, StdGen, runStateGen_, uniformRM)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -37,6 +39,9 @@ makeBenchmarks gen =
   , valueContainsBenchmark gen
   , valueDataBenchmark gen
   , unValueDataBenchmark gen
+  , insertCoinBenchmark gen
+  , unionValueBenchmark gen
+  , scaleValueBenchmark gen
   ]
 
 ----------------------------------------------------------------------------------------------------
@@ -45,13 +50,13 @@ makeBenchmarks gen =
 lookupCoinBenchmark :: StdGen -> Benchmark
 lookupCoinBenchmark gen =
   createThreeTermBuiltinBenchElementwiseWithWrappers
-    (id, id, ValueLogOuterSizeAddLogMaxInnerSize) -- Wrap Value argument to report sum of log sizes
+    (id, id, ValueMaxDepth) -- Wrap Value argument to report sum of log sizes
     LookupCoin -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
-    (lookupCoinArgs gen) -- the argument combos to generate benchmarks for
+    (runBenchGen gen lookupCoinArgs) -- the argument combos to generate benchmarks for
 
-lookupCoinArgs :: StdGen -> [(ByteString, ByteString, Value)]
-lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
+lookupCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Value)]
+lookupCoinArgs gen = do
   {- Exhaustive power-of-2 combinations for BST worst-case benchmarking.
 
      Tests all combinations of sizes from powers and half-powers of 2.
@@ -82,7 +87,7 @@ lookupCoinArgs gen = runStateGen_ gen \(g :: g) -> do
 
   sequence
     -- Generate worst-case lookups for each size combination
-    [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g)
+    [ withWorstCaseSearchKeys (generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy gen)
     | numPolicies <- sizes
     , tokensPerPolicy <- sizes
     ]
@@ -99,7 +104,7 @@ withWorstCaseSearchKeys genValueWithKeys = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueLogOuterSizeAddLogMaxInnerSize, ValueTotalSize)
+    (ValueMaxDepth, ValueTotalSize)
     -- Container: sum of log sizes, Contained: totalSize
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
@@ -213,7 +218,109 @@ unValueDataBenchmark gen =
   createOneTermBuiltinBench UnValueData [] (Value.valueData <$> generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
+-- InsertCoin --------------------------------------------------------------------------------------
+
+insertCoinBenchmark :: StdGen -> Benchmark
+insertCoinBenchmark gen =
+  createFourTermBuiltinBenchElementwiseWithWrappers
+    (id, id, id, ValueMaxDepth)
+    InsertCoin
+    []
+    (runBenchGen gen insertCoinArgs)
+
+insertCoinArgs :: StatefulGen g m => g -> m [(ByteString, ByteString, Integer, Value)]
+insertCoinArgs gen = do
+  lookupArgs <- lookupCoinArgs gen
+  let noOfBenches = length lookupArgs
+  amounts <- genZeroOrMaxAmount gen noOfBenches
+  pure $ reorderArgs <$> zip lookupArgs amounts
+  where
+    reorderArgs ((b1, b2, val), am) = (b1, b2, am, val)
+
+----------------------------------------------------------------------------------------------------
+-- UnionValue --------------------------------------------------------------------------------------
+
+unionValueBenchmark :: StdGen -> Benchmark
+unionValueBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (ValueTotalSize, ValueTotalSize)
+    UnionValue
+    []
+    (runBenchGen gen unionValueArgs)
+
+{-| Maximum total size of Value arguments for UnionValue benchmarking.
+Based on practical limits within execution budget constraints. -}
+maxUnionValueEntries :: Int
+maxUnionValueEntries = 50_000
+
+{-| Generate argument pairs for UnionValue benchmarking.
+The worst case is when both Values share as many keys as possible,
+therefore we consider two Values where the first is a sub-value of the second.
+Experiments have also shown that the worst case execution time for UnionValue
+occurs for flat maps with a single token name per policy ID.
+Therefore, we fix the number of token names to 1 for both Values. -}
+unionValueArgs :: StatefulGen g m => g -> m [(Value, Value)]
+unionValueArgs gen = replicateM 200 $ do
+  numPolicyIdsV2 <- uniformRM (1, maxUnionValueEntries) gen
+  policyIdsV2 <- replicateM numPolicyIdsV2 (generateKey gen)
+  tokenName <- generateKey gen
+  let amt = unQuantity (maxBound :: Quantity) `div` 2
+      value2 = buildValue policyIdsV2 [tokenName] (mkQuantity amt)
+  numPolicyIdsToKeep <- uniformRM (1, numPolicyIdsV2) gen
+  let policyIdsV1 = take numPolicyIdsToKeep policyIdsV2
+      value1 = buildValue policyIdsV1 [tokenName] (mkQuantity amt)
+  pure (value1, value2)
+
+----------------------------------------------------------------------------------------------------
+-- ScaleValue --------------------------------------------------------------------------------------
+
+scaleValueBenchmark :: StdGen -> Benchmark
+scaleValueBenchmark gen =
+  createTwoTermBuiltinBenchElementwiseWithWrappers
+    (id, ValueTotalSize)
+    ScaleValue
+    []
+    (runBenchGen gen scaleValueArgs)
+
+{-| Maximum total size of Value arguments for ScaleValue benchmarking.
+Based on practical limits within execution budget constraints. -}
+maxScaleValueEntries :: Int
+maxScaleValueEntries = 90_000
+
+{-| Generate argument pairs for ScaleValue benchmarking.
+Since 'scaleValue' needs to traverse the entire Value, we may fix the structure
+of the Value to be a flattened map with a single token name per policy ID.
+To ensure worst-case performance, we fix the resulting scaled quantities to
+be 'maxBound'. -}
+scaleValueArgs :: StatefulGen g m => g -> m [(Integer, Value)]
+scaleValueArgs gen = replicateM 200 $ do
+  numPolicyIds <- uniformRM (1, maxScaleValueEntries) gen
+  policyIds <- replicateM numPolicyIds (generateKey gen)
+  tokenName <- generateKey gen
+  let scalar = unQuantity (maxBound :: Quantity) `div` 2
+      amt = mkQuantity 2
+      value = buildValue policyIds [tokenName] amt
+  pure (scalar, value)
+
+----------------------------------------------------------------------------------------------------
 -- Value Generators --------------------------------------------------------------------------------
+
+{-| Build Value from given policy IDs, token names and and a single quantity
+for each (policy ID, token name) pair.
+Uses 'unsafeFromList' because 'generateKey' may generate duplicate keys, although
+it is unlikely it generates more than a few duplicates per run. -}
+buildValue :: [K] -> [K] -> Quantity -> Value
+buildValue policyIds tokenNames amt =
+  unsafeFromList entries
+  where
+    entries =
+      [ ( pId
+        , [ (tName, amt)
+          | tName <- tokenNames
+          ]
+        )
+      | pId <- policyIds
+      ]
 
 -- | Generate common test values for benchmarking
 generateTestValues :: StdGen -> [Value]
@@ -326,6 +433,31 @@ generateKey g = do
     Just key -> pure key
     Nothing -> error "Internal error: maxKeyLen key should always be valid"
 
+-- | Generate either zero or maximum amount Integer values, the probability of each is 50%
+genZeroOrMaxAmount
+  :: StatefulGen g m
+  => g
+  -> Int
+  -- ^ Number of amounts to generate
+  -> m [Integer]
+genZeroOrMaxAmount gen n =
+  genZeroOrAmount gen n (maxBound :: Quantity)
+
+genZeroOrAmount
+  :: StatefulGen g m
+  => g
+  -> Int
+  -- ^ Number of amounts to generate
+  -> Quantity
+  -> m [Integer]
+genZeroOrAmount gen n qty =
+  replicateM n $ do
+    coinType <- uniformRM (0 :: Int, 1) gen
+    pure $ case coinType of
+      0 -> 0
+      1 -> unQuantity qty
+      _ -> error "genZeroOrAmount: impossible"
+
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
 
@@ -341,3 +473,16 @@ unsafeFromBuiltinResult = \case
   BuiltinSuccess x -> x
   BuiltinSuccessWithLogs _ x -> x
   BuiltinFailure _ err -> error $ "BuiltinResult failed: " <> show err
+
+-- | Abstracted runner for computations using stateful random generator 'StdGen'
+runBenchGen :: StdGen -> (StateGenM StdGen -> State StdGen a) -> a
+runBenchGen gen ma = runStateGen_ gen \g -> ma g
+
+mkQuantity :: Integer -> Value.Quantity
+mkQuantity qty = case Value.quantity qty of
+  Just q -> q
+  Nothing -> error "mkQuantity: out of bounds user supplied integer as quantity"
+
+-- | Left biased unsafe fromList.
+unsafeFromList :: [(K, [(K, Quantity)])] -> Value
+unsafeFromList xs = Value.pack $ Map.fromList $ fmap Map.fromList <$> xs

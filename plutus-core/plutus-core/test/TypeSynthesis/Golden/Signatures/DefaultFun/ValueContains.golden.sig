@@ -1,1 +1,1 @@
-ValueLogOuterSizeAddLogMaxInnerSize -> ValueTotalSize -> BuiltinResult Bool
+ValueMaxDepth -> ValueTotalSize -> BuiltinResult Bool

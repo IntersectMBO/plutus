@@ -1,1 +1,1 @@
-Integer -> Value -> BuiltinResult Value
+Integer -> ValueTotalSize -> BuiltinResult Value

@@ -27,7 +27,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( ExMemoryUsage
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
-  , ValueLogOuterSizeAddLogMaxInnerSize (..)
+  , ValueMaxDepth (..)
   , ValueTotalSize (..)
   , memoryUsage
   , singletonRose
@@ -1926,7 +1926,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     let listToArrayDenotation :: SomeConstant uni [a] -> BuiltinResult (Opaque val (Vector a))
         listToArrayDenotation (SomeConstant (Some (ValueOf uniListA xs))) =
           case uniListA of
-            DefaultUniList uniA -> 
+            DefaultUniList uniA ->
               pure $ fromValueOf (DefaultUniArray uniA) $ Vector.fromListN (length xs) xs
             _ -> throwError $ structuralUnliftingError "Expected a list but got something else"
         {-# INLINE listToArrayDenotation #-}
@@ -1963,29 +1963,35 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           bls12_381_G2_multiScalarMulDenotation
           (runCostingFunTwoArguments . paramBls12_381_G2_multiScalarMul)
   toBuiltinMeaning _semvar InsertCoin =
-    let insertCoinDenotation :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
-        insertCoinDenotation = Value.insertCoin
+    let insertCoinDenotation
+          :: ByteString
+          -> ByteString
+          -> Integer
+          -> ValueMaxDepth
+          -> BuiltinResult Value
+        insertCoinDenotation pid tokn amt (ValueMaxDepth v) =
+          Value.insertCoin pid tokn amt v
         {-# INLINE insertCoinDenotation #-}
      in makeBuiltinMeaning
           insertCoinDenotation
-          (runCostingFunFourArguments . unimplementedCostingFun)
+          (runCostingFunFourArguments . paramInsertCoin)
   toBuiltinMeaning _semvar LookupCoin =
-    let lookupCoinDenotation :: ByteString -> ByteString -> ValueLogOuterSizeAddLogMaxInnerSize -> Integer
-        lookupCoinDenotation p t (ValueLogOuterSizeAddLogMaxInnerSize v) = Value.lookupCoin p t v
+    let lookupCoinDenotation :: ByteString -> ByteString -> ValueMaxDepth -> Integer
+        lookupCoinDenotation p t (ValueMaxDepth v) = Value.lookupCoin p t v
         {-# INLINE lookupCoinDenotation #-}
      in makeBuiltinMeaning
           lookupCoinDenotation
           (runCostingFunThreeArguments . paramLookupCoin)
   toBuiltinMeaning _semvar UnionValue =
-    let unionValueDenotation :: Value -> Value -> BuiltinResult Value
-        unionValueDenotation = Value.unionValue
+    let unionValueDenotation :: ValueTotalSize -> ValueTotalSize -> BuiltinResult Value
+        unionValueDenotation (ValueTotalSize v1) (ValueTotalSize v2) = Value.unionValue v1 v2
         {-# INLINE unionValueDenotation #-}
      in makeBuiltinMeaning
           unionValueDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          (runCostingFunTwoArguments . paramUnionValue)
   toBuiltinMeaning _semvar ValueContains =
-    let valueContainsDenotation :: ValueLogOuterSizeAddLogMaxInnerSize -> ValueTotalSize -> BuiltinResult Bool
-        valueContainsDenotation (ValueLogOuterSizeAddLogMaxInnerSize v1) (ValueTotalSize v2) =
+    let valueContainsDenotation :: ValueMaxDepth -> ValueTotalSize -> BuiltinResult Bool
+        valueContainsDenotation (ValueMaxDepth v1) (ValueTotalSize v2) =
           Value.valueContains v1 v2
         {-# INLINE valueContainsDenotation #-}
      in makeBuiltinMeaning
@@ -2006,12 +2012,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           unValueDataDenotation
           (runCostingFunOneArgument . paramUnValueData)
   toBuiltinMeaning _semvar ScaleValue =
-    let unValueDataDenotation :: Integer -> Value -> BuiltinResult Value
-        unValueDataDenotation = Value.scaleValue
-        {-# INLINE unValueDataDenotation #-}
+    let scaleValueDenotation :: Integer -> ValueTotalSize -> BuiltinResult Value
+        scaleValueDenotation scalar (ValueTotalSize v) = Value.scaleValue scalar v
+        {-# INLINE scaleValueDenotation #-}
      in makeBuiltinMeaning
-          unValueDataDenotation
-          (runCostingFunTwoArguments . unimplementedCostingFun)
+          scaleValueDenotation
+          (runCostingFunTwoArguments . paramScaleValue)
   -- See Note [Inlining meanings of builtins].
   {-# INLINE toBuiltinMeaning #-}
 

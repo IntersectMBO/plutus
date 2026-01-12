@@ -63,6 +63,23 @@ instance FromJSON TwoVariableQuadraticFunction where
       <*> obj .: "c11"
       <*> obj .: "c02"
 
+data TwoVariableWithInteractionFunction
+  = TwoVariableWithInteractionFunction
+  { coeff00'_ :: Integer
+  , coeff10'_ :: Integer
+  , coeff01'_ :: Integer
+  , coeff11'_ :: Integer
+  }
+  deriving stock (Show, Lift)
+
+instance FromJSON TwoVariableWithInteractionFunction where
+  parseJSON = withObject "Two variable with interaction function" $ \obj ->
+    TwoVariableWithInteractionFunction
+      <$> obj .: "c00"
+      <*> obj .: "c10"
+      <*> obj .: "c01"
+      <*> obj .: "c11"
+
 data ExpModCostingFunction
   = ExpModCostingFunction
   { emcfcoeff00_ :: Integer
@@ -93,12 +110,14 @@ data Model
   | LinearInX LinearFunction
   | LinearInY LinearFunction
   | LinearInZ LinearFunction
+  | LinearInU LinearFunction
   | LiteralInYOrLinearInZ LinearFunction
   | LinearInMaxYZ LinearFunction
   | LinearInYAndZ TwoVariableLinearFunction
   | QuadraticInY OneVariableQuadraticFunction
   | QuadraticInZ OneVariableQuadraticFunction
   | QuadraticInXAndY TwoVariableQuadraticFunction
+  | WithInteractionInXAndY TwoVariableWithInteractionFunction
   | -- | Linear model in x-y plus minimum value for the case x-y < 0.
     SubtractedSizes LinearFunction Integer
   | ConstAboveDiagonal Integer Model
@@ -139,6 +158,7 @@ instance FromJSON Model where
           "linear_in_x" -> LinearInX <$> parseJSON args
           "linear_in_y" -> LinearInY <$> parseJSON args
           "linear_in_z" -> LinearInZ <$> parseJSON args
+          "linear_in_u" -> LinearInU <$> parseJSON args
           "quadratic_in_y" -> QuadraticInY <$> parseJSON args
           "quadratic_in_z" -> QuadraticInZ <$> parseJSON args
           "quadratic_in_x_and_y" -> QuadraticInXAndY <$> parseJSON args
@@ -146,6 +166,7 @@ instance FromJSON Model where
           "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
           "linear_in_max_yz" -> LinearInMaxYZ <$> parseJSON args
           "linear_in_y_and_z" -> LinearInYAndZ <$> parseJSON args
+          "with_interaction_in_x_and_y" -> WithInteractionInXAndY <$> parseJSON args
           "subtracted_sizes" -> SubtractedSizes <$> parseJSON args <*> objOf args .: "minimum"
           "const_above_diagonal" -> modelWithConstant ConstAboveDiagonal args
           "const_below_diagonal" -> modelWithConstant ConstBelowDiagonal args
