@@ -242,7 +242,7 @@ what's achievable within CPU execution budget, not ledger storage limits.
 Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
 consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
 maxValueEntries :: Int
-maxValueEntries = 50
+maxValueEntries = 100_000
 
 -- | Generate common test values for benchmarking
 generateTestValues :: StdGen -> [Value]
