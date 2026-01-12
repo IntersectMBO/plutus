@@ -1,40 +1,36 @@
-{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE BlockArguments      #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NumericUnderscores #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE NumericUnderscores  #-}
+{-# LANGUAGE TupleSections       #-}
+{-# LANGUAGE TypeApplications    #-}
 
 module Benchmarks.Values where
 
-import Prelude
+import           Prelude
 
-import Common
-import Control.Monad (replicateM)
-import Criterion.Main (Benchmark)
-import Data.ByteString (ByteString)
-import Data.ByteString qualified as BS
-import Data.Int (Int64)
-import Data.List (find, sort)
-import Data.Word (Word8)
-import GHC.Stack (HasCallStack)
-import PlutusCore (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
-import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
-import PlutusCore.Data (Data (Map))
-import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( DataNodeCount (..)
-  , ValueMaxDepth (..)
-  , ValueTotalSize (..)
-  )
-import PlutusCore.Value (K, Value)
-import PlutusCore.Value qualified as Value
-import System.Random.Shuffle
-import System.Random.Stateful
-  ( StatefulGen
-  , StdGen
-  , runStateGen_
-  , uniformRM
-  )
+import           Common
+import           Control.Monad                               (replicateM)
+import           Criterion.Main                              (Benchmark)
+import           Data.ByteString                             (ByteString)
+import qualified Data.ByteString                             as BS
+import           Data.Int                                    (Int64)
+import           Data.List                                   (find, sort)
+import           Data.Word                                   (Word8)
+import           GHC.Stack                                   (HasCallStack)
+import           PlutusCore                                  (DefaultFun (LookupCoin, UnValueData, ValueContains, ValueData))
+import           PlutusCore.Builtin                          (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
+import           PlutusCore.Data                             (Data (Map))
+import           PlutusCore.Evaluation.Machine.ExMemoryUsage (DataNodeCount (..),
+                                                              ValueMaxDepth (..),
+                                                              ValueTotalSize (..))
+import           PlutusCore.Value                            (K, Value)
+import qualified PlutusCore.Value                            as Value
+import           System.Random.Shuffle
+import           System.Random.Stateful                      (StatefulGen,
+                                                              StdGen,
+                                                              runStateGen_,
+                                                              uniformRM)
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -358,7 +354,7 @@ generateKey g = do
   suffix <- BS.pack <$> replicateM 4 (uniformRM (0, 255) g)
   case Value.k (prefix <> suffix) of
     Just key -> pure key
-    Nothing -> error "Internal error: maxKeyLen key should always be valid"
+    Nothing  -> error "Internal error: maxKeyLen key should always be valid"
 
 ----------------------------------------------------------------------------------------------------
 -- Helper Functions --------------------------------------------------------------------------------
