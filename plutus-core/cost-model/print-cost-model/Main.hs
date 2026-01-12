@@ -152,7 +152,7 @@ renderModel =
     LinearInX f -> [renderLinearFunction f "x"]
     LinearInY f -> [renderLinearFunction f "y"]
     LinearInZ f -> [renderLinearFunction f "z"]
-    LinearInW f -> [renderLinearFunction f "w"]
+    LinearInU f -> [renderLinearFunction f "u"]
     QuadraticInY f -> [renderOneVariableQuadraticFunction f "y"]
     QuadraticInZ f -> [renderOneVariableQuadraticFunction f "z"]
     QuadraticInXAndY f -> [renderTwoVariableQuadraticFunction f "x" "y"]
