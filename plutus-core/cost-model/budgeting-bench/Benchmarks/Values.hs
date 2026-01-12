@@ -5,7 +5,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Benchmarks.Values (makeBenchmarks) where
+module Benchmarks.Values where
 
 import Prelude
 
@@ -242,7 +242,7 @@ what's achievable within CPU execution budget, not ledger storage limits.
 Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
 consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
 maxValueEntries :: Int
-maxValueEntries = 100_000
+maxValueEntries = 50
 
 -- | Generate common test values for benchmarking
 generateTestValues :: StdGen -> [Value]
@@ -255,12 +255,18 @@ generateTestValues gen = runStateGen_ gen \g ->
 
 generateShuffledData :: StdGen -> [Data]
 generateShuffledData gen =
-  let l = Value.valueData <$> generateTestValues gen
-   in fmap (shuffleData gen) l
+  let l = generateTestValues gen
+   in fmap shuffleData l
   where
-    shuffleData g (Map m) =
-      Map $ shuffle' m (length m) g
-    shuffleData _ _ = error "?? Map expected ??"
+    shuffleData v =
+      case Value.valueData v of
+        Map m ->
+          case m of
+            [] -> Map []
+            _ ->
+              let k = System.Random.Shuffle.shuffle' m (length m) gen
+               in Map k
+        _ -> error "?? Map expected ??"
 
 -- | Generate Value with random number of entries between 1 and maxValueEntries
 generateValue :: StatefulGen g m => g -> m Value
