@@ -333,8 +333,10 @@ data ParamName
   | UnionValue'cpu'arguments'c11
   | UnionValue'memory'arguments'intercept
   | UnionValue'memory'arguments'slope
-  | ValueContains'cpu'arguments'intercept
-  | ValueContains'cpu'arguments'slope
+  | ValueContains'cpu'arguments'constant
+  | ValueContains'cpu'arguments'model'arguments'intercept
+  | ValueContains'cpu'arguments'model'arguments'slope1
+  | ValueContains'cpu'arguments'model'arguments'slope2
   | ValueContains'memory'arguments
   | ValueData'cpu'arguments
   | ValueData'memory'arguments

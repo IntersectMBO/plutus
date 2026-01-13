@@ -853,9 +853,9 @@ modelFun <- function(path) {
             discard.overhead()
 
         # Above diagonal (y > x): containment impossible, quick False return
-        # Use minimum observed time as constant for this case
+        # Use mean observed time as constant for this case
         above_diag <- filtered %>% filter(y_mem > x_mem)
-        constant <- if (nrow(above_diag) > 0) ceiling(mean(above_diag$t)) else min(filtered$t)
+        constant <- ceiling(mean(above_diag$t))
 
         # On/below diagonal (x >= y): actual containment check
         below_diag <- filtered %>% filter(x_mem >= y_mem)
