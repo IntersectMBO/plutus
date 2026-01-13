@@ -6,6 +6,7 @@ import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
 import BuiltinList.Budget.Spec qualified as BuiltinList.Budget
+import BuiltinList.NoCasing.Spec qualified as BuiltinList.NoCasing
 import ByteStringLiterals.Spec qualified as ByteStringLiterals
 import CallTrace.Spec qualified as CallTrace
 import DataList.Budget.Spec qualified as DataList.Budget
@@ -49,6 +50,7 @@ tests =
     , Budget.tests
     , AsData.Budget.tests
     , BuiltinList.Budget.tests
+    , BuiltinList.NoCasing.tests
     , DataList.Budget.tests
     , Inline.tests
     , Recursion.tests

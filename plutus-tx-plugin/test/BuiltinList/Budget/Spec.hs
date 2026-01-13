@@ -10,6 +10,7 @@ module BuiltinList.Budget.Spec where
 import PlutusTx.Prelude hiding (mapMaybe)
 
 import PlutusTx.BuiltinList qualified as L
+import PlutusTx.Builtins qualified as B
 import PlutusTx.Code (CompiledCode, unsafeApplyCode)
 import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.TH (compile)
@@ -33,6 +34,7 @@ tests =
       , goldenBundle "cons" cons (cons `unsafeApplyCode` l1)
       , goldenBundle "unconsJust" unconsJust (unconsJust `unsafeApplyCode` l1)
       , goldenBundle "unconsNothing" unconsNothing (unconsNothing `unsafeApplyCode` l1)
+      , goldenBundle "unsafeUnconsOk" unsafeUnconsOk (unsafeUnconsOk `unsafeApplyCode` l1)
       , goldenBundle "empty" empty (empty `unsafeApplyCode` l1)
       , goldenBundle "singleton" singleton (singleton `unsafeApplyCode` l1)
       , goldenBundle "null" null (null `unsafeApplyCode` l1)
@@ -112,6 +114,9 @@ unconsJust = $$(compile [||\xs -> L.uncons xs||])
 
 unconsNothing :: CompiledCode (L.BuiltinList Integer -> Maybe (Integer, L.BuiltinList Integer))
 unconsNothing = $$(compile [||\_ -> L.uncons L.empty||])
+
+unsafeUnconsOk :: CompiledCode (L.BuiltinList Integer -> (Integer, L.BuiltinList Integer))
+unsafeUnconsOk = $$(compile [||\xs -> B.unsafeUncons xs||])
 
 empty :: CompiledCode (L.BuiltinList Integer -> L.BuiltinList Integer)
 empty = $$(compile [||\_ -> L.empty||])

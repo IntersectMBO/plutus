@@ -489,9 +489,10 @@ caseList' _ consCase (BuiltinList (x : xs)) = consCase x (BuiltinList xs)
 {-# OPAQUE caseList' #-}
 
 -- | Similar to caseList', but empty list case is omitted so passing empty list will raise error
-unsafeCaseList' :: forall a r. (a -> BuiltinList a -> r) -> BuiltinList a -> r
-unsafeCaseList' f (BuiltinList (x : xs)) = f x (BuiltinList xs)
-{-# OPAQUE unsafeCaseList' #-}
+unsafeCaseList :: forall a r. (a -> BuiltinList a -> r) -> BuiltinList a -> r
+unsafeCaseList _ (BuiltinList []) = Haskell.error "empty list"
+unsafeCaseList f (BuiltinList (x : xs)) = f x (BuiltinList xs)
+{-# OPAQUE unsafeCaseList #-}
 
 -- | Drops first n elements from the given list and never fails.
 drop :: Integer -> BuiltinList a -> BuiltinList a
