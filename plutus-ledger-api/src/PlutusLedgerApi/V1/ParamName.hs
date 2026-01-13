@@ -5,9 +5,9 @@ module PlutusLedgerApi.V1.ParamName
   , tagWithParamNames
   ) where
 
-import           Data.Ix
-import           GHC.Generics
-import           PlutusLedgerApi.Common.ParamName
+import Data.Ix
+import GHC.Generics
+import PlutusLedgerApi.Common.ParamName
 
 {-| The enumeration of all possible cost model parameter names for this language version.
 
@@ -342,7 +342,6 @@ data ParamName
   | UnValueData'cpu'arguments'slope
   | UnValueData'memory'arguments'intercept
   | UnValueData'memory'arguments'slope
-  | UnValueData'memory'arguments
   | ScaleValue'cpu'arguments'intercept
   | ScaleValue'cpu'arguments'slope
   | ScaleValue'memory'arguments'intercept

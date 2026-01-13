@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module PlutusCore.Evaluation.Machine.ExMemoryUsage
@@ -17,28 +17,28 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , DataNodeCount (..)
   ) where
 
-import           PlutusCore.Crypto.BLS12_381.G1           as BLS12_381.G1
-import           PlutusCore.Crypto.BLS12_381.G2           as BLS12_381.G2
-import           PlutusCore.Crypto.BLS12_381.Pairing      as BLS12_381.Pairing
-import           PlutusCore.Data
-import           PlutusCore.Evaluation.Machine.CostStream
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Unroll                        (dropN)
-import           PlutusCore.Value                         (Value)
-import qualified PlutusCore.Value                         as Value
+import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
+import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.CostStream
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Unroll (dropN)
+import PlutusCore.Value (Value)
+import PlutusCore.Value qualified as Value
 
-import qualified Data.ByteString                          as BS
-import           Data.Functor
-import qualified Data.Map.Strict                          as Map
-import           Data.Proxy
-import           Data.SatInt
-import qualified Data.Text                                as T
-import           Data.Vector.Strict                       (Vector)
-import qualified Data.Vector.Strict                       as Vector
-import           Data.Word
-import           GHC.Natural
-import           GHC.Num.Integer                          (integerLog2)
-import           Universe
+import Data.ByteString qualified as BS
+import Data.Functor
+import Data.Map.Strict qualified as Map
+import Data.Proxy
+import Data.SatInt
+import Data.Text qualified as T
+import Data.Vector.Strict (Vector)
+import Data.Vector.Strict qualified as Vector
+import Data.Word
+import GHC.Natural
+import GHC.Num.Integer (integerLog2)
+import Universe
 
 {-
  ************************************************************************************
@@ -133,7 +133,7 @@ flattenCostRoseGo (CostRose cost1 forest1) forest2 =
     -- The current subtree doesn't have its own subtrees.
     [] -> case forest2 of
       -- No more elements in the entire tree, emit the last cost.
-      []                -> CostLast cost1
+      [] -> CostLast cost1
       -- There's at least one unhandled subtree encountered earlier, emit the current cost
       -- and collapse the unhandled subtree.
       rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
@@ -147,7 +147,7 @@ flattenCostRoseGo (CostRose cost1 forest1) forest2 =
         [] -> flattenCostRoseGo rose1' forest2
         -- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of
         -- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).
-        _  -> flattenCostRoseGo rose1' $ forest1' ++ forest2
+        _ -> flattenCostRoseGo rose1' $ forest1' ++ forest2
 
 {-| Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
 time in the worst case regardless of the recursion pattern of the given 'CostRose'. -}
@@ -221,7 +221,7 @@ instance ExMemoryUsage [a] where
     where
       go xs = case dropN @100 xs of
         Just rest -> CostRose 100 [go rest]
-        Nothing   -> singletonRose (fromIntegral (length xs))
+        Nothing -> singletonRose (fromIntegral (length xs))
   {-# INLINE memoryUsage #-}
 
 {- Note the the `memoryUsage` of an empty array is zero.  This shouldn't cause any
@@ -380,10 +380,10 @@ instance ExMemoryUsage Data where
       sizeData d = addConstantRose dataNodeRose $ case d of
         -- TODO: include the size of the tag, but not just yet. See PLT-1176.
         Constr _ l -> CostRose 0 $ l <&> sizeData
-        Map l      -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
-        List l     -> CostRose 0 $ l <&> sizeData
-        I n        -> memoryUsage n
-        B b        -> memoryUsage b
+        Map l -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
+        List l -> CostRose 0 $ l <&> sizeData
+        I n -> memoryUsage n
+        B b -> memoryUsage b
 
 {-| A wrapper for 'Data' whose 'ExMemoryUsage' counts nodes via lazy traversal.
 Used by UnValueData builtin: measures INPUT Data node count.  The actual memory
@@ -396,10 +396,10 @@ instance ExMemoryUsage DataNodeCount where
       go d = CostRose 1 $
         case d of
           Constr _ ds -> ds <&> go
-          Map pairs   -> pairs >>= \(d1, d2) -> [d1, d2] <&> go
-          List ds     -> ds <&> go
-          I _         -> []
-          B _         -> []
+          Map pairs -> pairs >>= \(d1, d2) -> [d1, d2] <&> go
+          List ds -> ds <&> go
+          I _ -> []
+          B _ -> []
       {-# INLINE go #-}
   {-# INLINE memoryUsage #-}
 

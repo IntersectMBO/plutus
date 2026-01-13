@@ -6,17 +6,17 @@ builtinCostModel.json by generate-cost-model. -}
 module BuiltinMemoryModels (builtinMemoryModels, Id (..))
 where
 
-import qualified PlutusCore.Crypto.BLS12_381.G1                 as G1
-import qualified PlutusCore.Crypto.BLS12_381.G2                 as G2
-import qualified PlutusCore.Crypto.BLS12_381.Pairing            as Pairing
-import qualified PlutusCore.Crypto.Hash                         as Hash
-import           PlutusCore.Evaluation.Machine.BuiltinCostModel
-import           PlutusCore.Evaluation.Machine.CostStream
-import           PlutusCore.Evaluation.Machine.ExMemory
-import           PlutusCore.Evaluation.Machine.ExMemoryUsage
+import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
+import PlutusCore.Crypto.Hash qualified as Hash
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.CostStream
+import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
-import           Data.ByteString                                (ByteString)
-import           Data.Coerce                                    (coerce)
+import Data.ByteString (ByteString)
+import Data.Coerce (coerce)
 
 -- Some utilities for calculating memory sizes.
 

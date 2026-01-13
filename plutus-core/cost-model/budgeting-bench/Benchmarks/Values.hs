@@ -1,39 +1,46 @@
-{-# LANGUAGE BlockArguments      #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NumericUnderscores  #-}
-{-# LANGUAGE TupleSections       #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Benchmarks.Values (makeBenchmarks) where
 
-import           Prelude
+import Prelude
 
-import           Common
-import           Control.Monad                               (replicateM)
-import           Control.Monad.State.Strict                  (State)
-import           Criterion.Main                              (Benchmark)
-import           Data.ByteString                             (ByteString)
-import qualified Data.ByteString                             as BS
-import           Data.Int                                    (Int64)
-import           Data.List                                   (find, sort)
-import qualified Data.Map.Strict                             as Map
-import           Data.Word                                   (Word8)
-import           GHC.Stack                                   (HasCallStack)
-import           PlutusCore                                  (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
-import           PlutusCore.Builtin                          (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
-import           PlutusCore.Evaluation.Machine.ExMemoryUsage (DataNodeCount (..),
-                                                              ValueMaxDepth (..),
-                                                              ValueTotalSize (..))
-import           PlutusCore.Value                            (K, Quantity (..),
-                                                              Value)
-import qualified PlutusCore.Value                            as Value
+import Common
+import Control.Monad (replicateM)
+import Control.Monad.State.Strict (State)
+import Criterion.Main (Benchmark)
+import Data.ByteString (ByteString)
+import Data.ByteString qualified as BS
+import Data.Int (Int64)
+import Data.List (find, sort)
+import Data.Map.Strict qualified as Map
+import Data.Word (Word8)
+import GHC.Stack (HasCallStack)
+import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
+import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
+  ( DataNodeCount (..)
+  , ValueMaxDepth (..)
+  , ValueTotalSize (..)
+  )
+import PlutusCore.Value
+  ( K
+  , Quantity (..)
+  , Value
+  )
+import PlutusCore.Value qualified as Value
 
-import           System.Random.Stateful                      (StateGenM,
-                                                              StatefulGen,
-                                                              StdGen,
-                                                              runStateGen_,
-                                                              uniformRM)
+import System.Random.Stateful
+  ( StateGenM
+  , StatefulGen
+  , StdGen
+  , runStateGen_
+  , uniformRM
+  )
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -447,7 +454,7 @@ generateKey g = do
   suffix <- BS.pack <$> replicateM 4 (uniformRM (0, 255) g)
   case Value.k (prefix <> suffix) of
     Just key -> pure key
-    Nothing  -> error "Internal error: maxKeyLen key should always be valid"
+    Nothing -> error "Internal error: maxKeyLen key should always be valid"
 
 -- | Generate either zero or maximum amount Integer values, the probability of each is 50%
 genZeroOrMaxAmount
@@ -496,7 +503,7 @@ runBenchGen gen ma = runStateGen_ gen \g -> ma g
 
 mkQuantity :: Integer -> Value.Quantity
 mkQuantity qty = case Value.quantity qty of
-  Just q  -> q
+  Just q -> q
   Nothing -> error "mkQuantity: out of bounds user supplied integer as quantity"
 
 -- | Left biased unsafe fromList.
