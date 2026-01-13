@@ -22,6 +22,7 @@ import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
+import PlutusCore.Data qualified as Data
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
@@ -232,13 +233,24 @@ valueDataBenchmark gen =
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
 
+-- Benchmarks for `unValueData :: Data -> Value`.  We generate random values,
+-- convert them to the corresponding `data` objects, and use these as inputs to
+-- `unValueData`.  Each `data` objects is a list of `(currencyId, innerMap)`
+-- pairs and each `innerMap` is a list of `(tokenId, quantity)` pairs.  Both of
+-- these will be ordered in ascending order of their keys, which is the
+-- best-case input to Map.fromListWith, which is used in the implementation of
+-- `unValueData`.  We reverse the lists to make the inputs less favourable (and
+-- possbily worst-case).
 unValueDataBenchmark :: StdGen -> Benchmark
 unValueDataBenchmark gen =
   createOneTermBuiltinBenchWithWrapper
     DataNodeCount
     UnValueData
     []
-    (Value.valueData <$> generateTestValues gen)
+    (reverseMap <$> Value.valueData <$> generateTestValues gen)
+  where
+    reverseMap (Map l) = Map $ reverse (reverseMap l)
+    reverseMap d = error ("Unexpected item in result of valueData: " ++ show d)
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------

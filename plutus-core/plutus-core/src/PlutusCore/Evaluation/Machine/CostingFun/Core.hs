@@ -60,7 +60,10 @@ import Data.Default.Class
 import Data.Hashable
 import Deriving.Aeson
 import GHC.Exts
-import Language.Haskell.TH.Syntax hiding (Name, newName)
+import Language.Haskell.TH.Syntax hiding
+  ( Name
+  , newName
+  )
 
 -- | A class used for convenience in this module, don't export it.
 class OnMemoryUsages c a where
@@ -228,6 +231,7 @@ newtype Coefficient12 = Coefficient12
 data ModelOneArgument
   = ModelOneArgumentConstantCost CostingInteger
   | ModelOneArgumentLinearInX OneVariableLinearFunction
+  | ModelOneArgumentQuadraticInX OneVariableQuadraticFunction
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
 
@@ -323,6 +327,9 @@ runOneArgumentModel (ModelOneArgumentConstantCost c) =
   lazy $ \_ -> CostLast c
 runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
   lazy $ \costs1 -> scaleLinearly intercept slope costs1
+runOneArgumentModel (ModelOneArgumentQuadraticInX f) =
+  lazy $ \costs1 ->
+    CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs1
 {-# OPAQUE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
