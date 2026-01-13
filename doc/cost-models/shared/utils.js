@@ -164,6 +164,23 @@ const CostModelEvaluators = {
   linear_in_max_yz: (coeffs, args) => {
     const max_yz = Math.max(args[1], args[2]);
     return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[0] + (coeffs.c2 || 0) * max_yz;
+  },
+
+  with_interaction_in_x_and_y: (coeffs, args) => {
+    const c0 = coeffs.intercept ?? coeffs.c0 ?? 0;
+    const cx = coeffs.slopex ?? coeffs.c1 ?? 0;
+    const cy = coeffs.slopey ?? coeffs.c2 ?? 0;
+    const cxy = coeffs.slopexy ?? coeffs.c3 ?? 0;
+    return c0 + cx * args[0] + cy * args[1] + cxy * args[0] * args[1];
+  },
+
+  linear_in_u: (coeffs, args) => {
+    // linear_in_u is linear in the fourth argument (args[3])
+    // The "u" refers to the fourth parameter's cost stream
+    const c0 = coeffs.c0 ?? coeffs.intercept ?? 0;
+    const c1 = coeffs.c1 ?? coeffs.slope ?? 0;
+    const u = args.length > 3 ? args[3] : 0;
+    return c0 + c1 * u;
   }
 };
 
@@ -316,6 +333,16 @@ function formatModelFormula(modelType, coefficients) {
 
     case 'linear_in_max_yz':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg1) + ${formatCoeff(c2)} × max(arg2, arg3) picoseconds`;
+
+    case 'with_interaction_in_x_and_y': {
+      const cx = coefficients.slopex ?? coefficients.c1 ?? 0;
+      const cy = coefficients.slopey ?? coefficients.c2 ?? 0;
+      const cxy = coefficients.slopexy ?? coefficients.c3 ?? 0;
+      return `${formatCoeff(c0)} + ${formatCoeff(cx)} × (arg1) + ${formatCoeff(cy)} × (arg2) + ${formatCoeff(cxy)} × (arg1×arg2) picoseconds`;
+    }
+
+    case 'linear_in_u':
+      return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg4) picoseconds`;
 
     default:
       return `${modelType} (formula not yet implemented)`;

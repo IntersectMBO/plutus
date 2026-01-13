@@ -6,17 +6,17 @@ builtinCostModel.json by generate-cost-model. -}
 module BuiltinMemoryModels (builtinMemoryModels, Id (..))
 where
 
-import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
-import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
-import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
-import PlutusCore.Crypto.Hash qualified as Hash
-import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.CostStream
-import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Evaluation.Machine.ExMemoryUsage
+import qualified PlutusCore.Crypto.BLS12_381.G1                 as G1
+import qualified PlutusCore.Crypto.BLS12_381.G2                 as G2
+import qualified PlutusCore.Crypto.BLS12_381.Pairing            as Pairing
+import qualified PlutusCore.Crypto.Hash                         as Hash
+import           PlutusCore.Evaluation.Machine.BuiltinCostModel
+import           PlutusCore.Evaluation.Machine.CostStream
+import           PlutusCore.Evaluation.Machine.ExMemory
+import           PlutusCore.Evaluation.Machine.ExMemoryUsage
 
-import Data.ByteString (ByteString)
-import Data.Coerce (coerce)
+import           Data.ByteString                                (ByteString)
+import           Data.Coerce                                    (coerce)
 
 -- Some utilities for calculating memory sizes.
 
@@ -63,6 +63,108 @@ mlResultMemSize = toMemSize Pairing.mlResultMemSizeBytes
 -- The memory models for the default builtins
 
 newtype Id a = Id {getId :: a}
+
+{- Note [Memory model for Value builtins]
+---------------------------------------
+
+## Overview
+
+The memory models for the Value builtins estimate the heap allocation
+required for the resulting 'Value's. Memory usage is modeled as a function of the
+number of unique (currency symbol, token name) pairs, based on worst-case allocation.
+
+## Value Structure
+
+Structurally, a 'Value' consists of:
+  - A nested 'Data.Map.Map': Map CurrencySymbol (Map TokenName Integer)
+  - Bookkeeping data: two unboxed 'Int's and a 'Data.IntMap.IntMap Int'
+
+Based on the [ghc runtime memory layout](https://gitlab.haskell.org/ghc/ghc/-/wikis/commentary/rts/storage/heap-objects),
+we can model the top-level memory allocation for a 'Value' as:
+  - 1 word for the 'Value' constructor
+  - 1 word for each of the two unboxed 'Int's
+  - 1 word for the pointer to the 'IntMap'
+  - 1 word for the pointer to the nested 'Map'
+  - The allocations for the 'IntMap' and nested 'Map' themselves
+
+## Memory Analysis Assumptions
+
+We assume for each builtin application:
+  1. Both trees must be completely reallocated (worst-case)
+  2. The map structure is flat, where each currency symbol maps to only one token name
+  3. This simplifies analysis while providing a reasonable approximation
+  4. Deeper trees would require more reallocation, but accounting for this is too complex
+
+## Per-Pair Allocation (Outer and Inner Maps)
+
+'Map' is implemented as a balanced binary tree (Data.Map.Internal):
+@
+  data Map k a  = Bin {-# UNPACK #-} !Int !k a !(Map k a) !(Map k a)
+                | Tip
+@
+
+For each unique (currency symbol, token name) pair:
+
+Outer 'Map' (CurrencySymbol to inner 'Map'):
+  - 1 word for the 'Bin' closure
+  - 1 word for the unboxed 'Int#'
+  - 5 words for the 'CurrencySymbol' (pointer + bytestring; assume maxBound and unshared)
+  - 1 word for pointer to the inner 'Map'
+  - 1 word for pointer to first child 'Bin'
+  - 1 word for pointer to second child 'Tip' (shared)
+
+Inner 'Map' (TokenName to Integer):
+  - 1 word for the 'Bin' closure
+  - 5 words for the 'TokenName' (pointer + bytestring; assume maxBound and unshared)
+  - 3 words for the 'Integer' (pointer + closure data; assume maxBound and unshared)
+
+Shared structures (counted once across all pairs):
+  - 1 word for the 'Tip' closure for outer 'Map'
+  - 1 word for the 'Tip' closure for inner 'Map'
+
+\**Total per pair: 21 words**
+
+Note: Both 'CurrencySymbol' and 'TokenName' are newtypes wrapping 'ByteString'.
+
+## Bookkeeping (IntMap) Allocation
+
+The 'IntMap' contains exactly as many keys as there are unique inner map sizes.
+In our worst-case flat scenario (all inner maps have size 1), the footprint is constant:
+  - 1 word for the 'Tip' constructor
+  - 2 words for key and value pointers
+  - 2 words for key 'Int' closure (header + payload)
+  - 2 words for value 'Int' closure (header + payload)
+
+\**Total for IntMap: 7 words (constant)**
+
+## Final formulas for calculating each builtin's memory usage
+
+Combining per-pair and bookkeeping allocations:
+
+    Memory = 21*n + 12
+
+where 'n' is the number of unique (currency symbol, token name) pairs in the 'Value'.
+
+This formula is used for the cost models of 'insertCoin', 'unionValue' and 'scaleValue'.
+
+For 'insertCoin', the worst-case allocation occurs when a new pair is inserted into the map.
+Given the balanced tree representation, the memory allocation is based on 'ValueMaxDepth'
+which calculates the logarithmic depth of the tree. Thus, for 'insertCoin':
+
+    Memory = 21*log(n) + 12 + 21 + 12 = 21*log(n) + 45
+
+For 'unionValue', worst-case assumes disjoint sets of pairs in both 'Value's being united:
+
+    Memory = 21*n + 12 + 21*m + 12 = 21*(n + m) + 24
+  where 'n' and 'm' are the total sizes of each input 'Value'.
+
+For 'scaleValue', since every quantity in the 'Value' is modified, a new 'Value' of the same
+size must be allocated:
+
+    Memory = 21*n + 12
+
+where 'n' is the total size of the input 'Value'.
+-}
 
 builtinMemoryModels :: BuiltinCostModelBase Id
 builtinMemoryModels =
@@ -181,6 +283,12 @@ builtinMemoryModels =
     , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
     , paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 9999 9999 -- Place-holder: UPDATE THIS
     , paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 9999 9999 -- Place-holder: UPDATE THIS
+    , -- See Note [Memory model for Value builtins]
+      paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 45 21
+    , -- See Note [Memory model for Value builtins]
+      paramUnionValue = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 24 21
+    , -- See Note [Memory model for Value builtins]
+      paramScaleValue = Id $ ModelTwoArgumentsLinearInY $ OneVariableLinearFunction 12 21
     }
   where
     identityFunction = OneVariableLinearFunction 0 1

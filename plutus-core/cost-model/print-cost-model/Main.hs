@@ -92,6 +92,26 @@ renderTwoVariableQuadraticFunction
       c02
       var2
 
+renderWithInteractionInXAndY
+  :: TwoVariableWithInteractionFunction
+  -> String
+  -> String
+  -> String
+renderWithInteractionInXAndY
+  (TwoVariableWithInteractionFunction intercept cx cy cxy)
+  var1
+  var2 =
+    printf
+      "%d + %d*%s + %d*%s + %d*%s*%s"
+      intercept
+      cx
+      var1
+      cy
+      var2
+      cxy
+      var1
+      var2
+
 renderExpModCostingFunction
   :: ExpModCostingFunction
   -> String
@@ -132,9 +152,11 @@ renderModel =
     LinearInX f -> [renderLinearFunction f "x"]
     LinearInY f -> [renderLinearFunction f "y"]
     LinearInZ f -> [renderLinearFunction f "z"]
+    LinearInU f -> [renderLinearFunction f "u"]
     QuadraticInY f -> [renderOneVariableQuadraticFunction f "y"]
     QuadraticInZ f -> [renderOneVariableQuadraticFunction f "z"]
     QuadraticInXAndY f -> [renderTwoVariableQuadraticFunction f "x" "y"]
+    WithInteractionInXAndY f -> [renderWithInteractionInXAndY f "x" "y"]
     ExpModCost f -> [renderExpModCostingFunction f "y" "z"]
     LinearInMaxYZ f -> [renderLinearFunction f "max(y,z)"]
     LinearInYAndZ f -> [renderTwoVariableLinearFunction f "y" "z"]
