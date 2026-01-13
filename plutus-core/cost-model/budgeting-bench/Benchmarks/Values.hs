@@ -22,7 +22,8 @@ import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
-import PlutusCore.Data qualified as Data
+
+--  import qualified PlutusCore.Data                             as Data
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
@@ -247,9 +248,10 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (fmap Value.valueData $ generateTestValues gen)
+    (fmap (Value.valueData) $ generateTestValues gen)
 
-{-  where
+{-
+  where
     reverseOuterMap (Data.Map l) = Data.Map $ reverse (fmap reverseInnerMap l)
     reverseOuterMap d = error ("Unexpected item in reverseOuterMap: " ++ show d)
     reverseInnerMap (t, Data.Map l) = (t, Data.Map $ reverse l)
