@@ -159,6 +159,7 @@ renderModel =
     WithInteractionInXAndY f -> [renderWithInteractionInXAndY f "x" "y"]
     ExpModCost f -> [renderExpModCostingFunction f "y" "z"]
     LinearInMaxYZ f -> [renderLinearFunction f "max(y,z)"]
+    LinearInXAndY f -> [renderTwoVariableLinearFunction f "x" "y"]
     LinearInYAndZ f -> [renderTwoVariableLinearFunction f "y" "z"]
     LiteralInYOrLinearInZ f ->
       [ "if y==0"

@@ -166,6 +166,41 @@ const CostModelEvaluators = {
     return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[0] + (coeffs.c2 || 0) * max_yz;
   },
 
+  linear_in_x_and_y: (coeffs, args) => {
+    const intercept = coeffs.intercept || coeffs.c0 || 0;
+    const slope1 = coeffs.slope1 || coeffs.c1 || 0;
+    const slope2 = coeffs.slope2 || coeffs.c2 || 0;
+    return intercept + slope1 * args[0] + slope2 * args[1];
+  },
+
+  const_above_diagonal: (coeffs, args) => {
+    // Above diagonal: x < y, return constant
+    // Below/on diagonal: x >= y, use inner model
+    if (args[0] < args[1]) {
+      return coeffs.constant || 0;
+    }
+    // Use inner model
+    const innerModel = coeffs.model;
+    if (innerModel && CostModelEvaluators[innerModel.type]) {
+      return CostModelEvaluators[innerModel.type](innerModel.arguments, args);
+    }
+    return 0;
+  },
+
+  const_below_diagonal: (coeffs, args) => {
+    // Below diagonal: x > y, return constant
+    // Above/on diagonal: x <= y, use inner model
+    if (args[0] > args[1]) {
+      return coeffs.constant || 0;
+    }
+    // Use inner model
+    const innerModel = coeffs.model;
+    if (innerModel && CostModelEvaluators[innerModel.type]) {
+      return CostModelEvaluators[innerModel.type](innerModel.arguments, args);
+    }
+    return 0;
+  },
+
   with_interaction_in_x_and_y: (coeffs, args) => {
     const c0 = coeffs.intercept ?? coeffs.c0 ?? 0;
     const cx = coeffs.slopex ?? coeffs.c1 ?? 0;
@@ -333,6 +368,27 @@ function formatModelFormula(modelType, coefficients) {
 
     case 'linear_in_max_yz':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg1) + ${formatCoeff(c2)} × max(arg2, arg3) picoseconds`;
+
+    case 'linear_in_x_and_y': {
+      const intercept = coefficients.intercept || coefficients.c0 || 0;
+      const slope1 = coefficients.slope1 || coefficients.c1 || 0;
+      const slope2 = coefficients.slope2 || coefficients.c2 || 0;
+      return `${formatCoeff(intercept)} + ${formatCoeff(slope1)} × (arg1) + ${formatCoeff(slope2)} × (arg2) picoseconds`;
+    }
+
+    case 'const_above_diagonal': {
+      const constant = coefficients.constant || 0;
+      const innerModel = coefficients.model;
+      const innerFormula = innerModel ? formatModelFormula(innerModel.type, innerModel.arguments) : 'unknown';
+      return `if arg1 < arg2: ${formatCoeff(constant)} picoseconds, else: ${innerFormula}`;
+    }
+
+    case 'const_below_diagonal': {
+      const constant = coefficients.constant || 0;
+      const innerModel = coefficients.model;
+      const innerFormula = innerModel ? formatModelFormula(innerModel.type, innerModel.arguments) : 'unknown';
+      return `if arg1 > arg2: ${formatCoeff(constant)} picoseconds, else: ${innerFormula}`;
+    }
 
     case 'with_interaction_in_x_and_y': {
       const cx = coefficients.slopex ?? coefficients.c1 ?? 0;

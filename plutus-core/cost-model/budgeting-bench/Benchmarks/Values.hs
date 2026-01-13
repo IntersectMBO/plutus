@@ -104,92 +104,82 @@ withWorstCaseSearchKeys genValueWithKeys = do
 valueContainsBenchmark :: StdGen -> Benchmark
 valueContainsBenchmark gen =
   createTwoTermBuiltinBenchElementwiseWithWrappers
-    (ValueMaxDepth, ValueTotalSize)
-    -- Container: sum of log sizes, Contained: totalSize
+    (ValueTotalSize, ValueTotalSize)
+    -- Both use ValueTotalSize for meaningful diagonal comparison:
+    -- when contained size > container size, containment is impossible
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
     (valueContainsArgs gen) -- the argument combos to generate benchmarks for
 
 valueContainsArgs :: StdGen -> [(Value, Value)]
 valueContainsArgs gen = runStateGen_ gen \g -> do
-  {- ValueContains performs multiple LookupCoin operations (one per entry in contained).
-     Worst case: All lookups succeed at maximum depth with many entries to check.
+  {- ValueContains performs multiple LookupCoin operations (one per entry in
+     contained). Worst case: All lookups succeed at maximum depth with many
+     entries to check.
 
      Strategy:
-     1. Generate container with worst-case BST structure (uniform, power-of-2 sizes)
-     2. Select entries FROM container (maintain subset relationship for no early exit)
-     3. Include deepest entry to force maximum BST traversal
-     4. Test multiple contained sizes to explore iteration count dimension
+     1. Generate container with worst-case BST structure (power-of-2 sizes)
+     2. Sample below-diagonal in (numPolicies, tokensPerPolicy) space to
+        reduce clustering at small sizes
+     3. Select entries FROM container (maintain subset relationship)
+     4. Include deepest entry to force maximum BST traversal
+     5. Add sparse above-diagonal cases (1-2%) for geometry diversity
 
-     Result: ~1000 systematic worst-case benchmarks vs 100 random cases previously
+     Size calculation: containerSize = tokensPerPolicy + (numPolicies - 1)
+     Max size: 1024 + 1023 = 2047 (symmetric with LookupCoin range)
+
+     Grid: 10×10 power-of-2, below-diagonal (55) + 2 above-diagonal (57 total)
+     Samples per container: 10 evenly distributed contained sizes
+     Total points: ~570
   -}
 
-  -- Use power-of-2 grid (without half-powers) for systematic coverage
-  -- ValueContains does multiple lookups, so we don't need as fine-grained
-  -- size variation as LookupCoin
-  let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]] -- [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
+  let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]]
 
-  -- Generate test cases for all container size combinations
+      -- Below-diagonal: numPolicies >= tokensPerPolicy
+      -- Focuses on typical case (more policies than tokens per policy)
+      -- Reduces clustering at small sizes (55 of 100 combinations)
+      belowDiagonalCombos = [(p, t) | p <- containerSizes, t <- containerSizes, p >= t]
+
+      -- Above-diagonal: sparse sampling for geometry diversity
+      -- Tests small numPolicies with large tokensPerPolicy (1-2% of grid)
+      aboveDiagonalCombos = [(2, 1024), (4, 512)]
+
+      allCombinations = belowDiagonalCombos ++ aboveDiagonalCombos
+
   concat
     <$> sequence
       [ do
-          -- Generate container with worst-case BST structure:
-          -- - Uniform distribution (all policies have same token count)
-          -- - Worst-case keys (long common prefix, differ in last 4 bytes)
-          -- - Returns metadata about the deepest entry
           (container, maxPolicyId, deepestToken) <-
             generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
 
-          -- Extract all entries from container as a flat list
-          -- This maintains the subset relationship: contained ⊆ container
           let allEntries = Value.toFlatList container
               totalEntries = length allEntries
+              worstCaseEntry = find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
 
-          -- Find the worst-case entry (deepest in both BSTs)
-          -- This entry forces maximum depth lookup:
-          -- - maxPolicyId: first in outer BST (but all equal size, so any works)
-          -- - deepestToken: last token in sorted order (maximum inner BST depth)
-          let worstCaseEntry =
-                find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
-
-          -- Generate test cases for different contained sizes (uniform linear distribution)
-          -- Each size tests the same container with different iteration counts
-          -- Use uniform spacing from 1 to min(1000, totalEntries) for better distribution
-          let maxContainedSize = min 1000 totalEntries
+          -- Generate evenly distributed contained sizes
+          let maxContainedSize = totalEntries
               numSamples = 10
               containedSizes =
                 if totalEntries < numSamples
-                  then [1 .. totalEntries] -- Test all sizes for small containers
+                  then [1 .. totalEntries]
                   else
                     let step = maxContainedSize `div` numSamples
                      in [i * step | i <- [1 .. numSamples], i * step > 0]
-                          ++ [maxContainedSize | maxContainedSize `notElem` [i * step | i <- [1 .. numSamples]]]
+                          ++ [ maxContainedSize
+                             | maxContainedSize `notElem` [i * step | i <- [1 .. numSamples]]
+                             ]
 
-          -- Create one test case per contained size
           pure
             [ let
-                -- Select entries ensuring worst-case is included
-                -- Place worst-case entry at END so it's checked (not early-exit)
                 selectedEntries =
                   case worstCaseEntry of
+                    Nothing -> take containedSize allEntries
                     Just worst ->
-                      -- Take (containedSize - 1) entries, then add worst-case
-                      -- This ensures: 1) subset relationship maintained
-                      --               2) worst-case depth is hit
-                      --               3) no early exit (all lookups succeed)
-                      -- IMPORTANT: Filter out worst from allEntries first to prevent duplicates
-                      -- (worst might be at a low position for small tokensPerPolicy values)
                       let allEntriesWithoutWorst = filter (/= worst) allEntries
                           numOthers = min (containedSize - 1) (totalEntries - 1)
                           others = take numOthers allEntriesWithoutWorst
                        in others ++ [worst]
-                    Nothing ->
-                      -- Fallback if worst-case entry somehow not found
-                      -- (shouldn't happen, but defensive programming)
-                      take containedSize allEntries
 
-                -- Build contained Value from selected entries
-                -- This maintains the Value structure while ensuring subset
                 contained =
                   unsafeFromBuiltinResult $
                     Value.fromList
@@ -200,8 +190,7 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
                 (container, contained)
             | containedSize <- containedSizes
             ]
-      | numPolicies <- containerSizes
-      , tokensPerPolicy <- containerSizes
+      | (numPolicies, tokensPerPolicy) <- allCombinations
       ]
 
 ----------------------------------------------------------------------------------------------------
