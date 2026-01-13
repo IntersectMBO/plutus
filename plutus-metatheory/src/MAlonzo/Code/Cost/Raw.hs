@@ -305,16 +305,17 @@ pattern C_LinearInZ_160 a0 = LinearInZ a0
 pattern C_LinearInU_162 a0 = LinearInU a0
 pattern C_LiteralInYOrLinearInZ_164 a0 = LiteralInYOrLinearInZ a0
 pattern C_LinearInMaxYZ_166 a0 = LinearInMaxYZ a0
-pattern C_LinearInYAndZ_168 a0 = LinearInYAndZ a0
-pattern C_QuadraticInY_170 a0 = QuadraticInY a0
-pattern C_QuadraticInZ_172 a0 = QuadraticInZ a0
-pattern C_QuadraticInXAndY_174 a0 = QuadraticInXAndY a0
-pattern C_WithInteractionInXAndY_176 a0 = WithInteractionInXAndY a0
-pattern C_SubtractedSizes_178 a0 a1 = SubtractedSizes a0 a1
-pattern C_ConstAboveDiagonal_180 a0 a1 = ConstAboveDiagonal a0 a1
-pattern C_ConstBelowDiagonal_182 a0 a1 = ConstBelowDiagonal a0 a1
-pattern C_ConstOffDiagonal_184 a0 a1 = ConstOffDiagonal a0 a1
-pattern C_ExpModCost_186 a0 = ExpModCost a0
+pattern C_LinearInXAndY_168 a0 = LinearInXAndY a0
+pattern C_LinearInYAndZ_170 a0 = LinearInYAndZ a0
+pattern C_QuadraticInY_172 a0 = QuadraticInY a0
+pattern C_QuadraticInZ_174 a0 = QuadraticInZ a0
+pattern C_QuadraticInXAndY_176 a0 = QuadraticInXAndY a0
+pattern C_WithInteractionInXAndY_178 a0 = WithInteractionInXAndY a0
+pattern C_SubtractedSizes_180 a0 a1 = SubtractedSizes a0 a1
+pattern C_ConstAboveDiagonal_182 a0 a1 = ConstAboveDiagonal a0 a1
+pattern C_ConstBelowDiagonal_184 a0 a1 = ConstBelowDiagonal a0 a1
+pattern C_ConstOffDiagonal_186 a0 a1 = ConstOffDiagonal a0 a1
+pattern C_ExpModCost_188 a0 = ExpModCost a0
 check_ConstantCost_146 :: Integer -> T_RawModel_144
 check_ConstantCost_146 = ConstantCost
 check_AddedSizes_148 :: T_LinearFunction_32 -> T_RawModel_144
@@ -338,36 +339,39 @@ check_LiteralInYOrLinearInZ_164 ::
 check_LiteralInYOrLinearInZ_164 = LiteralInYOrLinearInZ
 check_LinearInMaxYZ_166 :: T_LinearFunction_32 -> T_RawModel_144
 check_LinearInMaxYZ_166 = LinearInMaxYZ
-check_LinearInYAndZ_168 ::
+check_LinearInXAndY_168 ::
   T_TwoVariableLinearFunction_60 -> T_RawModel_144
-check_LinearInYAndZ_168 = LinearInYAndZ
-check_QuadraticInY_170 ::
+check_LinearInXAndY_168 = LinearInXAndY
+check_LinearInYAndZ_170 ::
+  T_TwoVariableLinearFunction_60 -> T_RawModel_144
+check_LinearInYAndZ_170 = LinearInYAndZ
+check_QuadraticInY_172 ::
   T_OneVariableQuadraticFunction_44 -> T_RawModel_144
-check_QuadraticInY_170 = QuadraticInY
-check_QuadraticInZ_172 ::
+check_QuadraticInY_172 = QuadraticInY
+check_QuadraticInZ_174 ::
   T_OneVariableQuadraticFunction_44 -> T_RawModel_144
-check_QuadraticInZ_172 = QuadraticInZ
-check_QuadraticInXAndY_174 ::
+check_QuadraticInZ_174 = QuadraticInZ
+check_QuadraticInXAndY_176 ::
   T_TwoVariableQuadraticFunction_76 -> T_RawModel_144
-check_QuadraticInXAndY_174 = QuadraticInXAndY
-check_WithInteractionInXAndY_176 ::
+check_QuadraticInXAndY_176 = QuadraticInXAndY
+check_WithInteractionInXAndY_178 ::
   T_TwoVariableWithInteractionFunction_108 -> T_RawModel_144
-check_WithInteractionInXAndY_176 = WithInteractionInXAndY
-check_SubtractedSizes_178 ::
+check_WithInteractionInXAndY_178 = WithInteractionInXAndY
+check_SubtractedSizes_180 ::
   T_LinearFunction_32 -> Integer -> T_RawModel_144
-check_SubtractedSizes_178 = SubtractedSizes
-check_ConstAboveDiagonal_180 ::
+check_SubtractedSizes_180 = SubtractedSizes
+check_ConstAboveDiagonal_182 ::
   Integer -> T_RawModel_144 -> T_RawModel_144
-check_ConstAboveDiagonal_180 = ConstAboveDiagonal
-check_ConstBelowDiagonal_182 ::
+check_ConstAboveDiagonal_182 = ConstAboveDiagonal
+check_ConstBelowDiagonal_184 ::
   Integer -> T_RawModel_144 -> T_RawModel_144
-check_ConstBelowDiagonal_182 = ConstBelowDiagonal
-check_ConstOffDiagonal_184 ::
+check_ConstBelowDiagonal_184 = ConstBelowDiagonal
+check_ConstOffDiagonal_186 ::
   Integer -> T_RawModel_144 -> T_RawModel_144
-check_ConstOffDiagonal_184 = ConstOffDiagonal
-check_ExpModCost_186 ::
+check_ConstOffDiagonal_186 = ConstOffDiagonal
+check_ExpModCost_188 ::
   T_ExpModCostingFunction_128 -> T_RawModel_144
-check_ExpModCost_186 = ExpModCost
+check_ExpModCost_188 = ExpModCost
 cover_RawModel_144 :: Model -> ()
 cover_RawModel_144 x
   = case x of
@@ -382,6 +386,7 @@ cover_RawModel_144 x
       LinearInU _ -> ()
       LiteralInYOrLinearInZ _ -> ()
       LinearInMaxYZ _ -> ()
+      LinearInXAndY _ -> ()
       LinearInYAndZ _ -> ()
       QuadraticInY _ -> ()
       QuadraticInZ _ -> ()
@@ -393,31 +398,31 @@ cover_RawModel_144 x
       ConstOffDiagonal _ _ -> ()
       ExpModCost _ -> ()
 -- Cost.Raw.CpuAndMemoryModel
-d_CpuAndMemoryModel_188 = ()
-type T_CpuAndMemoryModel_188 = CpuAndMemoryModel
-pattern C_mkCpuAndMemoryModel_198 a0 a1 = CpuAndMemoryModel a0 a1
-check_mkCpuAndMemoryModel_198 ::
-  T_RawModel_144 -> T_RawModel_144 -> T_CpuAndMemoryModel_188
-check_mkCpuAndMemoryModel_198 = CpuAndMemoryModel
-cover_CpuAndMemoryModel_188 :: CpuAndMemoryModel -> ()
-cover_CpuAndMemoryModel_188 x
+d_CpuAndMemoryModel_190 = ()
+type T_CpuAndMemoryModel_190 = CpuAndMemoryModel
+pattern C_mkCpuAndMemoryModel_200 a0 a1 = CpuAndMemoryModel a0 a1
+check_mkCpuAndMemoryModel_200 ::
+  T_RawModel_144 -> T_RawModel_144 -> T_CpuAndMemoryModel_190
+check_mkCpuAndMemoryModel_200 = CpuAndMemoryModel
+cover_CpuAndMemoryModel_190 :: CpuAndMemoryModel -> ()
+cover_CpuAndMemoryModel_190 x
   = case x of
       CpuAndMemoryModel _ _ -> ()
 -- Cost.Raw.CpuAndMemoryModel.cpuModel
-d_cpuModel_194 :: T_CpuAndMemoryModel_188 -> T_RawModel_144
-d_cpuModel_194 v0
+d_cpuModel_196 :: T_CpuAndMemoryModel_190 -> T_RawModel_144
+d_cpuModel_196 v0
   = case coe v0 of
-      C_mkCpuAndMemoryModel_198 v1 v2 -> coe v1
+      C_mkCpuAndMemoryModel_200 v1 v2 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.CpuAndMemoryModel.memoryModel
-d_memoryModel_196 :: T_CpuAndMemoryModel_188 -> T_RawModel_144
-d_memoryModel_196 v0
+d_memoryModel_198 :: T_CpuAndMemoryModel_190 -> T_RawModel_144
+d_memoryModel_198 v0
   = case coe v0 of
-      C_mkCpuAndMemoryModel_198 v1 v2 -> coe v2
+      C_mkCpuAndMemoryModel_200 v1 v2 -> coe v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.BuiltinCostMap
-d_BuiltinCostMap_200 :: ()
-d_BuiltinCostMap_200 = erased
+d_BuiltinCostMap_202 :: ()
+d_BuiltinCostMap_202 = erased
 -- Cost.Raw.RawCostModel
-d_RawCostModel_202 :: ()
-d_RawCostModel_202 = erased
+d_RawCostModel_204 :: ()
+d_RawCostModel_204 = erased

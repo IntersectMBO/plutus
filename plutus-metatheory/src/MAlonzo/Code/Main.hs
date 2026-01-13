@@ -114,7 +114,7 @@ d_execP_44 ::
           (MAlonzo.Code.Utils.T_List_384
              (MAlonzo.Code.Utils.T__'215'__366
                 MAlonzo.Code.Agda.Builtin.String.T_String_6
-                MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_188))))
+                MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_190))))
 d_execP_44 = execP
 -- Main.parse
 d_parse_46 ::
@@ -139,7 +139,7 @@ d_evalInput_50 ::
        (MAlonzo.Code.Utils.T_List_384
           (MAlonzo.Code.Utils.T__'215'__366
              MAlonzo.Code.Agda.Builtin.String.T_String_6
-             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_188))) ->
+             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_190))) ->
   MAlonzo.Code.Evaluator.Program.T_Format_14 ->
   MAlonzo.Code.Evaluator.Program.T_Input_16 ->
   MAlonzo.Code.Agda.Builtin.IO.T_IO_8
@@ -183,7 +183,7 @@ d_main''_70 ::
        (MAlonzo.Code.Utils.T_List_384
           (MAlonzo.Code.Utils.T__'215'__366
              MAlonzo.Code.Agda.Builtin.String.T_String_6
-             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_188))) ->
+             MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_190))) ->
   MAlonzo.Code.Agda.Builtin.IO.T_IO_8
     AgdaAny MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
 d_main''_70 v0
