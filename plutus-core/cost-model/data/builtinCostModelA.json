@@ -1238,8 +1238,11 @@
       "type": "constant_cost"
     },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 1,
+        "slope": 22
+      },
+      "type": "linear_in_x"
     }
   },
   "unValueData": {
@@ -1251,8 +1254,11 @@
       "type": "linear_in_x"
     },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 12,
+        "slope": 11
+      },
+      "type": "linear_in_x"
     }
   },
   "insertCoin": {

@@ -3,7 +3,7 @@
 
 {-| The memory models for the default set of builtins.  These are copied into
 builtinCostModel.json by generate-cost-model. -}
-module BuiltinMemoryModels (builtinMemoryModels, Id (..))
+module BuiltinMemoryModels -- (builtinMemoryModels, Id (..))
 where
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
@@ -164,6 +164,60 @@ size must be allocated:
     Memory = 21*n + 12
 
 where 'n' is the total size of the input 'Value'.
+
+For valueData:
+
+data Data
+  = Constr Integer [Data]
+  | Map     [(Data, Data)]
+  | List [Data]
+  | I Integer - 1 + 3
+  | B BS.ByteString - 1 + 5
+
+Map   (     (B ByteString, Map    (       (B ByteString, I Integer) :       tI) )       :          tO)
+\^ 1   ^ 1       ^ 6        ^ 1    ^ 1         ^ 6           ^ 4    ^ 1     ^ (x - 1)   ^ 1        ^ (y - 1)
+
+Assuming nested structure, where x is max inner map size and y is outer map size:
+  (1 + 6 + 1 + ((1 + 6 + 4 + 1)*x) + 1)*y + 1 =
+= (9 + (12*x + 1))*y + 1 =
+= 9y + 12xy + y + 1
+= 12xy + 10y + 1
+
+For x = 1 (flat structure):
+12y + 10y + 1 = 22y + 1
+
+If n = 10:
+ - flat structure: 221
+ - nested structure with x = 2, y = 5: 12*2*5 + 10*5 + 1 = 120 + 50 + 1 = 171
+ - nested structure with x = 10, y = 1: 12*10*1 + 10*1 + 1 = 120 + 10 + 1 = 131
+ - nested structure with x = 7, y = 2: 12*7*2 + 10*2 + 1 = 168 + 20 + 1 = 189
+
+For unValueData:
+
+2 elem:
+- nested is 7 Data nodes
+- flat is 9 Data nodes
+
+3 elem:
+- nested is 9
+- flat is 13
+- middle is 11
+
+to get worst case, we assume fully nested structure, which means there is a larger amount of Value elements per Data nodes
+
+1 -> empty Val
+5 -> Val with 1 elem
+7 -> Val with 2 elem
+9 -> Val with 3 elem
+11 -> Val with 4 elem
+...
+n -> (n - 3) div 2 elems
+
+so memory will be 21*((n - 3)/2) + 12 = 10.5*n - 19.5 --> overapprox to 11*n - 19, but
+n has to be at least 2 to not get a negative result
+
+to avoid that, let's overapprox further to 21*(n/2) + 12 = 10.5*n + 12 --> overapprox to 11*n + 12
+
 -}
 
 builtinMemoryModels :: BuiltinCostModelBase Id
@@ -281,8 +335,10 @@ builtinMemoryModels =
     , -- Builtin values
       paramLookupCoin = Id $ ModelThreeArgumentsConstantCost 10
     , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
-    , paramValueData = Id $ ModelOneArgumentConstantCost 32
-    , paramUnValueData = Id $ ModelOneArgumentConstantCost 32
+    , -- See Note [Memory model for Value builtins]
+      paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 1 22
+    , -- See Note [Memory model for Value builtins]
+      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 12 11
     , -- See Note [Memory model for Value builtins]
       paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 45 21
     , -- See Note [Memory model for Value builtins]
