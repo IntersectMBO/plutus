@@ -23,7 +23,7 @@ import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
 
---  import qualified PlutusCore.Data                             as Data
+import PlutusCore.Data qualified as Data
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
   ( DataNodeCount (..)
   , ValueMaxDepth (..)
@@ -248,7 +248,10 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (fmap (Value.valueData) $ generateTestValues gen)
+    (fmap (f . Value.valueData) $ generateTestValues gen)
+  where
+    f (Data.Map l) = Data.Map (reverse l)
+    f _ = error "NO"
 
 {-
   where
