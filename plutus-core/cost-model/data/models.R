@@ -840,15 +840,28 @@ modelFun <- function(path) {
         mk.result(m, "with_interaction_in_x_and_y")
     }
 
-    # X wrapped with `ValueMaxDepth` (sum of logarithmic sizes)
-    # Y wrapped with `ValueTotalSize` (contained value size)
-    valueContainsModel        <- {
+    # X wrapped with `ValueTotalSize` (container total entry count)
+    # Y wrapped with `ValueTotalSize` (contained total entry count)
+    # When y > x (contained larger than container), containment is impossible
+    # and returns False immediately (constant time).
+    # When x >= y, we fit a linear model in x and y.
+    valueContainsModel <- {
         fname <- "ValueContains"
+
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ I(x_mem * y_mem), filtered)
-        mk.result(m, "multiplied_sizes")
+            discard.overhead()
+
+        # Above diagonal (y > x): containment impossible, quick False return
+        # Use minimum observed time as constant for this case
+        above_diag <- filtered %>% filter(y_mem > x_mem)
+        constant <- if (nrow(above_diag) > 0) ceiling(mean(above_diag$t)) else min(filtered$t)
+
+        # On/below diagonal (x >= y): actual containment check
+        below_diag <- filtered %>% filter(x_mem >= y_mem)
+        m <- lm(t ~ x_mem + y_mem, below_diag)
+
+        mk.result(m, "const_above_diagonal", constant=constant, subtype="linear_in_x_and_y")
     }         
 
     # Sizes of parameters are used as is (unwrapped):
