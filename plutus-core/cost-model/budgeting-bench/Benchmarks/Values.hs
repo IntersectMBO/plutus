@@ -240,20 +240,21 @@ valueDataBenchmark gen =
 -- these will be ordered in ascending order of their keys, which is the
 -- best-case input to Map.fromListWith, which is used in the implementation of
 -- `unValueData`.  We reverse the lists to make the inputs less favourable (and
--- possbily worst-case).
+-- possibly worst-case).
 unValueDataBenchmark :: StdGen -> Benchmark
 unValueDataBenchmark gen =
   createOneTermBuiltinBenchWithWrapper
     DataNodeCount
     UnValueData
     []
-    (fmap (Value.valueData) $ generateTestValues gen)
-  where
+    (fmap Value.valueData $ generateTestValues gen)
+
+{-  where
     reverseOuterMap (Data.Map l) = Data.Map $ reverse (fmap reverseInnerMap l)
     reverseOuterMap d = error ("Unexpected item in reverseOuterMap: " ++ show d)
     reverseInnerMap (t, Data.Map l) = (t, Data.Map $ reverse l)
     reverseInnerMap (_, d) = error ("Unexpected item in reverseInnerMap: " ++ show d)
-
+-}
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
 
