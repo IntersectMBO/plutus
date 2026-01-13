@@ -222,11 +222,11 @@ For 'unValueData' we need to estimate the memory allocation for the resulting 'V
 based on the size of the input 'Data'. This size is defined as the number of 'Data' nodes
 in the structure, calculated using the 'DataNodeCount' instance of 'ExMemoryUsage'.
 
-A tricky part is that multiple different 'Data' structures may represent the same 'Value'.
+The main issue is that multiple different 'Data' structures may represent the same 'Value'.
 We need to estimate the worst-case memory allocation for 'Value' based on the number of 'Data' nodes,
 which translates to estimating the maximum number of unique (currency symbol, token name) pairs
 from a given number of 'Data' nodes.
-By running some simple experiments, we can observe that we can fit more unique pairs in a nested
+By running some simple experiments, we can observe that we can fit more unique pairs in a "fully nested"
 structure, where the outer 'Map' contains a single currency symbol mapping to an inner 'Map' with
 multiple token names.
 
