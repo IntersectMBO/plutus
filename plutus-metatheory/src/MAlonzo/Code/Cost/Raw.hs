@@ -218,107 +218,158 @@ d_coeff02_104 v0
   = case coe v0 of
       C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -> coe v7
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Cost.Raw.TwoVariableWithInteractionFunction
+d_TwoVariableWithInteractionFunction_108 = ()
+type T_TwoVariableWithInteractionFunction_108 =
+  TwoVariableWithInteractionFunction
+pattern C_mkTwoVariableWithInteractionFunction_126 a0 a1 a2 a3 = TwoVariableWithInteractionFunction a0 a1 a2 a3
+check_mkTwoVariableWithInteractionFunction_126 ::
+  Integer ->
+  Integer ->
+  Integer -> Integer -> T_TwoVariableWithInteractionFunction_108
+check_mkTwoVariableWithInteractionFunction_126
+  = TwoVariableWithInteractionFunction
+cover_TwoVariableWithInteractionFunction_108 ::
+  TwoVariableWithInteractionFunction -> ()
+cover_TwoVariableWithInteractionFunction_108 x
+  = case x of
+      TwoVariableWithInteractionFunction _ _ _ _ -> ()
+-- Cost.Raw.TwoVariableWithInteractionFunction.coeff00'
+d_coeff00''_118 ::
+  T_TwoVariableWithInteractionFunction_108 -> Integer
+d_coeff00''_118 v0
+  = case coe v0 of
+      C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -> coe v1
+      _ -> MAlonzo.RTE.mazUnreachableError
+-- Cost.Raw.TwoVariableWithInteractionFunction.coeff10'
+d_coeff10''_120 ::
+  T_TwoVariableWithInteractionFunction_108 -> Integer
+d_coeff10''_120 v0
+  = case coe v0 of
+      C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -> coe v2
+      _ -> MAlonzo.RTE.mazUnreachableError
+-- Cost.Raw.TwoVariableWithInteractionFunction.coeff01'
+d_coeff01''_122 ::
+  T_TwoVariableWithInteractionFunction_108 -> Integer
+d_coeff01''_122 v0
+  = case coe v0 of
+      C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -> coe v3
+      _ -> MAlonzo.RTE.mazUnreachableError
+-- Cost.Raw.TwoVariableWithInteractionFunction.coeff11'
+d_coeff11''_124 ::
+  T_TwoVariableWithInteractionFunction_108 -> Integer
+d_coeff11''_124 v0
+  = case coe v0 of
+      C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -> coe v4
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.ExpModCostingFunction
-d_ExpModCostingFunction_108 = ()
-type T_ExpModCostingFunction_108 = ExpModCostingFunction
-pattern C_mkExpModCostingFunction_122 a0 a1 a2 = ExpModCostingFunction a0 a1 a2
-check_mkExpModCostingFunction_122 ::
-  Integer -> Integer -> Integer -> T_ExpModCostingFunction_108
-check_mkExpModCostingFunction_122 = ExpModCostingFunction
-cover_ExpModCostingFunction_108 :: ExpModCostingFunction -> ()
-cover_ExpModCostingFunction_108 x
+d_ExpModCostingFunction_128 = ()
+type T_ExpModCostingFunction_128 = ExpModCostingFunction
+pattern C_mkExpModCostingFunction_142 a0 a1 a2 = ExpModCostingFunction a0 a1 a2
+check_mkExpModCostingFunction_142 ::
+  Integer -> Integer -> Integer -> T_ExpModCostingFunction_128
+check_mkExpModCostingFunction_142 = ExpModCostingFunction
+cover_ExpModCostingFunction_128 :: ExpModCostingFunction -> ()
+cover_ExpModCostingFunction_128 x
   = case x of
       ExpModCostingFunction _ _ _ -> ()
 -- Cost.Raw.ExpModCostingFunction.coeff00
-d_coeff00_116 :: T_ExpModCostingFunction_108 -> Integer
-d_coeff00_116 v0
+d_coeff00_136 :: T_ExpModCostingFunction_128 -> Integer
+d_coeff00_136 v0
   = case coe v0 of
-      C_mkExpModCostingFunction_122 v1 v2 v3 -> coe v1
+      C_mkExpModCostingFunction_142 v1 v2 v3 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.ExpModCostingFunction.coeff11
-d_coeff11_118 :: T_ExpModCostingFunction_108 -> Integer
-d_coeff11_118 v0
+d_coeff11_138 :: T_ExpModCostingFunction_128 -> Integer
+d_coeff11_138 v0
   = case coe v0 of
-      C_mkExpModCostingFunction_122 v1 v2 v3 -> coe v2
+      C_mkExpModCostingFunction_142 v1 v2 v3 -> coe v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.ExpModCostingFunction.coeff12
-d_coeff12_120 :: T_ExpModCostingFunction_108 -> Integer
-d_coeff12_120 v0
+d_coeff12_140 :: T_ExpModCostingFunction_128 -> Integer
+d_coeff12_140 v0
   = case coe v0 of
-      C_mkExpModCostingFunction_122 v1 v2 v3 -> coe v3
+      C_mkExpModCostingFunction_142 v1 v2 v3 -> coe v3
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.RawModel
-d_RawModel_124 = ()
-type T_RawModel_124 = Model
-pattern C_ConstantCost_126 a0 = ConstantCost a0
-pattern C_AddedSizes_128 a0 = AddedSizes a0
-pattern C_MultipliedSizes_130 a0 = MultipliedSizes a0
-pattern C_MinSize_132 a0 = MinSize a0
-pattern C_MaxSize_134 a0 = MaxSize a0
-pattern C_LinearInX_136 a0 = LinearInX a0
-pattern C_LinearInY_138 a0 = LinearInY a0
-pattern C_LinearInZ_140 a0 = LinearInZ a0
-pattern C_LiteralInYOrLinearInZ_142 a0 = LiteralInYOrLinearInZ a0
-pattern C_LinearInMaxYZ_144 a0 = LinearInMaxYZ a0
-pattern C_LinearInYAndZ_146 a0 = LinearInYAndZ a0
-pattern C_QuadraticInY_148 a0 = QuadraticInY a0
-pattern C_QuadraticInZ_150 a0 = QuadraticInZ a0
-pattern C_QuadraticInXAndY_152 a0 = QuadraticInXAndY a0
-pattern C_SubtractedSizes_154 a0 a1 = SubtractedSizes a0 a1
-pattern C_ConstAboveDiagonal_156 a0 a1 = ConstAboveDiagonal a0 a1
-pattern C_ConstBelowDiagonal_158 a0 a1 = ConstBelowDiagonal a0 a1
-pattern C_ConstOffDiagonal_160 a0 a1 = ConstOffDiagonal a0 a1
-pattern C_ExpModCost_162 a0 = ExpModCost a0
-check_ConstantCost_126 :: Integer -> T_RawModel_124
-check_ConstantCost_126 = ConstantCost
-check_AddedSizes_128 :: T_LinearFunction_32 -> T_RawModel_124
-check_AddedSizes_128 = AddedSizes
-check_MultipliedSizes_130 :: T_LinearFunction_32 -> T_RawModel_124
-check_MultipliedSizes_130 = MultipliedSizes
-check_MinSize_132 :: T_LinearFunction_32 -> T_RawModel_124
-check_MinSize_132 = MinSize
-check_MaxSize_134 :: T_LinearFunction_32 -> T_RawModel_124
-check_MaxSize_134 = MaxSize
-check_LinearInX_136 :: T_LinearFunction_32 -> T_RawModel_124
-check_LinearInX_136 = LinearInX
-check_LinearInY_138 :: T_LinearFunction_32 -> T_RawModel_124
-check_LinearInY_138 = LinearInY
-check_LinearInZ_140 :: T_LinearFunction_32 -> T_RawModel_124
-check_LinearInZ_140 = LinearInZ
-check_LiteralInYOrLinearInZ_142 ::
-  T_LinearFunction_32 -> T_RawModel_124
-check_LiteralInYOrLinearInZ_142 = LiteralInYOrLinearInZ
-check_LinearInMaxYZ_144 :: T_LinearFunction_32 -> T_RawModel_124
-check_LinearInMaxYZ_144 = LinearInMaxYZ
-check_LinearInYAndZ_146 ::
-  T_TwoVariableLinearFunction_60 -> T_RawModel_124
-check_LinearInYAndZ_146 = LinearInYAndZ
-check_QuadraticInY_148 ::
-  T_OneVariableQuadraticFunction_44 -> T_RawModel_124
-check_QuadraticInY_148 = QuadraticInY
-check_QuadraticInZ_150 ::
-  T_OneVariableQuadraticFunction_44 -> T_RawModel_124
-check_QuadraticInZ_150 = QuadraticInZ
-check_QuadraticInXAndY_152 ::
-  T_TwoVariableQuadraticFunction_76 -> T_RawModel_124
-check_QuadraticInXAndY_152 = QuadraticInXAndY
-check_SubtractedSizes_154 ::
-  T_LinearFunction_32 -> Integer -> T_RawModel_124
-check_SubtractedSizes_154 = SubtractedSizes
-check_ConstAboveDiagonal_156 ::
-  Integer -> T_RawModel_124 -> T_RawModel_124
-check_ConstAboveDiagonal_156 = ConstAboveDiagonal
-check_ConstBelowDiagonal_158 ::
-  Integer -> T_RawModel_124 -> T_RawModel_124
-check_ConstBelowDiagonal_158 = ConstBelowDiagonal
-check_ConstOffDiagonal_160 ::
-  Integer -> T_RawModel_124 -> T_RawModel_124
-check_ConstOffDiagonal_160 = ConstOffDiagonal
-check_ExpModCost_162 ::
-  T_ExpModCostingFunction_108 -> T_RawModel_124
-check_ExpModCost_162 = ExpModCost
-cover_RawModel_124 :: Model -> ()
-cover_RawModel_124 x
+d_RawModel_144 = ()
+type T_RawModel_144 = Model
+pattern C_ConstantCost_146 a0 = ConstantCost a0
+pattern C_AddedSizes_148 a0 = AddedSizes a0
+pattern C_MultipliedSizes_150 a0 = MultipliedSizes a0
+pattern C_MinSize_152 a0 = MinSize a0
+pattern C_MaxSize_154 a0 = MaxSize a0
+pattern C_LinearInX_156 a0 = LinearInX a0
+pattern C_LinearInY_158 a0 = LinearInY a0
+pattern C_LinearInZ_160 a0 = LinearInZ a0
+pattern C_LinearInU_162 a0 = LinearInU a0
+pattern C_LiteralInYOrLinearInZ_164 a0 = LiteralInYOrLinearInZ a0
+pattern C_LinearInMaxYZ_166 a0 = LinearInMaxYZ a0
+pattern C_LinearInYAndZ_168 a0 = LinearInYAndZ a0
+pattern C_QuadraticInY_170 a0 = QuadraticInY a0
+pattern C_QuadraticInZ_172 a0 = QuadraticInZ a0
+pattern C_QuadraticInXAndY_174 a0 = QuadraticInXAndY a0
+pattern C_WithInteractionInXAndY_176 a0 = WithInteractionInXAndY a0
+pattern C_SubtractedSizes_178 a0 a1 = SubtractedSizes a0 a1
+pattern C_ConstAboveDiagonal_180 a0 a1 = ConstAboveDiagonal a0 a1
+pattern C_ConstBelowDiagonal_182 a0 a1 = ConstBelowDiagonal a0 a1
+pattern C_ConstOffDiagonal_184 a0 a1 = ConstOffDiagonal a0 a1
+pattern C_ExpModCost_186 a0 = ExpModCost a0
+check_ConstantCost_146 :: Integer -> T_RawModel_144
+check_ConstantCost_146 = ConstantCost
+check_AddedSizes_148 :: T_LinearFunction_32 -> T_RawModel_144
+check_AddedSizes_148 = AddedSizes
+check_MultipliedSizes_150 :: T_LinearFunction_32 -> T_RawModel_144
+check_MultipliedSizes_150 = MultipliedSizes
+check_MinSize_152 :: T_LinearFunction_32 -> T_RawModel_144
+check_MinSize_152 = MinSize
+check_MaxSize_154 :: T_LinearFunction_32 -> T_RawModel_144
+check_MaxSize_154 = MaxSize
+check_LinearInX_156 :: T_LinearFunction_32 -> T_RawModel_144
+check_LinearInX_156 = LinearInX
+check_LinearInY_158 :: T_LinearFunction_32 -> T_RawModel_144
+check_LinearInY_158 = LinearInY
+check_LinearInZ_160 :: T_LinearFunction_32 -> T_RawModel_144
+check_LinearInZ_160 = LinearInZ
+check_LinearInU_162 :: T_LinearFunction_32 -> T_RawModel_144
+check_LinearInU_162 = LinearInU
+check_LiteralInYOrLinearInZ_164 ::
+  T_LinearFunction_32 -> T_RawModel_144
+check_LiteralInYOrLinearInZ_164 = LiteralInYOrLinearInZ
+check_LinearInMaxYZ_166 :: T_LinearFunction_32 -> T_RawModel_144
+check_LinearInMaxYZ_166 = LinearInMaxYZ
+check_LinearInYAndZ_168 ::
+  T_TwoVariableLinearFunction_60 -> T_RawModel_144
+check_LinearInYAndZ_168 = LinearInYAndZ
+check_QuadraticInY_170 ::
+  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
+check_QuadraticInY_170 = QuadraticInY
+check_QuadraticInZ_172 ::
+  T_OneVariableQuadraticFunction_44 -> T_RawModel_144
+check_QuadraticInZ_172 = QuadraticInZ
+check_QuadraticInXAndY_174 ::
+  T_TwoVariableQuadraticFunction_76 -> T_RawModel_144
+check_QuadraticInXAndY_174 = QuadraticInXAndY
+check_WithInteractionInXAndY_176 ::
+  T_TwoVariableWithInteractionFunction_108 -> T_RawModel_144
+check_WithInteractionInXAndY_176 = WithInteractionInXAndY
+check_SubtractedSizes_178 ::
+  T_LinearFunction_32 -> Integer -> T_RawModel_144
+check_SubtractedSizes_178 = SubtractedSizes
+check_ConstAboveDiagonal_180 ::
+  Integer -> T_RawModel_144 -> T_RawModel_144
+check_ConstAboveDiagonal_180 = ConstAboveDiagonal
+check_ConstBelowDiagonal_182 ::
+  Integer -> T_RawModel_144 -> T_RawModel_144
+check_ConstBelowDiagonal_182 = ConstBelowDiagonal
+check_ConstOffDiagonal_184 ::
+  Integer -> T_RawModel_144 -> T_RawModel_144
+check_ConstOffDiagonal_184 = ConstOffDiagonal
+check_ExpModCost_186 ::
+  T_ExpModCostingFunction_128 -> T_RawModel_144
+check_ExpModCost_186 = ExpModCost
+cover_RawModel_144 :: Model -> ()
+cover_RawModel_144 x
   = case x of
       ConstantCost _ -> ()
       AddedSizes _ -> ()
@@ -328,43 +379,45 @@ cover_RawModel_124 x
       LinearInX _ -> ()
       LinearInY _ -> ()
       LinearInZ _ -> ()
+      LinearInU _ -> ()
       LiteralInYOrLinearInZ _ -> ()
       LinearInMaxYZ _ -> ()
       LinearInYAndZ _ -> ()
       QuadraticInY _ -> ()
       QuadraticInZ _ -> ()
       QuadraticInXAndY _ -> ()
+      WithInteractionInXAndY _ -> ()
       SubtractedSizes _ _ -> ()
       ConstAboveDiagonal _ _ -> ()
       ConstBelowDiagonal _ _ -> ()
       ConstOffDiagonal _ _ -> ()
       ExpModCost _ -> ()
 -- Cost.Raw.CpuAndMemoryModel
-d_CpuAndMemoryModel_164 = ()
-type T_CpuAndMemoryModel_164 = CpuAndMemoryModel
-pattern C_mkCpuAndMemoryModel_174 a0 a1 = CpuAndMemoryModel a0 a1
-check_mkCpuAndMemoryModel_174 ::
-  T_RawModel_124 -> T_RawModel_124 -> T_CpuAndMemoryModel_164
-check_mkCpuAndMemoryModel_174 = CpuAndMemoryModel
-cover_CpuAndMemoryModel_164 :: CpuAndMemoryModel -> ()
-cover_CpuAndMemoryModel_164 x
+d_CpuAndMemoryModel_188 = ()
+type T_CpuAndMemoryModel_188 = CpuAndMemoryModel
+pattern C_mkCpuAndMemoryModel_198 a0 a1 = CpuAndMemoryModel a0 a1
+check_mkCpuAndMemoryModel_198 ::
+  T_RawModel_144 -> T_RawModel_144 -> T_CpuAndMemoryModel_188
+check_mkCpuAndMemoryModel_198 = CpuAndMemoryModel
+cover_CpuAndMemoryModel_188 :: CpuAndMemoryModel -> ()
+cover_CpuAndMemoryModel_188 x
   = case x of
       CpuAndMemoryModel _ _ -> ()
 -- Cost.Raw.CpuAndMemoryModel.cpuModel
-d_cpuModel_170 :: T_CpuAndMemoryModel_164 -> T_RawModel_124
-d_cpuModel_170 v0
+d_cpuModel_194 :: T_CpuAndMemoryModel_188 -> T_RawModel_144
+d_cpuModel_194 v0
   = case coe v0 of
-      C_mkCpuAndMemoryModel_174 v1 v2 -> coe v1
+      C_mkCpuAndMemoryModel_198 v1 v2 -> coe v1
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.CpuAndMemoryModel.memoryModel
-d_memoryModel_172 :: T_CpuAndMemoryModel_164 -> T_RawModel_124
-d_memoryModel_172 v0
+d_memoryModel_196 :: T_CpuAndMemoryModel_188 -> T_RawModel_144
+d_memoryModel_196 v0
   = case coe v0 of
-      C_mkCpuAndMemoryModel_174 v1 v2 -> coe v2
+      C_mkCpuAndMemoryModel_198 v1 v2 -> coe v2
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Cost.Raw.BuiltinCostMap
-d_BuiltinCostMap_176 :: ()
-d_BuiltinCostMap_176 = erased
+d_BuiltinCostMap_200 :: ()
+d_BuiltinCostMap_200 = erased
 -- Cost.Raw.RawCostModel
-d_RawCostModel_178 :: ()
-d_RawCostModel_178 = erased
+d_RawCostModel_202 :: ()
+d_RawCostModel_202 = erased
