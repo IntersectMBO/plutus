@@ -470,17 +470,10 @@ defineBuiltinTerms = do
     style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
       -- > /\a r ->
       -- >   \(f : a -> list a -> r) (xs : list a) ->
-      -- >     chooseList
-      -- >       {a}
-      -- >       {all dead. r}
-      -- >       xs
-      -- >       (/\dead -> error)
-      -- >       (/\dead -> f (headList {a} xs) (tailList {a} xs))
-      -- >       {r}
+      -- >     f (headList {a} xs) (tailList {a} xs)
       fmap (const annMayInline) . runQuote $ do
         a <- freshTyName "a"
         r <- freshTyName "r"
-        dead <- freshTyName "dead"
         xs <- freshName "xs"
         f <- freshName "f"
         let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
@@ -497,24 +490,9 @@ defineBuiltinTerms = do
             f
             (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
           . PIR.lamAbs () xs listA
-          . PIR.tyInst
-            ()
-            ( PIR.mkIterAppNoAnn
-                ( PIR.mkIterInstNoAnn
-                    (PIR.builtin () PLC.ChooseList)
-                    [ PLC.TyVar () a
-                    , PLC.TyForall () dead (PLC.Type ()) $ PLC.TyVar () r
-                    ]
-                )
-                [ PIR.var () xs
-                , PIR.tyAbs () dead (PLC.Type ()) $ PIR.error () (PLC.TyVar () r)
-                , PIR.tyAbs () dead (PLC.Type ()) $
-                    PIR.mkIterAppNoAnn
-                      (PIR.var () f)
-                      [funAtXs PLC.HeadList, funAtXs PLC.TailList]
-                ]
-            )
-          $ PLC.TyVar () r
+          $ PIR.mkIterAppNoAnn
+            (PIR.var () f)
+            [funAtXs PLC.HeadList, funAtXs PLC.TailList]
     _BuiltinCasing ->
       -- > /\a r ->
       -- >   \(f : a -> list a -> r) (xs : list a) ->

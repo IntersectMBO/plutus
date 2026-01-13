@@ -4,13 +4,7 @@ let
   !unsafeCaseList : all a r. (a -> list a -> r) -> list a -> r
     = /\a r ->
         \(f : a -> list a -> r) (xs : list a) ->
-          chooseList
-            {a}
-            {all dead. r}
-            xs
-            (/\dead -> error {r})
-            (/\dead -> f (headList {a} xs) (tailList {a} xs))
-            {r}
+          f (headList {a} xs) (tailList {a} xs)
   ~unsafeUncons : all a. list a -> Tuple2 a (list a)
     = /\a ->
         unsafeCaseList
