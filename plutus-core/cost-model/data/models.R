@@ -852,8 +852,6 @@ modelFun <- function(path) {
     }         
 
     ## Really linearInX, but we want to restrict the X values for the time being
-    ## FIXME: make the benchmark inputs a bit smaller.  They currently go up to
-    ## a size that's much bigger than we're ever likely to encounter.
     valueDataModel <-  {
         fname <- "ValueData"
         filtered <- data %>%

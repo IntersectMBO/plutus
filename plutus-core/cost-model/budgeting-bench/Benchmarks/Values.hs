@@ -247,7 +247,7 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (fmap (reverseOuterMap . Value.valueData) $ generateTestValues gen)
+    (fmap (Value.valueData) $ generateTestValues gen)
   where
     reverseOuterMap (Data.Map l) = Data.Map $ reverse (fmap reverseInnerMap l)
     reverseOuterMap d = error ("Unexpected item in reverseOuterMap: " ++ show d)
