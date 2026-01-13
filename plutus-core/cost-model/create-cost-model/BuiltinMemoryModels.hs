@@ -3,7 +3,7 @@
 
 {-| The memory models for the default set of builtins.  These are copied into
 builtinCostModel.json by generate-cost-model. -}
-module BuiltinMemoryModels -- (builtinMemoryModels, Id (..))
+module BuiltinMemoryModels (builtinMemoryModels, Id (..))
 where
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
@@ -165,58 +165,95 @@ size must be allocated:
 
 where 'n' is the total size of the input 'Value'.
 
-For valueData:
+## Costing 'valueData' and 'unValueData'
 
-data Data
-  = Constr Integer [Data]
-  | Map     [(Data, Data)]
-  | List [Data]
-  | I Integer - 1 + 3
-  | B BS.ByteString - 1 + 5
+Since 'valueData' and 'unValueData' convert between 'Value' and 'Data', we need to estimate
+the memory allocation for 'Data' as well, and how it relates to the size of the 'Value'.
 
-Map   (     (B ByteString, Map    (       (B ByteString, I Integer) :       tI) )       :          tO)
-\^ 1   ^ 1       ^ 6        ^ 1    ^ 1         ^ 6           ^ 4    ^ 1     ^ (x - 1)   ^ 1        ^ (y - 1)
+The definition of 'Data' is as follows:
+@
+  data Data
+    = Constr Integer [Data]
+    | Map [(Data, Data)]
+    | List [Data]
+    | I Integer
+    | B BS.ByteString
+@
 
-Assuming nested structure, where x is max inner map size and y is outer map size:
-  (1 + 6 + 1 + ((1 + 6 + 4 + 1)*x) + 1)*y + 1 =
-= (9 + (12*x + 1))*y + 1 =
-= 9y + 12xy + y + 1
-= 12xy + 10y + 1
+Since we're interested only in well-formed 'Value's, we can focus on just the subset of constructors
+which are used in the 'Data' representation of 'Value's:
+  - 'Map' for the outer and inner maps
+  - 'I' for the integer quantities
+  - 'B' for the currency symbols and token names
 
-For x = 1 (flat structure):
-12y + 10y + 1 = 22y + 1
+The cost of 'valueData' is given by the memory allocation of the resulting 'Data' structure, as a function
+of the number of unique (currency symbol, token name) pairs in the 'Value'.
 
-If n = 10:
- - flat structure: 221
- - nested structure with x = 2, y = 5: 12*2*5 + 10*5 + 1 = 120 + 50 + 1 = 171
- - nested structure with x = 10, y = 1: 12*10*1 + 10*1 + 1 = 120 + 10 + 1 = 131
- - nested structure with x = 7, y = 2: 12*7*2 + 10*2 + 1 = 168 + 20 + 1 = 189
+Let's analyze the memory allocation for 'Data' representing a 'Value' with 'n' unique pairs:
+  1. If n = 0, the 'Data' representation is 'Map []' which allocates 1 word for the 'Map' constructor plus
+    one pointer to the shared empty list CAF, in total 2 words.
+  2. For n > 0, the memory allocation depends on the structure of the nested 'Map's in 'Data'; based on simple
+  experiments, we find that the overhead is higher for a flat structure compared to a deeply nested one. Given that
+  we're interested in worst-case allocation, we assume a flat structure where each currency symbol maps to only one token name.
 
-For unValueData:
+Calculating the memory allocation for 'Data' in the flat structure:
+  - Outer 'Map' with 'n' entries:
+    - 1 word for the 'Map' closure
+    - For each of the 'n > 0' entries:
+      - 1 word for the ':' closure
+      - 1 word for the pair closure
+      - 1 word for the 'B' closure + 5 words for the bytestring itself
+      - Inner 'Map' with 1 entry (for each currency symbol):
+        - 1 word for the 'Map' closure
+        - 1 word for the ':' closure
+        - 1 word for the pair closure
+        - 1 word for the 'B' closure + 5 words for the bytestring itself
+        - 1 word for the 'I' closure + 3 words for the integer itself
+        - 1 word for the pointer to the empty list CAF
+    - 1 word for the pointer to the empty list CAF
 
-2 elem:
-- nested is 7 Data nodes
-- flat is 9 Data nodes
+Thus, the memory model for 'valueData' is:
 
-3 elem:
-- nested is 9
-- flat is 13
-- middle is 11
+    Memory = 22*n + 2
 
-to get worst case, we assume fully nested structure, which means there is a larger amount of Value elements per Data nodes
+where 'n' is the number of unique (currency symbol, token name) pairs in the 'Value'.
 
-1 -> empty Val
-5 -> Val with 1 elem
-7 -> Val with 2 elem
-9 -> Val with 3 elem
-11 -> Val with 4 elem
-...
-n -> (n - 3) div 2 elems
+For 'unValueData' we need to estimate the memory allocation for the resulting 'Value',
+based on the size of the input 'Data'. This size is defined as the number of 'Data' nodes
+in the structure, calculated using the 'DataNodeCount' instance of 'ExMemoryUsage'.
 
-so memory will be 21*((n - 3)/2) + 12 = 10.5*n - 19.5 --> overapprox to 11*n - 19, but
-n has to be at least 2 to not get a negative result
+A tricky part is that multiple different 'Data' structures may represent the same 'Value'.
+We need to estimate the worst-case memory allocation for 'Value' based on the number of 'Data' nodes,
+which translates to estimating the maximum number of unique (currency symbol, token name) pairs
+from a given number of 'Data' nodes.
+By running some simple experiments, we can observe that we can fit more unique pairs in a nested
+structure, where the outer 'Map' contains a single currency symbol mapping to an inner 'Map' with
+multiple token names.
 
-to avoid that, let's overapprox further to 21*(n/2) + 12 = 10.5*n + 12 --> overapprox to 11*n + 12
+By computing the number of 'Data' nodes for nested structures with increasing number of unique pairs,
+we obtain the following mapping:
+@
+  1 -> empty Val
+  5 -> Val with 1 elem
+  7 -> Val with 2 elem
+  9 -> Val with 3 elem
+  11 -> Val with 4 elem
+  ...
+  n -> Val with (n - 3)/ 2 elems
+@
+From this we can derive that the memory allocated for the resulting 'Value' is:
+
+    Memory = 21*((n - 3)/2) + 12 = 10.5*n - 19.5 --approx--> 11*n - 19
+
+where 'n' is the number of 'Data' nodes in the input structure.
+
+However, this formula can yield negative results for small 'n' (specifically n < 4).
+Due to limitations in our costing framework, we cannot case on the value of 'n' to handle
+such situations. To ensure non-negative memory costs, we further overapproximate the formula
+to remove the negative intercept:
+
+    Memory = 21*(n/2) + 12 = 10.5*n + 12 --approx--> 11*n + 12
+where 'n' is the number of 'Data' nodes in the input structure.
 
 -}
 
@@ -336,7 +373,7 @@ builtinMemoryModels =
       paramLookupCoin = Id $ ModelThreeArgumentsConstantCost 10
     , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
     , -- See Note [Memory model for Value builtins]
-      paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 1 22
+      paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 2 22
     , -- See Note [Memory model for Value builtins]
       paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 12 11
     , -- See Note [Memory model for Value builtins]

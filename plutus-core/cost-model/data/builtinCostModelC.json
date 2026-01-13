@@ -1257,7 +1257,7 @@
     },
     "memory": {
       "arguments": {
-        "intercept": 1,
+        "intercept": 2,
         "slope": 22
       },
       "type": "linear_in_x"
