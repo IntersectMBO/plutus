@@ -25,8 +25,8 @@ import qualified MAlonzo.Code.Utils
 
 -- Algorithmic.Properties.lem-·⋆
 d_lem'45''183''8902'_28 ::
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
@@ -50,8 +50,8 @@ du_lem'45''183''8902'_28
          (coe MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 erased erased))
 -- Algorithmic.Properties.lem-unwrap
 d_lem'45'unwrap_54 ::
-  MAlonzo.Code.Utils.T_Kind_652 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->

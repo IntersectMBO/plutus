@@ -3,14 +3,12 @@ title: Algorithmic.Erasure
 layout: page
 ---
 ```
-{-# OPTIONS --injective-type-constructors #-}
-
 module Algorithmic.Erasure where
 ```
 
 ```
 open import Agda.Primitive using (lzero)
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ;suc;zero)
 open import Function using (_∘_;id)
 open import Data.Nat using (_+_)
 open import Data.Nat.Properties using (+-cancelˡ-≡)
@@ -55,20 +53,20 @@ open import Algorithmic.Soundness using (embCtx;embVar;emb;emb-ConstrArgs;lema-m
 ```
 
 ```
-len⋆ : Ctx⋆ → Set
-len⋆ ∅        = ⊥
-len⋆ (Γ ,⋆ K) = Maybe (len⋆ Γ)
+len⋆ : Ctx⋆ → ℕ
+len⋆ ∅        = 0
+len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
-len : ∀{Φ} → Ctx Φ → Set
-len ∅ = ⊥
+len : ∀{Φ} → Ctx Φ → ℕ
+len ∅ = 0
 len (Γ ,⋆ K) = len Γ
-len (Γ , A)  = Maybe (len Γ)
+len (Γ , A)  = suc (len Γ)
 ```
 
 ```
-eraseVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → len Γ
-eraseVar Z     = nothing
-eraseVar (S α) = just (eraseVar α)
+eraseVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → Fin (len Γ)
+eraseVar Z     = zero
+eraseVar (S α) = suc (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : (A : ∅ ⊢Nf⋆ Kind.♯) → ⟦ A ⟧ → TmCon
@@ -114,47 +112,45 @@ I need to pattern match on the term constructors
 lenLemma : ∀ {Φ}(Γ : D.Ctx Φ) → len (nfCtx Γ) ≡ D.len Γ
 lenLemma D.∅        = refl
 lenLemma (Γ D.,⋆ J) = lenLemma Γ
-lenLemma (Γ D., A)  = cong Maybe (lenLemma Γ)
+lenLemma (Γ D., A)  = cong suc (lenLemma Γ)
 
 lenLemma⋆ : ∀ Φ → D.len⋆ Φ ≡ len⋆ Φ
 lenLemma⋆ ∅       = refl
-lenLemma⋆ (Φ ,⋆ K) = cong Maybe (lenLemma⋆ Φ)
+lenLemma⋆ (Φ ,⋆ K) = cong suc (lenLemma⋆ Φ)
 
 -- these lemmas for each clause of eraseVar and erase below could be
 -- avoided by using with but it would involve doing with on a long
 -- string of arguments, both contexts, equality proof above, and
 -- before and after versions of all arguments and all recursive calls
 
--- these lemmas (as stated and proved) require injectivity of type
--- constructors
-lemzero : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X') → nothing ≡ subst id p nothing
+lemzero : ∀{X X' : ℕ} (p : suc X ≡ suc X') → zero ≡ subst Fin p zero
 lemzero refl = refl
 
-lemsuc : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X')(q : X ≡ X')(x : X) →
-  just (subst id q x) ≡ subst id p (just x)
+lemsuc : ∀{X X' : ℕ} (p : suc X ≡ suc X') (q : X ≡ X') (x : Fin X) →
+  suc (subst Fin q x) ≡ subst Fin p (suc x)
 lemsuc refl refl x = refl
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
 
 lem-conv∋ : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')(x : Γ A.∋ A)
-  →  subst id (lem≡Ctx p) (eraseVar x) ≡ eraseVar (conv∋ p q x)
+  →  subst Fin (lem≡Ctx p) (eraseVar x) ≡ eraseVar (conv∋ p q x)
 lem-conv∋ refl refl x = refl
 
 sameVar : ∀{Φ Γ}{A : Φ ⊢⋆ *}(x : Γ D.∋ A)
-  → D.eraseVar x ≡ subst id (lenLemma Γ) (eraseVar (nfTyVar x))
-sameVar {Γ = Γ D., _} D.Z     = lemzero (cong Maybe (lenLemma Γ))
+  → D.eraseVar x ≡ subst Fin (lenLemma Γ) (eraseVar (nfTyVar x))
+sameVar {Γ = Γ D., _} D.Z     = lemzero (cong suc (lenLemma Γ))
 sameVar {Γ = Γ D., _} (D.S x) = trans
-  (cong just (sameVar x))
-  (lemsuc (cong Maybe (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x)))
+  (cong suc (sameVar x))
+  (lemsuc (cong suc (lenLemma Γ)) (lenLemma Γ) (eraseVar (nfTyVar x)))
 sameVar {Γ = Γ D.,⋆ _} (D.T {A = A} x) = trans
   (sameVar x)
-  (cong (subst id (lenLemma Γ)) (lem-conv∋ refl (ren-nf S A) (T (nfTyVar x))))
+  (cong (subst Fin (lenLemma Γ)) (lem-conv∋ refl (ren-nf S A) (T (nfTyVar x))))
 
-lemVar : ∀{X X'}(p : X ≡ X')(x : X) →  ` (subst id p x) ≡ subst _⊢ p (` x)
+lemVar : ∀{X X'}(p : X ≡ X')(x : Fin X) →  ` (subst Fin p x) ≡ subst _⊢ p (` x)
 lemVar refl x = refl
 
-lemƛ : ∀{X X'}(p : X ≡ X')(q : Maybe X ≡ Maybe X')(t : Maybe X ⊢)
+lemƛ : ∀{X X'}(p : X ≡ X')(q : suc X ≡ suc X')(t : suc X ⊢)
   → ƛ (subst _⊢ q t) ≡ subst _⊢ p (ƛ t)
 lemƛ refl refl t = refl
 
@@ -235,7 +231,7 @@ same {Γ = Γ}(D.` x) =
   trans (cong ` (sameVar x)) (lemVar (lenLemma Γ) (eraseVar (nfTyVar x)))
 same {Γ = Γ} (D.ƛ t) = trans
   (cong ƛ (same t))
-  (lemƛ (lenLemma Γ) (cong Maybe (lenLemma Γ)) (erase (nfType t)))
+  (lemƛ (lenLemma Γ) (cong suc (lenLemma Γ)) (erase (nfType t)))
 same {Γ = Γ} (t D.· u) = trans
   (cong₂ _·_ (same t) (same u))
   (lem· (lenLemma Γ) (erase (nfType t)) (erase (nfType u)))
@@ -274,21 +270,21 @@ same {Γ = Γ} (D.case t cases) rewrite lemCase (erase (nfType t)) (erase-Cases 
 same'Len : ∀ {Φ}(Γ : A.Ctx Φ) → D.len (embCtx Γ) ≡ len Γ
 same'Len ∅          = refl
 same'Len (Γ ,⋆ J)   = same'Len Γ
-same'Len (Γ , A)    = cong Maybe (same'Len Γ)
+same'Len (Γ , A)    = cong suc (same'Len Γ)
 
 lem-Dconv∋ : ∀{Φ Γ Γ'}{A A' : Φ ⊢⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')(x : Γ D.∋ A)
-  → subst id (cong D.len p) (D.eraseVar x)  ≡ D.eraseVar (D.conv∋ p q x)
+  → subst Fin (cong D.len p) (D.eraseVar x)  ≡ D.eraseVar (D.conv∋ p q x)
 lem-Dconv∋ refl refl x = refl
 
 same'Var : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.∋ A)
-  →  eraseVar x ≡ subst id (same'Len Γ) (D.eraseVar (embVar x))
-same'Var {Γ = Γ , _} Z     = lemzero (cong Maybe (same'Len Γ))
+  →  eraseVar x ≡ subst Fin (same'Len Γ) (D.eraseVar (embVar x))
+same'Var {Γ = Γ , _} Z     = lemzero (cong suc (same'Len Γ))
 same'Var {Γ = Γ , _} (S x) = trans
-  (cong just (same'Var x))
-  (lemsuc (cong Maybe (same'Len Γ)) (same'Len Γ) (D.eraseVar (embVar x)))
+  (cong suc (same'Var x))
+  (lemsuc (cong suc (same'Len Γ)) (same'Len Γ) (D.eraseVar (embVar x)))
 same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
   (same'Var x)
-  (cong (subst id (same'Len Γ)) (lem-Dconv∋ refl (sym (ren-embNf S A))
+  (cong (subst Fin (same'Len Γ)) (lem-Dconv∋ refl (sym (ren-embNf S A))
         (D.T (embVar x))))
 
 same'TC : ∀ {Φ} {Γ : Ctx Φ} A (tcn : ⟦ A ⟧) →
@@ -326,7 +322,7 @@ same' {Γ = Γ} (` x) =
   trans (cong ` (same'Var x)) (lemVar (same'Len Γ) (D.eraseVar (embVar x)))
 same' {Γ = Γ} (ƛ t) = trans
   (cong ƛ (same' t))
-  (lemƛ (same'Len Γ) (cong Maybe (same'Len Γ)) (D.erase (emb t)))
+  (lemƛ (same'Len Γ) (cong suc (same'Len Γ)) (D.erase (emb t)))
 same' {Γ = Γ} (t · u) = trans
   (cong₂ _·_ (same' t) (same' u))
   (lem· (same'Len Γ) (D.erase (emb t)) (D.erase (emb u)))
