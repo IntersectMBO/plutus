@@ -247,10 +247,12 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (reverseMap <$> Value.valueData <$> generateTestValues gen)
+    (fmap (reverseOuterMap . Value.valueData) $ generateTestValues gen)
   where
-    reverseMap (Map l) = Map $ reverse (reverseMap l)
-    reverseMap d = error ("Unexpected item in result of valueData: " ++ show d)
+    reverseOuterMap (Data.Map l) = Data.Map $ reverse (fmap reverseInnerMap l)
+    reverseOuterMap d = error ("Unexpected item in reverseOuterMap: " ++ show d)
+    reverseInnerMap (t, Data.Map l) = (t, Data.Map $ reverse l)
+    reverseInnerMap (_, d) = error ("Unexpected item in reverseInnerMap: " ++ show d)
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
@@ -357,17 +359,11 @@ buildValue policyIds tokenNames amt =
       | pId <- policyIds
       ]
 
-{-| Maximum number of (policyId, tokenName, quantity) entries for Value generation.
-This represents the practical limit based on execution budget constraints.
-Scripts can programmatically generate large Values, so we benchmark based on
-what's achievable within CPU execution budget, not ledger storage limits.
-
-Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
-consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
+-- Number of benchmarking inputs for `valueData` and `unValueData`.
 maxValueEntries :: Int
-maxValueEntries = 100_000
+maxValueEntries = 50_000
 
--- | Generate common test values for benchmarking
+-- | Test values for benchmarking `valueData` and `unValueData`
 generateTestValues :: StdGen -> [Value]
 generateTestValues gen = runStateGen_ gen \g ->
   -- Empty value as edge case
@@ -375,22 +371,21 @@ generateTestValues gen = runStateGen_ gen \g ->
     <$>
     -- Random tests for parameter spread (100 combinations)
     replicateM 100 (generateValue g)
+  where
+    -- \| Generate Value with random number of entries between 1 and maxValueEntries
+    generateValue :: StatefulGen g m => g -> m Value
+    generateValue g = do
+      numEntries <- uniformRM (1, maxValueEntries) g
+      generateValueMaxEntries numEntries g
 
--- | Generate Value with random number of entries between 1 and maxValueEntries
-generateValue :: StatefulGen g m => g -> m Value
-generateValue g = do
-  numEntries <- uniformRM (1, maxValueEntries) g
-  generateValueMaxEntries numEntries g
-
--- | Generate Value within total size budget
-generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
-generateValueMaxEntries maxEntries g = do
-  -- Uniform random distribution: cover full range from many policies (few tokens each)
-  -- to few policies (many tokens each)
-  numPolicies <- uniformRM (1, maxEntries) g
-  let tokensPerPolicy = if numPolicies > 0 then maxEntries `div` numPolicies else 0
-
-  generateConstrainedValue numPolicies tokensPerPolicy g
+    -- \| Generate Value within total size budget
+    generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
+    generateValueMaxEntries maxEntries g = do
+      -- Uniform random distribution: cover full range from many policies (few tokens each)
+      -- to few policies (many tokens each)
+      numPolicies <- uniformRM (1, maxEntries) g
+      let tokensPerPolicy = if numPolicies > 0 then maxEntries `div` numPolicies else 0
+      generateConstrainedValue numPolicies tokensPerPolicy g
 
 -- | Generate constrained Value with information about max-size policy
 generateConstrainedValueWithMaxPolicy
