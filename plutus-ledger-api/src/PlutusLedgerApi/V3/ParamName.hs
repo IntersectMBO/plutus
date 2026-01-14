@@ -358,8 +358,9 @@ data ParamName
   | ValueData'cpu'arguments'slope
   | ValueData'memory'arguments'intercept
   | ValueData'memory'arguments'slope
-  | UnValueData'cpu'arguments'intercept
-  | UnValueData'cpu'arguments'slope
+  | UnValueData'cpu'arguments'c0
+  | UnValueData'cpu'arguments'c1
+  | UnValueData'cpu'arguments'c2
   | UnValueData'memory'arguments'intercept
   | UnValueData'memory'arguments'slope
   | ScaleValue'cpu'arguments'intercept

@@ -320,21 +320,31 @@ scaleLinearly (Intercept intercept) (Slope slope) =
   addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
+{-| Evaluate the polynomial f(x) = ax^2+bx+c on a cost stream.  The lazy
+strategy used here is based on the fact that
+
+  f(r+x) = a(r+x)^2 + b(r+x) + c
+         = ar^2 + 2axr + ax^2 + br + bx + c
+         = f(r) + 2axr + ax^2 + bx
+
+The name `scaleQuadratically` is perhaps a bit misleading, but it's not clear
+what would be better. -}
 scaleQuadratically
-  :: CostingInteger
-  -> CostingInteger
-  -> CostingInteger
+  :: CostingInteger -- Constant term
+  -> CostingInteger -- Coefficient of x
+  -> CostingInteger -- Coefficient of x^2
   -> CostStream
   -> CostStream
-scaleQuadratically a b c = addCostStream (CostLast c) . go 0
+scaleQuadratically c b a = addCostStream (CostLast c) . go 0
   where
     go :: CostingInteger -> CostStream -> CostStream
-    go !runningSum = \case
+    go !r = \case
+      -- r is the running total
       CostLast cost -> CostLast (f cost)
-      CostCons cost costs -> CostCons (f cost) (go (runningSum + cost) costs)
+      CostCons cost costs -> CostCons (f cost) (go (r + cost) costs)
       where
         f :: CostingInteger -> CostingInteger
-        f x = 2 * a * x * runningSum + a * x * x + b * x
+        f x = 2 * a * x * r + a * x * x + b * x
 {-# INLINE scaleQuadratically #-}
 
 runOneArgumentModel
@@ -345,8 +355,8 @@ runOneArgumentModel (ModelOneArgumentConstantCost c) =
   lazy $ \_ -> CostLast c
 runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
   lazy $ \costs1 -> scaleLinearly intercept slope costs1
-runOneArgumentModel (ModelOneArgumentQuadraticInX (OneVariableQuadraticFunction (Coefficient0 a) (Coefficient1 b) (Coefficient2 c))) =
-  lazy $ \costs1 -> scaleQuadratically a b c costs1
+runOneArgumentModel (ModelOneArgumentQuadraticInX (OneVariableQuadraticFunction (Coefficient0 c) (Coefficient1 b) (Coefficient2 a))) =
+  lazy $ \costs1 -> scaleQuadratically c b a costs1
 --    CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs1
 {-# OPAQUE runOneArgumentModel #-}
 
