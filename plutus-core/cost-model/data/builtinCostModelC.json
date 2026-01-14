@@ -1258,30 +1258,30 @@
     }
   },
   "valueData": {
-    "cpu": {
-      "arguments": {
-         "intercept": 1000,
-          "slope": 36593
-      },
-      "type": "linear_in_x"
-    },
-    "memory": {
-      "arguments": {
-        "intercept": 2,
-        "slope": 22
-    },
-    "type": "linear_in_x"
-    }
-  },
-  "unValueData": {
       "cpu": {
           "arguments": {
-              "c0": 1000,
-              "c1": 34667,
-              "c2": 1
+              "intercept": 199604,
+              "slope": 39211
           },
-          "type": "quadratic_in_x"
+          "type": "linear_in_x"
       },
+      "memory": {
+          "arguments": {
+              "intercept": 2,
+              "slope": 22
+          },
+          "type": "linear_in_x"
+      }
+  },
+  "unValueData": {
+        "cpu": {
+            "arguments": {
+                "c0": 1000,
+                "c1": 204904,
+                "c2": 1
+            },
+            "type": "quadratic_in_x"
+        },
     "memory": {
       "arguments": {
           "intercept": 12,
