@@ -42,73 +42,104 @@ it can be more expressive.
 
 ### Bool
 
-Booleans can be used in `case` with either one or two branches, where the first
-is the `False` branch. Boolean negation can be written for example as:
+Consider the following Plinth code that implements an assertion:
 
-```uplc
-lam b (case b (con bool True) (con bool False))
+```haskell
+assertEx :: Bool -> ()
+assertEx = \case
+  False -> PlutusTx.error ()
+  True -> ()
 ```
 
-When only a single branch is provided, script execution will fail when the
-boolean evaluates to `True`.
+With `datatypes=BuiltinCasing`, it is compiled to the new casing on builtins:
 
-Using a single branch is appropriate when the second branch was supposed to fail
-already, saving script size.
-
+```uplc
+\b -> case b error (constr 0 [])
+```
 
 :::info
 
-When compiling without `datatypes=BuiltinCasing`, Plinth's `ifThenElse` is
-compiled into UPLC's `ifThenElse` built-in function, which usually requires more
-AST nodes since each branch argument needs to be delayed (function application is
-strict), and finally force the chosen branch. This impacts the size and
-execution cost.
+Compare this to the UPLC generated without using `datatypes=BuiltinCasing`.
+
+```uplc
+\b -> force (force ifThenElse b (delay (constr 0 [])) (delay error)))
+```
+
+This uses the UPLC builtin `ifThenElse`, which requires delaying the branch
+arguments, since application in UPLC is strict. The additional forcing and
+delaying impacts the size and execution cost.
+
 
 :::
 
 
 ### Unit
 
-Needs exactly one branch. If the expression being cased on evaluates to a unit
-value, evaluation will continue with the expression in that branch. For example,
-this expression evaluates to `con integer 5`.
+The built-in unit type can be used in a trivial way with `case` in UPLC, which
+takes exactly one branch. With `datatypes=BuiltinCasing`, Plinth will compile
+the `chooseUnit` built-in into `case`. Consider the following trivial Plinth code:
+
+```haskell
+caseUnit :: PlutusTx.BuiltinUnit -> Bool
+caseUnit e = PlutusTx.chooseUnit e True
+```
+
+Which results in the following UPLC:
 
 ```uplc
-case (con unit ()) (con integer 5)
+\e -> case e True
 ```
+
+UPLC's case on built-in unit requires exactly one branch. If the expression
+being cased on evaluates to the unit value, evaluation will continue with the
+expression in that branch.
 
 ### Pair
 
-A built-in pair expects a single branch: a function that takes both components
-of the pair.
+To destruct a built-in pair, use `casePair`. It compiles into the `case`
+construct. For example:
 
-This example sums the two integer constants in a pair.
+```haskell
+\e -> PlutusTx.casePair e (PlutusTx.+)
+```
 
-```uplc
-lam x (case x (lam a (lam b [(builtin addInteger) a b])))
+This compiles into `case` in UPLC, which expects a single branch:
+
+```
+lam e (case e (lam x (lam y [(builtin addInteger) x y])))
 ```
 
 :::info
 
 When compiling without `datatypes=BuiltinCasing`, Plinth's `choosePair` is
 compiled into multiple built-in function calls to project out the pair's
-components, impacting size and execution cost.
+components, impacting size and execution cost:
+
+```uplc
+(\e -> addInteger (force (force fstPair) e) (force (force sndPair) e))
+```
 
 :::
 
 ### Integer
 
+To use `case` can also be used for Integers, albeit in a more limited way than 
+
 Casing on integers can be used for non-negative integers only, and a variable
 amount of branches may be given. If the expression `e` evaluates to an integer
-`i`, the `i`th branch will be evaluated. If there is no branch, `case` will fail.
+`i`, the `i`th branch will be evaluated. If there is no branch, `case` will
+fail. In Plinth, this can be done with the `caseInteger` function:
 
-For example, the following expression evaluates to `con string "c"`
+
+```haskell
+\x -> caseInteger x ["a", "b", "c"]
+```
+
+So when applied to `2`, the expression evaluates to `"c"`. The generated UPLC
+will be:
 
 ```
-case [(builtin addInteger) (con integer 1) (con integer 1)]
-  (con string "a")
-  (con string "b")
-  (con string "c")
+lam x (case x (con string "a") (con string "b") (con string "c"))
 ```
 
 If the `i`th branch is not given, or `i` is a negative integer, evaluation will
@@ -142,6 +173,60 @@ When not using `datatypes=BuiltinCasing`, Plinth's `caseInteger` is compiled
 into a much less efficient implementation that turns the second argument in a
 list (of which the representation depends on the chosen `datatypes=` flag), and
 does a recursive lookup in that list.
+
+
+```uplc
+(program
+   1.1.0
+   ((\traceError ->
+       (\go x ->
+          force
+            (force ifThenElse
+               (lessThanInteger x 0)
+               (delay (traceError "PT6"))
+               (delay
+                  (go
+                     x
+                     (constr 1
+                        [ "a"
+                        , (constr 1
+                             ["b", (constr 1 ["c", (constr 0 [])])]) ])))))
+         ((\s -> s s)
+            (\s ds ds ->
+               case
+                 ds
+                 [ (traceError "PT7")
+                 , (\x xs ->
+                      force
+                        (force ifThenElse
+                           (equalsInteger 0 ds)
+                           (delay x)
+                           (delay
+                              ((\x -> s s x) (subtractInteger ds 1) xs)))) ])))
+      (\str -> (\x -> error) (force trace str (constr 0 [])))))
+```
+
+
+```
+(program
+   1.1.0
+   (\x ->
+      force
+        (force ifThenElse
+           (equalsInteger 0 x)
+           (delay "a")
+           (delay
+              (force
+                 (force ifThenElse
+                    (equalsInteger 1 x)
+                    (delay "b")
+                    (delay
+                       (force
+                          (force ifThenElse
+                             (equalsInteger 2 x)
+                             (delay "c")
+                             (delay ((\cse -> case cse [cse]) error)))))))))))
+```
 
 :::
 
