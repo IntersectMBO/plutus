@@ -2,6 +2,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE StrictData #-}
@@ -319,6 +320,23 @@ scaleLinearly (Intercept intercept) (Slope slope) =
   addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
+scaleQuadratically
+  :: CostingInteger
+  -> CostingInteger
+  -> CostingInteger
+  -> CostStream
+  -> CostStream
+scaleQuadratically a b c = addCostStream (CostLast c) . go 0
+  where
+    go :: CostingInteger -> CostStream -> CostStream
+    go !runningSum = \case
+      CostLast cost -> CostLast (f cost)
+      CostCons cost costs -> CostCons (f cost) (go (runningSum + cost) costs)
+      where
+        f :: CostingInteger -> CostingInteger
+        f x = 2 * a * x * runningSum + a * x * x + b * x
+{-# INLINE scaleQuadratically #-}
+
 runOneArgumentModel
   :: ModelOneArgument
   -> CostStream
@@ -327,9 +345,9 @@ runOneArgumentModel (ModelOneArgumentConstantCost c) =
   lazy $ \_ -> CostLast c
 runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
   lazy $ \costs1 -> scaleLinearly intercept slope costs1
-runOneArgumentModel (ModelOneArgumentQuadraticInX f) =
-  lazy $ \costs1 ->
-    CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs1
+runOneArgumentModel (ModelOneArgumentQuadraticInX (OneVariableQuadraticFunction (Coefficient0 a) (Coefficient1 b) (Coefficient2 c))) =
+  lazy $ \costs1 -> scaleQuadratically a b c costs1
+--    CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs1
 {-# OPAQUE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
