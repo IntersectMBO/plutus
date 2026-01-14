@@ -109,6 +109,16 @@ record TwoVariableQuadraticFunction : Set where
 
 {-# COMPILE GHC TwoVariableQuadraticFunction = data TwoVariableQuadraticFunction(TwoVariableQuadraticFunction) #-}
 
+record TwoVariableWithInteractionFunction : Set where
+    constructor mkTwoVariableWithInteractionFunction
+    field
+        coeff00' : CostingNat
+        coeff10' : CostingNat
+        coeff01' : CostingNat
+        coeff11' : CostingNat
+
+{-# COMPILE GHC TwoVariableWithInteractionFunction = data TwoVariableWithInteractionFunction(TwoVariableWithInteractionFunction) #-}
+
 record ExpModCostingFunction : Set where
     constructor mkExpModCostingFunction
     field
@@ -119,30 +129,34 @@ record ExpModCostingFunction : Set where
 {-# COMPILE GHC ExpModCostingFunction = data ExpModCostingFunction(ExpModCostingFunction) #-}
 
 data RawModel : Set where
-    ConstantCost          : CostingNat → RawModel
-    AddedSizes            : LinearFunction → RawModel
-    MultipliedSizes       : LinearFunction → RawModel
-    MinSize               : LinearFunction → RawModel
-    MaxSize               : LinearFunction → RawModel
-    LinearInX             : LinearFunction → RawModel
-    LinearInY             : LinearFunction → RawModel
-    LinearInZ             : LinearFunction → RawModel
-    LiteralInYOrLinearInZ : LinearFunction → RawModel
-    LinearInMaxYZ         : LinearFunction → RawModel
-    LinearInYAndZ         : TwoVariableLinearFunction -> RawModel
-    QuadraticInY          : OneVariableQuadraticFunction → RawModel
-    QuadraticInZ          : OneVariableQuadraticFunction → RawModel
-    QuadraticInXAndY      : TwoVariableQuadraticFunction → RawModel
-    SubtractedSizes       : LinearFunction → CostingNat → RawModel
-    ConstAboveDiagonal    : CostingNat → RawModel → RawModel
-    ConstBelowDiagonal    : CostingNat → RawModel → RawModel
-    ConstOffDiagonal      : CostingNat → RawModel → RawModel
-    ExpModCost            : ExpModCostingFunction → RawModel
+    ConstantCost           : CostingNat → RawModel
+    AddedSizes             : LinearFunction → RawModel
+    MultipliedSizes        : LinearFunction → RawModel
+    MinSize                : LinearFunction → RawModel
+    MaxSize                : LinearFunction → RawModel
+    LinearInX              : LinearFunction → RawModel
+    LinearInY              : LinearFunction → RawModel
+    LinearInZ              : LinearFunction → RawModel
+    LinearInU              : LinearFunction → RawModel
+    LiteralInYOrLinearInZ  : LinearFunction → RawModel
+    LinearInMaxYZ          : LinearFunction → RawModel
+    LinearInXAndY          : TwoVariableLinearFunction → RawModel
+    LinearInYAndZ          : TwoVariableLinearFunction -> RawModel
+    QuadraticInY           : OneVariableQuadraticFunction → RawModel
+    QuadraticInZ           : OneVariableQuadraticFunction → RawModel
+    QuadraticInXAndY       : TwoVariableQuadraticFunction → RawModel
+    WithInteractionInXAndY : TwoVariableWithInteractionFunction → RawModel
+    SubtractedSizes        : LinearFunction → CostingNat → RawModel
+    ConstAboveDiagonal     : CostingNat → RawModel → RawModel
+    ConstBelowDiagonal     : CostingNat → RawModel → RawModel
+    ConstOffDiagonal       : CostingNat → RawModel → RawModel
+    ExpModCost             : ExpModCostingFunction → RawModel
 
 {-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes |
     MultipliedSizes | MinSize | MaxSize | LinearInX | LinearInY | LinearInZ |
-    LiteralInYOrLinearInZ | LinearInMaxYZ | LinearInYAndZ |QuadraticInY |
-    QuadraticInZ | QuadraticInXAndY | SubtractedSizes | ConstAboveDiagonal |
+    LinearInU | LiteralInYOrLinearInZ | LinearInMaxYZ | LinearInXAndY |
+    LinearInYAndZ | QuadraticInY | QuadraticInZ | QuadraticInXAndY |
+    WithInteractionInXAndY | SubtractedSizes | ConstAboveDiagonal |
     ConstBelowDiagonal | ConstOffDiagonal | ExpModCost) #-}
 
 record CpuAndMemoryModel : Set where

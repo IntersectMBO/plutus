@@ -488,6 +488,7 @@ library untyped-plutus-core-testlib
     , filepath
     , hedgehog
     , lens
+    , megaparsec
     , mtl
     , plutus-core                      ^>=1.56
     , plutus-core:flat

@@ -1,37 +1,29 @@
-{-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE BlockArguments   #-}
+{-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Spec.CostModelParams where
 
-import PlutusLedgerApi.Common
-  ( CostModelApplyWarn (CMTooManyParamsWarn, cmActual, cmExpected)
-  , IsParamName (readParamName, showParamName)
-  )
-import PlutusLedgerApi.Test.V3.EvaluationContext qualified as V3
-import PlutusLedgerApi.V1 qualified as V1
-import PlutusLedgerApi.V2 qualified as V2
-import PlutusLedgerApi.V3 qualified as V3
+import           PlutusLedgerApi.Common                    (CostModelApplyWarn (CMTooManyParamsWarn, cmActual, cmExpected),
+                                                            IsParamName (readParamName, showParamName))
+import qualified PlutusLedgerApi.Test.V3.EvaluationContext as V3
+import qualified PlutusLedgerApi.V1                        as V1
+import qualified PlutusLedgerApi.V2                        as V2
+import qualified PlutusLedgerApi.V3                        as V3
 
-import Control.Monad.Except (runExcept)
-import Control.Monad.Writer.Strict (WriterT (runWriterT))
-import Data.Either (isRight)
-import Data.Foldable (for_)
-import Data.List.Extra (enumerate)
-import Data.Set (isSubsetOf)
-import Data.Set qualified as Set
-import Data.Text qualified as Text
-import Test.Tasty.Extras
-  ( TestNested
-  , embed
-  , nestedGoldenVsTextPredM
-  , testNestedNamed
-  )
-import Test.Tasty.HUnit
-  ( assertBool
-  , testCase
-  , (@=?)
-  )
+import           Control.Monad.Except                      (runExcept)
+import           Control.Monad.Writer.Strict               (WriterT (runWriterT))
+import           Data.Either                               (isRight)
+import           Data.Foldable                             (for_)
+import           Data.List.Extra                           (enumerate)
+import           Data.Set                                  (isSubsetOf)
+import qualified Data.Set                                  as Set
+import qualified Data.Text                                 as Text
+import           Test.Tasty.Extras                         (TestNested, embed,
+                                                            nestedGoldenVsTextPredM,
+                                                            testNestedNamed)
+import           Test.Tasty.HUnit                          (assertBool,
+                                                            testCase, (@=?))
 
 tests :: TestNested
 tests =

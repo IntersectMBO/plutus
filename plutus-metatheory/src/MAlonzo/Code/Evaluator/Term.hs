@@ -881,7 +881,7 @@ runUCountingAgda ::
     (MAlonzo.Code.Utils.T_List_384
        (MAlonzo.Code.Utils.T__'215'__366
           MAlonzo.Code.Agda.Builtin.String.T_String_6
-          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_164)) ->
+          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_190)) ->
   T_TermU_24 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
@@ -894,7 +894,7 @@ d_runUCounting_202 ::
     (MAlonzo.Code.Utils.T_List_384
        (MAlonzo.Code.Utils.T__'215'__366
           MAlonzo.Code.Agda.Builtin.String.T_String_6
-          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_164)) ->
+          MAlonzo.Code.Cost.Raw.T_CpuAndMemoryModel_190)) ->
   T_TermU_24 ->
   MAlonzo.Code.Utils.T_Either_6
     MAlonzo.Code.Evaluator.Base.T_ERROR_12
