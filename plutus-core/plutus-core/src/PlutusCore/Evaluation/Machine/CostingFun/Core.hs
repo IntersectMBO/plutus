@@ -330,12 +330,11 @@ strategy used here is based on the fact that
 The name `scaleQuadratically` is perhaps a bit misleading, but it's not clear
 what would be better. -}
 scaleQuadratically
-  :: CostingInteger -- Constant term
-  -> CostingInteger -- Coefficient of x
-  -> CostingInteger -- Coefficient of x^2
+  :: OneVariableQuadraticFunction
   -> CostStream
   -> CostStream
-scaleQuadratically c b a = addCostStream (CostLast c) . go 0
+scaleQuadratically (OneVariableQuadraticFunction (Coefficient0 c) (Coefficient1 b) (Coefficient2 a)) =
+  addCostStream (CostLast c) . go 0
   where
     go :: CostingInteger -> CostStream -> CostStream
     go !r = \case
@@ -355,9 +354,8 @@ runOneArgumentModel (ModelOneArgumentConstantCost c) =
   lazy $ \_ -> CostLast c
 runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
   lazy $ \costs1 -> scaleLinearly intercept slope costs1
-runOneArgumentModel (ModelOneArgumentQuadraticInX (OneVariableQuadraticFunction (Coefficient0 c) (Coefficient1 b) (Coefficient2 a))) =
-  lazy $ \costs1 -> scaleQuadratically c b a costs1
---    CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs1
+runOneArgumentModel (ModelOneArgumentQuadraticInX f) =
+  lazy $ \costs1 -> scaleQuadratically f costs1
 {-# OPAQUE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
@@ -401,16 +399,6 @@ data OneVariableQuadraticFunction = OneVariableQuadraticFunction
   }
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
-
-evaluateOneVariableQuadraticFunction
-  :: OneVariableQuadraticFunction
-  -> CostingInteger
-  -> CostingInteger
-evaluateOneVariableQuadraticFunction
-  (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1) (Coefficient2 c2))
-  x =
-    c0 + c1 * x + c2 * x * x
-{-# INLINE evaluateOneVariableQuadraticFunction #-}
 
 {- Note [Minimum values for two-variable quadratic costing functions] Unlike most
    of our other costing functions our use cases for two-variable quadratic
@@ -721,8 +709,7 @@ runTwoArgumentModel
           else run (CostLast size1) (CostLast size2)
 runTwoArgumentModel
   (ModelTwoArgumentsQuadraticInY f) =
-    lazy $ \_ costs2 ->
-      CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs2
+    lazy $ \_ costs2 -> scaleQuadratically f costs2
 runTwoArgumentModel
   (ModelTwoArgumentsQuadraticInXAndY f) =
     lazy $ \costs1 costs2 ->
@@ -779,7 +766,7 @@ runThreeArgumentModel
       scaleLinearly intercept slope costs3
 runThreeArgumentModel
   (ModelThreeArgumentsQuadraticInZ f) =
-    lazy $ \_ _ costs3 -> CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs3
+    lazy $ \_ _ costs3 -> scaleQuadratically f costs3
 {- Either a literal number of bytes or a linear function.  This is for
    `integerToByteString`, where if the second argument is zero, the output
    bytestring has the minimum length required to contain the converted integer,

@@ -164,7 +164,96 @@ size must be allocated:
     Memory = 21*n + 12
 
 where 'n' is the total size of the input 'Value'.
--}
+
+## Costing 'valueData' and 'unValueData'
+
+Since 'valueData' and 'unValueData' convert between 'Value' and 'Data', we need to estimate
+the memory allocation for 'Data' as well, and how it relates to the size of the 'Value'.
+
+The definition of 'Data' is as follows:
+@
+  data Data
+    = Constr Integer [Data]
+    | Map [(Data, Data)]
+    | List [Data]
+    | I Integer
+    | B BS.ByteString
+@
+
+Since we're interested only in well-formed 'Value's, we can focus on just the subset of constructors
+which are used in the 'Data' representation of 'Value's:
+  - 'Map' for the outer and inner maps
+  - 'I' for the integer quantities
+  - 'B' for the currency symbols and token names
+
+The cost of 'valueData' is given by the memory allocation of the resulting 'Data' structure, as a function
+of the number of unique (currency symbol, token name) pairs in the 'Value'.
+
+Let's analyze the memory allocation for 'Data' representing a 'Value' with 'n' unique pairs:
+  1. If n = 0, the 'Data' representation is 'Map []' which allocates 1 word for the 'Map' constructor plus
+    one pointer to the shared empty list CAF, in total 2 words.
+  2. For n > 0, the memory allocation depends on the structure of the nested 'Map's in 'Data'; based on simple
+  experiments, we find that the overhead is higher for a flat structure compared to a deeply nested one. Given that
+  we're interested in worst-case allocation, we assume a flat structure where each currency symbol maps to only one token name.
+
+Calculating the memory allocation for 'Data' in the flat structure:
+  - Outer 'Map' with 'n' entries:
+    - 1 word for the 'Map' closure
+    - For each of the 'n > 0' entries:
+      - 1 word for the ':' closure
+      - 1 word for the pair closure
+      - 1 word for the 'B' closure + 5 words for the bytestring itself
+      - Inner 'Map' with 1 entry (for each currency symbol):
+        - 1 word for the 'Map' closure
+        - 1 word for the ':' closure
+        - 1 word for the pair closure
+        - 1 word for the 'B' closure + 5 words for the bytestring itself
+        - 1 word for the 'I' closure + 3 words for the integer itself
+        - 1 word for the pointer to the empty list CAF
+    - 1 word for the pointer to the empty list CAF
+
+Thus, the memory model for 'valueData' is:
+
+    Memory = 22*n + 2
+
+where 'n' is the number of unique (currency symbol, token name) pairs in the 'Value'.
+
+For 'unValueData' we need to estimate the memory allocation for the resulting 'Value',
+based on the size of the input 'Data'. This size is defined as the number of 'Data' nodes
+in the structure, calculated using the 'DataNodeCount' instance of 'ExMemoryUsage'.
+
+The main issue is that multiple different 'Data' structures may represent the same 'Value'.
+We need to estimate the worst-case memory allocation for 'Value' based on the number of 'Data' nodes,
+which translates to estimating the maximum number of unique (currency symbol, token name) pairs
+from a given number of 'Data' nodes.
+By running some simple experiments, we can observe that we can fit more unique pairs in a "fully nested"
+structure, where the outer 'Map' contains a single currency symbol mapping to an inner 'Map' with
+multiple token names.
+
+By computing the number of 'Data' nodes for nested structures with increasing number of unique pairs,
+we obtain the following mapping:
+@
+  1 -> empty Val
+  5 -> Val with 1 elem
+  7 -> Val with 2 elem
+  9 -> Val with 3 elem
+  11 -> Val with 4 elem
+  ...
+  n -> Val with (n - 3)/ 2 elems
+@
+From this we can derive that the memory allocated for the resulting 'Value' is:
+
+    Memory = 21*((n - 3)/2) + 12 = 10.5*n - 19.5 --approx--> 11*n - 19
+
+where 'n' is the number of 'Data' nodes in the input structure.
+
+However, this formula can yield negative results for small 'n' (specifically n < 4).
+Due to limitations in our costing framework, we cannot case on the value of 'n' to handle
+such situations. To ensure non-negative memory costs, we further overapproximate the formula
+to remove the negative intercept:
+
+    Memory = 21*(n/2) + 12 = 10.5*n + 12 --approx--> 11*n + 12
+where 'n' is the number of 'Data' nodes in the input structure.-}
 
 builtinMemoryModels :: BuiltinCostModelBase Id
 builtinMemoryModels =
@@ -281,8 +370,10 @@ builtinMemoryModels =
     , -- Builtin values
       paramLookupCoin = Id $ ModelThreeArgumentsConstantCost 10
     , paramValueContains = Id $ ModelTwoArgumentsConstantCost 32
-    , paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 9999 9999 -- Place-holder: UPDATE THIS
-    , paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 9999 9999 -- Place-holder: UPDATE THIS
+    , -- See Note [Memory model for Value builtins]
+      paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 2 22
+    , -- See Note [Memory model for Value builtins]
+      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 12 11
     , -- See Note [Memory model for Value builtins]
       paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 45 21
     , -- See Note [Memory model for Value builtins]

@@ -152,12 +152,12 @@ arity <- function(name) {
         "LengthOfArray" = 1,
         "ListToArray" = 1,
         "IndexArray" = 2,
+        "InsertCoin" = 4,
         "LookupCoin" = 3,
+        "UnionValue" = 2,
         "ValueContains" = 2,
         "ValueData" = 1,
         "UnValueData" = 1,
-        "InsertCoin" = 4,
-        "UnionValue" = 2,
         "ScaleValue" = 2,
         -1  ## Default for missing values
         )

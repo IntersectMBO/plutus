@@ -1249,8 +1249,8 @@
     },
     "memory": {
       "arguments": {
-        "intercept": 9999,
-        "slope": 9999
+        "intercept": 2,
+        "slope": 22
     },
     "type": "linear_in_x"
     }
@@ -1266,8 +1266,8 @@
       },
       "memory": {
           "arguments": {
-              "intercept": 9999,
-              "slope": 9999
+              "intercept": 12,
+              "slope": 11
           },
           "type": "linear_in_x"
       }
