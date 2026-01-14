@@ -5,6 +5,12 @@ sidebar_position: 10
 # Different Notions of Version
 
 There are several different notions of version that Cardano smart contract developers must distinguish.
+For each Plutus script that is deployed on-chain, you can determine its associated _protocol parameters_ (including _protocol version_), _ledger language version_ and _plutus core version_.
+These all influence which language features are available and how the script is executed.
+
+The _ledger language version_ and _plutus core version_ can be configured by the script developer, while the _protocol parameters_ are changed by by on-chain governance.
+To develop for a given ledger language in Plinth, say PlutusV3, import the `PlutusLedgerApi.V3` module from the `plutus-ledger-api` package.
+To control the plutus core version that Plinth targets, set the `target-version` [compiler option](https://plutus.cardano.intersectmbo.org/docs/delve-deeper/plinth-compiler-options).
 
 ## Ledger Language Version
 
@@ -49,6 +55,27 @@ See [CIP-85](https://cips.cardano.org/cip/CIP-0085) for more details.
 
 Note that adding new builtin functions does not require a new Plutus Core version.
 Once a new builtin function is added, one can simply start using the new builtin function with an existing Plutus Core version.
+
+## Protocol Parameters
+Protocol parameters influence the overall behaviour of the Cardano blockchain, including validation of blocks and how Plutus scripts are to be evaluated.
+Each produced block includes the protocol parameters under which it was created, so that scripts in that block will be executed faithfully, regardless of future protocol parameters.
+Two of the most important parameters that influence script exection are __protocol version__ and __cost model parameters__.
+
+Changes to protocol parameters are agreed upon by the decentralized governance model, and a change to protocol version requires a hard fork.
+For more detail, see the [Cardano Developer Portal](https://developers.cardano.org/docs/governance/cardano-governance/)
+
+### Protocol Version
+The protocol version (PV) is a protocol parameter of the form `MAJOR.MINOR`, which is the main factor for determining available features and behaviour of the chain.
+That behaviour is implemented in the node software (which includes the Plutus Core evaluator).
+For example, starting with PV 11, the semantics of UPLC 1.1.0 is extended with [casing on constants](./casing-constants).
+This feature does not affect execution of older scripts, as the UPLC interpreter takes the associated PV into account.
+
+### Cost model parameters
+Plutus script execution is subject to an execution budget for CPU and memory usage, which influences whether a script can successfully finish execution.
+The cost model parameters determine how fast built-in functions consume that budget.
+For more detail on the cost model, see the relevant [guide page](https://plutus.cardano.intersectmbo.org/docs/delve-deeper/cost-model).
+
+For other protocol parameters related to costing, such as the maximum execution budget, see the [Cardano protocol arameters reference guide](https://docs.cardano.org/about-cardano/explore-more/parameter-guide).
 
 ## Builtin Semantics Variant
 
