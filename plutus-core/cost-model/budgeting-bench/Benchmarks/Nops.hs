@@ -42,7 +42,7 @@ import System.Random (StdGen)
    the evaluator. -}
 benchUnitTerm :: Benchmark
 benchUnitTerm =
-  bgroup "UnitTerm" [benchWithWHNF (showMemoryUsage ()) $ mkUnit]
+  bgroup "UnitTerm" [benchWithWHNF (showMemoryUsage ()) mkUnit]
 
 {-| Arguments to builtins can be treated in several different ways.  Constants of
    built-in types are unlifted to Haskell values automatically and Opaque values

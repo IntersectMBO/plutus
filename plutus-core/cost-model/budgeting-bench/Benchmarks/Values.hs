@@ -237,18 +237,11 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (fmap (f . Value.valueData) $ generateTestValues gen)
+    (f . Value.valueData <$> generateTestValues gen)
   where
     f (Data.Map l) = Data.Map (reverse l)
     f _ = error "NO"
 
-{-
-  where
-    reverseOuterMap (Data.Map l) = Data.Map $ reverse (fmap reverseInnerMap l)
-    reverseOuterMap d = error ("Unexpected item in reverseOuterMap: " ++ show d)
-    reverseInnerMap (t, Data.Map l) = (t, Data.Map $ reverse l)
-    reverseInnerMap (_, d) = error ("Unexpected item in reverseInnerMap: " ++ show d)
--}
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
 

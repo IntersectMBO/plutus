@@ -95,11 +95,11 @@ pairWith f = fmap (\a -> (a, f a))
 
 ---------------- Creating benchmarks ----------------
 
--- Choose whether to benachmark with `whnf` or `nf`.  Note that to get sensible
+-- Choose whether to benchmark with `whnf` or `nf`.  Note that to get sensible
 -- results with 'whnf', we must use an evaluation function that looks at the
 -- result, so e.g. 'evaluateCek' won't work properly because it returns a pair
 -- whose components won't be evaluated by 'whnf'. In general we'll want to use
--- `whnf` because 'nf' willl do too much work (for instance if it gets back a
+-- `whnf` because 'nf' will do too much work (for instance if it gets back a
 -- 'Data' value it'll traverse all of it), but in some special cases we will
 -- want to use `nf` in order to force evaluation under a constructor.
 data Normaliser
@@ -337,7 +337,7 @@ createOneTermBuiltinBench_NF = createOneTermBuiltinBenchWithWrapper_NF id
   allows you to supply suitable wrapping functions in the benchmarks to achieve
   this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
   builtin denotations to make sure that during script execution the inputs to
-  the costing functions are costed in the same way as the are in thhe
+  the costing functions are costed in the same way as the are in the
   benchmmarks.
 -}
 -- FIXME: can we add a `Normaliser` argument to remove some of the overlap with
