@@ -340,6 +340,10 @@ createOneTermBuiltinBench_NF = createOneTermBuiltinBenchWithWrapper_NF id
   the costing functions are costed in the same way as the are in thhe
   benchmmarks.
 -}
+-- FIXME: can we add a `Normaliser` argument to remove some of the overlap with
+-- `createOneTermBuiltinBenchWithWrapper` here?  We only want to use this in
+-- exceptional circumstances though, so we probably don't want to add an extra
+-- parameter to all of the normal benchmarks.
 createOneTermBuiltinBenchWithWrapper_NF
   :: ( fun ~ DefaultFun
      , uni ~ DefaultUni
