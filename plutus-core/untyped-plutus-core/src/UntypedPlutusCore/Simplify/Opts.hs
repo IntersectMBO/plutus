@@ -39,7 +39,7 @@ defaultSimplifyOpts =
   SimplifyOpts
     { _soMaxSimplifierIterations = 12
     , _soMaxCseIterations = 4
-    , _soCseWhichSubterms = ExcludeWorkFree
+    , _soCseWhichSubterms = AllSubterms
     , _soConservativeOpts = False
     , _soInlineHints = def
     , _soInlineConstants = True
