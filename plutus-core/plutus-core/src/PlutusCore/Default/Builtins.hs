@@ -2004,8 +2004,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           unionValueDenotation
           (runCostingFunTwoArguments . paramUnionValue)
   toBuiltinMeaning _semvar ValueContains =
-    let valueContainsDenotation :: ValueMaxDepth -> ValueTotalSize -> BuiltinResult Bool
-        valueContainsDenotation (ValueMaxDepth v1) (ValueTotalSize v2) =
+    let valueContainsDenotation :: ValueTotalSize -> ValueTotalSize -> BuiltinResult Bool
+        valueContainsDenotation (ValueTotalSize v1) (ValueTotalSize v2) =
           Value.valueContains v1 v2
         {-# INLINE valueContainsDenotation #-}
      in makeBuiltinMeaning
