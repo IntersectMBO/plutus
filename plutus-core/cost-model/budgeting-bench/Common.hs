@@ -337,7 +337,7 @@ createOneTermBuiltinBench_NF = createOneTermBuiltinBenchWithWrapper_NF id
   allows you to supply suitable wrapping functions in the benchmarks to achieve
   this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
   builtin denotations to make sure that during script execution the inputs to
-  the costing functions are costed in the same way as the are in thhe
+  the costing functions are costed in the same way as the are in the
   benchmmarks.
 -}
 createOneTermBuiltinBenchWithWrapper_NF
