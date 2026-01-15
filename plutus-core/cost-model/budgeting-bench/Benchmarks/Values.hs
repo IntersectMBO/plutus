@@ -123,7 +123,7 @@ valueContainsBenchmark gen =
     -- when contained size > container size, containment is impossible
     ValueContains -- the builtin fun
     [] -- no type arguments needed (monomorphic builtin)
-    (take 50 $ fmap (\(x, y) -> (y, x)) $ (valueContainsArgs gen)) -- the argument combos to generate benchmarks for
+    (fmap (\(x, y) -> (y, x)) $ (valueContainsArgs gen)) -- the argument combos to generate benchmarks for
 
 valueContainsArgs :: StdGen -> [(Value, Value)]
 valueContainsArgs gen = runStateGen_ gen \g -> do
