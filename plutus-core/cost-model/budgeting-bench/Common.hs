@@ -99,7 +99,7 @@ pairWith f = fmap (\a -> (a, f a))
 -- results with 'whnf', we must use an evaluation function that looks at the
 -- result, so e.g. 'evaluateCek' won't work properly because it returns a pair
 -- whose components won't be evaluated by 'whnf'. In general we'll want to use
--- `whnf` because 'nf' willl do too much work (for instance if it gets back a
+-- `whnf` because 'nf' will do too much work (for instance if it gets back a
 -- 'Data' value it'll traverse all of it), but in some special cases we will
 -- want to use `nf` in order to force evaluation under a constructor.
 data Normaliser
