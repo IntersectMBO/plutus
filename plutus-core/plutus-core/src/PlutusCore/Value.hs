@@ -52,7 +52,11 @@ import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
 import Data.Text.Encoding qualified as Text
 import GHC.Generics
-import GHC.Stack (HasCallStack, callStack, getCallStack)
+import GHC.Stack
+  ( HasCallStack
+  , callStack
+  , getCallStack
+  )
 
 import PlutusCore.Builtin.Result
 import PlutusCore.Data (Data (..))
@@ -378,6 +382,7 @@ valueContains :: Value -> Value -> BuiltinResult Bool
 valueContains v1 v2
   | negativeAmounts v1 > 0 = fail "valueContains: first value contains negative amounts"
   | negativeAmounts v2 > 0 = fail "valueContains: second value contains negative amounts"
+  | totalSize v1 < totalSize v2 = False -- v1 can't possibly contain v2 because v2's too big.
   | otherwise = BuiltinSuccess $ Map.isSubmapOfBy (Map.isSubmapOfBy (<=)) (unpack v2) (unpack v1)
 {-# INLINEABLE valueContains #-}
 
