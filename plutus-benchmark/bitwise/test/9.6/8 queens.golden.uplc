@@ -15,13 +15,17 @@
                                    (equalsInteger 0 (remainderInteger dim 8))
                                    [ (constr 0 [])
                                    , ((\cse ->
-                                         go
-                                           0
-                                           0
-                                           cse
-                                           cse
-                                           cse
-                                           (replicateByte bytesNeeded 255))
+                                         case
+                                           (constr 0
+                                              [ 0
+                                              , 0
+                                              , cse
+                                              , cse
+                                              , cse
+                                              , (replicateByte
+                                                   bytesNeeded
+                                                   255) ])
+                                           [go])
                                         (replicateByte bytesNeeded 0)) ])
                               , (constr 0 []) ])
                            (quotientInteger dim 8))
@@ -48,61 +52,79 @@
                                                             (\newDown ->
                                                                (\newControl ->
                                                                   case
-                                                                    (s
-                                                                       s
-                                                                       0
-                                                                       newRow
-                                                                       newDown
-                                                                       newLeft
-                                                                       newRight
-                                                                       newControl)
-                                                                    [ (s
-                                                                         s
-                                                                         (addInteger
-                                                                            1
-                                                                            selectIx)
-                                                                         row
-                                                                         down
-                                                                         left
-                                                                         right
-                                                                         control)
+                                                                    (case
+                                                                       (constr 0
+                                                                          [ s
+                                                                          , 0
+                                                                          , newRow
+                                                                          , newDown
+                                                                          , newLeft
+                                                                          , newRight
+                                                                          , newControl ])
+                                                                       [s])
+                                                                    [ (case
+                                                                         (constr 0
+                                                                            [ s
+                                                                            , (addInteger
+                                                                                 1
+                                                                                 selectIx)
+                                                                            , row
+                                                                            , down
+                                                                            , left
+                                                                            , right
+                                                                            , control ])
+                                                                         [s])
                                                                     , (\ipv
                                                                         ipv ->
                                                                          constr 1
                                                                            [ (constr 0
                                                                                 [ row
                                                                                 , available ])
-                                                                           , (s
-                                                                                s
-                                                                                0
-                                                                                newRow
-                                                                                newDown
-                                                                                newLeft
-                                                                                newRight
-                                                                                newControl) ]) ])
+                                                                           , (case
+                                                                                (constr 0
+                                                                                   [ s
+                                                                                   , 0
+                                                                                   , newRow
+                                                                                   , newDown
+                                                                                   , newLeft
+                                                                                   , newRight
+                                                                                   , newControl ])
+                                                                                [ s ]) ]) ])
                                                                  (complementByteString
-                                                                    (orByteString
-                                                                       False
-                                                                       newDown
-                                                                       (orByteString
-                                                                          False
-                                                                          newLeft
-                                                                          newRight))))
-                                                              (writeBits
-                                                                 down
-                                                                 (goList cse)
-                                                                 True))
+                                                                    (case
+                                                                       (constr 0
+                                                                          [ False
+                                                                          , newDown
+                                                                          , (case
+                                                                               (constr 0
+                                                                                  [ False
+                                                                                  , newLeft
+                                                                                  , newRight ])
+                                                                               [ orByteString ]) ])
+                                                                       [ orByteString ])))
+                                                              (case
+                                                                 (constr 0
+                                                                    [ down
+                                                                    , (goList
+                                                                         cse)
+                                                                    , True ])
+                                                                 [writeBits]))
                                                            (shiftByteString
-                                                              (writeBits
-                                                                 left
-                                                                 (goList cse)
-                                                                 True)
+                                                              (case
+                                                                 (constr 0
+                                                                    [ left
+                                                                    , (goList
+                                                                         cse)
+                                                                    , True ])
+                                                                 [writeBits])
                                                               1))
                                                         (shiftByteString
-                                                           (writeBits
-                                                              right
-                                                              (goList cse)
-                                                              True)
+                                                           (case
+                                                              (constr 0
+                                                                 [ right
+                                                                 , (goList cse)
+                                                                 , True ])
+                                                              [writeBits])
                                                            -1))
                                                      (constr 1
                                                         [ available

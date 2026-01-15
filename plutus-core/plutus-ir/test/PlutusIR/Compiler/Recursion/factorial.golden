@@ -2,9 +2,11 @@ program
   1.1.0
   ((\s -> s s)
      (\s i ->
-        force ifThenElse
-          (equalsInteger 0 i)
-          (\u -> 1)
-          (\u -> multiplyInteger i ((\x -> s s x) (subtractInteger i 1)))
-          ())
+        case
+          (constr 0
+             [ (equalsInteger 0 i)
+             , (\u -> 1)
+             , (\u -> multiplyInteger i ((\x -> s s x) (subtractInteger i 1)))
+             , () ])
+          [(force ifThenElse)])
      5)

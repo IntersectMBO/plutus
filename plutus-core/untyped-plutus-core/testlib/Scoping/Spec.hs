@@ -8,6 +8,7 @@ import UntypedPlutusCore
 import UntypedPlutusCore.Generators.Hedgehog.AST (genProgram, genTerm, mangleNames, runAstGen)
 import UntypedPlutusCore.Mark
 import UntypedPlutusCore.Rename.Internal
+import UntypedPlutusCore.Transform.CaseApply (caseApply)
 import UntypedPlutusCore.Transform.CaseReduce (caseReduce)
 import UntypedPlutusCore.Transform.Cse (cse)
 import UntypedPlutusCore.Transform.FloatDelay (floatDelay)
@@ -87,6 +88,12 @@ test_names =
         T.BindingRemovalOk -- COKC removes branches, which may (and likely do) contain bindings.
         T.PrerenameYes
         (evalSimplifierT . caseReduce)
+    , T.test_scopingGood
+        "case-apply"
+        (genTerm @DefaultFun)
+        T.BindingRemovalNotOk
+        T.PrerenameYes
+        (evalSimplifierT . caseApply)
     , -- CSE creates entirely new names, which isn't supported by the scoping check machinery.
       T.test_scopingBad
         "cse"

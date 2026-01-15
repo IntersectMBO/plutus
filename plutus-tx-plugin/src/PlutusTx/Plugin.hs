@@ -605,6 +605,9 @@ runCompiler moduleName opts expr = do
           & set
             (PLC.coSimplifyOpts . UPLC.soPreserveLogging)
             (opts ^. posPreserveLogging)
+          & set
+            (PLC.coSimplifyOpts . UPLC.soCaseApply)
+            (opts ^. posCaseApply)
 
   -- GHC.Core -> Pir translation.
   pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)

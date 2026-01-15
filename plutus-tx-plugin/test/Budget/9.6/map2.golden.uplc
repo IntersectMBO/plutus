@@ -48,22 +48,26 @@
                                              (s s tl))
                                       , [] ])
                                  nt)))
-                        (unsafeFromSOPList
-                           (\i -> iData i)
-                           (\i -> iData i)
-                           (constr 1
-                              [ (constr 0 [(addInteger 1 n), 1])
+                        (case
+                           (constr 0
+                              [ (\i -> iData i)
+                              , (\i -> iData i)
                               , (constr 1
-                                   [ (constr 0 [(addInteger 2 n), 2])
+                                   [ (constr 0 [(addInteger 1 n), 1])
                                    , (constr 1
-                                        [ (constr 0 [(addInteger 3 n), 3])
+                                        [ (constr 0 [(addInteger 2 n), 2])
                                         , (constr 1
-                                             [ (constr 0 [(addInteger 4 n), 4])
+                                             [ (constr 0 [(addInteger 3 n), 3])
                                              , (constr 1
                                                   [ (constr 0
-                                                       [(addInteger 5 n), 5])
-                                                  , (constr 0
-                                                       []) ]) ]) ]) ]) ])))
+                                                       [(addInteger 4 n), 4])
+                                                  , (constr 1
+                                                       [ (constr 0
+                                                            [ (addInteger 5 n)
+                                                            , 5 ])
+                                                       , (constr 0
+                                                            [  ]) ]) ]) ]) ]) ]) ])
+                           [unsafeFromSOPList]))
                      ((\s ->
                          s s)
                         (\s
@@ -113,18 +117,20 @@
                                        (case hd [(\l r -> l)]))
                                     (case hd [(\l r -> r)]))
                              , [] ])))
-                  (unsafeFromSOPList
-                     (\i -> iData i)
-                     (\i -> iData i)
-                     (constr 1
-                        [ (constr 0 [(addInteger 3 n), 33])
+                  (case
+                     (constr 0
+                        [ (\i -> iData i)
+                        , (\i -> iData i)
                         , (constr 1
-                             [ (constr 0 [(addInteger 4 n), 44])
+                             [ (constr 0 [(addInteger 3 n), 33])
                              , (constr 1
-                                  [ (constr 0 [(addInteger 6 n), 66])
+                                  [ (constr 0 [(addInteger 4 n), 44])
                                   , (constr 1
-                                       [ (constr 0 [(addInteger 7 n), 77])
-                                       , (constr 0 []) ]) ]) ]) ])))
+                                       [ (constr 0 [(addInteger 6 n), 66])
+                                       , (constr 1
+                                            [ (constr 0 [(addInteger 7 n), 77])
+                                            , (constr 0 []) ]) ]) ]) ]) ])
+                     [unsafeFromSOPList]))
                (\`$dToData` `$dToData` ->
                   (\go eta -> goList (go eta))
                     ((\s -> s s)

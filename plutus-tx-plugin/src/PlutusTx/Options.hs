@@ -76,6 +76,7 @@ data PluginOptions = PluginOptions
     -- Which effectively ignores the trace text.
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
+  , _posCaseApply :: Bool
   }
 
 makeLenses ''PluginOptions
@@ -149,7 +150,15 @@ pluginOptions =
   Map.fromList
     [ let k = "target-version"
           desc = "The target Plutus Core language version"
-       in (k, PluginOption typeRep (plcParserOption PLC.version k) posPlcTargetVersion desc [])
+       in ( k
+          , PluginOption
+              typeRep
+              (plcParserOption PLC.version k)
+              posPlcTargetVersion
+              desc
+              [ Implication (< PLC.plcVersion110) posCaseApply False
+              ]
+          )
     , let k = "typecheck"
           desc = "Perform type checking during compilation."
        in (k, PluginOption typeRep (setTrue k) posDoTypecheck desc [])
@@ -305,6 +314,9 @@ pluginOptions =
     , let k = "dump-compilation-trace"
           desc = "Dump compilation trace for debugging"
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
+    , let k = "case-apply"
+          desc = "Use application by 'Case' optimization."
+       in (k, PluginOption typeRep (setTrue k) posCaseApply desc [])
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -377,6 +389,7 @@ defaultPluginOptions =
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
+    , _posCaseApply = True
     }
 
 processOne

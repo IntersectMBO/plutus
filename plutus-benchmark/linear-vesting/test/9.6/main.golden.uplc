@@ -51,53 +51,57 @@
                                                                                                                                 (case
                                                                                                                                    (case
                                                                                                                                       ((\d ->
-                                                                                                                                          force
-                                                                                                                                            chooseData
-                                                                                                                                            d
-                                                                                                                                            (\ds ->
-                                                                                                                                               case
-                                                                                                                                                 (unConstrData
-                                                                                                                                                    d)
-                                                                                                                                                 [ (\l
-                                                                                                                                                     r ->
-                                                                                                                                                      case
-                                                                                                                                                        (equalsInteger
-                                                                                                                                                           0
-                                                                                                                                                           l)
-                                                                                                                                                        [ (case
-                                                                                                                                                             (equalsInteger
-                                                                                                                                                                1
-                                                                                                                                                                l)
-                                                                                                                                                             [ (constr 1
-                                                                                                                                                                  [  ])
-                                                                                                                                                             , (constr 0
-                                                                                                                                                                  [ (constr 0
-                                                                                                                                                                       [  ]) ]) ])
-                                                                                                                                                        , (constr 0
-                                                                                                                                                             [ (constr 1
-                                                                                                                                                                  [  ]) ]) ]) ])
-                                                                                                                                            (\ds ->
-                                                                                                                                               constr 1
-                                                                                                                                                 [  ])
-                                                                                                                                            (\ds ->
-                                                                                                                                               constr 1
-                                                                                                                                                 [  ])
-                                                                                                                                            (\ds ->
-                                                                                                                                               constr 1
-                                                                                                                                                 [  ])
-                                                                                                                                            (\ds ->
-                                                                                                                                               constr 1
-                                                                                                                                                 [  ])
+                                                                                                                                          case
                                                                                                                                             (constr 0
-                                                                                                                                               [  ]))
-                                                                                                                                         (`$mScriptContext`
-                                                                                                                                            context
-                                                                                                                                            (\ds
-                                                                                                                                              ds
-                                                                                                                                              ds ->
-                                                                                                                                               ds)
-                                                                                                                                            (\void ->
-                                                                                                                                               error)))
+                                                                                                                                               [ d
+                                                                                                                                               , (\ds ->
+                                                                                                                                                    case
+                                                                                                                                                      (unConstrData
+                                                                                                                                                         d)
+                                                                                                                                                      [ (\l
+                                                                                                                                                          r ->
+                                                                                                                                                           case
+                                                                                                                                                             (equalsInteger
+                                                                                                                                                                0
+                                                                                                                                                                l)
+                                                                                                                                                             [ (case
+                                                                                                                                                                  (equalsInteger
+                                                                                                                                                                     1
+                                                                                                                                                                     l)
+                                                                                                                                                                  [ (constr 1
+                                                                                                                                                                       [  ])
+                                                                                                                                                                  , (constr 0
+                                                                                                                                                                       [ (constr 0
+                                                                                                                                                                            [  ]) ]) ])
+                                                                                                                                                             , (constr 0
+                                                                                                                                                                  [ (constr 1
+                                                                                                                                                                       [  ]) ]) ]) ])
+                                                                                                                                               , (\ds ->
+                                                                                                                                                    constr 1
+                                                                                                                                                      [  ])
+                                                                                                                                               , (\ds ->
+                                                                                                                                                    constr 1
+                                                                                                                                                      [  ])
+                                                                                                                                               , (\ds ->
+                                                                                                                                                    constr 1
+                                                                                                                                                      [  ])
+                                                                                                                                               , (\ds ->
+                                                                                                                                                    constr 1
+                                                                                                                                                      [  ])
+                                                                                                                                               , (constr 0
+                                                                                                                                                    [  ]) ])
+                                                                                                                                            [ (force
+                                                                                                                                                 chooseData) ])
+                                                                                                                                         (case
+                                                                                                                                            (constr 0
+                                                                                                                                               [ context
+                                                                                                                                               , (\ds
+                                                                                                                                                   ds
+                                                                                                                                                   ds ->
+                                                                                                                                                    ds)
+                                                                                                                                               , (\void ->
+                                                                                                                                                    error) ])
+                                                                                                                                            [ `$mScriptContext` ]))
                                                                                                                                       [ (\r ->
                                                                                                                                            force
                                                                                                                                              trace
@@ -112,45 +116,49 @@
                                                                                                                                                  [  ]))) ])
                                                                                                                                    [ ((\ctx ->
                                                                                                                                          case
-                                                                                                                                           (`$mSpendingScript`
-                                                                                                                                              (scriptContextScriptInfo
-                                                                                                                                                 ctx)
-                                                                                                                                              (\_ownRef
-                                                                                                                                                ds ->
-                                                                                                                                                 case
-                                                                                                                                                   ds
-                                                                                                                                                   [ (\ds ->
-                                                                                                                                                        constr 0
-                                                                                                                                                          [ _ownRef
-                                                                                                                                                          , ds ])
-                                                                                                                                                   , ((\defaultBody ->
+                                                                                                                                           (case
+                                                                                                                                              (constr 0
+                                                                                                                                                 [ (scriptContextScriptInfo
+                                                                                                                                                      ctx)
+                                                                                                                                                 , (\_ownRef
+                                                                                                                                                     ds ->
+                                                                                                                                                      case
+                                                                                                                                                        ds
+                                                                                                                                                        [ (\ds ->
+                                                                                                                                                             constr 0
+                                                                                                                                                               [ _ownRef
+                                                                                                                                                               , ds ])
+                                                                                                                                                        , ((\defaultBody ->
+                                                                                                                                                              case
+                                                                                                                                                                error
+                                                                                                                                                                [ defaultBody ])
+                                                                                                                                                             error) ])
+                                                                                                                                                 , (\void ->
+                                                                                                                                                      (\defaultBody ->
                                                                                                                                                          case
                                                                                                                                                            error
                                                                                                                                                            [ defaultBody ])
                                                                                                                                                         error) ])
-                                                                                                                                              (\void ->
-                                                                                                                                                 (\defaultBody ->
-                                                                                                                                                    case
-                                                                                                                                                      error
-                                                                                                                                                      [ defaultBody ])
-                                                                                                                                                   error))
+                                                                                                                                              [ `$mSpendingScript` ])
                                                                                                                                            [ (\ipv
                                                                                                                                                ipv ->
                                                                                                                                                 (\vestingDatum ->
                                                                                                                                                    case
-                                                                                                                                                     (`$mPubKeyCredential`
-                                                                                                                                                        (addressCredential
-                                                                                                                                                           (beneficiary
-                                                                                                                                                              vestingDatum))
-                                                                                                                                                        (\beneficiaryKey ->
-                                                                                                                                                           constr 0
-                                                                                                                                                             [ beneficiaryKey ])
-                                                                                                                                                        (\void ->
-                                                                                                                                                           (\defaultBody ->
-                                                                                                                                                              case
-                                                                                                                                                                error
-                                                                                                                                                                [ defaultBody ])
-                                                                                                                                                             error))
+                                                                                                                                                     (case
+                                                                                                                                                        (constr 0
+                                                                                                                                                           [ (addressCredential
+                                                                                                                                                                (beneficiary
+                                                                                                                                                                   vestingDatum))
+                                                                                                                                                           , (\beneficiaryKey ->
+                                                                                                                                                                constr 0
+                                                                                                                                                                  [ beneficiaryKey ])
+                                                                                                                                                           , (\void ->
+                                                                                                                                                                (\defaultBody ->
+                                                                                                                                                                   case
+                                                                                                                                                                     error
+                                                                                                                                                                     [ defaultBody ])
+                                                                                                                                                                  error) ])
+                                                                                                                                                        [ `$mPubKeyCredential` ])
                                                                                                                                                      [ (\ipv ->
                                                                                                                                                           (\txInfo ->
                                                                                                                                                              (\ds ->
@@ -256,78 +264,84 @@
                                                                                                                                            context))
                                                                                                                                    , ((\ctx ->
                                                                                                                                          case
-                                                                                                                                           (`$mSpendingScript`
-                                                                                                                                              (scriptContextScriptInfo
-                                                                                                                                                 ctx)
-                                                                                                                                              (\ownRef
-                                                                                                                                                ds ->
-                                                                                                                                                 case
-                                                                                                                                                   ds
-                                                                                                                                                   [ (\ds ->
-                                                                                                                                                        constr 0
-                                                                                                                                                          [ ownRef
-                                                                                                                                                          , ds ])
-                                                                                                                                                   , ((\defaultBody ->
+                                                                                                                                           (case
+                                                                                                                                              (constr 0
+                                                                                                                                                 [ (scriptContextScriptInfo
+                                                                                                                                                      ctx)
+                                                                                                                                                 , (\ownRef
+                                                                                                                                                     ds ->
+                                                                                                                                                      case
+                                                                                                                                                        ds
+                                                                                                                                                        [ (\ds ->
+                                                                                                                                                             constr 0
+                                                                                                                                                               [ ownRef
+                                                                                                                                                               , ds ])
+                                                                                                                                                        , ((\defaultBody ->
+                                                                                                                                                              case
+                                                                                                                                                                error
+                                                                                                                                                                [ defaultBody ])
+                                                                                                                                                             error) ])
+                                                                                                                                                 , (\void ->
+                                                                                                                                                      (\defaultBody ->
                                                                                                                                                          case
                                                                                                                                                            error
                                                                                                                                                            [ defaultBody ])
                                                                                                                                                         error) ])
-                                                                                                                                              (\void ->
-                                                                                                                                                 (\defaultBody ->
-                                                                                                                                                    case
-                                                                                                                                                      error
-                                                                                                                                                      [ defaultBody ])
-                                                                                                                                                   error))
+                                                                                                                                              [ `$mSpendingScript` ])
                                                                                                                                            [ (\ipv
                                                                                                                                                ipv ->
                                                                                                                                                 (\vestingDatum ->
                                                                                                                                                    (\ds ->
                                                                                                                                                       (\ds ->
                                                                                                                                                          case
-                                                                                                                                                           (`$mPubKeyCredential`
-                                                                                                                                                              (addressCredential
-                                                                                                                                                                 (beneficiary
-                                                                                                                                                                    vestingDatum))
-                                                                                                                                                              (\beneficiaryHash ->
-                                                                                                                                                                 constr 0
-                                                                                                                                                                   [ beneficiaryHash ])
-                                                                                                                                                              (\void ->
-                                                                                                                                                                 (\defaultBody ->
-                                                                                                                                                                    case
-                                                                                                                                                                      error
-                                                                                                                                                                      [ defaultBody ])
-                                                                                                                                                                   error))
+                                                                                                                                                           (case
+                                                                                                                                                              (constr 0
+                                                                                                                                                                 [ (addressCredential
+                                                                                                                                                                      (beneficiary
+                                                                                                                                                                         vestingDatum))
+                                                                                                                                                                 , (\beneficiaryHash ->
+                                                                                                                                                                      constr 0
+                                                                                                                                                                        [ beneficiaryHash ])
+                                                                                                                                                                 , (\void ->
+                                                                                                                                                                      (\defaultBody ->
+                                                                                                                                                                         case
+                                                                                                                                                                           error
+                                                                                                                                                                           [ defaultBody ])
+                                                                                                                                                                        error) ])
+                                                                                                                                                              [ `$mPubKeyCredential` ])
                                                                                                                                                            [ ((\asset
                                                                                                                                                                 ipv ->
                                                                                                                                                                  (\txInfo ->
                                                                                                                                                                     (\nt ->
                                                                                                                                                                        case
                                                                                                                                                                          (case
-                                                                                                                                                                            (find
-                                                                                                                                                                               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                                                                               (\eta ->
-                                                                                                                                                                                  (\l ->
-                                                                                                                                                                                     case
-                                                                                                                                                                                       (equalsByteString
-                                                                                                                                                                                          (txOutRefId
-                                                                                                                                                                                             l)
-                                                                                                                                                                                          (txOutRefId
-                                                                                                                                                                                             ipv))
-                                                                                                                                                                                       [ False
-                                                                                                                                                                                       , (equalsInteger
-                                                                                                                                                                                            (txOutRefIdx
-                                                                                                                                                                                               l)
-                                                                                                                                                                                            (txOutRefIdx
-                                                                                                                                                                                               ipv)) ])
-                                                                                                                                                                                    (force
-                                                                                                                                                                                       headList
-                                                                                                                                                                                       (case
-                                                                                                                                                                                          (unConstrData
-                                                                                                                                                                                             eta)
-                                                                                                                                                                                          [ (\l
-                                                                                                                                                                                              r ->
-                                                                                                                                                                                               r) ])))
-                                                                                                                                                                               nt)
+                                                                                                                                                                            (case
+                                                                                                                                                                               (constr 0
+                                                                                                                                                                                  [ `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                                                                  , (\eta ->
+                                                                                                                                                                                       (\l ->
+                                                                                                                                                                                          case
+                                                                                                                                                                                            (equalsByteString
+                                                                                                                                                                                               (txOutRefId
+                                                                                                                                                                                                  l)
+                                                                                                                                                                                               (txOutRefId
+                                                                                                                                                                                                  ipv))
+                                                                                                                                                                                            [ False
+                                                                                                                                                                                            , (equalsInteger
+                                                                                                                                                                                                 (txOutRefIdx
+                                                                                                                                                                                                    l)
+                                                                                                                                                                                                 (txOutRefIdx
+                                                                                                                                                                                                    ipv)) ])
+                                                                                                                                                                                         (force
+                                                                                                                                                                                            headList
+                                                                                                                                                                                            (case
+                                                                                                                                                                                               (unConstrData
+                                                                                                                                                                                                  eta)
+                                                                                                                                                                                               [ (\l
+                                                                                                                                                                                                   r ->
+                                                                                                                                                                                                    r) ])))
+                                                                                                                                                                                  , nt ])
+                                                                                                                                                                               [ find ])
                                                                                                                                                                             [ (\ownVestingInput ->
                                                                                                                                                                                  constr 0
                                                                                                                                                                                    [ ownVestingInput ])
@@ -340,18 +354,20 @@
                                                                                                                                                                               (\nt ->
                                                                                                                                                                                  (\nt ->
                                                                                                                                                                                     case
-                                                                                                                                                                                      (`$mScriptCredential`
-                                                                                                                                                                                         (addressCredential
-                                                                                                                                                                                            nt)
-                                                                                                                                                                                         (\scriptHash ->
-                                                                                                                                                                                            constr 0
-                                                                                                                                                                                              [ scriptHash ])
-                                                                                                                                                                                         (\void ->
-                                                                                                                                                                                            (\defaultBody ->
-                                                                                                                                                                                               case
-                                                                                                                                                                                                 error
-                                                                                                                                                                                                 [ defaultBody ])
-                                                                                                                                                                                              error))
+                                                                                                                                                                                      (case
+                                                                                                                                                                                         (constr 0
+                                                                                                                                                                                            [ (addressCredential
+                                                                                                                                                                                                 nt)
+                                                                                                                                                                                            , (\scriptHash ->
+                                                                                                                                                                                                 constr 0
+                                                                                                                                                                                                   [ scriptHash ])
+                                                                                                                                                                                            , (\void ->
+                                                                                                                                                                                                 (\defaultBody ->
+                                                                                                                                                                                                    case
+                                                                                                                                                                                                      error
+                                                                                                                                                                                                      [ defaultBody ])
+                                                                                                                                                                                                   error) ])
+                                                                                                                                                                                         [ `$mScriptCredential` ])
                                                                                                                                                                                       [ (\ipv ->
                                                                                                                                                                                            (\go ->
                                                                                                                                                                                               (\ds ->
@@ -571,112 +587,21 @@
                                                                                                                                                                                                          ownVestingOutput))
                                                                                                                                                                                                    (case
                                                                                                                                                                                                       (case
-                                                                                                                                                                                                         (find
-                                                                                                                                                                                                            `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                                                                                                            (\eta ->
-                                                                                                                                                                                                               (\l ->
-                                                                                                                                                                                                                  (\l ->
-                                                                                                                                                                                                                     case
-                                                                                                                                                                                                                       (`$fEqCredential_$c==`
-                                                                                                                                                                                                                          (force
-                                                                                                                                                                                                                             headList
-                                                                                                                                                                                                                             l)
-                                                                                                                                                                                                                          (force
-                                                                                                                                                                                                                             headList
-                                                                                                                                                                                                                             l))
-                                                                                                                                                                                                                       [ False
-                                                                                                                                                                                                                       , (case
-                                                                                                                                                                                                                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                                                                                                                                                                               `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                         (case
+                                                                                                                                                                                                            (constr 0
+                                                                                                                                                                                                               [ `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                               , (\eta ->
+                                                                                                                                                                                                                    (\l ->
+                                                                                                                                                                                                                       (\l ->
+                                                                                                                                                                                                                          case
+                                                                                                                                                                                                                            (`$fEqCredential_$c==`
                                                                                                                                                                                                                                (force
                                                                                                                                                                                                                                   headList
-                                                                                                                                                                                                                                  (force
-                                                                                                                                                                                                                                     tailList
-                                                                                                                                                                                                                                     l)))
-                                                                                                                                                                                                                            [ (\a ->
-                                                                                                                                                                                                                                 case
-                                                                                                                                                                                                                                   (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                                                                                                                                                                                      `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
-                                                                                                                                                                                                                                      (force
-                                                                                                                                                                                                                                         headList
-                                                                                                                                                                                                                                         (force
-                                                                                                                                                                                                                                            tailList
-                                                                                                                                                                                                                                            l)))
-                                                                                                                                                                                                                                   [ (\a ->
-                                                                                                                                                                                                                                        (\tup ->
-                                                                                                                                                                                                                                           force
-                                                                                                                                                                                                                                             ((\fail ->
-                                                                                                                                                                                                                                                 case
-                                                                                                                                                                                                                                                   (equalsInteger
-                                                                                                                                                                                                                                                      `$bPubKeyCredential`
-                                                                                                                                                                                                                                                      (case
-                                                                                                                                                                                                                                                         tup
-                                                                                                                                                                                                                                                         [ (\l
-                                                                                                                                                                                                                                                             r ->
-                                                                                                                                                                                                                                                              l) ]))
-                                                                                                                                                                                                                                                   [ (delay
-                                                                                                                                                                                                                                                        (fail
-                                                                                                                                                                                                                                                           ()))
-                                                                                                                                                                                                                                                   , (delay
-                                                                                                                                                                                                                                                        ((\tup ->
-                                                                                                                                                                                                                                                            case
-                                                                                                                                                                                                                                                              (equalsInteger
-                                                                                                                                                                                                                                                                 `$bPubKeyCredential`
-                                                                                                                                                                                                                                                                 (case
-                                                                                                                                                                                                                                                                    tup
-                                                                                                                                                                                                                                                                    [ (\l
-                                                                                                                                                                                                                                                                        r ->
-                                                                                                                                                                                                                                                                         l) ]))
-                                                                                                                                                                                                                                                              [ (fail
-                                                                                                                                                                                                                                                                   ())
-                                                                                                                                                                                                                                                              , (`$fEqCredential_$c==`
-                                                                                                                                                                                                                                                                   (force
-                                                                                                                                                                                                                                                                      headList
-                                                                                                                                                                                                                                                                      (case
-                                                                                                                                                                                                                                                                         tup
-                                                                                                                                                                                                                                                                         [ (\l
-                                                                                                                                                                                                                                                                             r ->
-                                                                                                                                                                                                                                                                              r) ]))
-                                                                                                                                                                                                                                                                   (force
-                                                                                                                                                                                                                                                                      headList
-                                                                                                                                                                                                                                                                      (case
-                                                                                                                                                                                                                                                                         tup
-                                                                                                                                                                                                                                                                         [ (\l
-                                                                                                                                                                                                                                                                             r ->
-                                                                                                                                                                                                                                                                              r) ]))) ])
-                                                                                                                                                                                                                                                           (unConstrData
-                                                                                                                                                                                                                                                              a))) ])
-                                                                                                                                                                                                                                                (\ds ->
-                                                                                                                                                                                                                                                   `$mStakingPtr`
-                                                                                                                                                                                                                                                     a
-                                                                                                                                                                                                                                                     (\a
-                                                                                                                                                                                                                                                       b
-                                                                                                                                                                                                                                                       c ->
-                                                                                                                                                                                                                                                        `$mStakingPtr`
-                                                                                                                                                                                                                                                          a
-                                                                                                                                                                                                                                                          (\a'
-                                                                                                                                                                                                                                                            b'
-                                                                                                                                                                                                                                                            c' ->
-                                                                                                                                                                                                                                                             case
-                                                                                                                                                                                                                                                               (equalsInteger
-                                                                                                                                                                                                                                                                  a
-                                                                                                                                                                                                                                                                  a')
-                                                                                                                                                                                                                                                               [ False
-                                                                                                                                                                                                                                                               , (case
-                                                                                                                                                                                                                                                                    (equalsInteger
-                                                                                                                                                                                                                                                                       b
-                                                                                                                                                                                                                                                                       b')
-                                                                                                                                                                                                                                                                    [ False
-                                                                                                                                                                                                                                                                    , (equalsInteger
-                                                                                                                                                                                                                                                                         c
-                                                                                                                                                                                                                                                                         c') ]) ])
-                                                                                                                                                                                                                                                          (\void ->
-                                                                                                                                                                                                                                                             False))
-                                                                                                                                                                                                                                                     (\void ->
-                                                                                                                                                                                                                                                        False))))
-                                                                                                                                                                                                                                          (unConstrData
-                                                                                                                                                                                                                                             a))
-                                                                                                                                                                                                                                   , False ])
+                                                                                                                                                                                                                                  l)
+                                                                                                                                                                                                                               (force
+                                                                                                                                                                                                                                  headList
+                                                                                                                                                                                                                                  l))
+                                                                                                                                                                                                                            [ False
                                                                                                                                                                                                                             , (case
                                                                                                                                                                                                                                  (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                                                                                                                                                                                                                     `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
@@ -685,43 +610,142 @@
                                                                                                                                                                                                                                        (force
                                                                                                                                                                                                                                           tailList
                                                                                                                                                                                                                                           l)))
-                                                                                                                                                                                                                                 [ (\ipv ->
-                                                                                                                                                                                                                                      False)
-                                                                                                                                                                                                                                 , True ]) ]) ])
-                                                                                                                                                                                                                    (case
-                                                                                                                                                                                                                       (unConstrData
-                                                                                                                                                                                                                          nt)
-                                                                                                                                                                                                                       [ (\l
-                                                                                                                                                                                                                           r ->
-                                                                                                                                                                                                                            r) ]))
-                                                                                                                                                                                                                 (case
-                                                                                                                                                                                                                    (unConstrData
-                                                                                                                                                                                                                       (txOutAddress
-                                                                                                                                                                                                                          eta))
-                                                                                                                                                                                                                    [ (\l
-                                                                                                                                                                                                                        r ->
-                                                                                                                                                                                                                         r) ]))
-                                                                                                                                                                                                            (`$mTxInfo`
-                                                                                                                                                                                                               txInfo
-                                                                                                                                                                                                               (\ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds
-                                                                                                                                                                                                                 ds ->
-                                                                                                                                                                                                                  ds)
-                                                                                                                                                                                                               (\void ->
-                                                                                                                                                                                                                  error)))
+                                                                                                                                                                                                                                 [ (\a ->
+                                                                                                                                                                                                                                      case
+                                                                                                                                                                                                                                        (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                                           `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                                           (force
+                                                                                                                                                                                                                                              headList
+                                                                                                                                                                                                                                              (force
+                                                                                                                                                                                                                                                 tailList
+                                                                                                                                                                                                                                                 l)))
+                                                                                                                                                                                                                                        [ (\a ->
+                                                                                                                                                                                                                                             (\tup ->
+                                                                                                                                                                                                                                                force
+                                                                                                                                                                                                                                                  ((\fail ->
+                                                                                                                                                                                                                                                      case
+                                                                                                                                                                                                                                                        (equalsInteger
+                                                                                                                                                                                                                                                           `$bPubKeyCredential`
+                                                                                                                                                                                                                                                           (case
+                                                                                                                                                                                                                                                              tup
+                                                                                                                                                                                                                                                              [ (\l
+                                                                                                                                                                                                                                                                  r ->
+                                                                                                                                                                                                                                                                   l) ]))
+                                                                                                                                                                                                                                                        [ (delay
+                                                                                                                                                                                                                                                             (fail
+                                                                                                                                                                                                                                                                ()))
+                                                                                                                                                                                                                                                        , (delay
+                                                                                                                                                                                                                                                             ((\tup ->
+                                                                                                                                                                                                                                                                 case
+                                                                                                                                                                                                                                                                   (equalsInteger
+                                                                                                                                                                                                                                                                      `$bPubKeyCredential`
+                                                                                                                                                                                                                                                                      (case
+                                                                                                                                                                                                                                                                         tup
+                                                                                                                                                                                                                                                                         [ (\l
+                                                                                                                                                                                                                                                                             r ->
+                                                                                                                                                                                                                                                                              l) ]))
+                                                                                                                                                                                                                                                                   [ (fail
+                                                                                                                                                                                                                                                                        ())
+                                                                                                                                                                                                                                                                   , (`$fEqCredential_$c==`
+                                                                                                                                                                                                                                                                        (force
+                                                                                                                                                                                                                                                                           headList
+                                                                                                                                                                                                                                                                           (case
+                                                                                                                                                                                                                                                                              tup
+                                                                                                                                                                                                                                                                              [ (\l
+                                                                                                                                                                                                                                                                                  r ->
+                                                                                                                                                                                                                                                                                   r) ]))
+                                                                                                                                                                                                                                                                        (force
+                                                                                                                                                                                                                                                                           headList
+                                                                                                                                                                                                                                                                           (case
+                                                                                                                                                                                                                                                                              tup
+                                                                                                                                                                                                                                                                              [ (\l
+                                                                                                                                                                                                                                                                                  r ->
+                                                                                                                                                                                                                                                                                   r) ]))) ])
+                                                                                                                                                                                                                                                                (unConstrData
+                                                                                                                                                                                                                                                                   a))) ])
+                                                                                                                                                                                                                                                     (\ds ->
+                                                                                                                                                                                                                                                        case
+                                                                                                                                                                                                                                                          (constr 0
+                                                                                                                                                                                                                                                             [ a
+                                                                                                                                                                                                                                                             , (\a
+                                                                                                                                                                                                                                                                 b
+                                                                                                                                                                                                                                                                 c ->
+                                                                                                                                                                                                                                                                  case
+                                                                                                                                                                                                                                                                    (constr 0
+                                                                                                                                                                                                                                                                       [ a
+                                                                                                                                                                                                                                                                       , (\a'
+                                                                                                                                                                                                                                                                           b'
+                                                                                                                                                                                                                                                                           c' ->
+                                                                                                                                                                                                                                                                            case
+                                                                                                                                                                                                                                                                              (equalsInteger
+                                                                                                                                                                                                                                                                                 a
+                                                                                                                                                                                                                                                                                 a')
+                                                                                                                                                                                                                                                                              [ False
+                                                                                                                                                                                                                                                                              , (case
+                                                                                                                                                                                                                                                                                   (equalsInteger
+                                                                                                                                                                                                                                                                                      b
+                                                                                                                                                                                                                                                                                      b')
+                                                                                                                                                                                                                                                                                   [ False
+                                                                                                                                                                                                                                                                                   , (equalsInteger
+                                                                                                                                                                                                                                                                                        c
+                                                                                                                                                                                                                                                                                        c') ]) ])
+                                                                                                                                                                                                                                                                       , (\void ->
+                                                                                                                                                                                                                                                                            False) ])
+                                                                                                                                                                                                                                                                    [ `$mStakingPtr` ])
+                                                                                                                                                                                                                                                             , (\void ->
+                                                                                                                                                                                                                                                                  False) ])
+                                                                                                                                                                                                                                                          [ `$mStakingPtr` ])))
+                                                                                                                                                                                                                                               (unConstrData
+                                                                                                                                                                                                                                                  a))
+                                                                                                                                                                                                                                        , False ])
+                                                                                                                                                                                                                                 , (case
+                                                                                                                                                                                                                                      (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                                         `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
+                                                                                                                                                                                                                                         (force
+                                                                                                                                                                                                                                            headList
+                                                                                                                                                                                                                                            (force
+                                                                                                                                                                                                                                               tailList
+                                                                                                                                                                                                                                               l)))
+                                                                                                                                                                                                                                      [ (\ipv ->
+                                                                                                                                                                                                                                           False)
+                                                                                                                                                                                                                                      , True ]) ]) ])
+                                                                                                                                                                                                                         (case
+                                                                                                                                                                                                                            (unConstrData
+                                                                                                                                                                                                                               nt)
+                                                                                                                                                                                                                            [ (\l
+                                                                                                                                                                                                                                r ->
+                                                                                                                                                                                                                                 r) ]))
+                                                                                                                                                                                                                      (case
+                                                                                                                                                                                                                         (unConstrData
+                                                                                                                                                                                                                            (txOutAddress
+                                                                                                                                                                                                                               eta))
+                                                                                                                                                                                                                         [ (\l
+                                                                                                                                                                                                                             r ->
+                                                                                                                                                                                                                              r) ]))
+                                                                                                                                                                                                               , (case
+                                                                                                                                                                                                                    (constr 0
+                                                                                                                                                                                                                       [ txInfo
+                                                                                                                                                                                                                       , (\ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds
+                                                                                                                                                                                                                           ds ->
+                                                                                                                                                                                                                            ds)
+                                                                                                                                                                                                                       , (\void ->
+                                                                                                                                                                                                                            error) ])
+                                                                                                                                                                                                                    [ `$mTxInfo` ]) ])
+                                                                                                                                                                                                            [ find ])
                                                                                                                                                                                                          [ (\ownVestingOutput ->
                                                                                                                                                                                                               constr 0
                                                                                                                                                                                                                 [ ownVestingOutput ])
@@ -745,54 +769,58 @@
                                                                                                                                                                                                      ds
                                                                                                                                                                                                      [ (\x
                                                                                                                                                                                                          eta ->
-                                                                                                                                                                                                          `$mScriptCredential`
-                                                                                                                                                                                                            (addressCredential
-                                                                                                                                                                                                               (txOutAddress
-                                                                                                                                                                                                                  (txInInfoResolved
-                                                                                                                                                                                                                     x)))
-                                                                                                                                                                                                            (\vh ->
-                                                                                                                                                                                                               case
-                                                                                                                                                                                                                 (equalsByteString
-                                                                                                                                                                                                                    vh
-                                                                                                                                                                                                                    ipv)
-                                                                                                                                                                                                                 [ (go
+                                                                                                                                                                                                          case
+                                                                                                                                                                                                            (constr 0
+                                                                                                                                                                                                               [ (addressCredential
+                                                                                                                                                                                                                    (txOutAddress
+                                                                                                                                                                                                                       (txInInfoResolved
+                                                                                                                                                                                                                          x)))
+                                                                                                                                                                                                               , (\vh ->
+                                                                                                                                                                                                                    case
+                                                                                                                                                                                                                      (equalsByteString
+                                                                                                                                                                                                                         vh
+                                                                                                                                                                                                                         ipv)
+                                                                                                                                                                                                                      [ (go
+                                                                                                                                                                                                                           n
+                                                                                                                                                                                                                           eta)
+                                                                                                                                                                                                                      , (go
+                                                                                                                                                                                                                           (addInteger
+                                                                                                                                                                                                                              1
+                                                                                                                                                                                                                              n)
+                                                                                                                                                                                                                           eta) ])
+                                                                                                                                                                                                               , (\void ->
+                                                                                                                                                                                                                    go
                                                                                                                                                                                                                       n
-                                                                                                                                                                                                                      eta)
-                                                                                                                                                                                                                 , (go
-                                                                                                                                                                                                                      (addInteger
-                                                                                                                                                                                                                         1
-                                                                                                                                                                                                                         n)
                                                                                                                                                                                                                       eta) ])
-                                                                                                                                                                                                            (\void ->
-                                                                                                                                                                                                               go
-                                                                                                                                                                                                                 n
-                                                                                                                                                                                                                 eta))
+                                                                                                                                                                                                            [ `$mScriptCredential` ])
                                                                                                                                                                                                      , n ]))) ])
                                                                                                                                                                                    (txOutAddress
                                                                                                                                                                                       nt))
                                                                                                                                                                                 (txInInfoResolved
                                                                                                                                                                                    ipv)) ])
-                                                                                                                                                                      (`$mTxInfo`
-                                                                                                                                                                         txInfo
-                                                                                                                                                                         (\ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds
-                                                                                                                                                                           ds ->
-                                                                                                                                                                            ds)
-                                                                                                                                                                         (\void ->
-                                                                                                                                                                            error)))
+                                                                                                                                                                      (case
+                                                                                                                                                                         (constr 0
+                                                                                                                                                                            [ txInfo
+                                                                                                                                                                            , (\ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds
+                                                                                                                                                                                ds ->
+                                                                                                                                                                                 ds)
+                                                                                                                                                                            , (\void ->
+                                                                                                                                                                                 error) ])
+                                                                                                                                                                         [ `$mTxInfo` ]))
                                                                                                                                                                    (scriptContextTxInfo
                                                                                                                                                                       ctx))
                                                                                                                                                                 (delay
@@ -1031,21 +1059,23 @@
                                                                                                                            ())
                                                                                                                       , ((\l ->
                                                                                                                             (\l ->
-                                                                                                                               cont
-                                                                                                                                 (unIData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       l))
-                                                                                                                                 (unIData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       l))
-                                                                                                                                 (unIData
-                                                                                                                                    (force
-                                                                                                                                       headList
-                                                                                                                                       (force
-                                                                                                                                          tailList
-                                                                                                                                          l))))
+                                                                                                                               case
+                                                                                                                                 (constr 0
+                                                                                                                                    [ (unIData
+                                                                                                                                         (force
+                                                                                                                                            headList
+                                                                                                                                            l))
+                                                                                                                                    , (unIData
+                                                                                                                                         (force
+                                                                                                                                            headList
+                                                                                                                                            l))
+                                                                                                                                    , (unIData
+                                                                                                                                         (force
+                                                                                                                                            headList
+                                                                                                                                            (force
+                                                                                                                                               tailList
+                                                                                                                                               l))) ])
+                                                                                                                                 [ cont ])
                                                                                                                               (force
                                                                                                                                  tailList
                                                                                                                                  l))
@@ -1310,29 +1340,44 @@
                                                                       (constr 0
                                                                          []))))
                                                            (\ds ->
-                                                              `$mScriptContext`
-                                                                ds
-                                                                (\ds ds ds ->
-                                                                   ds)
-                                                                (\void ->
-                                                                   error)))
+                                                              case
+                                                                (constr 0
+                                                                   [ ds
+                                                                   , (\ds
+                                                                       ds
+                                                                       ds ->
+                                                                        ds)
+                                                                   , (\void ->
+                                                                        error) ])
+                                                                [ `$mScriptContext` ]))
                                                         (\ds ->
-                                                           `$mScriptContext`
-                                                             ds
-                                                             (\ds ds ds -> ds)
-                                                             (\void -> error)))
-                                                     (\scrut cont fail ->
+                                                           case
+                                                             (constr 0
+                                                                [ ds
+                                                                , (\ds ds ds ->
+                                                                     ds)
+                                                                , (\void ->
+                                                                     error) ])
+                                                             [ `$mScriptContext` ]))
+                                                     (\scrut
+                                                       cont
+                                                       fail ->
                                                         (\l ->
                                                            (\l ->
-                                                              cont
-                                                                (force headList
-                                                                   l)
-                                                                (force headList
-                                                                   l)
-                                                                (force headList
-                                                                   (force
-                                                                      tailList
-                                                                      l)))
+                                                              case
+                                                                (constr 0
+                                                                   [ (force
+                                                                        headList
+                                                                        l)
+                                                                   , (force
+                                                                        headList
+                                                                        l)
+                                                                   , (force
+                                                                        headList
+                                                                        (force
+                                                                           tailList
+                                                                           l)) ])
+                                                                [cont])
                                                              (force tailList l))
                                                           (case
                                                              (unConstrData
@@ -1356,50 +1401,60 @@
                                                           (unConstrData ds)
                                                           [(\l r -> r)]))))
                                             (\ds ->
-                                               `$mTxInfo`
-                                                 ds
-                                                 (\ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds
-                                                   ds ->
-                                                    ds)
-                                                 (\void -> error)))
+                                               case
+                                                 (constr 0
+                                                    [ ds
+                                                    , (\ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds
+                                                        ds ->
+                                                         ds)
+                                                    , (\void -> error) ])
+                                                 [`$mTxInfo`]))
                                          (\ds ->
-                                            `$mTxOut`
-                                              ds
-                                              (\ds ds ds ds -> ds)
-                                              (\void -> error)))
+                                            case
+                                              (constr 0
+                                                 [ ds
+                                                 , (\ds ds ds ds -> ds)
+                                                 , (\void -> error) ])
+                                              [`$mTxOut`]))
                                       (\ds ->
-                                         `$mTxOut`
-                                           ds
-                                           (\ds ds ds ds -> ds)
-                                           (\void -> error)))
+                                         case
+                                           (constr 0
+                                              [ ds
+                                              , (\ds ds ds ds -> ds)
+                                              , (\void -> error) ])
+                                           [`$mTxOut`]))
                                    (\scrut
                                      cont
                                      fail ->
                                       (\l ->
                                          (\l ->
                                             (\l ->
-                                               cont
-                                                 (force headList l)
-                                                 (unMapData (force headList l))
-                                                 (force headList l)
-                                                 (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                    unBData
-                                                    (force headList
-                                                       (force tailList l))))
+                                               case
+                                                 (constr 0
+                                                    [ (force headList l)
+                                                    , (unMapData
+                                                         (force headList l))
+                                                    , (force headList l)
+                                                    , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                         unBData
+                                                         (force headList
+                                                            (force tailList
+                                                               l))) ])
+                                                 [cont])
                                               (force tailList l))
                                            (force tailList l))
                                         (case
@@ -1413,33 +1468,38 @@
                                               (unConstrData ds)
                                               [(\l r -> r)])))))
                              (\ds k ->
-                                `$mTxInfo`
-                                  ds
-                                  (\ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds
-                                    ds ->
-                                     case
-                                       (find
-                                          unBData
-                                          (\y -> equalsByteString k y)
-                                          ds)
-                                       [(\ds -> True), False])
-                                  (\void ->
-                                     (\defaultBody -> case error [defaultBody])
-                                       error)))
+                                case
+                                  (constr 0
+                                     [ ds
+                                     , (\ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds
+                                         ds ->
+                                          case
+                                            (case
+                                               (constr 0
+                                                  [ unBData
+                                                  , (\y -> equalsByteString k y)
+                                                  , ds ])
+                                               [find])
+                                            [(\ds -> True), False])
+                                     , (\void ->
+                                          (\defaultBody ->
+                                             case error [defaultBody])
+                                            error) ])
+                                  [`$mTxInfo`]))
                           (\scrut
                             cont
                             fail ->
@@ -1458,74 +1518,76 @@
                                                                  (\l ->
                                                                     (\l ->
                                                                        (\l ->
-                                                                          cont
-                                                                            (unListData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unListData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unListData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unIData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unMapData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unListData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unMapData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (force
-                                                                               headList
-                                                                               l)
-                                                                            (unListData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unMapData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unMapData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unBData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unMapData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (unListData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                               unIData
-                                                                               (force
-                                                                                  headList
-                                                                                  l))
-                                                                            (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                                                                               unIData
-                                                                               (force
-                                                                                  headList
-                                                                                  (force
-                                                                                     tailList
-                                                                                     l))))
+                                                                          case
+                                                                            (constr 0
+                                                                               [ (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unIData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (force
+                                                                                    headList
+                                                                                    l)
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unBData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unMapData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (unListData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                    unIData
+                                                                                    (force
+                                                                                       headList
+                                                                                       l))
+                                                                               , (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                                                    unIData
+                                                                                    (force
+                                                                                       headList
+                                                                                       (force
+                                                                                          tailList
+                                                                                          l))) ])
+                                                                            [ cont ])
                                                                          (force
                                                                             tailList
                                                                             l))

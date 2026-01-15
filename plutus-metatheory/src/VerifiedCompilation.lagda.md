@@ -82,6 +82,8 @@ data Transformation : SimplifierTag → Relation where
   isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
   -- FIXME: Inline currently rejects some valid translations so is disabled.
   inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
+  -- FIXME: implement CaseApply transformation.
+  caseApplyNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.caseApplyT ast ast'
   isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
   forceCaseDelayNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
@@ -111,6 +113,7 @@ isTransformation? tag ast ast' | SimplifierTag.caseReduceT with UCR.isCaseReduce
 ... | ce ¬p t b a = ce (λ { (isCaseReduce x) → ¬p x}) t b a
 ... | proof p = proof (isCaseReduce p)
 isTransformation? tag ast ast' | SimplifierTag.inlineT = proof inlineNotImplemented
+isTransformation? tag ast ast' | SimplifierTag.caseApplyT = proof caseApplyNotImplemented
 isTransformation? tag ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
 ... | proof p = proof (isCSE p)
