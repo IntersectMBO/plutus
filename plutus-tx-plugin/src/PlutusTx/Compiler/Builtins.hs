@@ -230,6 +230,7 @@ builtinNames =
   , 'Builtins.tail
   , 'Builtins.chooseList
   , 'Builtins.caseList'
+  , 'Builtins.unsafeCaseList
   , 'Builtins.mkNilData
   , 'Builtins.mkNilPairData
   , 'Builtins.mkCons
@@ -464,6 +465,54 @@ defineBuiltinTerms = do
                 PIR.lamAbs () p pairTy $
                   PIR.lamAbs () f contTy $
                     PIR.kase () (PLC.TyVar () r) (PIR.Var () p) [PIR.Var () f]
+
+  defineBuiltinTerm annMayInline 'Builtins.unsafeCaseList $ case datatypeStyle of
+    style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
+      -- > /\a r ->
+      -- >   \(f : a -> list a -> r) (xs : list a) ->
+      -- >     f (headList {a} xs) (tailList {a} xs)
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        r <- freshTyName "r"
+        xs <- freshName "xs"
+        f <- freshName "f"
+        let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
+            funAtXs headOrTail =
+              PIR.apply
+                ()
+                (PIR.tyInst () (PIR.builtin () headOrTail) $ PLC.TyVar () a)
+                (PIR.var () xs)
+        return
+          . PIR.tyAbs () a (PLC.Type ())
+          . PIR.tyAbs () r (PLC.Type ())
+          . PIR.lamAbs
+            ()
+            f
+            (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r)
+          . PIR.lamAbs () xs listA
+          $ PIR.mkIterAppNoAnn
+            (PIR.var () f)
+            [funAtXs PLC.HeadList, funAtXs PLC.TailList]
+    _BuiltinCasing ->
+      -- > /\a r ->
+      -- >   \(f : a -> list a -> r) (xs : list a) ->
+      -- >     (case r xs f)
+      fmap (const annMayInline) . runQuote $ do
+        a <- freshTyName "a"
+        r <- freshTyName "r"
+        xs <- freshName "xs"
+        f <- freshName "f"
+        let listA = PLC.TyApp () (PLC.mkTyBuiltin @_ @[] ()) $ PLC.TyVar () a
+        return $
+          PIR.tyAbs () a (PLC.Type ()) $
+            PIR.tyAbs () r (PLC.Type ()) $
+              PIR.lamAbs () f (PLC.TyFun () (PLC.TyVar () a) . PLC.TyFun () listA $ PLC.TyVar () r) $
+                PIR.lamAbs () xs listA $
+                  PIR.kase
+                    ()
+                    (PLC.TyVar () r)
+                    (PIR.var () xs)
+                    [PIR.var () f]
 
   defineBuiltinTerm annMayInline 'Builtins.caseList' $ case datatypeStyle of
     style | style == PIR.ScottEncoding || style == PIR.SumsOfProducts ->
