@@ -1,0 +1,6 @@
+test:1:69:
+  |
+1 | (program 1.1.0 [(builtin addInteger) (con integer 1) (con integer 2))
+  |                                                                     ^
+unexpected ')'
+expecting '`', closing bracket ']', opening bracket '[', or opening parenthesis '('
