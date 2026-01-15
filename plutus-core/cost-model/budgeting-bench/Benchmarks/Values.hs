@@ -123,75 +123,96 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
         reduce clustering at small sizes
      3. Select entries FROM container (maintain subset relationship)
      4. Include deepest entry to force maximum BST traversal
-     5. Add sparse above-diagonal cases (1-2%) for geometry diversity
+     5. Add true above-diagonal samples where contained size > container size
+
+     NOTE: Two different "diagonal" concepts:
+     - Value structure diagonal: numPolicies vs tokensPerPolicy (map shape)
+     - Costing diagonal: container totalSize vs contained totalSize
+       (used by const_above_diagonal cost model)
 
      Size calculation: containerSize = tokensPerPolicy + (numPolicies - 1)
      Max size: 1024 + 1023 = 2047 (symmetric with LookupCoin range)
 
-     Grid: 10×10 power-of-2, below-diagonal (55) + 2 above-diagonal (57 total)
+     Grid: 10×10 power-of-2 below-diagonal (55 combos)
      Samples per container: 10 evenly distributed contained sizes
-     Total points: ~570
+     Above-diagonal: 3 independent (container, contained) pairs
+     Total points: ~553
   -}
 
   let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]]
 
-      -- Below-diagonal: numPolicies >= tokensPerPolicy
+      -- Value structure combinations: numPolicies >= tokensPerPolicy
       -- Focuses on typical case (more policies than tokens per policy)
       -- Reduces clustering at small sizes (55 of 100 combinations)
-      belowDiagonalCombos = [(p, t) | p <- containerSizes, t <- containerSizes, p >= t]
+      structureCombos = [(p, t) | p <- containerSizes, t <- containerSizes, p >= t]
 
-      -- Above-diagonal: sparse sampling for geometry diversity
-      -- Tests small numPolicies with large tokensPerPolicy (1-2% of grid)
-      aboveDiagonalCombos = [(2, 1024), (4, 512)]
+  -- Below-diagonal samples: contained is subset of container
+  belowDiagonalSamples <-
+    concat
+      <$> sequence
+        [ do
+            (container, maxPolicyId, deepestToken) <-
+              generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
 
-      allCombinations = belowDiagonalCombos ++ aboveDiagonalCombos
+            let allEntries = Value.toFlatList container
+                totalEntries = length allEntries
+                worstCaseEntry = find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
 
-  concat
-    <$> sequence
+            -- Generate evenly distributed contained sizes
+            let maxContainedSize = totalEntries
+                numSamples = 10
+                containedSizes =
+                  if totalEntries < numSamples
+                    then [1 .. totalEntries]
+                    else
+                      let step = maxContainedSize `div` numSamples
+                       in [i * step | i <- [1 .. numSamples], i * step > 0]
+                            ++ [ maxContainedSize
+                               | maxContainedSize `notElem` [i * step | i <- [1 .. numSamples]]
+                               ]
+
+            pure
+              [ let
+                  selectedEntries =
+                    case worstCaseEntry of
+                      Nothing -> take containedSize allEntries
+                      Just worst ->
+                        let allEntriesWithoutWorst = filter (/= worst) allEntries
+                            numOthers = min (containedSize - 1) (totalEntries - 1)
+                            others = take numOthers allEntriesWithoutWorst
+                         in others ++ [worst]
+
+                  contained =
+                    unsafeFromBuiltinResult $
+                      Value.fromList
+                        [ (policyId, [(tokenName, quantity)])
+                        | (policyId, tokenName, quantity) <- selectedEntries
+                        ]
+                 in
+                  (container, contained)
+              | containedSize <- containedSizes
+              ]
+        | (numPolicies, tokensPerPolicy) <- structureCombos
+        ]
+
+  -- Above-diagonal samples: contained size > container size
+  -- Tests constant-cost early-exit path (containment impossible)
+  aboveDiagonalSamples <-
+    sequence
       [ do
-          (container, maxPolicyId, deepestToken) <-
-            generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
-
-          let allEntries = Value.toFlatList container
-              totalEntries = length allEntries
-              worstCaseEntry = find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
-
-          -- Generate evenly distributed contained sizes
-          let maxContainedSize = totalEntries
-              numSamples = 10
-              containedSizes =
-                if totalEntries < numSamples
-                  then [1 .. totalEntries]
-                  else
-                    let step = maxContainedSize `div` numSamples
-                     in [i * step | i <- [1 .. numSamples], i * step > 0]
-                          ++ [ maxContainedSize
-                             | maxContainedSize `notElem` [i * step | i <- [1 .. numSamples]]
-                             ]
-
-          pure
-            [ let
-                selectedEntries =
-                  case worstCaseEntry of
-                    Nothing -> take containedSize allEntries
-                    Just worst ->
-                      let allEntriesWithoutWorst = filter (/= worst) allEntries
-                          numOthers = min (containedSize - 1) (totalEntries - 1)
-                          others = take numOthers allEntriesWithoutWorst
-                       in others ++ [worst]
-
-                contained =
-                  unsafeFromBuiltinResult $
-                    Value.fromList
-                      [ (policyId, [(tokenName, quantity)])
-                      | (policyId, tokenName, quantity) <- selectedEntries
-                      ]
-               in
-                (container, contained)
-            | containedSize <- containedSizes
-            ]
-      | (numPolicies, tokensPerPolicy) <- allCombinations
+          -- Generate smaller container
+          container <- generateConstrainedValue smallP smallT g
+          -- Generate larger contained (independent, not a subset)
+          contained <- generateConstrainedValue largeP largeT g
+          pure (container, contained)
+      | (smallP, smallT, largeP, largeT) <-
+          [ (2, 5, 10, 10) -- container ~10, contained ~100
+          , (5, 10, 20, 20) -- container ~50, contained ~400
+          , (10, 10, 50, 20) -- container ~100, contained ~1000
+          ]
       ]
+
+  pure (belowDiagonalSamples ++ aboveDiagonalSamples)
 
 ----------------------------------------------------------------------------------------------------
 -- ValueData ---------------------------------------------------------------------------------------
