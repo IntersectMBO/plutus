@@ -95,7 +95,7 @@ pairWith f = fmap (\a -> (a, f a))
 
 ---------------- Creating benchmarks ----------------
 
--- Choose whether to benachmark with `whnf` or `nf`.  Note that to get sensible
+-- Choose whether to benchmark with `whnf` or `nf`.  Note that to get sensible
 -- results with 'whnf', we must use an evaluation function that looks at the
 -- result, so e.g. 'evaluateCek' won't work properly because it returns a pair
 -- whose components won't be evaluated by 'whnf'. In general we'll want to use
