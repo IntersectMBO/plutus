@@ -135,8 +135,8 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
 
      Grid: 10×10 power-of-2 below-diagonal (55 combos)
      Samples per container: 10 evenly distributed contained sizes
-     Above-diagonal: 3 independent (container, contained) pairs
-     Total points: ~553
+     Above-diagonal: 20 independent (container, contained) pairs
+     Total points: ~570
   -}
 
   let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]]
@@ -197,6 +197,7 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
 
   -- Above-diagonal samples: contained size > container size
   -- Tests constant-cost early-exit path (containment impossible)
+  -- 20 samples with varied container/contained size ratios
   aboveDiagonalSamples <-
     sequence
       [ do
@@ -206,9 +207,30 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
           contained <- generateConstrainedValue largeP largeT g
           pure (container, contained)
       | (smallP, smallT, largeP, largeT) <-
-          [ (2, 5, 10, 10) -- container ~10, contained ~100
+          -- Small containers with various larger contained sizes
+          [ (2, 2, 4, 4) -- container ~4, contained ~16
+          , (2, 3, 8, 8) -- container ~6, contained ~64
+          , (2, 5, 10, 10) -- container ~10, contained ~100
+          , (3, 3, 10, 10) -- container ~9, contained ~100
+          , (4, 4, 16, 16) -- container ~16, contained ~256
+          -- Medium containers with larger contained sizes
+          , (5, 5, 20, 20) -- container ~25, contained ~400
           , (5, 10, 20, 20) -- container ~50, contained ~400
+          , (8, 8, 32, 32) -- container ~64, contained ~1024
+          , (10, 5, 30, 30) -- container ~50, contained ~900
+          , (10, 10, 40, 40) -- container ~100, contained ~1600
+          -- Larger containers with much larger contained sizes
           , (10, 10, 50, 20) -- container ~100, contained ~1000
+          , (15, 10, 50, 50) -- container ~150, contained ~2500
+          , (20, 10, 60, 60) -- container ~200, contained ~3600
+          , (20, 20, 80, 80) -- container ~400, contained ~6400
+          , (30, 15, 100, 50) -- container ~450, contained ~5000
+          -- Very large containers with extreme contained sizes
+          , (40, 20, 120, 80) -- container ~800, contained ~9600
+          , (50, 20, 150, 100) -- container ~1000, contained ~15000
+          , (64, 16, 128, 128) -- container ~1024, contained ~16384
+          , (100, 10, 200, 100) -- container ~1000, contained ~20000
+          , (128, 8, 256, 64) -- container ~1024, contained ~16384
           ]
       ]
 
