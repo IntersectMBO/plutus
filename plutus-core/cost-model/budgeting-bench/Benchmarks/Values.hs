@@ -237,7 +237,7 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (fmap (f . Value.valueData) $ generateTestValues gen)
+    (f . Value.valueData <$> generateTestValues gen)
   where
     f (Data.Map l) = Data.Map (reverse l)
     f _ = error "NO"
