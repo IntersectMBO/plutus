@@ -384,9 +384,10 @@ valueContains v1 v2
   | negativeAmounts v2 > 0 = fail "valueContains: second value contains negative amounts"
   | totalSize v1 < totalSize v2 = BuiltinSuccess False
   -- \^ v2 is too big to be contained in v1: `isSubmapOfBy` has a similar check,
-  -- but v1 can have a larger outer map than v2 but a smaller number of total
-  -- entries, and without this check `isSubmapOfBy` would carry on and compare
-  -- the inner maps even though v2 can't fit inside v1.
+  -- but that only applies to the top-level structure of the map, so v1 can
+  -- have a larger outer map than v2 but a smaller number of total entries, and
+  -- without this check the outer call of `isSubmapOfBy` would carry on and
+  -- compare the inner maps even though v2 can't fit inside v1.
   | otherwise = BuiltinSuccess $ Map.isSubmapOfBy (Map.isSubmapOfBy (<=)) (unpack v2) (unpack v1)
 {-# INLINEABLE valueContains #-}
 
