@@ -5,10 +5,10 @@ sidebar_position: 10
 # Different Notions of Version
 
 There are several different notions of version that Cardano smart contract developers must distinguish.
-For each Plutus script that is deployed on-chain, you can determine its associated __protocol parameters__ (including __protocol version__), __ledger language version__ and __Plutus Core version__.
-These all influence which language features are available and how the script is executed.
+For each Plutus script that is deployed on-chain, its execution behavior depends on protocol version, ledger language version and Plutus Core version (as well as the [cost model](../delve-deeper/cost-model))).
+These all influence which syntax and semantics are available for UPLC scripts.
 
-The ledger language version and Plutus Core version can be chosen by the script developer, while the protocol parameters are only changed by by on-chain governance.
+The ledger language version and Plutus Core version can be chosen by the script developer, while the protocol version is only changed by on-chain governance.
 To develop for a given ledger language in Plinth, say PlutusV3, import the `PlutusLedgerApi.V3` module from the `plutus-ledger-api` package.
 To control the Plutus Core version that Plinth targets, set the `target-version` [compiler option](../delve-deeper/plinth-compiler-options).
 
@@ -56,25 +56,15 @@ See [CIP-85](https://cips.cardano.org/cip/CIP-0085) for more details.
 Note that adding new builtin functions does not require a new Plutus Core version.
 Once a new builtin function is added, one can simply start using the new builtin function with an existing Plutus Core version.
 
-## Protocol Parameters
-Protocol parameters influence the overall behaviour of the Cardano blockchain, such as validation of blocks which includes script execution.
-Each produced block includes the protocol parameters under which it was created, so that scripts in that block will always be executed in the same way, regardless of future protocol parameters.
-Two of the most important parameters that influence script exection are __protocol version__ and __cost model parameters__.
-
-Changes to protocol parameters are agreed upon by the decentralized governance model, and a change to protocol version requires a hard fork.
-For more detail, see the [Cardano Developer Portal](https://developers.cardano.org/docs/governance/cardano-governance/)
-
-### Protocol Version
-The protocol version (PV) is a protocol parameter of the form `MAJOR.MINOR`, which is the main factor for determining available features and behaviour of the chain.
-That behaviour is implemented in the node software (which includes the Plutus Core evaluator).
+## Protocol Version
+The protocol version (PV) is a protocol parameter of the form `MAJOR.MINOR`, which is the main factor for determining available features and behavior of the chain.
+That behavior is implemented in the node software (which includes the Plutus Core evaluator).
 For example, starting with PV 11, the semantics of PlutusV3 + UPLC 1.1.0 is extended with [casing on constants](../delve-deeper/casing-constants).
 This feature does not affect execution of older scripts, as the UPLC interpreter takes the associated PV into account.
 
-### Cost model parameters
-Plutus script execution is subject to an execution budget for CPU and memory usage, which influences whether a script can successfully finish execution (See [Cost Model](../delve-deeper/cost-model) for more detail).
-The cost model parameters determine how fast built-in functions consume that budget.
+Changes to protocol parameters are agreed upon by the decentralized governance model. A hard fork bumps the major part of the protocol version.
+For more detail, see the [Cardano Developer Portal](https://developers.cardano.org/docs/governance/cardano-governance/)
 
-For other protocol parameters related to costing, such as the maximum execution budget, see the [Cardano protocol parameters reference guide](https://docs.cardano.org/about-cardano/explore-more/parameter-guide).
 
 ## Builtin Semantics Variant
 
