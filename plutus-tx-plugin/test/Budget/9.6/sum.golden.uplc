@@ -1,12 +1,13 @@
 (program
    1.1.0
-   ((\`$dAdditiveMonoid` ->
+   ((\cse ->
        (\f ->
           (\z ->
              (\go eta -> go eta)
-               ((\s -> s s) (\s ds -> case ds [z, (\x xs -> f x (s s xs))])))
-            (case `$dAdditiveMonoid` [(\v v -> v)]))
-         (case `$dAdditiveMonoid` [(\v v -> v)])
+               ((\cse -> cse cse)
+                  (\s ds -> case ds [z, (\x xs -> f x (s s xs))])))
+            (case cse [(\v v -> v)]))
+         (case cse [(\v v -> v)])
          (constr 1
             [ 1
             , (constr 1

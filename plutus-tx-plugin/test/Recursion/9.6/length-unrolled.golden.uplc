@@ -1,19 +1,16 @@
 (program
    1.1.0
-   ((\s -> s s)
+   ((\cse -> cse cse)
       (\s ds ->
          case
            ds
            [ 0
            , (\ds xs ->
-                addInteger
-                  1
-                  (case
-                     xs
-                     [ 0
-                     , (\ds xs ->
-                          addInteger
-                            1
-                            (case
-                               xs
-                               [0, (\ds xs -> addInteger 1 (s s xs))])) ])) ])))
+                (\cse ->
+                   cse
+                     (case
+                        xs
+                        [ 0
+                        , (\ds xs ->
+                             cse (case xs [0, (\ds xs -> cse (s s xs))])) ]))
+                  (addInteger 1)) ])))

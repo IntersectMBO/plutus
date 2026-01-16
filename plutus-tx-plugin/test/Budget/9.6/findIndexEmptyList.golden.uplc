@@ -1,6 +1,6 @@
 (program
    1.1.0
-   ((\s -> s s)
+   ((\cse -> cse cse)
       (\s i ds ->
          case
            ds

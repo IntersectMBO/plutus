@@ -2,9 +2,17 @@
    1.1.0
    (\xs ->
       force
-        ((\f ->
-            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-              (\s -> f (\x -> s s x)))
+        ((\cse ->
+            cse
+              (\x ->
+                 cse
+                   (\x ->
+                      cse
+                        (\x ->
+                           (\cse -> cse (\x -> cse cse x) x)
+                             (\s -> cse (\x -> s s x)))
+                        x)
+                   x))
            (\go arg ->
               delay
                 (\l xs ->
@@ -13,28 +21,28 @@
                      [ (\y ys ->
                           case
                             (force
-                               ((\f ->
-                                   (\s ->
-                                      f
-                                        (\x ->
-                                           f
-                                             (\x ->
-                                                f (\x -> f (\x -> s s x) x) x)
-                                             x))
-                                     (\s -> f (\x -> s s x)))
+                               ((\cse ->
+                                   cse
+                                     (\x ->
+                                        cse
+                                          (\x ->
+                                             cse
+                                               (\x ->
+                                                  (\cse ->
+                                                     cse (\x -> cse cse x) x)
+                                                    (\s -> cse (\x -> s s x)))
+                                               x)
+                                          x))
                                   (\go arg ->
                                      delay
-                                       (\xs ->
-                                          case
-                                            xs
-                                            [ (\x xs ->
-                                                 case
-                                                   (lessThanEqualsInteger x y)
-                                                   [ (force
-                                                        (go (delay (\x -> x)))
-                                                        xs)
-                                                   , True ])
-                                            , False ]))
+                                       ((\z f xs -> case xs [f, z])
+                                          False
+                                          (\x xs ->
+                                             case
+                                               (lessThanEqualsInteger x y)
+                                               [ (force (go (delay (\x -> x)))
+                                                    xs)
+                                               , True ])))
                                   (delay (\x -> x)))
                                xs)
                             [ ((\cse ->

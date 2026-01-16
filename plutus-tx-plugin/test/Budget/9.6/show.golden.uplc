@@ -3,75 +3,73 @@
    ((\go ->
        (\go ->
           (\`$fShowBuiltinByteString_$cshowsPrec` ->
-             (\toHex ->
-                (\go ->
-                   (\`$dmenumFromTo_$cenumFromTo` ->
+             (\go ->
+                (\`$dmenumFromTo_$cenumFromTo` ->
+                   (\go ->
                       (\go ->
-                         (\go ->
-                            (\concatBuiltinStrings ->
-                               (\`$fShowInteger_$cshow` ->
-                                  (\`$fShowInteger` ->
-                                     (\a ->
-                                        (\b ->
-                                           (\c ->
-                                              (\d ->
-                                                 (\e ->
+                         (\concatBuiltinStrings ->
+                            (\cse ->
+                               (\cse ->
+                                  (\cse ->
+                                     (\cse ->
+                                        (\cse ->
+                                           (\cse ->
+                                              (\cse ->
+                                                 (\cse ->
                                                     multiplyInteger
                                                       2
-                                                      (force
-                                                         trace
+                                                      (cse
                                                          (concatBuiltinStrings
                                                             (constr 1
                                                                [ "("
                                                                , (case
-                                                                    `$fShowInteger`
+                                                                    cse
                                                                     [ (\v v ->
                                                                          v) ]
                                                                     0
-                                                                    a
+                                                                    cse
                                                                     (constr 1
                                                                        [ ","
                                                                        , (case
-                                                                            `$fShowInteger`
+                                                                            cse
                                                                             [ (\v
                                                                                 v ->
                                                                                  v) ]
                                                                             0
-                                                                            b
+                                                                            cse
                                                                             (constr 1
                                                                                [ ","
                                                                                , (case
-                                                                                    `$fShowInteger`
+                                                                                    cse
                                                                                     [ (\v
                                                                                         v ->
                                                                                          v) ]
                                                                                     0
-                                                                                    c
+                                                                                    cse
                                                                                     (constr 1
                                                                                        [ ","
                                                                                        , (case
-                                                                                            `$fShowInteger`
+                                                                                            cse
                                                                                             [ (\v
                                                                                                 v ->
                                                                                                  v) ]
                                                                                             0
-                                                                                            d
+                                                                                            cse
                                                                                             (constr 1
                                                                                                [ ","
                                                                                                , (case
-                                                                                                    `$fShowInteger`
+                                                                                                    cse
                                                                                                     [ (\v
                                                                                                         v ->
                                                                                                          v) ]
                                                                                                     0
-                                                                                                    e
+                                                                                                    cse
                                                                                                     (constr 1
                                                                                                        [ ")"
                                                                                                        , (constr 0
                                                                                                             [  ]) ])) ])) ])) ])) ])) ]))
-                                                         e))
-                                                   (force
-                                                      trace
+                                                         cse))
+                                                   (cse
                                                       (concatBuiltinStrings
                                                          ((\showElem ->
                                                              (\go
@@ -79,21 +77,21 @@
                                                                 constr 1
                                                                   [ "["
                                                                   , (showElem
-                                                                       a
+                                                                       cse
                                                                        (go
                                                                           (constr 1
-                                                                             [ b
+                                                                             [ cse
                                                                              , (constr 1
-                                                                                  [ c
+                                                                                  [ cse
                                                                                   , (constr 1
-                                                                                       [ d
+                                                                                       [ cse
                                                                                        , (constr 0
                                                                                             [  ]) ]) ]) ])
                                                                           (constr 1
                                                                              [ "]"
                                                                              , eta ]))) ])
-                                                               ((\s ->
-                                                                   s s)
+                                                               ((\cse ->
+                                                                   cse cse)
                                                                   (\s
                                                                     ds ->
                                                                      case
@@ -114,151 +112,170 @@
                                                                                  s
                                                                                  xs)) ])))
                                                             (case
-                                                               `$fShowInteger`
+                                                               cse
                                                                [(\v v -> v)]
                                                                0)
                                                             (constr 0 [])))
-                                                      d))
-                                                (force trace
+                                                      cse))
+                                                (cse
                                                    (case
                                                       (lessThanEqualsInteger
-                                                         c
+                                                         cse
                                                          0)
                                                       ["True", "False"])
-                                                   c))
-                                             (force
-                                                trace
-                                                (concatBuiltinStrings
-                                                   (go
-                                                      (`$dmenumFromTo_$cenumFromTo`
-                                                         0
-                                                         17)
-                                                      (constr 0 [])))
-                                                b))
-                                          (force trace "This is an example" a))
-                                       (force trace
-                                          (`$fShowInteger_$cshow` -1234567890)
-                                          -1234567890))
-                                    (constr 0
-                                       [ `$fShowBuiltinByteString_$cshowsPrec`
-                                       , `$fShowInteger_$cshow` ]))
+                                                   cse))
+                                             (constr 0
+                                                [ `$fShowBuiltinByteString_$cshowsPrec`
+                                                , cse ]))
+                                          (cse
+                                             (concatBuiltinStrings
+                                                (go
+                                                   (`$dmenumFromTo_$cenumFromTo`
+                                                      0
+                                                      17)
+                                                   (constr 0 [])))
+                                             cse))
+                                       (cse "This is an example" cse))
+                                    (cse (cse -1234567890) -1234567890))
                                  (\x ->
                                     concatBuiltinStrings
                                       (`$fShowBuiltinByteString_$cshowsPrec`
                                          0
                                          x
                                          (constr 0 []))))
-                              ((\s -> s s)
-                                 (\s ds ->
-                                    case
-                                      ds
-                                      [ ""
-                                      , (\x ds ->
-                                           case
-                                             ds
-                                             [ x
-                                             , (\ipv ipv ->
-                                                  case
-                                                    ((\n ->
-                                                        case
-                                                          (lessThanEqualsInteger
-                                                             n
-                                                             0)
-                                                          [ (go n ds)
-                                                          , (constr 0
-                                                               [ (constr 0 [])
-                                                               , ds ]) ])
-                                                       (divideInteger
-                                                          (go ds)
-                                                          2))
-                                                    [ (\ipv ipv ->
-                                                         (\cse ->
-                                                            appendString
-                                                              (cse ipv)
-                                                              (cse ipv))
-                                                           (s s)) ]) ]) ])))
-                           ((\s -> s s)
+                              (force trace))
+                           ((\cse -> cse cse)
                               (\s ds ->
                                  case
                                    ds
-                                   [0, (\ds xs -> addInteger 1 (s s xs))])))
-                        ((\s -> s s)
-                           (\s ds ds ->
-                              case
-                                ds
-                                [ (constr 0 [(constr 0 []), (constr 0 [])])
-                                , (\y ys ->
-                                     case
-                                       (equalsInteger 1 ds)
-                                       [ (case
-                                            ((\x -> s s x)
-                                               (subtractInteger ds 1)
-                                               ys)
-                                            [ (\zs ws ->
-                                                 constr 0
-                                                   [(constr 1 [y, zs]), ws]) ])
-                                       , (constr 0
-                                            [ (constr 1 [y, (constr 0 [])])
-                                            , ys ]) ]) ])))
-                     ((\s -> s s)
-                        (\s x lim ->
+                                   [ ""
+                                   , (\x ds ->
+                                        case
+                                          ds
+                                          [ x
+                                          , (\ipv ipv ->
+                                               case
+                                                 ((\cse ->
+                                                     case
+                                                       (lessThanEqualsInteger
+                                                          cse
+                                                          0)
+                                                       [ (go cse ds)
+                                                       , (constr 0
+                                                            [ (constr 0 [])
+                                                            , ds ]) ])
+                                                    (divideInteger (go ds) 2))
+                                                 [ (\ipv ipv ->
+                                                      (\cse ->
+                                                         appendString
+                                                           (cse ipv)
+                                                           (cse ipv))
+                                                        (s s)) ]) ]) ])))
+                        ((\cse -> cse cse)
+                           (\s ds ->
+                              case ds [0, (\ds xs -> addInteger 1 (s s xs))])))
+                     ((\cse -> cse cse)
+                        (\s ds ds ->
                            case
-                             (lessThanEqualsInteger x lim)
-                             [ (constr 0 [])
-                             , (constr 1
-                                  [ x
-                                  , ((\x -> s s x) (addInteger 1 x) lim) ]) ])))
-                  ((\s -> s s)
-                     (\s ds ->
+                             ds
+                             [ (constr 0 [(constr 0 []), (constr 0 [])])
+                             , (\y ys ->
+                                  case
+                                    (equalsInteger 1 ds)
+                                    [ (case
+                                         ((\x -> s s x)
+                                            (subtractInteger ds 1)
+                                            ys)
+                                         [ (\zs ws ->
+                                              constr 0
+                                                [(constr 1 [y, zs]), ws]) ])
+                                    , (constr 0
+                                         [ (constr 1 [y, (constr 0 [])])
+                                         , ys ]) ]) ])))
+                  ((\cse -> cse cse)
+                     (\s x lim ->
                         case
-                          ds
-                          [ (\x -> x)
-                          , (\x xs ->
-                               (\acc eta ->
-                                  (\x eta ->
-                                     toHex
-                                       (divideInteger x 16)
-                                       (toHex (modInteger x 16) eta))
-                                    (indexByteString
-                                       #5468697320697320616e206578616d706c65
-                                       x)
-                                    (acc eta))
-                                 (s s xs)) ])))
-               (\x ->
-                  case
-                    (lessThanEqualsInteger x 9)
-                    [ (case
-                         (equalsInteger 10 x)
-                         [ (case
-                              (equalsInteger 11 x)
-                              [ (case
-                                   (equalsInteger 12 x)
-                                   [ (case
-                                        (equalsInteger 13 x)
-                                        [ (case
-                                             (equalsInteger 14 x)
-                                             [ (case
-                                                  (equalsInteger 15 x)
-                                                  [ (\ds ->
-                                                       constr 1
-                                                         ["<invalid byte>", ds])
-                                                  , (\ds ->
-                                                       constr 1 ["f", ds]) ])
-                                             , (\ds -> constr 1 ["e", ds]) ])
-                                        , (\ds -> constr 1 ["d", ds]) ])
-                                   , (\ds -> constr 1 ["c", ds]) ])
-                              , (\ds -> constr 1 ["b", ds]) ])
-                         , (\ds -> constr 1 ["a", ds]) ])
-                    , (`$fShowBuiltinByteString_$cshowsPrec` 0 x) ]))
-            ((\s -> s s)
+                          (lessThanEqualsInteger x lim)
+                          [ (constr 0 [])
+                          , (constr 1
+                               [x, ((\x -> s s x) (addInteger 1 x) lim)]) ])))
+               ((\cse ->
+                   cse cse)
+                  (\s
+                    ds ->
+                     case
+                       ds
+                       [ (\x -> x)
+                       , (\x
+                           xs ->
+                            (\acc
+                              eta ->
+                               (\eta ->
+                                  (\cse ->
+                                     (\cse ->
+                                        cse
+                                          (divideInteger cse 16)
+                                          (cse (modInteger cse 16) eta))
+                                       (indexByteString
+                                          #5468697320697320616e206578616d706c65
+                                          x))
+                                    (\x ->
+                                       case
+                                         (lessThanEqualsInteger x 9)
+                                         [ (case
+                                              (equalsInteger 10 x)
+                                              [ (case
+                                                   (equalsInteger 11 x)
+                                                   [ (case
+                                                        (equalsInteger 12 x)
+                                                        [ (case
+                                                             (equalsInteger
+                                                                13
+                                                                x)
+                                                             [ (case
+                                                                  (equalsInteger
+                                                                     14
+                                                                     x)
+                                                                  [ (case
+                                                                       (equalsInteger
+                                                                          15
+                                                                          x)
+                                                                       [ (\ds ->
+                                                                            constr 1
+                                                                              [ "<invalid byte>"
+                                                                              , ds ])
+                                                                       , (\ds ->
+                                                                            constr 1
+                                                                              [ "f"
+                                                                              , ds ]) ])
+                                                                  , (\ds ->
+                                                                       constr 1
+                                                                         [ "e"
+                                                                         , ds ]) ])
+                                                             , (\ds ->
+                                                                  constr 1
+                                                                    [ "d"
+                                                                    , ds ]) ])
+                                                        , (\ds ->
+                                                             constr 1
+                                                               ["c", ds]) ])
+                                                   , (\ds ->
+                                                        constr 1 ["b", ds]) ])
+                                              , (\ds -> constr 1 ["a", ds]) ])
+                                         , (`$fShowBuiltinByteString_$cshowsPrec`
+                                              0
+                                              x) ]))
+                                 (acc eta))
+                              (s s xs)) ])))
+            ((\cse -> cse cse)
                (\s p n ->
                   case
                     (lessThanInteger n 0)
                     [ (go (go (constr 0 []) n))
                     , (\eta ->
                          constr 1 ["-", (s s p (subtractInteger 0 n) eta)]) ])))
-         ((\s ->
-             s s)
+         ((\cse ->
+             cse cse)
             (\s
               ds ->
                case
@@ -310,11 +327,11 @@
                                 , "0" ])
                            , (acc eta) ])
                         (s s xs)) ])))
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s acc n ->
-            (\x ->
+            (\cse ->
                case
-                 (equalsInteger 0 x)
-                 [ ((\x -> s s x) (constr 1 [(remainderInteger n 10), acc]) x)
+                 (equalsInteger 0 cse)
+                 [ ((\x -> s s x) (constr 1 [(remainderInteger n 10), acc]) cse)
                  , (constr 1 [(remainderInteger n 10), acc]) ])
               (quotientInteger n 10)))))

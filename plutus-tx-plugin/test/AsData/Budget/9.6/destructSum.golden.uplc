@@ -8,43 +8,49 @@
                 (equalsInteger 1 (case cse [(\l r -> l)]))
                 [ (case
                      (equalsInteger 2 (case cse [(\l r -> l)]))
-                     [ ((\cse -> case cse [cse]) error)
-                     , ((\l ->
-                           (\`$mInts` ->
-                              `$mInts`
-                                (force headList l)
-                                (\x y z w ->
-                                   `$mInts`
-                                     (force headList (force tailList l))
-                                     (\x y z w ->
-                                        constrData
-                                          0
-                                          (force mkCons
-                                             (iData (addInteger x x))
-                                             (force mkCons
-                                                (iData (addInteger y y))
-                                                (force mkCons
-                                                   (iData (addInteger z z))
-                                                   (force mkCons
-                                                      (iData (addInteger w w))
-                                                      [])))))
-                                     (\void -> (\cse -> case cse [cse]) error)))
+                     [ (case error [error])
+                     , ((\cse ->
+                           (\cse ->
+                              (\cse ->
+                                 cse
+                                   (cse cse)
+                                   (\x y z w ->
+                                      cse
+                                        (cse (force tailList cse))
+                                        (\x y z w ->
+                                           (\cse ->
+                                              constrData
+                                                0
+                                                (cse
+                                                   (iData (addInteger x x))
+                                                   (cse
+                                                      (iData (addInteger y y))
+                                                      (cse
+                                                         (iData
+                                                            (addInteger z z))
+                                                         (cse
+                                                            (iData
+                                                               (addInteger w w))
+                                                            [])))))
+                                             (force mkCons))
+                                        (\void -> case error [error])))
+                                (case cse [(\l r -> r)]))
                              (\scrut cont fail ->
-                                (\l ->
-                                   (\l ->
-                                      (\l ->
-                                         cont
-                                           (unIData (force headList l))
-                                           (unIData (force headList l))
-                                           (unIData (force headList l))
-                                           (unIData
-                                              (force headList
-                                                 (force tailList l))))
-                                        (force tailList l))
-                                     (force tailList l))
-                                  (case (unConstrData scrut) [(\l r -> r)]))
-                             (\void -> (\cse -> case cse [cse]) error))
-                          (case cse [(\l r -> r)])) ])
+                                (\cse ->
+                                   (\cse ->
+                                      (\cse ->
+                                         (\cse ->
+                                            cont
+                                              (unIData (cse cse))
+                                              (unIData (cse cse))
+                                              (unIData (cse cse))
+                                              (unIData (cse (cse cse))))
+                                           (cse cse))
+                                        (cse cse))
+                                     (case (unConstrData scrut) [(\l r -> r)]))
+                                  (force tailList))
+                             (\void -> case error [error]))
+                          (force headList)) ])
                 , (force headList (case cse [(\l r -> r)])) ])
            , (force headList (case cse [(\l r -> r)])) ])
         (unConstrData d)))

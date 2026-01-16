@@ -1,11 +1,11 @@
 (program
    1.1.0
-   ((\s -> s s)
+   ((\cse -> cse cse)
       (\s ds ->
          case
            ds
            [True, (\x xs -> case (lessThanInteger x 0) [(s s xs), False])])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s n ->
             case
               (lessThanEqualsInteger n 0)

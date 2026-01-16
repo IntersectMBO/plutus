@@ -1,8 +1,8 @@
 (program
    1.1.0
-   ((\s -> s s)
+   ((\cse -> cse cse)
       (\s ds -> case ds [0, (\x xs -> addInteger x (s s xs))])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s x lim ->
             case
               (lessThanEqualsInteger x lim)

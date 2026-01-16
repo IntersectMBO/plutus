@@ -1,8 +1,8 @@
 (program
    1.1.0
-   ((\s -> s s)
+   ((\cse -> cse cse)
       (\s ds -> case ds [42, (\x xs -> s s xs)])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s n ->
             case
               (lessThanEqualsInteger n 0)

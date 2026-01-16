@@ -4,7 +4,7 @@
        multiplyInteger
          (multiplyInteger (factorial x) (factorial y))
          (factorial z))
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s x ->
             case
               (equalsInteger 0 x)

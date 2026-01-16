@@ -4,7 +4,7 @@
        (\recursiveAll ->
           (\ls -> force recursiveAll (\v -> lessThanEqualsInteger v 0) ls)
             (go 1000))
-         ((\s -> s s)
+         ((\cse -> cse cse)
             (\s arg ->
                delay
                  (\ds ds ->
@@ -16,7 +16,7 @@
                              (ds x)
                              [False, (force (s s (delay (\x -> x))) ds xs)]) ]))
             (delay (\x -> x))))
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s n ->
             case
               (lessThanEqualsInteger n 0)

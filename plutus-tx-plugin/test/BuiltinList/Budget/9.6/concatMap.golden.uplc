@@ -2,9 +2,17 @@
    1.1.0
    (\xss ->
       force
-        ((\f ->
-            (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-              (\s -> f (\x -> s s x)))
+        ((\cse ->
+            cse
+              (\x ->
+                 cse
+                   (\x ->
+                      cse
+                        (\x ->
+                           (\cse -> cse (\x -> cse cse x) x)
+                             (\s -> cse (\x -> s s x)))
+                        x)
+                   x))
            (\go arg ->
               delay
                 ((\cse ->
@@ -14,15 +22,18 @@
                          (\ys ->
                             (\l ->
                                force
-                                 ((\f ->
-                                     (\s ->
-                                        f
-                                          (\x ->
-                                             f
-                                               (\x ->
-                                                  f (\x -> f (\x -> s s x) x) x)
-                                               x))
-                                       (\s -> f (\x -> s s x)))
+                                 ((\cse ->
+                                     cse
+                                       (\x ->
+                                          cse
+                                            (\x ->
+                                               cse
+                                                 (\x ->
+                                                    (\cse ->
+                                                       cse (\x -> cse cse x) x)
+                                                      (\s -> cse (\x -> s s x)))
+                                                 x)
+                                            x))
                                     (\go arg ->
                                        delay
                                          (cse
@@ -35,15 +46,18 @@
                                     (delay (\x -> x)))
                                  l)
                               (force
-                                 ((\f ->
-                                     (\s ->
-                                        f
-                                          (\x ->
-                                             f
-                                               (\x ->
-                                                  f (\x -> f (\x -> s s x) x) x)
-                                               x))
-                                       (\s -> f (\x -> s s x)))
+                                 ((\cse ->
+                                     cse
+                                       (\x ->
+                                          cse
+                                            (\x ->
+                                               cse
+                                                 (\x ->
+                                                    (\cse ->
+                                                       cse (\x -> cse cse x) x)
+                                                      (\s -> cse (\x -> s s x)))
+                                                 x)
+                                            x))
                                     (\go arg ->
                                        delay
                                          (\n ->

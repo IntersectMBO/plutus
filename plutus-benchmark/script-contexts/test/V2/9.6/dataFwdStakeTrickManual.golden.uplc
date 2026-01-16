@@ -2,35 +2,41 @@
    1.1.0
    (\r_stake_cred ->
       (\lookForCred r_ctx ->
-         (\wdrl ->
-            (\wdrlAtZero ->
-               (\rest ->
-                  (\wdrlAtOne ->
-                     case
-                       (equalsData r_stake_cred wdrlAtZero)
-                       [ (case
-                            (equalsData r_stake_cred wdrlAtOne)
-                            [(lookForCred rest), (constr 0 [])])
-                       , (constr 0 []) ])
-                    (case (force headList rest) [(\l r -> l)]))
-                 (force tailList wdrl))
-              (case (force headList wdrl) [(\l r -> l)]))
-           (unMapData
-              (force headList
-                 (force tailList
-                    (force tailList
-                       (force tailList
-                          (force tailList
-                             (force tailList
-                                (force tailList
-                                   (case
-                                      (unConstrData
-                                         (force headList
-                                            (case
-                                               (unConstrData r_ctx)
-                                               [(\l r -> r)])))
-                                      [(\l r -> r)]))))))))))
-        ((\s -> s s)
+         (\cse ->
+            (\cse ->
+               (\cse ->
+                  (\wdrlAtZero ->
+                     (\cse ->
+                        (\wdrlAtOne ->
+                           (\cse ->
+                              case
+                                (cse wdrlAtZero)
+                                [ (case
+                                     (cse wdrlAtOne)
+                                     [(lookForCred cse), (constr 0 [])])
+                                , (constr 0 []) ])
+                             (equalsData r_stake_cred))
+                          (case (cse cse) [(\l r -> l)]))
+                       (cse cse))
+                    (case (cse cse) [(\l r -> l)]))
+                 (unMapData
+                    (cse
+                       (cse
+                          (cse
+                             (cse
+                                (cse
+                                   (cse
+                                      (cse
+                                         (case
+                                            (unConstrData
+                                               (cse
+                                                  (case
+                                                     (unConstrData r_ctx)
+                                                     [(\l r -> r)])))
+                                            [(\l r -> r)]))))))))))
+              (force headList))
+           (force tailList))
+        ((\cse -> cse cse)
            (\s l ->
               case
                 l

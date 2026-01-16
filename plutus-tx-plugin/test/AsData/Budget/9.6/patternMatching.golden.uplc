@@ -1,30 +1,44 @@
 (program
    1.1.0
    (\d ->
-      (\l ->
-         (\l ->
-            (\l ->
-               (\x ->
-                  (\y ->
-                     (\z ->
-                        (\w ->
-                           addInteger
-                             (addInteger
-                                (addInteger (addInteger (addInteger x y) z) w)
-                                (case
-                                   (lessThanInteger
-                                      (addInteger y z)
-                                      (addInteger x w))
-                                   [(addInteger y w), (addInteger x z)]))
-                             (case
-                                (lessThanInteger
-                                   (addInteger z y)
-                                   (addInteger w x))
-                                [(addInteger w y), (addInteger z x)]))
-                          (unIData (force headList (force tailList l))))
-                       (unIData (force headList l)))
-                    (unIData (force headList l)))
-                 (unIData (force headList l)))
-              (force tailList l))
-           (force tailList l))
-        (case (unConstrData d) [(\l r -> r)])))
+      (\cse ->
+         (\cse ->
+            (\cse ->
+               (\cse ->
+                  (\cse ->
+                     (\cse ->
+                        (\cse ->
+                           (\cse ->
+                              (\cse ->
+                                 (\cse ->
+                                    (\cse ->
+                                       (\cse ->
+                                          (\cse ->
+                                             addInteger
+                                               (addInteger
+                                                  (addInteger
+                                                     (addInteger (cse cse) cse)
+                                                     cse)
+                                                  (case
+                                                     (lessThanInteger
+                                                        (cse cse)
+                                                        (cse cse))
+                                                     [(cse cse), (cse cse)]))
+                                               (case
+                                                  (lessThanInteger
+                                                     (cse cse)
+                                                     (cse cse))
+                                                  [(cse cse), (cse cse)]))
+                                            (addInteger cse))
+                                         (addInteger cse))
+                                      (addInteger cse))
+                                   (addInteger cse))
+                                (unIData (cse cse)))
+                             (unIData (cse (cse cse))))
+                          (cse cse))
+                       (unIData (cse cse)))
+                    (unIData (cse cse)))
+                 (force headList))
+              (cse cse))
+           (case (unConstrData d) [(\l r -> r)]))
+        (force tailList)))

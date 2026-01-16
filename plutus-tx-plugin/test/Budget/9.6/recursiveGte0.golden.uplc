@@ -7,7 +7,7 @@
                (\v -> case (lessThanInteger v 0) [True, False])
                ls)
             (go 1000))
-         ((\s -> s s)
+         ((\cse -> cse cse)
             (\s arg ->
                delay
                  (\ds ds ->
@@ -19,7 +19,7 @@
                              (ds x)
                              [False, (force (s s (delay (\x -> x))) ds xs)]) ]))
             (delay (\x -> x))))
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s n ->
             case
               (lessThanEqualsInteger n 0)

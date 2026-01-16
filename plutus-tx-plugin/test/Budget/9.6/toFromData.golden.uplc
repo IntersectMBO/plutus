@@ -1,82 +1,83 @@
 (program
    1.1.0
-   (case
-      (unConstrData
-         (constrData
-            1
-            (force mkCons
+   ((\cse ->
+       (\cse ->
+          case
+            (unConstrData
                (constrData
-                  0
-                  (force mkCons
-                     (constrData
-                        0
-                        (force mkCons
-                           (Constr 1 [])
-                           (force mkCons
-                              (iData 1)
-                              (force mkCons (Constr 0 []) []))))
-                     []))
-               [])))
-      [ (\index
-          args ->
-           case
-             index
-             [ (\ds -> constr 0 [(unIData (force headList ds))])
-             , (\ds ->
-                  constr 1
-                    [ (case
-                         (unConstrData (force headList ds))
-                         [ (\index
-                             args ->
-                              case
-                                index
-                                [ (\ds ->
-                                     constr 0
-                                       [ (case
-                                            (unConstrData (force headList ds))
-                                            [ (\index
-                                                args ->
-                                                 case
-                                                   index
-                                                   [ (\ds ->
-                                                        (\l ->
-                                                           constr 0
-                                                             [ (case
-                                                                  (unConstrData
-                                                                     (force
-                                                                        headList
-                                                                        ds))
-                                                                  [ (\index
-                                                                      args ->
-                                                                       case
-                                                                         index
-                                                                         [ (\ds ->
-                                                                              False)
-                                                                         , (\ds ->
-                                                                              True) ]
-                                                                         args) ])
-                                                             , (unIData
-                                                                  (force
-                                                                     headList
-                                                                     l))
-                                                             , (case
-                                                                  (unConstrData
-                                                                     (force
-                                                                        headList
-                                                                        (force
-                                                                           tailList
-                                                                           l)))
-                                                                  [ (\index
-                                                                      args ->
-                                                                       case
-                                                                         index
-                                                                         [ (\ds ->
-                                                                              False)
-                                                                         , (\ds ->
-                                                                              True) ]
-                                                                         args) ]) ])
-                                                          (force tailList ds)) ]
-                                                   args) ]) ])
-                                , (\ds -> constr 1 []) ]
-                                args) ]) ]) ]
-             args) ]))
+                  1
+                  (cse
+                     (cse
+                        (cse
+                           (cse
+                              (cse
+                                 (Constr 1 [])
+                                 (cse (iData 1) (cse (Constr 0 []) []))))
+                           []))
+                     [])))
+            [ (\index
+                args ->
+                 case
+                   index
+                   [ (\ds -> constr 0 [(unIData (force headList ds))])
+                   , (\ds ->
+                        (\cse ->
+                           constr 1
+                             [ (case
+                                  (unConstrData (cse ds))
+                                  [ (\index
+                                      args ->
+                                       case
+                                         index
+                                         [ (\ds ->
+                                              constr 0
+                                                [ (case
+                                                     (unConstrData (cse ds))
+                                                     [ (\index
+                                                         args ->
+                                                          case
+                                                            index
+                                                            [ (\ds ->
+                                                                 (\cse ->
+                                                                    (\cse ->
+                                                                       constr 0
+                                                                         [ (case
+                                                                              (unConstrData
+                                                                                 (cse
+                                                                                    ds))
+                                                                              [ (\index
+                                                                                  args ->
+                                                                                   case
+                                                                                     index
+                                                                                     [ (\ds ->
+                                                                                          False)
+                                                                                     , (\ds ->
+                                                                                          True) ]
+                                                                                     args) ])
+                                                                         , (unIData
+                                                                              (cse
+                                                                                 cse))
+                                                                         , (case
+                                                                              (unConstrData
+                                                                                 (cse
+                                                                                    (cse
+                                                                                       cse)))
+                                                                              [ (\index
+                                                                                  args ->
+                                                                                   case
+                                                                                     index
+                                                                                     [ (\ds ->
+                                                                                          False)
+                                                                                     , (\ds ->
+                                                                                          True) ]
+                                                                                     args) ]) ])
+                                                                      (cse ds))
+                                                                   (force
+                                                                      tailList)) ]
+                                                            args) ]) ])
+                                         , (\ds -> constr 1 []) ]
+                                         args) ]) ])
+                          (force headList)) ]
+                   args) ])
+         (force mkCons))
+      (constrData 0)))

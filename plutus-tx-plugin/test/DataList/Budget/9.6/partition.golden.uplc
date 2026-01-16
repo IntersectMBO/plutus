@@ -1,7 +1,7 @@
 (program
    1.1.0
    (\l ->
-      (\s -> s s)
+      (\cse -> cse cse)
         (\s xs ->
            case
              xs

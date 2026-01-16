@@ -1,9 +1,17 @@
 (program
    1.1.0
    ((\take xs -> force (force take) [] 5 xs)
-      ((\f ->
-          (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-            (\s -> f (\x -> s s x)))
+      ((\cse ->
+          cse
+            (\x ->
+               cse
+                 (\x ->
+                    cse
+                      (\x ->
+                         (\cse -> cse (\x -> cse cse x) x)
+                           (\s -> cse (\x -> s s x)))
+                      x)
+                 x))
          (\take arg ->
             delay
               (delay

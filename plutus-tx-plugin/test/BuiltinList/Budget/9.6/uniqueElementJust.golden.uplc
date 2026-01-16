@@ -3,11 +3,22 @@
    ((\take xs ->
        case
          (force (force take) [] 1 xs)
-         [ (\x xs -> case xs [(\ds ds -> constr 1 []), (constr 0 [x])])
+         [ (\x ->
+              (\z f xs -> case xs [f, z])
+                (constr 0 [x])
+                (\ds ds -> constr 1 []))
          , (constr 1 []) ])
-      ((\f ->
-          (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-            (\s -> f (\x -> s s x)))
+      ((\cse ->
+          cse
+            (\x ->
+               cse
+                 (\x ->
+                    cse
+                      (\x ->
+                         (\cse -> cse (\x -> cse cse x) x)
+                           (\s -> cse (\x -> s s x)))
+                      x)
+                 x))
          (\take arg ->
             delay
               (delay

@@ -1,6 +1,6 @@
-CPU:                 6_401_583
-Memory:                 25_195
-AST Size:                  218
-Flat Size:                 226
+CPU:                 6_257_583
+Memory:                 24_295
+AST Size:                  207
+Flat Size:                 219
 
 (con data (Constr 0 [I 20, I 40, I 60, I 80]))

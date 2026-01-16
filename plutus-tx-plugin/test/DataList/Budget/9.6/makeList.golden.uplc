@@ -1,11 +1,11 @@
 (program
    1.1.0
    (\x y z ->
-      (\cons ->
+      (\cse ->
          (\f g x -> f (g x))
-           (cons (\i -> iData i) x)
+           (cse (\i -> iData i) x)
            ((\f g x -> f (g x))
-              (cons (\i -> iData i) y)
-              (cons (\i -> iData i) z)))
+              (cse (\i -> iData i) y)
+              (cse (\i -> iData i) z)))
         (\`$dToData` h eta -> force mkCons (`$dToData` h) eta)
         []))

@@ -2,20 +2,20 @@
    1.1.0
    ((\ds ->
        case
-         ((\tup ->
-             constr 0 [(case tup [(\l r -> l)]), (case tup [(\l r -> r)])])
+         ((\cse ->
+             constr 0 [(case cse [(\l r -> l)]), (case cse [(\l r -> r)])])
             (unConstrData ds))
          [ (\ds ds ->
               case
                 (equalsInteger 0 ds)
                 [ (case
-                     ((\tup ->
+                     ((\cse ->
                          constr 0
-                           [(case tup [(\l r -> l)]), (case tup [(\l r -> r)])])
+                           [(case cse [(\l r -> l)]), (case cse [(\l r -> r)])])
                         (unConstrData ds))
                      [ (\ds ds ->
                           case
                             (equalsInteger 1 ds)
-                            [((\cse -> case cse [cse]) error), 1]) ])
+                            [(case error [error]), 1]) ])
                 , (unIData (force headList ds)) ]) ])
       (Constr 0 [I 1])))

@@ -4,9 +4,17 @@
       (\cse -> constr 0 [(cse 8 xs), (cse 12 xs)])
         (\a ->
            force
-             ((\f ->
-                 (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-                   (\s -> f (\x -> s s x)))
+             ((\cse ->
+                 cse
+                   (\x ->
+                      cse
+                        (\x ->
+                           cse
+                             (\x ->
+                                (\cse -> cse (\x -> cse cse x) x)
+                                  (\s -> cse (\x -> s s x)))
+                             x)
+                        x))
                 (\go arg ->
                    delay
                      (\xs ->

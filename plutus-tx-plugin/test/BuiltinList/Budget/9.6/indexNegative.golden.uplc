@@ -1,17 +1,17 @@
 (program
    1.1.0
    (\xs ->
-      (\i ->
-         force
-           ((\traceError ->
+      force
+        ((\traceError ->
+            (\cse ->
                case
-                 (lessThanInteger i 0)
+                 (lessThanInteger cse 0)
                  [ (delay
                       (case
-                         (force dropList i xs)
+                         (force dropList cse xs)
                          [(\x xs ds _ann -> x), (\_ann -> traceError "PT22")]
                          (constr 0 [])
                          (constr 0 [])))
                  , (delay (traceError "PT21")) ])
-              (\str -> (\x -> error) (force trace str (constr 0 [])))))
-        (subtractInteger 0 1)))
+              (subtractInteger 0 1))
+           (\str -> (\x -> error) (force trace str (constr 0 []))))))
