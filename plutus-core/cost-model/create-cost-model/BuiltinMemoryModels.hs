@@ -252,8 +252,9 @@ Due to limitations in our costing framework, we cannot case on the value of 'n' 
 such situations. To ensure non-negative memory costs, we further overapproximate the formula
 to remove the negative intercept:
 
-    Memory = 21*(n/2) + 12 = 10.5*n + 12 --approx--> 11*n + 12
-where 'n' is the number of 'Data' nodes in the input structure.-}
+    Memory = 21*(n/2) + 12 = 10.5*n + 12 --approx--> 11*n + 1
+
+where 'n' is the number of 'Data' nodes in the input structure. -}
 
 builtinMemoryModels :: BuiltinCostModelBase Id
 builtinMemoryModels =
@@ -373,7 +374,7 @@ builtinMemoryModels =
     , -- See Note [Memory model for Value builtins]
       paramValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 2 22
     , -- See Note [Memory model for Value builtins]
-      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 12 11
+      paramUnValueData = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 11 1
     , -- See Note [Memory model for Value builtins]
       paramInsertCoin = Id $ ModelFourArgumentsLinearInU $ OneVariableLinearFunction 45 21
     , -- See Note [Memory model for Value builtins]
