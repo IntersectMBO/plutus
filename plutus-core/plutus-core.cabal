@@ -760,7 +760,9 @@ library plutus-core-execlib
   build-depends:
     , aeson
     , base                             >=4.9   && <5
+    , base16-bytestring                ^>=1.0
     , bytestring
+    , filepath
     , lens
     , megaparsec
     , monoidal-containers

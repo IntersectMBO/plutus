@@ -35,8 +35,14 @@ import PlutusIR.Core.Instance.Pretty ()
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens (traverseOf)
+import Data.ByteString qualified as BS
+import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
+import Data.Text.IO qualified as T
 import PlutusCore.Flat (Flat, flat, unflat)
+import System.FilePath (takeExtension)
 
 type UplcProgDB ann = UPLC.Program PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
 type UplcProgNDB ann = UPLC.Program PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
@@ -175,9 +181,17 @@ serialiseUplcProgramFlat =
 -- Deserialising ASTs from Flat
 
 -- Read a binary-encoded file (eg, Flat-encoded PLC)
+-- For .hex files, reads as text and decodes hex; otherwise reads as binary
 getBinaryInput :: Input -> IO BSL.ByteString
 getBinaryInput StdInput = BSL.getContents
-getBinaryInput (FileInput file) = BSL.readFile file
+getBinaryInput (FileInput file)
+  | takeExtension file == ".hex" = do
+      text <- T.readFile file
+      let hexBytes = TE.encodeUtf8 text
+      case Base16.decode hexBytes of
+        Left err -> error $ "Hex decode failure for " ++ show file ++ ": " ++ err
+        Right bs -> pure $ BSL.fromStrict bs
+  | otherwise = BSL.readFile file
 
 unflatOrFail :: Flat a => BSL.ByteString -> a
 unflatOrFail input =
