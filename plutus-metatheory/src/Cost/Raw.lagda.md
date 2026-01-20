@@ -142,6 +142,7 @@ data RawModel : Set where
     LinearInMaxYZ          : LinearFunction → RawModel
     LinearInXAndY          : TwoVariableLinearFunction → RawModel
     LinearInYAndZ          : TwoVariableLinearFunction -> RawModel
+    QuadraticInX           : OneVariableQuadraticFunction → RawModel
     QuadraticInY           : OneVariableQuadraticFunction → RawModel
     QuadraticInZ           : OneVariableQuadraticFunction → RawModel
     QuadraticInXAndY       : TwoVariableQuadraticFunction → RawModel
@@ -155,7 +156,7 @@ data RawModel : Set where
 {-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes |
     MultipliedSizes | MinSize | MaxSize | LinearInX | LinearInY | LinearInZ |
     LinearInU | LiteralInYOrLinearInZ | LinearInMaxYZ | LinearInXAndY |
-    LinearInYAndZ | QuadraticInY | QuadraticInZ | QuadraticInXAndY |
+    LinearInYAndZ | QuadraticInX | QuadraticInY | QuadraticInZ | QuadraticInXAndY |
     WithInteractionInXAndY | SubtractedSizes | ConstAboveDiagonal |
     ConstBelowDiagonal | ConstOffDiagonal | ExpModCost) #-}
 
