@@ -115,6 +115,7 @@ data Model
   | LinearInMaxYZ LinearFunction
   | LinearInXAndY TwoVariableLinearFunction
   | LinearInYAndZ TwoVariableLinearFunction
+  | QuadraticInX OneVariableQuadraticFunction
   | QuadraticInY OneVariableQuadraticFunction
   | QuadraticInZ OneVariableQuadraticFunction
   | QuadraticInXAndY TwoVariableQuadraticFunction
@@ -160,6 +161,7 @@ instance FromJSON Model where
           "linear_in_y" -> LinearInY <$> parseJSON args
           "linear_in_z" -> LinearInZ <$> parseJSON args
           "linear_in_u" -> LinearInU <$> parseJSON args
+          "quadratic_in_x" -> QuadraticInX <$> parseJSON args
           "quadratic_in_y" -> QuadraticInY <$> parseJSON args
           "quadratic_in_z" -> QuadraticInZ <$> parseJSON args
           "quadratic_in_x_and_y" -> QuadraticInXAndY <$> parseJSON args

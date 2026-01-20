@@ -8,7 +8,6 @@ module Generators.Spec where
 import PlutusPrelude (display, fold, void, (&&&))
 
 import Control.Lens (view)
-import Control.Monad (unless)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
@@ -26,14 +25,46 @@ import PlutusCore.Pretty (displayPlc)
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test (isSerialisable)
 import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.Golden (goldenVsString)
 import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
 import Text.Megaparsec (errorBundlePretty)
+
+import Data.ByteString.Lazy qualified as BSL
+import Data.Text.Encoding (encodeUtf8)
 import UntypedPlutusCore (Program)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Core.Type (progTerm, termAnn)
 import UntypedPlutusCore.Generators.Hedgehog.AST (genProgram, regenConstantsUntil)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
+
+--------------------------------------------------------------------------------
+-- Main Test Group -------------------------------------------------------------
+
+test_parsing :: TestTree
+test_parsing =
+  testGroup
+    "Parsing"
+    [ propFlat
+    , propParser
+    , propTermSrcSpan
+    , propUnit
+    , propDefaultUni
+    , testGroup
+        "Error Messages"
+        [ propListElementErrorLocation
+        , propTypeNameTypoErrorLocation
+        , propMissingClosingParen
+        , propMissingClosingBracket
+        , propMissingBuiltinOperand
+        , propMissingConOperands
+        , propInvalidKeyword
+        , propBracketMismatch
+        ]
+    ]
+
+--------------------------------------------------------------------------------
+-- Test Definitions ------------------------------------------------------------
 
 propFlat :: TestTree
 propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
@@ -137,62 +168,90 @@ propDefaultUni =
 This uses the exact example from the issue report. -}
 propListElementErrorLocation :: TestTree
 propListElementErrorLocation =
-  testCase "List element error location" $ do
-    let code =
-          T.unlines
-            [ "(program 1.1.0 "
-            , "["
-            , " (force (builtin mkCons)) (con integer 4) (con (list integer) [true]) ]"
-            , ")"
-            ]
-        expectedErrorParts = ["unexpected 't'", "expecting '+', '-', ']', or integer"]
-    case runQuoteT (parseProgram code) of
-      Right _ -> error "Expected parse error, but parsing succeeded"
-      Left (ParseErrorB errBundle) -> do
-        let errMsg = T.pack $ errorBundlePretty errBundle
-        let hasAllParts = all (`T.isInfixOf` errMsg) expectedErrorParts
-        unless hasAllParts $
-          error $
-            "Error message does not match expected format.\n"
-              <> "Expected to contain: "
-              <> show expectedErrorParts
-              <> "\nGot error message:\n"
-              <> T.unpack errMsg
+  testParseErrorGolden
+    "List element error location"
+    "list-element-type-mismatch"
+    ( T.unlines
+        [ "(program 1.1.0 "
+        , "["
+        , " (force (builtin mkCons)) (con integer 4) (con (list integer) [true]) ]"
+        , ")"
+        ]
+    )
 
 {-| Test that parser errors for typos in type names point to the correct location.
 This tests the case where "boot" is used instead of "bool". -}
 propTypeNameTypoErrorLocation :: TestTree
 propTypeNameTypoErrorLocation =
-  testCase "Type name typo error location" $ do
-    let code =
-          T.unlines
-            [ "(program 1.1.0"
-            , "[ (builtin integerToByteString) (con boot True) (con integer 0) (con integer 712372356934756347862573452345342345) ]"
-            , ")"
-            ]
-        expectedErrorParts = ["Unknown type", "expected", "bool"]
-    case runQuoteT (parseProgram code) of
-      Right _ -> error "Expected parse error, but parsing succeeded"
-      Left (ParseErrorB errBundle) -> do
-        let errMsg = T.pack $ errorBundlePretty errBundle
-        let hasAllParts = all (`T.isInfixOf` errMsg) expectedErrorParts
-        unless hasAllParts $
-          error $
-            "Error message does not match expected format.\n"
-              <> "Expected to contain: "
-              <> show expectedErrorParts
-              <> "\nGot error message:\n"
-              <> T.unpack errMsg
+  testParseErrorGolden
+    "Type name typo error location"
+    "type-name-typo"
+    ( T.unlines
+        [ "(program 1.1.0"
+        , "[ (builtin integerToByteString) (con boot True) (con integer 0) (con integer 712372356934756347862573452345342345) ]"
+        , ")"
+        ]
+    )
 
-test_parsing :: TestTree
-test_parsing =
-  testGroup
-    "Parsing"
-    [ propFlat
-    , propParser
-    , propTermSrcSpan
-    , propUnit
-    , propDefaultUni
-    , propListElementErrorLocation
-    , propTypeNameTypoErrorLocation
-    ]
+-- | Test that parser errors for missing closing parenthesis are clear.
+propMissingClosingParen :: TestTree
+propMissingClosingParen =
+  testParseErrorGolden
+    "Missing closing parenthesis error"
+    "missing-closing-paren"
+    "(program 1.1.0 (lam x (var x))"
+
+-- | Test that parser errors for missing closing bracket are clear.
+propMissingClosingBracket :: TestTree
+propMissingClosingBracket =
+  testParseErrorGolden
+    "Missing closing bracket error"
+    "missing-closing-bracket"
+    "(program 1.1.0 [(builtin addInteger) (con integer 1) (con integer 2))"
+
+-- | Test that parser errors for missing builtin operand are clear.
+propMissingBuiltinOperand :: TestTree
+propMissingBuiltinOperand =
+  testParseErrorGolden
+    "Missing builtin function name error"
+    "missing-builtin-operand"
+    "(program 1.1.0 (builtin))"
+
+-- | Test that parser errors for missing con operands are clear.
+propMissingConOperands :: TestTree
+propMissingConOperands =
+  testParseErrorGolden
+    "Missing con operands error"
+    "missing-con-operands"
+    "(program 1.1.0 (con))"
+
+-- | Test that parser errors for invalid keywords are clear.
+propInvalidKeyword :: TestTree
+propInvalidKeyword =
+  testParseErrorGolden
+    "Invalid keyword error"
+    "invalid-keyword"
+    "(program 1.1.0 (foo x))"
+
+-- | Test that parser errors for bracket mismatches are clear.
+propBracketMismatch :: TestTree
+propBracketMismatch =
+  testParseErrorGolden
+    "Bracket type mismatch error"
+    "bracket-mismatch"
+    "(program 1.1.0 [(var x))"
+
+--------------------------------------------------------------------------------
+-- Helper Functions ------------------------------------------------------------
+
+{-| Helper function to test parser error messages using golden files.
+Verifies exact error message output against a golden file, ensuring error quality doesn't regress. -}
+testParseErrorGolden :: String -> String -> T.Text -> TestTree
+testParseErrorGolden testName goldenFileName code =
+  goldenVsString
+    testName
+    ("untyped-plutus-core/test/Parser/Golden/" ++ goldenFileName ++ ".golden")
+    $ case runQuoteT (parseProgram code) of
+      Right _ -> error "Expected parse error, but parsing succeeded"
+      Left (ParseErrorB errBundle) ->
+        pure . BSL.fromStrict . encodeUtf8 . T.pack $ errorBundlePretty errBundle

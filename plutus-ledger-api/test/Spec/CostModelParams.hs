@@ -21,8 +21,17 @@ import Data.List.Extra (enumerate)
 import Data.Set (isSubsetOf)
 import Data.Set qualified as Set
 import Data.Text qualified as Text
-import Test.Tasty.Extras (TestNested, embed, nestedGoldenVsTextPredM, testNestedNamed)
-import Test.Tasty.HUnit (assertBool, testCase, (@=?))
+import Test.Tasty.Extras
+  ( TestNested
+  , embed
+  , nestedGoldenVsTextPredM
+  , testNestedNamed
+  )
+import Test.Tasty.HUnit
+  ( assertBool
+  , testCase
+  , (@=?)
+  )
 
 tests :: TestNested
 tests =
@@ -30,9 +39,9 @@ tests =
     "CostModelParams"
     "costModelParams"
     [ embed $ testCase "length" do
-        328 @=? length v1_ParamNames
-        328 @=? length v2_ParamNames
-        346 @=? length v3_ParamNames
+        332 @=? length v1_ParamNames
+        332 @=? length v2_ParamNames
+        350 @=? length v3_ParamNames
     , embed $ testCase "tripping paramname" do
         for_ v1_ParamNames \p ->
           assertBool "tripping v1 cm params failed" $

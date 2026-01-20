@@ -22,13 +22,27 @@ import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
 import PlutusCore.Builtin (BuiltinResult (BuiltinFailure, BuiltinSuccess, BuiltinSuccessWithLogs))
+
+import PlutusCore.Data qualified as Data
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ValueMaxDepth (..)
+  ( DataNodeCount (..)
+  , ValueMaxDepth (..)
   , ValueTotalSize (..)
   )
-import PlutusCore.Value (K, Quantity (..), Value)
+import PlutusCore.Value
+  ( K
+  , Quantity (..)
+  , Value
+  )
 import PlutusCore.Value qualified as Value
-import System.Random.Stateful (StateGenM, StatefulGen, StdGen, runStateGen_, uniformRM)
+
+import System.Random.Stateful
+  ( StateGenM
+  , StatefulGen
+  , StdGen
+  , runStateGen_
+  , uniformRM
+  )
 
 ----------------------------------------------------------------------------------------------------
 -- Benchmarks --------------------------------------------------------------------------------------
@@ -123,88 +137,153 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
         reduce clustering at small sizes
      3. Select entries FROM container (maintain subset relationship)
      4. Include deepest entry to force maximum BST traversal
-     5. Add sparse above-diagonal cases (1-2%) for geometry diversity
+     5. Add true above-diagonal samples where contained size > container size
+
+     NOTE: Two different "diagonal" concepts:
+     - Value structure diagonal: numPolicies vs tokensPerPolicy (map shape)
+     - Costing diagonal: container totalSize vs contained totalSize
+       (used by const_above_diagonal cost model)
 
      Size calculation: containerSize = tokensPerPolicy + (numPolicies - 1)
      Max size: 1024 + 1023 = 2047 (symmetric with LookupCoin range)
 
-     Grid: 10×10 power-of-2, below-diagonal (55) + 2 above-diagonal (57 total)
+     Grid: 10×10 power-of-2 below-diagonal (55 combos)
      Samples per container: 10 evenly distributed contained sizes
+     Above-diagonal: 20 independent (container, contained) pairs
      Total points: ~570
   -}
 
   let containerSizes = [2 ^ n | n <- [1 .. 10 :: Int]]
 
-      -- Below-diagonal: numPolicies >= tokensPerPolicy
+      -- Value structure combinations: numPolicies >= tokensPerPolicy
       -- Focuses on typical case (more policies than tokens per policy)
       -- Reduces clustering at small sizes (55 of 100 combinations)
-      belowDiagonalCombos = [(p, t) | p <- containerSizes, t <- containerSizes, p >= t]
+      structureCombos = [(p, t) | p <- containerSizes, t <- containerSizes, p >= t]
 
-      -- Above-diagonal: sparse sampling for geometry diversity
-      -- Tests small numPolicies with large tokensPerPolicy (1-2% of grid)
-      aboveDiagonalCombos = [(2, 1024), (4, 512)]
+  -- Below-diagonal samples: contained is subset of container
+  belowDiagonalSamples <-
+    concat
+      <$> sequence
+        [ do
+            (container, maxPolicyId, deepestToken) <-
+              generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
 
-      allCombinations = belowDiagonalCombos ++ aboveDiagonalCombos
+            let allEntries = Value.toFlatList container
+                totalEntries = length allEntries
+                worstCaseEntry = find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
 
-  concat
-    <$> sequence
+            -- Generate evenly distributed contained sizes
+            let maxContainedSize = totalEntries
+                numSamples = 10
+                containedSizes =
+                  if totalEntries < numSamples
+                    then [1 .. totalEntries]
+                    else
+                      let step = maxContainedSize `div` numSamples
+                       in [i * step | i <- [1 .. numSamples], i * step > 0]
+                            ++ [ maxContainedSize
+                               | maxContainedSize `notElem` [i * step | i <- [1 .. numSamples]]
+                               ]
+
+            pure
+              [ let
+                  selectedEntries =
+                    case worstCaseEntry of
+                      Nothing -> take containedSize allEntries
+                      Just worst ->
+                        let allEntriesWithoutWorst = filter (/= worst) allEntries
+                            numOthers = min (containedSize - 1) (totalEntries - 1)
+                            others = take numOthers allEntriesWithoutWorst
+                         in others ++ [worst]
+
+                  contained =
+                    unsafeFromBuiltinResult $
+                      Value.fromList
+                        [ (policyId, [(tokenName, quantity)])
+                        | (policyId, tokenName, quantity) <- selectedEntries
+                        ]
+                 in
+                  (container, contained)
+              | containedSize <- containedSizes
+              ]
+        | (numPolicies, tokensPerPolicy) <- structureCombos
+        ]
+
+  -- Above-diagonal samples: contained size > container size
+  -- Tests constant-cost early-exit path (containment impossible)
+  -- 20 samples with varied container/contained size ratios
+  aboveDiagonalSamples <-
+    sequence
       [ do
-          (container, maxPolicyId, deepestToken) <-
-            generateConstrainedValueWithMaxPolicy numPolicies tokensPerPolicy g
-
-          let allEntries = Value.toFlatList container
-              totalEntries = length allEntries
-              worstCaseEntry = find (\(p, t, _) -> p == maxPolicyId && t == deepestToken) allEntries
-
-          -- Generate evenly distributed contained sizes
-          let maxContainedSize = totalEntries
-              numSamples = 10
-              containedSizes =
-                if totalEntries < numSamples
-                  then [1 .. totalEntries]
-                  else
-                    let step = maxContainedSize `div` numSamples
-                     in [i * step | i <- [1 .. numSamples], i * step > 0]
-                          ++ [ maxContainedSize
-                             | maxContainedSize `notElem` [i * step | i <- [1 .. numSamples]]
-                             ]
-
-          pure
-            [ let
-                selectedEntries =
-                  case worstCaseEntry of
-                    Nothing -> take containedSize allEntries
-                    Just worst ->
-                      let allEntriesWithoutWorst = filter (/= worst) allEntries
-                          numOthers = min (containedSize - 1) (totalEntries - 1)
-                          others = take numOthers allEntriesWithoutWorst
-                       in others ++ [worst]
-
-                contained =
-                  unsafeFromBuiltinResult $
-                    Value.fromList
-                      [ (policyId, [(tokenName, quantity)])
-                      | (policyId, tokenName, quantity) <- selectedEntries
-                      ]
-               in
-                (container, contained)
-            | containedSize <- containedSizes
-            ]
-      | (numPolicies, tokensPerPolicy) <- allCombinations
+          -- Generate smaller container
+          container <- generateConstrainedValue smallP smallT g
+          -- Generate larger contained (independent, not a subset)
+          contained <- generateConstrainedValue largeP largeT g
+          pure (container, contained)
+      | (smallP, smallT, largeP, largeT) <-
+          -- Small containers with various larger contained sizes
+          [ (2, 2, 4, 4) -- container ~4, contained ~16
+          , (2, 3, 8, 8) -- container ~6, contained ~64
+          , (2, 5, 10, 10) -- container ~10, contained ~100
+          , (3, 3, 10, 10) -- container ~9, contained ~100
+          , (4, 4, 16, 16) -- container ~16, contained ~256
+          -- Medium containers with larger contained sizes
+          , (5, 5, 20, 20) -- container ~25, contained ~400
+          , (5, 10, 20, 20) -- container ~50, contained ~400
+          , (8, 8, 32, 32) -- container ~64, contained ~1024
+          , (10, 5, 30, 30) -- container ~50, contained ~900
+          , (10, 10, 40, 40) -- container ~100, contained ~1600
+          -- Larger containers with much larger contained sizes
+          , (10, 10, 50, 20) -- container ~100, contained ~1000
+          , (15, 10, 50, 50) -- container ~150, contained ~2500
+          , (20, 10, 60, 60) -- container ~200, contained ~3600
+          , (20, 20, 80, 80) -- container ~400, contained ~6400
+          , (30, 15, 100, 50) -- container ~450, contained ~5000
+          -- Very large containers with extreme contained sizes
+          , (40, 20, 120, 80) -- container ~800, contained ~9600
+          , (50, 20, 150, 100) -- container ~1000, contained ~15000
+          , (64, 16, 128, 128) -- container ~1024, contained ~16384
+          , (100, 10, 200, 100) -- container ~1000, contained ~20000
+          , (128, 8, 256, 64) -- container ~1024, contained ~16384
+          ]
       ]
 
-----------------------------------------------------------------------------------------------------
--- ValueData ---------------------------------------------------------------------------------------
+  pure (belowDiagonalSamples ++ aboveDiagonalSamples)
 
+----------------------------------------------------------------------------------------------------
+-- ValueData
+-- ---------------------------------------------------------------------------------------
+-- We use the `nf` benchmark version here because `valueData` returns an object
+-- of the form `Map . ...` and `whnf` won't evaluate anything under `Map`.
 valueDataBenchmark :: StdGen -> Benchmark
-valueDataBenchmark gen = createOneTermBuiltinBench ValueData [] (generateTestValues gen)
+valueDataBenchmark gen =
+  createOneTermBuiltinBenchWithWrapper_NF
+    ValueTotalSize
+    ValueData
+    []
+    (generateTestValues gen)
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
 
+-- Benchmarks for `unValueData :: Data -> Value`.  We generate random values,
+-- convert them to the corresponding `data` objects, and use these as inputs to
+-- `unValueData`.  Each `data` objects is a list of `(currencyId, innerMap)`
+-- pairs and each `innerMap` is a list of `(tokenId, quantity)` pairs.  Both of
+-- these will be ordered in ascending order of their keys, which is the
+-- best-case input to Map.fromListWith, which is used in the implementation of
+-- `unValueData`.  We reverse the lists to make the inputs less favourable (and
+-- possibly worst-case).
 unValueDataBenchmark :: StdGen -> Benchmark
 unValueDataBenchmark gen =
-  createOneTermBuiltinBench UnValueData [] (Value.valueData <$> generateTestValues gen)
+  createOneTermBuiltinBenchWithWrapper
+    DataNodeCount
+    UnValueData
+    []
+    (f . Value.valueData <$> generateTestValues gen)
+  where
+    f (Data.Map l) = Data.Map (reverse l)
+    f _ = error "NO"
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
@@ -311,7 +390,11 @@ buildValue policyIds tokenNames amt =
       | pId <- policyIds
       ]
 
--- | Generate common test values for benchmarking
+-- Number of benchmarking inputs for `valueData` and `unValueData`.
+maxValueEntries :: Int
+maxValueEntries = 50_000
+
+-- | Test values for benchmarking `valueData` and `unValueData`
 generateTestValues :: StdGen -> [Value]
 generateTestValues gen = runStateGen_ gen \g ->
   -- Empty value as edge case
@@ -319,32 +402,21 @@ generateTestValues gen = runStateGen_ gen \g ->
     <$>
     -- Random tests for parameter spread (100 combinations)
     replicateM 100 (generateValue g)
+  where
+    -- \| Generate Value with random number of entries between 1 and maxValueEntries
+    generateValue :: StatefulGen g m => g -> m Value
+    generateValue g = do
+      numEntries <- uniformRM (1, maxValueEntries) g
+      generateValueMaxEntries numEntries g
 
--- | Generate Value with random number of entries between 1 and maxValueEntries
-generateValue :: StatefulGen g m => g -> m Value
-generateValue g = do
-  numEntries <- uniformRM (1, maxValueEntries) g
-  generateValueMaxEntries numEntries g
-
-{-| Maximum number of (policyId, tokenName, quantity) entries for Value generation.
-This represents the practical limit based on execution budget constraints.
-Scripts can programmatically generate large Values, so we benchmark based on
-what's achievable within CPU execution budget, not ledger storage limits.
-
-Equivalent byte size: ~7.2 MB (100,000 × 72 bytes per entry where each entry
-consists of: 32-byte policyId + 32-byte tokenName + 8-byte Int64 quantity) -}
-maxValueEntries :: Int
-maxValueEntries = 100_000
-
--- | Generate Value within total size budget
-generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
-generateValueMaxEntries maxEntries g = do
-  -- Uniform random distribution: cover full range from many policies (few tokens each)
-  -- to few policies (many tokens each)
-  numPolicies <- uniformRM (1, maxEntries) g
-  let tokensPerPolicy = if numPolicies > 0 then maxEntries `div` numPolicies else 0
-
-  generateConstrainedValue numPolicies tokensPerPolicy g
+    -- \| Generate Value within total size budget
+    generateValueMaxEntries :: StatefulGen g m => Int -> g -> m Value
+    generateValueMaxEntries maxEntries g = do
+      -- Uniform random distribution: cover full range from many policies (few tokens each)
+      -- to few policies (many tokens each)
+      numPolicies <- uniformRM (1, maxEntries) g
+      let tokensPerPolicy = if numPolicies > 0 then maxEntries `div` numPolicies else 0
+      generateConstrainedValue numPolicies tokensPerPolicy g
 
 -- | Generate constrained Value with information about max-size policy
 generateConstrainedValueWithMaxPolicy

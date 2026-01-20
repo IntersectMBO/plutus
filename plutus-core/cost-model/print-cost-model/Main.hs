@@ -10,9 +10,15 @@ import Paths_plutus_core
 import Data.Aeson
 import Data.Aeson.Key as Key (toString)
 import Data.Aeson.KeyMap qualified as KeyMap
-import Data.ByteString.Lazy as BSL (getContents, readFile)
+import Data.ByteString.Lazy as BSL
+  ( getContents
+  , readFile
+  )
 import Data.List (intercalate)
-import System.Environment (getArgs, getProgName)
+import System.Environment
+  ( getArgs
+  , getProgName
+  )
 import System.Exit
 import Text.Printf (printf)
 
@@ -153,6 +159,7 @@ renderModel =
     LinearInY f -> [renderLinearFunction f "y"]
     LinearInZ f -> [renderLinearFunction f "z"]
     LinearInU f -> [renderLinearFunction f "u"]
+    QuadraticInX f -> [renderOneVariableQuadraticFunction f "x"]
     QuadraticInY f -> [renderOneVariableQuadraticFunction f "y"]
     QuadraticInZ f -> [renderOneVariableQuadraticFunction f "z"]
     QuadraticInXAndY f -> [renderTwoVariableQuadraticFunction f "x" "y"]

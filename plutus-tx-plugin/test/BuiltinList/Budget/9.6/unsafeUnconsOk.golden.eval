@@ -1,0 +1,6 @@
+CPU:                   160_100
+Memory:                  1_100
+AST Size:                   10
+Flat Size:                  29
+
+(constr 0 (con integer 1) (con (list integer) [2,3,4,5,6,7,8,9,10]))

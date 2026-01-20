@@ -14,6 +14,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , IntegerCostedLiterally (..)
   , ValueTotalSize (..)
   , ValueMaxDepth (..)
+  , DataNodeCount (..)
   ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -384,14 +385,34 @@ instance ExMemoryUsage Data where
         I n -> memoryUsage n
         B b -> memoryUsage b
 
+{-| A wrapper for 'Data' whose 'ExMemoryUsage' counts nodes via lazy traversal.
+Used by UnValueData builtin: measures INPUT Data node count.  The actual memory
+formula (slope × nodeCount + intercept) is applied in the JSON cost model. -}
+newtype DataNodeCount = DataNodeCount Data
+
+instance ExMemoryUsage DataNodeCount where
+  memoryUsage (DataNodeCount dat) = go dat
+    where
+      go d = CostRose 1 $
+        case d of
+          Constr _ ds -> ds <&> go
+          Map pairs -> pairs >>= \(d1, d2) -> [d1, d2] <&> go
+          List ds -> ds <&> go
+          I _ -> []
+          B _ -> []
+      {-# INLINE go #-}
+  {-# INLINE memoryUsage #-}
+
 instance ExMemoryUsage Value where
   memoryUsage = singletonRose . fromIntegral . Value.totalSize
+  {-# INLINE memoryUsage #-}
 
 -- | Measure the size of a `Value` by its `Value.totalSize`.
 newtype ValueTotalSize = ValueTotalSize {unValueTotalSize :: Value}
 
 instance ExMemoryUsage ValueTotalSize where
   memoryUsage = singletonRose . fromIntegral . Value.totalSize . unValueTotalSize
+  {-# INLINE memoryUsage #-}
 
 {- Note [ValueMaxDepth]
 This newtype wrapper measures the sum of logarithms of outer and max inner sizes

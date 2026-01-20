@@ -24,7 +24,8 @@ import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( ExMemoryUsage
+  ( DataNodeCount (..)
+  , ExMemoryUsage
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
   , ValueMaxDepth (..)
@@ -43,7 +44,10 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature)
 import PlutusCore.Crypto.ExpMod qualified as ExpMod
 import PlutusCore.Crypto.Hash qualified as Hash
-import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
+import PlutusCore.Crypto.Secp256k1
+  ( verifyEcdsaSecp256k1Signature
+  , verifySchnorrSecp256k1Signature
+  )
 
 import Codec.Serialise (serialise)
 import Control.Monad (unless)
@@ -53,16 +57,26 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Ix (Ix)
 import Data.Text (Text)
-import Data.Text.Encoding (decodeUtf8', encodeUtf8)
+import Data.Text.Encoding
+  ( decodeUtf8'
+  , encodeUtf8
+  )
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import GHC.Natural (naturalFromInteger)
 import GHC.Num.Integer (Integer (..))
 import GHC.Types (Int (..))
 import NoThunks.Class (NoThunks)
-import PlutusCore.Flat hiding (from, to)
+import PlutusCore.Flat hiding
+  ( from
+  , to
+  )
 import PlutusCore.Flat.Decoder (Get, dBEBits8)
-import PlutusCore.Flat.Encoder as Flat (Encoding, NumBits, eBits)
+import PlutusCore.Flat.Encoder as Flat
+  ( Encoding
+  , NumBits
+  , eBits
+  )
 import Prettyprinter (viaShow)
 
 -- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
@@ -1990,23 +2004,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           unionValueDenotation
           (runCostingFunTwoArguments . paramUnionValue)
   toBuiltinMeaning _semvar ValueContains =
-    let valueContainsDenotation :: ValueMaxDepth -> ValueTotalSize -> BuiltinResult Bool
-        valueContainsDenotation (ValueMaxDepth v1) (ValueTotalSize v2) =
+    let valueContainsDenotation :: ValueTotalSize -> ValueTotalSize -> BuiltinResult Bool
+        valueContainsDenotation (ValueTotalSize v1) (ValueTotalSize v2) =
           Value.valueContains v1 v2
         {-# INLINE valueContainsDenotation #-}
      in makeBuiltinMeaning
           valueContainsDenotation
           (runCostingFunTwoArguments . paramValueContains)
   toBuiltinMeaning _semvar ValueData =
-    let valueDataDenotation :: Value -> Data
-        valueDataDenotation = Value.valueData
+    let valueDataDenotation :: ValueTotalSize -> Data
+        valueDataDenotation (ValueTotalSize v) = Value.valueData v
         {-# INLINE valueDataDenotation #-}
      in makeBuiltinMeaning
           valueDataDenotation
           (runCostingFunOneArgument . paramValueData)
   toBuiltinMeaning _semvar UnValueData =
-    let unValueDataDenotation :: Data -> BuiltinResult Value
-        unValueDataDenotation = Value.unValueData
+    let unValueDataDenotation :: DataNodeCount -> BuiltinResult Value
+        unValueDataDenotation (DataNodeCount d) = Value.unValueData d
         {-# INLINE unValueDataDenotation #-}
      in makeBuiltinMeaning
           unValueDataDenotation

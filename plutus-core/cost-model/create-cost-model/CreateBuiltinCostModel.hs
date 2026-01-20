@@ -7,20 +7,33 @@
 module CreateBuiltinCostModel (costModelsR, createBuiltinCostModel, microToPico)
 where
 
-import BuiltinMemoryModels (Id (..), builtinMemoryModels)
+import BuiltinMemoryModels
+  ( Id (..)
+  , builtinMemoryModels
+  )
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExMemory
 
-import Barbies (bmap, bsequence)
+import Barbies
+  ( bmap
+  , bsequence
+  )
 import Control.Applicative (Const (Const, getConst))
 import Data.Functor.Compose (Compose (Compose))
 import Data.SatInt
 import Data.Text (Text)
 import Text.Printf (printf)
 
-import H.Prelude (MonadR, R, Region)
-import Language.R (SomeSEXP, fromSomeSEXP)
+import H.Prelude
+  ( MonadR
+  , R
+  , Region
+  )
+import Language.R
+  ( SomeSEXP
+  , fromSomeSEXP
+  )
 import Language.R.QQ (r)
 
 {-| Convert microseconds represented as a float to picoseconds represented as a
@@ -415,6 +428,7 @@ readCF1AtType ty e = do
   case ty of
     "constant_cost" -> ModelOneArgumentConstantCost <$> getConstant e
     "linear_in_x" -> ModelOneArgumentLinearInX <$> readOneVariableLinearFunction "x_mem" e
+    "quadratic_in_x" -> ModelOneArgumentQuadraticInX <$> readOneVariableQuadraticFunction "x_mem" e
     _ -> error $ "Unknown one-variable model type: " ++ ty
 
 readCF1 :: MonadR m => SomeSEXP (Region m) -> m ModelOneArgument

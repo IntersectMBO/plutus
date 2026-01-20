@@ -19,12 +19,15 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data (Data (..))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( IntegerCostedLiterally
+  ( DataNodeCount
+  , IntegerCostedLiterally
   , NumBytesCostedAsNumWords
   , ValueMaxDepth
   , ValueTotalSize
   )
-import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)
+import PlutusCore.Generators.Hedgehog.AST hiding
+  ( genConstant
+  )
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Value (Value)
 
@@ -36,7 +39,11 @@ import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word (Word8)
 import GHC.Natural
-import Hedgehog hiding (Opaque, Var, eval)
+import Hedgehog hiding
+  ( Opaque
+  , Var
+  , eval
+  )
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Gen.QuickCheck (arbitrary)
 import Hedgehog.Range qualified as Range
@@ -107,6 +114,7 @@ genConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = genArbitraryBuiltin @BS.ByteString
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = genArbitraryBuiltin @Text
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = genArbitraryBuiltin @Data
+  | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = genArbitraryBuiltin @Data
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =
       genArbitraryBuiltin @BLS12_381.G1.Element
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G2.Element) =

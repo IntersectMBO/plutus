@@ -38,7 +38,8 @@ import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetStream (sumExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (cekCostModelForVariant)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-  ( IntegerCostedLiterally
+  ( DataNodeCount
+  , IntegerCostedLiterally
   , NumBytesCostedAsNumWords
   , ValueMaxDepth
   , ValueTotalSize
@@ -60,9 +61,22 @@ import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word (Word8)
 import GHC.Natural
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (Assertion, assertBool, testCase)
-import Type.Reflection (TypeRep, eqTypeRep, typeRep, (:~~:) (..), pattern App)
+import Test.Tasty
+  ( TestTree
+  , testGroup
+  )
+import Test.Tasty.HUnit
+  ( Assertion
+  , assertBool
+  , testCase
+  )
+import Type.Reflection
+  ( TypeRep
+  , eqTypeRep
+  , typeRep
+  , (:~~:) (..)
+  , pattern App
+  )
 
 -- Machine costs
 checkBudget :: Identity ExBudget -> Assertion
@@ -128,6 +142,7 @@ smallConstant tr
   | Just HRefl <- eqTypeRep tr (typeRep @BS.ByteString) = SomeConst $ BS.pack []
   | Just HRefl <- eqTypeRep tr (typeRep @Text) = SomeConst ("" :: Text)
   | Just HRefl <- eqTypeRep tr (typeRep @Data) = SomeConst $ I 0
+  | Just HRefl <- eqTypeRep tr (typeRep @DataNodeCount) = SomeConst $ I 0
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G1.Element) =
       SomeConst $ BLS12_381.G1.offchain_zero
   | Just HRefl <- eqTypeRep tr (typeRep @BLS12_381.G2.Element) =

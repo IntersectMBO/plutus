@@ -338,11 +338,15 @@ data ParamName
   | ValueContains'cpu'arguments'model'arguments'slope1
   | ValueContains'cpu'arguments'model'arguments'slope2
   | ValueContains'memory'arguments
-  | ValueData'cpu'arguments
-  | ValueData'memory'arguments
-  | UnValueData'cpu'arguments'intercept
-  | UnValueData'cpu'arguments'slope
-  | UnValueData'memory'arguments
+  | ValueData'cpu'arguments'intercept
+  | ValueData'cpu'arguments'slope
+  | ValueData'memory'arguments'intercept
+  | ValueData'memory'arguments'slope
+  | UnValueData'cpu'arguments'c0
+  | UnValueData'cpu'arguments'c1
+  | UnValueData'cpu'arguments'c2
+  | UnValueData'memory'arguments'intercept
+  | UnValueData'memory'arguments'slope
   | ScaleValue'cpu'arguments'intercept
   | ScaleValue'cpu'arguments'slope
   | ScaleValue'memory'arguments'intercept
