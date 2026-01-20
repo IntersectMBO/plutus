@@ -1,4 +1,22 @@
 
+<a id='changelog-1.57.0.0'></a>
+# 1.57.0.0 — 2026-01-20
+
+## Added
+
+- Brought back Ratio.from/toGHC as deprecated.
+
+- A `deriveEnum` command to derive PlutusTx.Enum instances for datatypes/newtypes, similar to Haskell's
+  `deriving stock Enum`
+
+* `Builtins.unsafeCons` and `Builtins.Internal.unsafeCaseList` is added which when casing on data is available will generate list casing with single branch, reducing script size.
+
+## Fixed
+
+- Fixed the `Enum PlutusTx.Rational` to be compilable with plc compiler
+
+- The FromData instance of PlutusTx.Data.List
+
 <a id='changelog-1.56.0.0'></a>
 # 1.56.0.0 — 2025-11-27
 
