@@ -186,6 +186,7 @@ convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearC
 convertRawModel {3} (LinearInYAndZ (mkLF2 intercept slope1 slope2)) =
                    just (twoArgumentsLinearInYAndZ intercept slope1 slope2)
 convertRawModel {3} (LinearInMaxYZ (mkLF intercept slope)) = just (twoArgumentsLinearInMaxYZ intercept slope)
+convertRawModel {suc (suc n)} (QuadraticInX (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 zero c0 c1 c2)
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc zero) c0 c1 c2)
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF1 c0 c1 c2)) = just (quadraticCostIn1 (suc (suc zero)) c0 c1 c2)
