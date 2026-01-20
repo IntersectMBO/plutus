@@ -15,8 +15,6 @@ import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char (isDigit, isSpace)
 import Data.Text qualified as T
-import Data.Text.Encoding qualified as TE
-import Data.Text.IO qualified as TIO
 import GHC.IO.Encoding (setLocaleEncoding)
 import GHC.IO.Handle
 import System.Directory
