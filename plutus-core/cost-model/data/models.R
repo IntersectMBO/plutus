@@ -152,12 +152,12 @@ arity <- function(name) {
         "LengthOfArray" = 1,
         "ListToArray" = 1,
         "IndexArray" = 2,
+        "InsertCoin" = 4,
         "LookupCoin" = 3,
+        "UnionValue" = 2,
         "ValueContains" = 2,
         "ValueData" = 1,
         "UnValueData" = 1,
-        "InsertCoin" = 4,
-        "UnionValue" = 2,
         "ScaleValue" = 2,
         -1  ## Default for missing values
         )
@@ -217,6 +217,8 @@ adjustModel <- function (r, fname) {
     ## make it 1000 ps and issue a warning.  This is somewhat suspect but will
     ## prevent us from getting models which predict negative costs.  See also
     ## https://stackoverflow.com/questions/27244898/force-certain-parameters-to-have-positive-coefficients-in-lm
+
+    ## cat (sprintf ("Adjusting model for %s\n", fname))
 
     default <- 1/1000  ## 1 ns, or 1000 ps (remember: we're working in µs here)
     ensurePositive <- function(x, name) {
@@ -855,7 +857,7 @@ modelFun <- function(path) {
         # Above diagonal (y > x): containment impossible, quick False return
         # Use mean observed time as constant for this case
         above_diag <- filtered %>% filter(y_mem > x_mem)
-        constant <- ceiling(mean(above_diag$t))
+        constant <- mean(above_diag$t)
 
         # On/below diagonal (x >= y): actual containment check
         below_diag <- filtered %>% filter(x_mem >= y_mem)
@@ -864,9 +866,16 @@ modelFun <- function(path) {
         mk.result(m, "const_above_diagonal", constant=constant, subtype="linear_in_x_and_y")
     }         
 
-    # Sizes of parameters are used as is (unwrapped):
-    valueDataModel            <- constantModel ("ValueData")
-    unValueDataModel          <- linearInX ("UnValueData")
+    valueDataModel <- linearInX ("ValueData")
+
+    ## X wrapped with DataNodeCount
+    unValueDataModel   <- {
+        fname <- "UnValueData"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname)
+        m <- lm(t ~ I(x_mem) + I(x_mem^2), filtered)
+        mk.result(m, "quadratic_in_x")
+    }
     
     # Y wrapped with `TotalSize` (contained value size)
     scaleValueModel           <- linearInY ("ScaleValue")

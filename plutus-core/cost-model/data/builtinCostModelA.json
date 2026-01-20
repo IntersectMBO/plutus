@@ -1222,13 +1222,13 @@
   "valueContains": {
     "cpu": {
       "arguments": {
-        "constant": 318444,
+        "constant": 213283,
         "model": {
           "arguments": {
-            "intercept": 619335,
-            "slope1": 1997,
-            "slope2": 28258
-          },
+             "intercept": 618401,
+             "slope1": 1998,
+             "slope2": 28258
+           },
           "type": "linear_in_x_and_y"
         }
       },
@@ -1240,27 +1240,37 @@
     }
   },
   "valueData": {
-    "cpu": {
-      "arguments": 194713,
-      "type": "constant_cost"
-    },
+        "cpu": {
+            "arguments": {
+                "intercept": 199604,
+                "slope": 39211
+            },
+            "type": "linear_in_x"
+        },
     "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
+      "arguments": {
+        "intercept": 2,
+        "slope": 22
+    },
+    "type": "linear_in_x"
     }
   },
   "unValueData": {
-    "cpu": {
-      "arguments": {
-        "intercept": 1000,
-        "slope": 43200
-      },
-      "type": "linear_in_x"
-    },
-    "memory": {
-      "arguments": 1,
-      "type": "constant_cost"
-    }
+        "cpu": {
+            "arguments": {
+                "c0": 1000,
+                "c1": 204904,
+                "c2": 1
+            },
+            "type": "quadratic_in_x"
+        },
+      "memory": {
+          "arguments": {
+              "intercept": 11,
+              "slope": 1
+          },
+          "type": "linear_in_x"
+      }
   },
   "insertCoin": {
     "cpu": {

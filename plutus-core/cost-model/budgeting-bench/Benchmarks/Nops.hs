@@ -12,11 +12,16 @@
 module Benchmarks.Nops (makeBenchmarks) where
 
 import Common
-import Generators (randBool, randNwords)
+import Generators
+  ( randBool
+  , randNwords
+  )
 
 import PlutusCore
 import PlutusCore.Builtin
-import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
+import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding
+  ( BuiltinCostModel
+  )
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -24,7 +29,10 @@ import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Criterion.Main (Benchmark, bgroup)
+import Criterion.Main
+  ( Benchmark
+  , bgroup
+  )
 
 import Data.Ix (Ix)
 import System.Random (StdGen)
@@ -34,7 +42,7 @@ import System.Random (StdGen)
    the evaluator. -}
 benchUnitTerm :: Benchmark
 benchUnitTerm =
-  bgroup "UnitTerm" [benchWith nopCostParameters (showMemoryUsage ()) $ mkUnit]
+  bgroup "UnitTerm" [benchWithWHNF (showMemoryUsage ()) mkUnit]
 
 {-| Arguments to builtins can be treated in several different ways.  Constants of
    built-in types are unlifted to Haskell values automatically and Opaque values
@@ -73,7 +81,7 @@ data NopFun
   | Nop5o
   | Nop6o
   deriving stock (Show, Eq, Ord, Enum, Ix, Bounded, Generic)
-  deriving anyclass (PrettyBy PrettyConfigPlc)
+  deriving anyclass (PrettyBy PrettyConfigPlc, NFData)
 
 instance Pretty NopFun where
   pretty fun = pretty $ lowerInitialChar $ show fun
@@ -125,6 +133,10 @@ nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultU
 nopCostParameters =
   MachineParameters def . mkMachineVariantParameters def $
     CostModel defaultCekMachineCostsForTesting nopCostModel
+
+-- Benchmark a function in `NopFun` with the nopCostParameters using `whnf`.
+benchWithWHNF :: String -> PlainTerm DefaultUni NopFun -> Benchmark
+benchWithWHNF = benchWith WHNF nopCostParameters
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
 -- functions below.  There is a Monad instance for EvaluationResult, but that
@@ -330,7 +342,7 @@ benchNop1
   -> Benchmark
 benchNop1 nop rand gen =
   let (x, _) = rand gen
-   in bgroup (show nop) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 nop [] x]
+   in bgroup (show nop) [benchWithWHNF (showMemoryUsage x) $ mkApp1 nop [] x]
 
 benchNop2
   :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
@@ -345,7 +357,7 @@ benchNop2 nop rand gen =
         (show nop)
         [ bgroup
             (showMemoryUsage x)
-            [benchWith nopCostParameters (showMemoryUsage y) $ mkApp2 nop [] x y]
+            [benchWithWHNF (showMemoryUsage y) $ mkApp2 nop [] x y]
         ]
 
 benchNop3
@@ -364,7 +376,7 @@ benchNop3 nop rand gen =
             (showMemoryUsage x)
             [ bgroup
                 (showMemoryUsage y)
-                [benchWith nopCostParameters (showMemoryUsage z) $ mkApp3 nop [] x y z]
+                [benchWithWHNF (showMemoryUsage z) $ mkApp3 nop [] x y z]
             ]
         ]
 
@@ -387,7 +399,7 @@ benchNop4 nop rand gen =
                 (showMemoryUsage y)
                 [ bgroup
                     (showMemoryUsage z)
-                    [benchWith nopCostParameters (showMemoryUsage t) $ mkApp4 nop [] x y z t]
+                    [benchWithWHNF (showMemoryUsage t) $ mkApp4 nop [] x y z t]
                 ]
             ]
         ]
@@ -414,7 +426,7 @@ benchNop5 nop rand gen =
                     (showMemoryUsage z)
                     [ bgroup
                         (showMemoryUsage t)
-                        [benchWith nopCostParameters (showMemoryUsage u) $ mkApp5 nop [] x y z t u]
+                        [benchWithWHNF (showMemoryUsage u) $ mkApp5 nop [] x y z t u]
                     ]
                 ]
             ]
@@ -445,7 +457,7 @@ benchNop6 nop rand gen =
                         (showMemoryUsage t)
                         [ bgroup
                             (showMemoryUsage u)
-                            [benchWith nopCostParameters (showMemoryUsage v) $ mkApp6 nop [] x y z t u v]
+                            [benchWithWHNF (showMemoryUsage v) $ mkApp6 nop [] x y z t u v]
                         ]
                     ]
                 ]

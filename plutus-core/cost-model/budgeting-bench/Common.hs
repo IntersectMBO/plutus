@@ -8,20 +8,42 @@
 module Common
 where
 
-import PlutusCore hiding (Constr)
+import PlutusCore hiding
+  ( Constr
+  )
 import PlutusCore.Compiler.Erase
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn, mkIterInstNoAnn, mkTyBuiltin)
-import PlutusCore.Pretty (Pretty, display)
-import UntypedPlutusCore as UPLC hiding (Constr)
+import PlutusCore.MkPlc
+  ( builtin
+  , mkConstant
+  , mkIterAppNoAnn
+  , mkIterInstNoAnn
+  , mkTyBuiltin
+  )
+import PlutusCore.Pretty
+  ( Pretty
+  , display
+  )
+import UntypedPlutusCore as UPLC hiding
+  ( Constr
+  )
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-import Control.DeepSeq (NFData, force)
-import Criterion.Main (Benchmark, bench, bgroup, whnf)
+import Control.DeepSeq
+  ( NFData
+  , force
+  )
+import Criterion.Main
+  ( Benchmark
+  , bench
+  , bgroup
+  , nf
+  , whnf
+  )
 import Data.Bifunctor (bimap)
 import Data.ByteString qualified as BS
 import Data.Typeable (Typeable)
@@ -73,19 +95,32 @@ pairWith f = fmap (\a -> (a, f a))
 
 ---------------- Creating benchmarks ----------------
 
+-- Choose whether to benchmark with `whnf` or `nf`.  Note that to get sensible
+-- results with 'whnf', we must use an evaluation function that looks at the
+-- result, so e.g. 'evaluateCek' won't work properly because it returns a pair
+-- whose components won't be evaluated by 'whnf'. In general we'll want to use
+-- `whnf` because 'nf' will do too much work (for instance if it gets back a
+-- 'Data' value it'll traverse all of it), but in some special cases we will
+-- want to use `nf` in order to force evaluation under a constructor.
+data Normaliser
+  = WHNF
+  | NF
+
 benchWith
-  :: (Pretty fun, Typeable fun)
-  => MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
+  :: (Pretty fun, Typeable fun, NFData fun)
+  => Normaliser
+  -> MachineParameters CekMachineCosts fun (CekValue DefaultUni fun ())
   -> String
   -> PlainTerm DefaultUni fun
   -> Benchmark
--- Note that to get sensible results with 'whnf', we must use an evaluation function that looks at
--- the result, so e.g. 'evaluateCek' won't work properly because it returns a pair whose components
--- won't be evaluated by 'whnf'. We can't use 'nf' because it does too much work: for instance if it
--- gets back a 'Data' value it'll traverse all of it.
-benchWith params name term =
-  bench name $
-    whnf (handleEvaluationErrors . evaluateCekNoEmit params) term
+benchWith normaliser params name term =
+  case normaliser of
+    WHNF ->
+      bench name $
+        whnf (handleEvaluationErrors . evaluateCekNoEmit params) term
+    NF ->
+      bench name $
+        nf (handleEvaluationErrors . evaluateCekNoEmit params) term
   where
     handleEvaluationErrors = \case
       Right res -> res
@@ -95,7 +130,10 @@ benchWith params name term =
 
 {- Benchmark with the most recent CekParameters -}
 benchDefault :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
-benchDefault = benchWith defaultCekParametersForTesting
+benchDefault = benchWith WHNF defaultCekParametersForTesting
+
+benchDefault_NF :: String -> PlainTerm DefaultUni DefaultFun -> Benchmark
+benchDefault_NF = benchWith NF defaultCekParametersForTesting
 
 ---------------- Constructing Polymorphic PLC terms for benchmarking ----------------
 
@@ -273,6 +311,55 @@ createOneTermBuiltinBenchWithWrapper wrapX fun tys xs =
   bgroup
     (show fun)
     [ benchDefault (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
+    | x <- xs
+    ]
+
+-- Create a benchmark for a one-argument builtin, but use `nf` instead of
+-- `whnf`.  At the moment this is the only case we need, but if we need to
+-- generalise this to more arguments later we might want to add a `Normaliser`
+-- parameter to all of the benchmark-creation functions.
+createOneTermBuiltinBench_NF
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , ExMemoryUsage a
+     , NFData a
+     )
+  => fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> Benchmark
+createOneTermBuiltinBench_NF = createOneTermBuiltinBenchWithWrapper_NF id
+
+{- Note [Adjusting the memory usage of arguments of costing benchmarks] In some
+  cases we want to measure the (so-called) "memory usage" of a builtin argument
+  in a nonstandard way for benchmarking and costing purposes. This function
+  allows you to supply suitable wrapping functions in the benchmarks to achieve
+  this.  NB: wrappers used in benchmarks *MUST* be the same as wrappers used in
+  builtin denotations to make sure that during script execution the inputs to
+  the costing functions are costed in the same way as the are in the
+  benchmmarks.
+-}
+-- FIXME: can we add a `Normaliser` argument to remove some of the overlap with
+-- `createOneTermBuiltinBenchWithWrapper` here?  We only want to use this in
+-- exceptional circumstances though, so we probably don't want to add an extra
+-- parameter to all of the normal benchmarks.
+createOneTermBuiltinBenchWithWrapper_NF
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , ExMemoryUsage a'
+     , NFData a
+     )
+  => (a -> a')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> Benchmark
+createOneTermBuiltinBenchWithWrapper_NF wrapX fun tys xs =
+  bgroup
+    (show fun)
+    [ benchDefault_NF (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
     | x <- xs
     ]
 

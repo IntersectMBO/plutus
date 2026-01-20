@@ -2,6 +2,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE StrictData #-}
@@ -60,7 +61,10 @@ import Data.Default.Class
 import Data.Hashable
 import Deriving.Aeson
 import GHC.Exts
-import Language.Haskell.TH.Syntax hiding (Name, newName)
+import Language.Haskell.TH.Syntax hiding
+  ( Name
+  , newName
+  )
 
 -- | A class used for convenience in this module, don't export it.
 class OnMemoryUsages c a where
@@ -228,6 +232,7 @@ newtype Coefficient12 = Coefficient12
 data ModelOneArgument
   = ModelOneArgumentConstantCost CostingInteger
   | ModelOneArgumentLinearInX OneVariableLinearFunction
+  | ModelOneArgumentQuadraticInX OneVariableQuadraticFunction
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
 
@@ -315,6 +320,32 @@ scaleLinearly (Intercept intercept) (Slope slope) =
   addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
+{-| Evaluate the polynomial f(x) = ax^2+bx+c on a cost stream.  The lazy
+strategy used here is based on the fact that
+
+  f(r+x) = a(r+x)^2 + b(r+x) + c
+         = ar^2 + 2axr + ax^2 + br + bx + c
+         = f(r) + 2axr + ax^2 + bx
+
+The name `scaleQuadratically` is perhaps a bit misleading, but it's not clear
+what would be better. -}
+scaleQuadratically
+  :: OneVariableQuadraticFunction
+  -> CostStream
+  -> CostStream
+scaleQuadratically (OneVariableQuadraticFunction (Coefficient0 c) (Coefficient1 b) (Coefficient2 a)) =
+  addCostStream (CostLast c) . go 0
+  where
+    go :: CostingInteger -> CostStream -> CostStream
+    go !r = \case
+      -- r is the running total
+      CostLast cost -> CostLast (f cost)
+      CostCons cost costs -> CostCons (f cost) (go (r + cost) costs)
+      where
+        f :: CostingInteger -> CostingInteger
+        f x = 2 * a * x * r + a * x * x + b * x
+{-# INLINE scaleQuadratically #-}
+
 runOneArgumentModel
   :: ModelOneArgument
   -> CostStream
@@ -323,6 +354,8 @@ runOneArgumentModel (ModelOneArgumentConstantCost c) =
   lazy $ \_ -> CostLast c
 runOneArgumentModel (ModelOneArgumentLinearInX (OneVariableLinearFunction intercept slope)) =
   lazy $ \costs1 -> scaleLinearly intercept slope costs1
+runOneArgumentModel (ModelOneArgumentQuadraticInX f) =
+  lazy $ \costs1 -> scaleQuadratically f costs1
 {-# OPAQUE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
@@ -366,16 +399,6 @@ data OneVariableQuadraticFunction = OneVariableQuadraticFunction
   }
   deriving stock (Show, Eq, Generic, Lift)
   deriving anyclass (NFData)
-
-evaluateOneVariableQuadraticFunction
-  :: OneVariableQuadraticFunction
-  -> CostingInteger
-  -> CostingInteger
-evaluateOneVariableQuadraticFunction
-  (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1) (Coefficient2 c2))
-  x =
-    c0 + c1 * x + c2 * x * x
-{-# INLINE evaluateOneVariableQuadraticFunction #-}
 
 {- Note [Minimum values for two-variable quadratic costing functions] Unlike most
    of our other costing functions our use cases for two-variable quadratic
@@ -686,8 +709,7 @@ runTwoArgumentModel
           else run (CostLast size1) (CostLast size2)
 runTwoArgumentModel
   (ModelTwoArgumentsQuadraticInY f) =
-    lazy $ \_ costs2 ->
-      CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs2
+    lazy $ \_ costs2 -> scaleQuadratically f costs2
 runTwoArgumentModel
   (ModelTwoArgumentsQuadraticInXAndY f) =
     lazy $ \costs1 costs2 ->
@@ -744,7 +766,7 @@ runThreeArgumentModel
       scaleLinearly intercept slope costs3
 runThreeArgumentModel
   (ModelThreeArgumentsQuadraticInZ f) =
-    lazy $ \_ _ costs3 -> CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs3
+    lazy $ \_ _ costs3 -> scaleQuadratically f costs3
 {- Either a literal number of bytes or a linear function.  This is for
    `integerToByteString`, where if the second argument is zero, the output
    bytestring has the minimum length required to contain the converted integer,

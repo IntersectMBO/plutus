@@ -8,7 +8,6 @@ module Generators.Spec where
 import PlutusPrelude (display, fold, void, (&&&))
 
 import Control.Lens (view)
-import Control.Monad (unless)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Hedgehog (annotate, annotateShow, failure, property, tripping, (===))
