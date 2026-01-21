@@ -38,6 +38,7 @@ module PlutusCore.Value
 
 import Codec.Serialise qualified as CBOR
 import Control.DeepSeq (NFData)
+import Control.Monad (when)
 import Data.Bifunctor
 import Data.Bitraversable
 import Data.ByteString (ByteString)
@@ -440,17 +441,15 @@ valueData = Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack
     tokensData = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList
 {-# INLINEABLE valueData #-}
 
-{-| \(O(n \log n)\). Decodes `Data` into `Value`, in the same way as non-builtin @Value@.
+{-| \(O(n)\). Decodes `Data` into `Value`.
 This is the denotation of @UnValueData@ in Plutus V1, V2 and V3. -}
 unValueData :: Data -> BuiltinResult Value
 unValueData =
-  fmap pack . \case
+  fmap pack' . \case
     Map cs -> do
-      -- Use unchecked addition during construction
-      outerMap <-
-        Map.fromListWith (Map.unionWith unsafeAddQuantity) <$> traverse (bitraverse unB unTokens) cs
-      -- Validate all quantities are within bounds
-      validateQuantities outerMap
+      cs' <- traverse (bitraverse unB unTokens) cs
+      ensureDistinctAsc "unValueData: currency symbols not strictly ascending" (fst <$> cs')
+      pure $ Map.fromDistinctAscList cs'
     _ -> fail "unValueData: non-Map constructor"
   where
     unB :: Data -> BuiltinResult K
@@ -460,14 +459,32 @@ unValueData =
 
     unQ :: Data -> BuiltinResult Quantity
     unQ = \case
-      I i -> pure (UnsafeQuantity i)
+      I i
+        | i == 0 || i < unQuantity minBound || i > unQuantity maxBound ->
+            fail "unValueData: invalid quantity"
+        | otherwise -> pure (UnsafeQuantity i)
       _ -> fail "unValueData: non-I constructor"
 
     unTokens :: Data -> BuiltinResult (Map K Quantity)
     unTokens = \case
-      Map ts -> fmap (Map.fromListWith unsafeAddQuantity) (traverse (bitraverse unB unQ) ts)
+      Map ts -> do
+        when (null ts) $ fail "unValueData: empty inner map"
+        ts' <- traverse (bitraverse unB unQ) ts
+        ensureDistinctAsc "unValueData: token names not strictly ascending" (fst <$> ts')
+        pure $ Map.fromDistinctAscList ts'
       _ -> fail "unValueData: non-Map constructor"
 {-# INLINEABLE unValueData #-}
+
+ensureDistinctAsc :: String -> [K] -> BuiltinResult ()
+ensureDistinctAsc msg = go
+  where
+    go = \case
+      [] -> pure ()
+      [_] -> pure ()
+      x : xs@(y : _)
+        | x < y -> go xs
+        | otherwise -> fail msg
+{-# INLINEABLE ensureDistinctAsc #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.
 updateSizes :: Int -> Int -> IntMap Int -> IntMap Int

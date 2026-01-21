@@ -10,6 +10,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 import Data.Either
 import Data.Foldable qualified as F
+import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Safe.Foldable (maximumMay)
@@ -353,7 +354,7 @@ prop_unValueDataValidatesMixedQuantities =
     genValueDataWithMixedQuantities :: Gen (Data, Bool)
     genValueDataWithMixedQuantities = do
       numEntries <- chooseInt (1, 10)
-      entries <- vectorOf numEntries $ do
+      entries <- fmap (nubOrdOn fst . sortOn fst) . vectorOf numEntries $ do
         c <- gen32BytesOrFewer
         t <- gen32BytesOrFewer
         -- 90% valid, 10% invalid
@@ -364,7 +365,10 @@ prop_unValueDataValidatesMixedQuantities =
             ]
         pure (B c, Map [(B t, I quantity)])
       let hasInvalid = any (\(_, Map inner) -> any isInvalidQuantity inner) entries
-          isInvalidQuantity (_, I q) = q < V.unQuantity minBound || q > V.unQuantity maxBound
+          isInvalidQuantity (_, I q) =
+            q < V.unQuantity minBound
+              || q > V.unQuantity maxBound
+              || q == 0
           isInvalidQuantity _ = False
       pure (Map entries, hasInvalid)
 
