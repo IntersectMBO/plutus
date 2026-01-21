@@ -20,6 +20,7 @@ import GHC.IO.Handle
 import System.Directory
 import System.Environment
 import System.Exit
+import System.FilePath ((</>))
 import System.IO
 import System.IO.Extra
 import System.Process
@@ -225,28 +226,56 @@ mkTestAgda eq mode1 mode2 testname = testCase testname (compareResultAgda eq mod
 
 -- | Test that .hex and .flat files produce the same output when used with uplc
 testHexFlatEquivalence :: String -> Assertion
-testHexFlatEquivalence testname = withTempFile $ \textualFile -> do
-  -- Get a textual UPLC example
+testHexFlatEquivalence testname = withTempDir $ \tmpDir -> do
+  let textualFile = tmpDir </> "input.uplc"
+      flatFile = tmpDir </> "test.flat"
+      hexFile = tmpDir </> "test.hex"
+
   example <- runProg "uplc" ["example", "-s", testname] []
   writeFile textualFile example
 
-  -- Convert to flat format
-  tmpDir <- getTemporaryDirectory
-  (flatFileBase, flatHandle) <- openTempFile tmpDir "test"
-  hClose flatHandle
-  let flatFile = flatFileBase ++ ".flat"
-
-  -- Convert textual to flat
-  _ <- runProg "uplc" ["convert", "--if", "textual", "--of", "flat", "--input", textualFile, "--output", flatFile] []
+  _ <-
+    runProg
+      "uplc"
+      [ "convert"
+      , "--if"
+      , "textual"
+      , "--of"
+      , "flat"
+      , "--input"
+      , textualFile
+      , "--output"
+      , flatFile
+      ]
+      []
   flatBytes <- BSL.readFile flatFile
 
-  -- Create a .hex file with the same content
-  let hexFile = flatFileBase ++ ".hex"
-  let hexString = Base16.encode (BSL.toStrict flatBytes)
-  BS.writeFile hexFile hexString
+  BS.writeFile hexFile (Base16.encode (BSL.toStrict flatBytes))
 
-  flatOutput <- runProg "uplc" ["evaluate", "--if", "flat", "--input", flatFile, "--print-mode", "Classic"] []
-  hexOutput <- runProg "uplc" ["evaluate", "--if", "flat", "--input", hexFile, "--print-mode", "Classic"] []
+  flatOutput <-
+    runProg
+      "uplc"
+      [ "evaluate"
+      , "--if"
+      , "flat"
+      , "--input"
+      , flatFile
+      , "--print-mode"
+      , "Classic"
+      ]
+      []
+  hexOutput <-
+    runProg
+      "uplc"
+      [ "evaluate"
+      , "--if"
+      , "flat"
+      , "--input"
+      , hexFile
+      , "--print-mode"
+      , "Classic"
+      ]
+      []
   assertBool
     ( "Flat file output: "
         ++ flatOutput

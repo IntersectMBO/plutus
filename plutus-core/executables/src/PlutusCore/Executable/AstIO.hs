@@ -38,9 +38,6 @@ import Control.Lens (traverseOf)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.ByteString.Lazy qualified as BSL
-import Data.Text qualified as T
-import Data.Text.Encoding qualified as TE
-import Data.Text.IO qualified as T
 import PlutusCore.Flat (Flat, flat, unflat)
 import System.FilePath (takeExtension)
 
@@ -186,12 +183,13 @@ getBinaryInput :: Input -> IO BSL.ByteString
 getBinaryInput StdInput = BSL.getContents
 getBinaryInput (FileInput file)
   | takeExtension file == ".hex" = do
-      text <- T.readFile file
-      let hexBytes = TE.encodeUtf8 text
-      case Base16.decode hexBytes of
+      hexBytes <- BS.readFile file
+      case Base16.decode (BS.filter (not . isHexWhitespace) hexBytes) of
         Left err -> error $ "Hex decode failure for " ++ show file ++ ": " ++ err
         Right bs -> pure $ BSL.fromStrict bs
   | otherwise = BSL.readFile file
+  where
+    isHexWhitespace c = c == 0x20 || c == 0x0A || c == 0x0D || c == 0x09
 
 unflatOrFail :: Flat a => BSL.ByteString -> a
 unflatOrFail input =
