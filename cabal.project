@@ -83,3 +83,101 @@ allow-newer:
 -- https://github.com/IntersectMBO/plutus/pull/7236
 constraints: setup.optparse-applicative >=0.19.0.0
 allow-newer: turtle:optparse-applicative
+
+if impl (ghc >= 9.14)
+  -- https://github.com/snowleopard/alga/issues/322
+  source-repository-package
+    type: git
+    location: https://github.com/snowleopard/alga/
+    tag: d4e43fb42db05413459fb2df493361d5a666588a
+
+if impl (ghc >= 9.14)
+  constraints:
+    -- Newest version causes Arbitrary instance clashes in quickcheck-instances.
+    , QuickCheck < 2.17.0.0
+    , brick >= 2.10
+
+  allow-newer:
+    -- https://github.com/haskell/aeson/issues/1155
+    , aeson:OneTuple
+    , aeson:containers
+    , aeson:data-fix
+    , aeson:indexed-traversable
+    , aeson:scientific
+    , aeson:semialign
+    , aeson:template-haskell
+    , aeson:text-iso8601
+    , aeson:these
+    , aeson:time
+    , aeson:time-compat
+
+    -- https://github.com/well-typed/cborg/issues/373
+    , cborg:base
+    , cborg:containers
+    , cborg:ghc-prim
+
+    -- https://github.com/qfpl/hedgehog-fn/issues/11
+    , hedgehog-fn:hedgehog
+
+    -- https://github.com/well-typed/cborg/issues/373
+    , serialise:base
+    , serialise:containers
+    , serialise:time
+
+
+-- cabal-allow-newer
+if impl (ghc >= 9.14)
+  allow-newer:
+    , OneTuple:base
+    , QuickCheck:base
+    , bin:base
+    , binary:containers
+    , binary-orphans:base
+    , boring:base
+    , config-ini:containers
+    , config-ini:text
+    , constraints-extras:base
+    , constraints-extras:template-haskell
+    , containers:template-haskell
+    , dec:base
+    , dependent-map:constraints-extras
+    , dependent-map:containers
+    , dictionary-sharing:containers
+    , fin:base
+    , fin:universe-base
+    , indexed-traversable:base
+    , indexed-traversable:containers
+    , indexed-traversable-instances:base
+    , microlens-th:containers
+    , microlens-th:template-haskell
+    , microstache:base
+    , microstache:containers
+    , monoidal-containers:base
+    , monoidal-containers:containers
+    , nonempty-vector:base
+    , ordered-containers:containers
+    , quickcheck-instances:QuickCheck
+    , quickcheck-instances:base
+    , quickcheck-instances:containers
+    , ral:base
+    , recursion-schemes:base-orphans
+    , recursion-schemes:containers
+    , recursion-schemes:template-haskell
+    , semialign:base
+    , semialign:containers
+    , size-based:template-haskell
+    , some:base
+    , text:binary
+    , text:template-haskell
+    , these:base
+    , time-compat:base
+    , time-compat:hashable
+    , time-compat:time
+    , tree-diff:base
+    , tree-diff:containers
+    , turtle:containers
+    , turtle:time
+    , universe-base:base
+    , universe-base:containers
+    , unix:time
+    , uuid-types:template-haskell
