@@ -20,7 +20,6 @@ import GHC.IO.Handle
 import System.Directory
 import System.Environment
 import System.Exit
-import System.FilePath
 import System.IO
 import System.IO.Extra
 import System.Process
