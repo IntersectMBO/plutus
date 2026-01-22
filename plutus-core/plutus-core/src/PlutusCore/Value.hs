@@ -445,11 +445,11 @@ valueData = Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack
 This is the denotation of @UnValueData@ in Plutus V1, V2 and V3. -}
 unValueData :: Data -> BuiltinResult Value
 unValueData =
-  fmap pack' . \case
+  \case
     Map cs -> do
       cs' <- traverse (bitraverse unB unTokens) cs
       ensureDistinctAsc "unValueData: currency symbols not strictly ascending" (fst <$> cs')
-      pure $ Map.fromDistinctAscList cs'
+      pure . pack' $ Map.fromDistinctAscList cs'
     _ -> fail "unValueData: non-Map constructor"
   where
     unB :: Data -> BuiltinResult K
