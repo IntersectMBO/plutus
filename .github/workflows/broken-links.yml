@@ -13,7 +13,7 @@ on:
       
 jobs:
   check:
-    name: Check
+    name: Check Broken Links
     runs-on: [plutus-ci, self-hosted]
     steps:
       - name: Checkout

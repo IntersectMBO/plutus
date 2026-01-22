@@ -21,7 +21,7 @@ env:
 
 jobs:
   run:
-    name: Run
+    name: Run Nightly Testsuite
     runs-on: [self-hosted, plutus-ci]
     steps:
       - name: Checkout

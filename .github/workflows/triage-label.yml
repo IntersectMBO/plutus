@@ -9,7 +9,7 @@ on:
 
 jobs:
   add:
-    name: Add
+    name: Add Triage Label
     runs-on: [ubuntu-latest]
     permissions:
       issues: write

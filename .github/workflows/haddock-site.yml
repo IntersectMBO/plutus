@@ -60,7 +60,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Build & Deploy Haddock Site
     runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write

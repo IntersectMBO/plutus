@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy
+    name: Build & Deploy Code Coverage Report
     runs-on: [self-hosted, plutus-ci]
     permissions:
       contents: write
