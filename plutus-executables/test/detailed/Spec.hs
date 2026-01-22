@@ -10,6 +10,9 @@ module Main (main) where
 import PlutusCore.Name.Unique (isIdentifierChar)
 
 import Control.Exception
+import Data.ByteString qualified as BS
+import Data.ByteString.Base16 qualified as Base16
+import Data.ByteString.Lazy qualified as BSL
 import Data.Char (isDigit, isSpace)
 import Data.Text qualified as T
 import GHC.IO.Encoding (setLocaleEncoding)
@@ -17,6 +20,7 @@ import GHC.IO.Handle
 import System.Directory
 import System.Environment
 import System.Exit
+import System.FilePath ((</>))
 import System.IO
 import System.IO.Extra
 import System.Process
@@ -220,6 +224,71 @@ mkTestUplc eq mode testname = testCase testname (compareResultUplc eq mode testn
 mkTestAgda :: (T.Text -> T.Text -> Bool) -> String -> String -> String -> TestTree
 mkTestAgda eq mode1 mode2 testname = testCase testname (compareResultAgda eq mode1 mode2 testname)
 
+-- | Test that .hex and .flat files produce the same output when used with uplc
+testHexFlatEquivalence :: String -> Assertion
+testHexFlatEquivalence testname = withTempDir $ \tmpDir -> do
+  let textualFile = tmpDir </> "input.uplc"
+      flatFile = tmpDir </> "test.flat"
+      hexFile = tmpDir </> "test.hex"
+
+  example <- runProg "uplc" ["example", "-s", testname] []
+  writeFile textualFile example
+
+  _ <-
+    runProg
+      "uplc"
+      [ "convert"
+      , "--if"
+      , "textual"
+      , "--of"
+      , "flat"
+      , "--input"
+      , textualFile
+      , "--output"
+      , flatFile
+      ]
+      []
+  flatBytes <- BSL.readFile flatFile
+
+  BS.writeFile hexFile (Base16.encode (BSL.toStrict flatBytes))
+
+  flatOutput <-
+    runProg
+      "uplc"
+      [ "evaluate"
+      , "--if"
+      , "flat"
+      , "--input"
+      , flatFile
+      , "--print-mode"
+      , "Classic"
+      ]
+      []
+  hexOutput <-
+    runProg
+      "uplc"
+      [ "evaluate"
+      , "--if"
+      , "flat"
+      , "--input"
+      , hexFile
+      , "--print-mode"
+      , "Classic"
+      ]
+      []
+  assertBool
+    ( "Flat file output: "
+        ++ flatOutput
+        ++ "\nHex file output: "
+        ++ hexOutput
+        ++ "\n** Outputs should be identical"
+    )
+    $ flatOutput == hexOutput
+
+-- | Test case for hex/flat equivalence
+mkTestHexFlat :: String -> TestTree
+mkTestHexFlat testname = testCase ("hex/flat equivalence: " ++ testname) $ testHexFlatEquivalence testname
+
 main :: IO ()
 main = do
   setLocaleEncoding utf8
@@ -232,6 +301,7 @@ main = do
       , testGroup "plc-agda vs. plc: typechecking" . mkTests $ mkTestPlc (==) "typecheck"
       , testGroup "TL vs. TCK" . mkTests $ mkTestAgda (==) "TL" "TCK"
       , testGroup "TCK vs. TCEK" . mkTests $ mkTestAgda (==) "TCK" "TCEK"
+      , testGroup "Hex/Flat file format equivalence" [mkTestHexFlat "unitval"]
       -- tests against extrinisically typed interpreter disabled
       -- , mkTestMode "L" "TL" M.alphaTm
       -- , mkTestMode "L" "CK" M.alphaTm
