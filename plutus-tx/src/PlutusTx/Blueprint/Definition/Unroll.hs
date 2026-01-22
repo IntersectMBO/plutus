@@ -169,16 +169,40 @@ instance
   definitionId = definitionIdTuple3 <> definitionId @a <> definitionId @b <> definitionId @c
 
 {-| Compile-time error that happens when a type couldn't be unrolled
-('Unroll' TF is "stuck") -}
+('Unroll' TF is "stuck").
+
+Note: This error commonly occurs when using 'DefinitionsFor (UnrollAll \'[a])'
+with an abstract type variable 'a'. Type families like 'UnrollAll' must be fully
+evaluated at compile time, which is not possible when the type is not yet known. -}
 type family UnrollIsStuckError x where
   UnrollIsStuckError x =
-    GHC.TypeError (GHC.Text "No instance: " GHC.:<>: GHC.ShowType (HasBlueprintDefinition x))
+    GHC.TypeError
+      ( GHC.Text "Cannot unroll type '"
+          GHC.:<>: GHC.ShowType x
+          GHC.:<>: GHC.Text "'."
+          GHC.:$$: GHC.Text "The 'Unroll' type family is stuck because:"
+          GHC.:$$: GHC.Text "  - The type may be abstract (a type variable), or"
+          GHC.:$$: GHC.Text "  - It lacks a 'HasBlueprintDefinition' instance, or"
+          GHC.:$$: GHC.Text "  - It lacks a 'Generic' instance for default unrolling."
+          GHC.:$$: GHC.Text ""
+          GHC.:$$: GHC.Text "Tip: 'DefinitionsFor (UnrollAll ts)' requires all types in 'ts'"
+          GHC.:$$: GHC.Text "to be concrete at compile time. Polymorphic constraints like"
+          GHC.:$$: GHC.Text "'DefinitionsFor (UnrollAll '[a])' cannot be used as superclass"
+          GHC.:$$: GHC.Text "constraints because 'a' is not known when the class is defined."
+      )
 
 {-| Compile-time error that happens when type's generic representation is not defined
 ('Rep' TF is "stuck") -}
 type family RepIsStuckError x where
   RepIsStuckError x =
-    GHC.TypeError (GHC.Text "No instance: " GHC.:<>: GHC.ShowType (Generic x))
+    GHC.TypeError
+      ( GHC.Text "Cannot derive generic representation for type '"
+          GHC.:<>: GHC.ShowType x
+          GHC.:<>: GHC.Text "'."
+          GHC.:$$: GHC.Text "Add 'deriving Generic' to enable automatic blueprint unrolling,"
+          GHC.:$$: GHC.Text "or provide a manual 'HasBlueprintDefinition' instance with"
+          GHC.:$$: GHC.Text "an explicit 'Unroll' type instance."
+      )
 
 -- | Same as 'Unroll' but with a nicer error message
 type Unrolled t = Reverse (IfStuckUnroll (UnrollIsStuckError t) (Unroll t))
