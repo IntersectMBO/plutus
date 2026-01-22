@@ -243,9 +243,11 @@ prop_oppositeScaleIsInverse c v =
       _ -> scaleIncorrectlyBound c v
 
 prop_dataRoundtrip :: Value -> Property
-prop_dataRoundtrip v = case V.unValueData (V.valueData v) of
-  BuiltinSuccess v' -> v === v'
+prop_dataRoundtrip v = case V.unValueData d of
+  BuiltinSuccess v' -> (v === v') .&&. (V.valueData v' === d)
   _ -> property False
+  where
+    d = V.valueData v
 
 prop_flatRoundtrip :: Value -> Property
 prop_flatRoundtrip v = Flat.unflat (Flat.flat v) === Right v

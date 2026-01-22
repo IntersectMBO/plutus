@@ -44,8 +44,6 @@ import Data.Bifunctor
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 import Data.ByteString.Base64 qualified as Base64
-import Data.DList (DList)
-import Data.DList qualified as DList
 import Data.Foldable (find)
 import Data.Hashable (Hashable (..))
 import Data.IntMap.Strict (IntMap)
@@ -449,13 +447,14 @@ unValueData :: Data -> BuiltinResult Value
 unValueData = \case
   Map cs -> do
     (outerList, sizes, total, neg) <- goCurrencies cs
-    pure $ Value (Map.fromDistinctAscList (DList.toList outerList)) sizes total neg
+    pure $ Value (Map.fromDistinctDescList outerList) sizes total neg
   _ -> fail "unValueData: non-Map constructor"
   where
     unB :: Data -> BuiltinResult K
     unB = \case
       B b -> maybe (fail $ "unValueData: invalid key: " <> show (B.unpack b)) pure (k b)
       _ -> fail "unValueData: non-B constructor"
+    {-# INLINEABLE unB #-}
 
     unQ :: Data -> BuiltinResult Quantity
     unQ = \case
@@ -464,6 +463,7 @@ unValueData = \case
             fail "unValueData: invalid quantity"
         | otherwise -> pure (UnsafeQuantity i)
       _ -> fail "unValueData: non-I constructor"
+    {-# INLINEABLE unQ #-}
 
     -- Returns the inner map and the number of negative quantities in it.
     unTokens :: Data -> BuiltinResult (Map K Quantity, Int)
@@ -471,19 +471,20 @@ unValueData = \case
       Map ts -> do
         when (null ts) $ fail "unValueData: empty inner map"
         (innerList, neg) <- goTokens ts
-        pure (Map.fromDistinctAscList (DList.toList innerList), neg)
+        pure (Map.fromDistinctDescList innerList, neg)
       _ -> fail "unValueData: non-Map constructor"
+    {-# INLINEABLE unTokens #-}
 
     -- Returns outer map's list, plus stats (sizes, total, neg).
     goCurrencies
       :: [(Data, Data)]
-      -> BuiltinResult (DList (K, Map K Quantity), IntMap Int, Int, Int)
+      -> BuiltinResult ([(K, Map K Quantity)], IntMap Int, Int, Int)
     goCurrencies = go Nothing mempty mempty 0 0
       where
         go !prev !acc !sizes !total !neg = \case
           [] -> pure (acc, sizes, total, neg)
           (cData, tsData) : rest -> do
-            c <- unB cData
+            !c <- unB cData
             -- Verify that currencies are strictly ascending
             whenJust
               prev
@@ -492,21 +493,21 @@ unValueData = \case
                     (p < c)
                     (fail "unValueData: currency symbols not strictly ascending")
               )
-            (inner, innerNeg) <- unTokens tsData
+            (!inner, !innerNeg) <- unTokens tsData
             let sizes' = IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) sizes
                 total' = total + Map.size inner
                 neg' = neg + innerNeg
-                acc' = DList.snoc acc (c, inner)
+                acc' = (c, inner) : acc
             go (Just c) acc' sizes' total' neg' rest
 
     -- Returns inner map's list, plus the number of negative quantities in the inner map.
-    goTokens :: [(Data, Data)] -> BuiltinResult (DList (K, Quantity), Int)
+    goTokens :: [(Data, Data)] -> BuiltinResult ([(K, Quantity)], Int)
     goTokens = go Nothing mempty 0
       where
         go !prev !acc !neg = \case
           [] -> pure (acc, neg)
           (tData, qData) : rest -> do
-            t <- unB tData
+            !t <- unB tData
             -- Verify that token names within an inner map are strictly ascending
             whenJust
               prev
@@ -515,9 +516,9 @@ unValueData = \case
                     (p < t)
                     (fail "unValueData: token names not strictly ascending")
               )
-            q <- unQ qData
+            !q <- unQ qData
             let neg' = if q < zeroQuantity then neg + 1 else neg
-                acc' = DList.snoc acc (t, q)
+                acc' = (t, q) : acc
             go (Just t) acc' neg' rest
 {-# INLINEABLE unValueData #-}
 
