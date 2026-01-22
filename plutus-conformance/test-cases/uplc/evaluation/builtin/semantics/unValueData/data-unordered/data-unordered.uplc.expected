@@ -1,1 +1,0 @@
-(program 1.0.0 (con value [(#aa, [(#cc, 20)]), (#bb, [(#aa, 10)])]))
