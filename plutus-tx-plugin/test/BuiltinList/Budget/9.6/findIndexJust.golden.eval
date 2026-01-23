@@ -1,6 +1,6 @@
-CPU:                 2_561_056
-Memory:                 12_910
-AST Size:                   80
-Flat Size:                  92
+CPU:                 2_241_056
+Memory:                 10_910
+AST Size:                   45
+Flat Size:                  64
 
 (constr 0 (con integer 3))
