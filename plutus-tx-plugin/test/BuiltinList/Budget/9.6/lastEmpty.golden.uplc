@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\last ds -> force last [])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s arg ->
             delay
               (\eta ->

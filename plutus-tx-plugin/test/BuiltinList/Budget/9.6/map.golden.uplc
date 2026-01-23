@@ -1,5 +1,5 @@
 (program
    1.1.0
-   ((\s -> s s)
+   ((\cse -> cse cse)
       (\s xs ->
          case xs [(\x xs -> force mkCons (addInteger 1 x) (s s xs)), []])))

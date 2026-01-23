@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\go xss -> go xss)
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s xs ->
             case
               xs
@@ -9,7 +9,7 @@
                    (\go xs ->
                       (\ys ->
                          (\l ->
-                            (\s -> s s)
+                            (\cse -> cse cse)
                               (\s xs ->
                                  case
                                    xs
@@ -17,7 +17,7 @@
                               l)
                            (go 2))
                         (s s xs))
-                     ((\s -> s s)
+                     ((\cse -> cse cse)
                         (\s n ->
                            case
                              (lessThanEqualsInteger n 0)

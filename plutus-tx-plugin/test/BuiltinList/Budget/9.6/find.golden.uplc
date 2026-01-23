@@ -1,12 +1,12 @@
 (program
    1.1.0
    (\xs ->
-      (\find ->
+      (\cse ->
          constr 0
-           [ (find (\v -> case (lessThanInteger v 8) [True, False]) xs)
-           , (find (\v -> case (lessThanInteger v 12) [True, False]) xs) ])
+           [ (cse (\v -> case (lessThanInteger v 8) [True, False]) xs)
+           , (cse (\v -> case (lessThanInteger v 12) [True, False]) xs) ])
         (\p ->
-           (\s -> s s)
+           (\cse -> cse cse)
              (\s xs ->
                 case
                   xs

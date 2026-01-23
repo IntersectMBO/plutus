@@ -1,12 +1,12 @@
 (program
    1.1.0
    (\xs ->
-      (\elem ->
+      (\cse ->
          constr 0
-           [ (elem (\x y -> equalsInteger x y) 8 xs)
-           , (elem (\x y -> equalsInteger x y) 12 xs) ])
+           [ (cse (\x y -> equalsInteger x y) 8 xs)
+           , (cse (\x y -> equalsInteger x y) 12 xs) ])
         (\`$dEq` a ->
-           (\s -> s s)
+           (\cse -> cse cse)
              (\s xs ->
                 case
                   xs

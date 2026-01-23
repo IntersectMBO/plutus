@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\go xs -> case (go xs) [True, False])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s xs ->
             case
               xs

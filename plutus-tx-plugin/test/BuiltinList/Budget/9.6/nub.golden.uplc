@@ -2,11 +2,11 @@
    1.1.0
    ((\go xs ->
        go
-         ((\s -> s s)
+         ((\cse -> cse cse)
             (\s xs -> case xs [(\x xs -> force mkCons x (s s xs)), xs])
             xs)
          [])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s l xs ->
             case
               l
@@ -14,9 +14,9 @@
                    (\go ys ->
                       case
                         (go xs)
-                        [ (force mkCons y (s s ys (force mkCons y xs)))
+                        [ ((\cse -> cse (s s ys (cse xs))) (force mkCons y))
                         , (s s ys xs) ])
-                     ((\s -> s s)
+                     ((\cse -> cse cse)
                         (\s xs ->
                            case
                              xs

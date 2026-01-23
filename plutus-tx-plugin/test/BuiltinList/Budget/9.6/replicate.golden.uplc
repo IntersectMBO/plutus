@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\go ds -> go 10)
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s n ->
             case
               (lessThanEqualsInteger n 0)

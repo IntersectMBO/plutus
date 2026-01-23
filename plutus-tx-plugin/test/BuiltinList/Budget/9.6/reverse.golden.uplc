@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\revAppend xs -> force revAppend xs [])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s arg ->
             delay
               (\l r ->

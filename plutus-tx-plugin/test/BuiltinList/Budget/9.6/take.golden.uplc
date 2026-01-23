@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\take xs -> force take [] 5 xs)
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s arg ->
             delay
               (\`$dMkNil` n l ->

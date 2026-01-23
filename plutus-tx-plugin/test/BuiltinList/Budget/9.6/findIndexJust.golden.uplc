@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\go xs -> go 0 xs)
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s i xs ->
             case
               xs

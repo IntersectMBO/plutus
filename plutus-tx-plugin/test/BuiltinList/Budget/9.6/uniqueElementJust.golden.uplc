@@ -5,7 +5,7 @@
          (force take [] 1 xs)
          [ (\x xs -> case xs [(\ds ds -> constr 1 []), (constr 0 [x])])
          , (constr 1 []) ])
-      ((\s -> s s)
+      ((\cse -> cse cse)
          (\s arg ->
             delay
               (\`$dMkNil` n l ->
