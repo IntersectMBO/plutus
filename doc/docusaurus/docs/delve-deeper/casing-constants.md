@@ -13,10 +13,32 @@ This use of `case` in UPLC was introduced with protocol version 11 and requires
 :::
 
 In UPLC, it is possible to branch on expressions of certain built-in types, like
-`Integer` and `Bool`. This can be done with `case` syntax, which is also used
-for [sums-of-products](./encoding#sums-of-products). Using `case` on built-in
-values may improve script performance and size. 
-The built-in types that `case` currently supports are:
+`Integer` and `Bool` using `case` syntax, which is also used
+for [sums-of-products](./encoding#sums-of-products). This may improve script performance
+and size, compared to older alternatives that use built-in functions.
+
+This page describes the built-in types that are supported in UPLC and how Plinth
+developers can benefit from the improved performance.
+
+## Usage from Plinth
+
+:::info
+
+The Plinth compiler option will change from `datatypes=BuiltinCasing` to
+`datatypes=SumsOfProducts` in the future.
+
+:::
+
+
+Plinth developers can benefit from the performance of `case` by enabling the
+compiler [option](./plinth-compiler-options) `datatypes=BuiltinCasing`, and
+using standard library functions such as `caseList`, `fstPair`.
+Note that Plinth's `case ... of ...` syntax is not generally compiled to UPLC,
+as it can be more expressive.
+
+## Supported types
+
+The UPLC built-in types that `case` can be used on are:
 
 - `bool`
 - `unit`
@@ -26,42 +48,32 @@ The built-in types that `case` currently supports are:
 
 In the future, support for `data` is also planned.
 
-For each type, the allowed branches and their order differs. See [Supported
-Types](#supported-types) for more detail.
-
-## Compiling to `case` in Plinth
-
-When compiling Plinth code with the [option](./plinth-compiler-options)
-`datatypes=BuiltinCasing` (which in the future be achieved with
-`datatypes=SumsOfProducts`), many standard library functions will be compiled
-into this use of `case`, such as `fstPair`, `ifThenElse` and `caseList`. Note
-that Plinth's `case ... of ...` syntax is not generally compiled to UPLC, as
-it can be more expressive.
-
-## Supported types
-
 ### Bool
 
-Consider the following Plinth code that implements a basic assertion:
+The following Plinth code implements a basic assertion:
 
 ```haskell
-assert :: Bool -> ()
+assert :: Bool -> BuiltinUnit
 assert False = error ()
-assert True = ()
+assert True = unitval
 ```
 
 With `datatypes=BuiltinCasing`, it is compiled to the new casing on builtins:
 
 ```uplc
-\b -> case b error (constr 0 [])
+\b -> case b [error, ()]
 ```
+
+In UPLC, booleans can be used in `case` with either one or two branches, where
+the first is always the `False` branch. When only a single branch is provided,
+script execution will fail when the boolean evaluates to True.
 
 :::info
 
 Compare this to the UPLC that would have been generated otherwise:
 
 ```uplc
-\b -> force (force ifThenElse b (delay (constr 0 [])) (delay error))
+\b -> force (force ifThenElse b (delay ()) (delay error))
 ```
 
 This uses the UPLC builtin function `ifThenElse`, which requires delaying the branch
@@ -70,11 +82,11 @@ delaying impacts the size and execution cost.
 :::
 
 
-### Unit
+### BuiltinUnit
 
 The built-in unit type can be used in a trivial way with `case` in UPLC, which
 takes exactly one branch. With `datatypes=BuiltinCasing`, Plinth will compile
-the `chooseUnit` built-in into `case`. Consider the following trivial Plinth code:
+`chooseUnit` from `PlutusTx.Builtins.Internal` into `case`. For example:
 
 ```haskell
 forceUnit :: BuiltinUnit -> Integer
@@ -91,10 +103,9 @@ UPLC's case on built-in unit requires exactly one branch. If the expression
 being cased on evaluates to the unit value, evaluation will continue with the
 expression in that branch.
 
-### Pair
+### BuiltinPair
 
-To destruct a built-in pair, use `casePair`. It compiles into the `case`
-construct. For example:
+To destruct a built-in pair, use `casePair` from `PlutusTx.Builtins`. For example:
 
 ```haskell
 addPair :: BuiltinPair Integer Integer -> Integer
@@ -152,11 +163,11 @@ fail. Note that there is no way to provide a "catch-all" case for integers.
 When not using `datatypes=BuiltinCasing`, Plinth's `caseInteger` is compiled
 into a much less efficient implementation that turns the second argument in a
 list (of which the representation depends on the chosen `datatypes=` flag), and
-does a recursive lookup in that list.
+does a recursive lookup in that list. The above Plinth code is compiled to:
 
 
 ```uplc
-((\traceError ->
+(\traceError ->
        (\go i ->
           force
             (force ifThenElse
@@ -181,12 +192,12 @@ does a recursive lookup in that list.
                            (delay x)
                            (delay
                               ((\x -> s s x) (subtractInteger ds 1) xs)))) ])))
-      (\str -> (\x -> error) (force trace str (constr 0 []))))
+      (\str -> (\x -> error) (force trace str (constr 0 [])))
 ```
 :::
 
 
-### List
+### BuiltinList
 
 A `case` on built-in lists may be given one or two branches (similar to
 booleans), where the first one deals with the cons case, and the second one with

@@ -1,1 +1,1 @@
-(program 1.1.0 (\ds -> case ds [error, (constr 0 [])]))
+(program 1.1.0 (\ds -> case ds [error, ()]))

@@ -12,13 +12,13 @@ import Test.Tasty.Extras
 
 import PlutusTx (compile)
 import PlutusTx.Builtins (caseInteger, caseList, casePair)
-import PlutusTx.Builtins.Internal (chooseUnit)
+import PlutusTx.Builtins.Internal (chooseUnit, unitval)
 import PlutusTx.Prelude
 import PlutusTx.Test
 
-assert :: Bool -> ()
+assert :: Bool -> BuiltinUnit
 assert False = error ()
-assert True = ()
+assert True = unitval
 
 forceUnit :: BuiltinUnit -> Integer
 forceUnit e = chooseUnit e 5
