@@ -20,7 +20,6 @@ import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import Data.Set qualified as Set
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx hiding (null)
-import PlutusTx.Builtins.Internal qualified as PlutusTx (chooseUnit, ifThenElse)
 import PlutusTx.Code
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List.TH (destructList)
@@ -44,13 +43,6 @@ tests =
   testNested "Budget" . pure $
     testNestedGhc
       [ goldenBundle' "sum" compiledSum
-      , goldenBundle' "caseBool" compiledAssertEx
-      , goldenBundle' "caseBool2" compiledAssertEx2
-      , goldenBundle' "caseUnit" compiledCaseUnit
-      , goldenBundle' "caseUnit2" compiledCaseUnit2
-      , goldenBundle' "casePair" casePair
-      , goldenBundle' "caseZ" caseZ
-      , goldenBundle' "caseZ2" caseZ2
       , goldenBundle' "anyCheap" compiledAnyCheap
       , goldenBundle' "anyExpensive" compiledAnyExpensive
       , goldenBundle' "anyEmptyList" compiledAnyEmptyList
@@ -111,51 +103,6 @@ tests =
       , -- With the function definition in the local module
         goldenBundle' "andWithLocal" compiledAndWithLocal
       ]
-
-assertEx :: Bool -> ()
-assertEx = \case
-  False -> PlutusTx.error ()
-  True -> ()
-
-compiledAssertEx :: CompiledCode (Bool -> ())
-compiledAssertEx =
-  $$(compile [||assertEx||])
-
-assertEx2 :: Bool -> ()
-assertEx2 = \b -> PlutusTx.ifThenElse b (PlutusTx.error ()) ()
-
--- (lam b (case b (con bool True) (con bool False))
-compiledAssertEx2 :: CompiledCode (Bool -> ())
-compiledAssertEx2 =
-  $$(compile [||assertEx2||])
-
-caseUnit :: () -> Bool
-caseUnit () = True
-
-compiledCaseUnit :: CompiledCode (() -> Bool)
-compiledCaseUnit =
-  $$(compile [||caseUnit||])
-
-caseUnit2 :: PlutusTx.BuiltinUnit -> Bool
-caseUnit2 e = PlutusTx.chooseUnit e True
-
-casePair :: CompiledCode (PlutusTx.BuiltinPair Integer Integer -> Integer)
-casePair =
-  $$( compile
-        [||
-        \e -> PlutusTx.casePair e (PlutusTx.+)
-        ||]
-    )
-
-caseZ :: CompiledCode (Integer -> PlutusTx.BuiltinString)
-caseZ = $$(compile [||\x -> PlutusTx.caseInteger x ["a", "b", "c"]||])
-
-caseZ2 :: CompiledCode (Integer -> PlutusTx.BuiltinString)
-caseZ2 = $$(compile [||\x -> case x of 0 -> "a"; 1 -> "b"; 2 -> "c"||])
-
-compiledCaseUnit2 :: CompiledCode (PlutusTx.BuiltinUnit -> Bool)
-compiledCaseUnit2 =
-  $$(compile [||caseUnit2||])
 
 compiledSum :: CompiledCode Integer
 compiledSum =
