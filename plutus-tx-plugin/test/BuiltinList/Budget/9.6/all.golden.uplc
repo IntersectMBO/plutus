@@ -1,23 +1,11 @@
 (program
    1.1.0
    (\xs ->
-      (\cse ->
+      (\all ->
          constr 0
-           [ (cse (\v -> case (lessThanInteger v 8) [True, False]) xs)
-           , (cse (\v -> case (lessThanInteger v 0) [True, False]) xs) ])
+           [ (all (\v -> case (lessThanInteger v 8) [True, False]) xs)
+           , (all (\v -> case (lessThanInteger v 0) [True, False]) xs) ])
         (\p ->
-           force
-             ((\f ->
-                 (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-                   (\s -> f (\x -> s s x)))
-                (\go arg ->
-                   delay
-                     (\xs ->
-                        case
-                          xs
-                          [ (\x xs ->
-                               case
-                                 (p x)
-                                 [False, (force (go (delay (\x -> x))) xs)])
-                          , True ]))
-                (delay (\x -> x))))))
+           (\s -> s s)
+             (\s xs ->
+                case xs [(\x xs -> case (p x) [False, (s s xs)]), True]))))

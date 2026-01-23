@@ -1,22 +1,16 @@
 (program
    1.1.0
-   ((\last xs -> force (force last) xs)
-      ((\f ->
-          (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-            (\s -> f (\x -> s s x)))
-         (\last arg ->
+   ((\last xs -> force last xs)
+      ((\s -> s s)
+         (\s arg ->
             delay
-              (delay
-                 (\eta ->
-                    case
-                      eta
-                      [ (\x xs ds ->
-                           case
-                             xs
-                             [ (\ds ds ->
-                                  force (force (last (delay (\x -> x)))) xs)
-                             , x ])
-                      , (\ds ->
-                           (\x -> error) (force trace "PT25" (constr 0 []))) ]
-                      (constr 0 []))))
+              (\eta ->
+                 case
+                   eta
+                   [ (\x xs ds ->
+                        case
+                          xs
+                          [(\ds ds -> force (s s (delay (\x -> x))) xs), x])
+                   , (\ds -> (\x -> error) (force trace "PT25" (constr 0 []))) ]
+                   (constr 0 [])))
          (delay (\x -> x)))))
