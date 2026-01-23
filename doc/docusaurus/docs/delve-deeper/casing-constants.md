@@ -33,22 +33,21 @@ Types](#supported-types) for more detail.
 
 When compiling Plinth code with the [option](./plinth-compiler-options)
 `datatypes=BuiltinCasing` (which in the future be achieved with
-`datatypes=SumsOfProducts), many standard library functions will be compiled
+`datatypes=SumsOfProducts`), many standard library functions will be compiled
 into this use of `case`, such as `fstPair`, `ifThenElse` and `caseList`. Note
-that Plinth's `case ... of ...` syntax is not necessarily compiled to UPLC, as
+that Plinth's `case ... of ...` syntax is not generally compiled to UPLC, as
 it can be more expressive.
 
 ## Supported types
 
 ### Bool
 
-Consider the following Plinth code that implements an assertion:
+Consider the following Plinth code that implements a basic assertion:
 
 ```haskell
-assertEx :: Bool -> ()
-assertEx = \case
-  False -> PlutusTx.error ()
-  True -> ()
+assert :: Bool -> ()
+assert False = error ()
+assert True = ()
 ```
 
 With `datatypes=BuiltinCasing`, it is compiled to the new casing on builtins:
@@ -59,17 +58,15 @@ With `datatypes=BuiltinCasing`, it is compiled to the new casing on builtins:
 
 :::info
 
-Compare this to the UPLC generated without using `datatypes=BuiltinCasing`.
+Compare this to the UPLC that would have been generated otherwise:
 
 ```uplc
-\b -> force (force ifThenElse b (delay (constr 0 [])) (delay error)))
+\b -> force (force ifThenElse b (delay (constr 0 [])) (delay error))
 ```
 
-This uses the UPLC builtin `ifThenElse`, which requires delaying the branch
+This uses the UPLC builtin function `ifThenElse`, which requires delaying the branch
 arguments, since application in UPLC is strict. The additional forcing and
 delaying impacts the size and execution cost.
-
-
 :::
 
 
@@ -80,14 +77,14 @@ takes exactly one branch. With `datatypes=BuiltinCasing`, Plinth will compile
 the `chooseUnit` built-in into `case`. Consider the following trivial Plinth code:
 
 ```haskell
-caseUnit :: PlutusTx.BuiltinUnit -> Bool
-caseUnit e = PlutusTx.chooseUnit e True
+forceUnit :: BuiltinUnit -> Integer
+forceUnit e = chooseUnit e 5
 ```
 
 Which results in the following UPLC:
 
 ```uplc
-\e -> case e True
+\e -> case e [5]
 ```
 
 UPLC's case on built-in unit requires exactly one branch. If the expression
@@ -100,13 +97,14 @@ To destruct a built-in pair, use `casePair`. It compiles into the `case`
 construct. For example:
 
 ```haskell
-\e -> PlutusTx.casePair e (PlutusTx.+)
+addPair :: BuiltinPair Integer Integer -> Integer
+addPair p = casePair p (+)
 ```
 
 This compiles into `case` in UPLC, which expects a single branch:
 
 ```
-lam e (case e (lam x (lam y [(builtin addInteger) x y])))
+\p -> case p [(\x y -> addInteger x y)]
 ```
 
 :::info
@@ -116,58 +114,40 @@ compiled into multiple built-in function calls to project out the pair's
 components, impacting size and execution cost:
 
 ```uplc
-(\e -> addInteger (force (force fstPair) e) (force (force sndPair) e))
+\p -> addInteger (force (force fstPair) p) (force (force sndPair) p)
 ```
 
 :::
 
 ### Integer
 
-To use `case` can also be used for Integers, albeit in a more limited way than 
-
-Casing on integers can be used for non-negative integers only, and a variable
+Casing on integers in UPLC can be used for non-negative integers only, and a variable
 amount of branches may be given. If the expression `e` evaluates to an integer
 `i`, the `i`th branch will be evaluated. If there is no branch, `case` will
-fail. In Plinth, this can be done with the `caseInteger` function:
+fail.
 
+In Plinth, use the `caseInteger` function:
 
 ```haskell
-\x -> caseInteger x ["a", "b", "c"]
+integerABC :: Integer -> BuiltinString
+integerABC i = caseInteger i ["a", "b", "c"]
 ```
 
-So when applied to `2`, the expression evaluates to `"c"`. The generated UPLC
-will be:
+Applying this function to `2` gives `"c"`, while `10` or `-1` produce an error.
+Note that the second argument must be given as a literal list, otherwise it is a
+Plinth compile error.
+
+
+Plinth generates the following UPLC:
 
 ```
-lam x (case x (con string "a") (con string "b") (con string "c"))
+\i -> case i ["a", "b", "c"]
 ```
 
-If the `i`th branch is not given, or `i` is a negative integer, evaluation will
-fail:
-
-```
-case [(builtin addInteger) (con integer 2) (con integer 2)]
-  (con string "a")
-  (con string "b")
-  (con string "c")
-```
-
-Results in
-
-```
-An error has occurred:
-'case' over a value of a built-in type failed with
-'case 4' is out of bounds for the given number of branches: 3
-Caused by: 4
-```
-
-Note that there is no way to provide a "catch-all" case for integers.
+In general, if `i`th branch is not given, or `i` is a negative integer, evaluation will
+fail. Note that there is no way to provide a "catch-all" case for integers.
 
 :::info
-
-In Plinth, using `caseInteger` with `datatypes=BuiltinCasing` will be compiled into
-the above `case` construct in PIR, provided the second argument is given as a
-literal list (otherwise this is a compile error).
 
 When not using `datatypes=BuiltinCasing`, Plinth's `caseInteger` is compiled
 into a much less efficient implementation that turns the second argument in a
@@ -176,17 +156,15 @@ does a recursive lookup in that list.
 
 
 ```uplc
-(program
-   1.1.0
-   ((\traceError ->
-       (\go x ->
+((\traceError ->
+       (\go i ->
           force
             (force ifThenElse
-               (lessThanInteger x 0)
+               (lessThanInteger i 0)
                (delay (traceError "PT6"))
                (delay
                   (go
-                     x
+                     i
                      (constr 1
                         [ "a"
                         , (constr 1
@@ -203,31 +181,8 @@ does a recursive lookup in that list.
                            (delay x)
                            (delay
                               ((\x -> s s x) (subtractInteger ds 1) xs)))) ])))
-      (\str -> (\x -> error) (force trace str (constr 0 [])))))
+      (\str -> (\x -> error) (force trace str (constr 0 []))))
 ```
-
-
-```
-(program
-   1.1.0
-   (\x ->
-      force
-        (force ifThenElse
-           (equalsInteger 0 x)
-           (delay "a")
-           (delay
-              (force
-                 (force ifThenElse
-                    (equalsInteger 1 x)
-                    (delay "b")
-                    (delay
-                       (force
-                          (force ifThenElse
-                             (equalsInteger 2 x)
-                             (delay "c")
-                             (delay ((\cse -> case cse [cse]) error)))))))))))
-```
-
 :::
 
 
@@ -238,17 +193,28 @@ booleans), where the first one deals with the cons case, and the second one with
 the empty list. If no second branch is given, execution will fail when the list
 turns out to be empty.
 
-This example implements the `head` function, which fails if the list if empty.
+This example implements a `head` function for boolean lists, which fails if the list if empty.
 
 ```uplc
-lam xs (case xs (lam y (lam ys y)))
+head :: BuiltinList Bool -> Bool
+head xs = caseList (\_ -> error ()) (\x _ -> x) xs
 ```
 
 :::info
 
-When compiling without `datatypes=BuiltinCasing`, Plinth's `caseList` is
-compiled into a combination of built-in calls such as `chooseList`, `headList`
-and `tailList`. Similarly to booleans, the branches are also thunked, impacting
-script size and execution cost.
+When compiling without `datatypes=BuiltinCasing`, compilation falls back on
+using multiple built-ins, such as `chooseList`, `headList` and `tailList`.
+Similarly to booleans, the branches are thunked, impacting script size and
+execution cost:
+
+```uplc
+(\xs ->
+      force
+        (force (force chooseList)
+           xs
+           (delay (\ds -> error))
+           (delay ((\x xs ds -> x) (force headList xs) (force tailList xs))))
+        (constr 0 []))
+```
 
 :::
