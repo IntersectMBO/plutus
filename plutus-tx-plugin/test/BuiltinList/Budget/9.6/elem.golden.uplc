@@ -1,20 +1,13 @@
 (program
    1.1.0
    (\xs ->
-      (\cse -> constr 0 [(cse 8 xs), (cse 12 xs)])
-        (\a ->
-           force
-             ((\f ->
-                 (\s -> f (\x -> f (\x -> f (\x -> f (\x -> s s x) x) x) x))
-                   (\s -> f (\x -> s s x)))
-                (\go arg ->
-                   delay
-                     (\xs ->
-                        case
-                          xs
-                          [ (\x xs ->
-                               case
-                                 (equalsInteger a x)
-                                 [(force (go (delay (\x -> x))) xs), True])
-                          , False ]))
-                (delay (\x -> x))))))
+      (\elem ->
+         constr 0
+           [ (elem (\x y -> equalsInteger x y) 8 xs)
+           , (elem (\x y -> equalsInteger x y) 12 xs) ])
+        (\`$dEq` a ->
+           (\s -> s s)
+             (\s xs ->
+                case
+                  xs
+                  [(\x xs -> case (`$dEq` a x) [(s s xs), True]), False]))))
