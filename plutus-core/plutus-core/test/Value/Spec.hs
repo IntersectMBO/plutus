@@ -10,6 +10,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 import Data.Either
 import Data.Foldable qualified as F
+import Data.List.Extra (nubOrdOn, sortOn)
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Safe.Foldable (maximumMay)
@@ -241,6 +242,13 @@ prop_oppositeScaleIsInverse c v =
       BuiltinSuccess r -> r == V.empty
       _ -> scaleIncorrectlyBound c v
 
+prop_dataRoundtrip :: Value -> Property
+prop_dataRoundtrip v = case V.unValueData d of
+  BuiltinSuccess v' -> (v === v') .&&. (V.valueData v' === d)
+  _ -> property False
+  where
+    d = V.valueData v
+
 prop_flatRoundtrip :: Value -> Property
 prop_flatRoundtrip v = Flat.unflat (Flat.flat v) === Right v
 
@@ -353,7 +361,7 @@ prop_unValueDataValidatesMixedQuantities =
     genValueDataWithMixedQuantities :: Gen (Data, Bool)
     genValueDataWithMixedQuantities = do
       numEntries <- chooseInt (1, 10)
-      entries <- vectorOf numEntries $ do
+      entries <- fmap (nubOrdOn fst . sortOn fst) . vectorOf numEntries $ do
         c <- gen32BytesOrFewer
         t <- gen32BytesOrFewer
         -- 90% valid, 10% invalid
@@ -364,7 +372,10 @@ prop_unValueDataValidatesMixedQuantities =
             ]
         pure (B c, Map [(B t, I quantity)])
       let hasInvalid = any (\(_, Map inner) -> any isInvalidQuantity inner) entries
-          isInvalidQuantity (_, I q) = q < V.unQuantity minBound || q > V.unQuantity maxBound
+          isInvalidQuantity (_, I q) =
+            q < V.unQuantity minBound
+              || q > V.unQuantity maxBound
+              || q == 0
           isInvalidQuantity _ = False
       pure (Map entries, hasInvalid)
 
@@ -494,6 +505,9 @@ tests =
     , testProperty
         "oppositeScaleIsInverse"
         prop_oppositeScaleIsInverse
+    , testProperty
+        "dataRoundtrip"
+        prop_dataRoundtrip
     , testProperty
         "flatRoundtrip"
         prop_flatRoundtrip

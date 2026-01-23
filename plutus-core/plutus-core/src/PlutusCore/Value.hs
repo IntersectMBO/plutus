@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -38,8 +39,8 @@ module PlutusCore.Value
 
 import Codec.Serialise qualified as CBOR
 import Control.DeepSeq (NFData)
+import Control.Monad.Extra (unless, when, whenJust)
 import Data.Bifunctor
-import Data.Bitraversable
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as B
 import Data.ByteString.Base64 qualified as Base64
@@ -217,12 +218,12 @@ pack = pack' . normalize
 
 -- | Like `pack` but does not normalize.
 pack' :: NestedMap -> Value
-pack' v = Value v sizes size neg
+pack' v = Value v sizes total neg
   where
-    (sizes, size, neg) = Map.foldl' alg (mempty, 0, 0) v
-    alg (ss, s, n) inner =
+    (sizes, total, neg) = Map.foldl' alg (mempty, 0, 0) v
+    alg (ss, t, n) inner =
       ( IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) ss
-      , s + Map.size inner
+      , t + Map.size inner
       , n + Map.size (Map.filter (< zeroQuantity) inner)
       )
 {-# INLINEABLE pack' #-}
@@ -230,7 +231,7 @@ pack' v = Value v sizes size neg
 {-| Total size, i.e., the number of distinct `(currency symbol, token name)` pairs
 contained in the `Value`. -}
 totalSize :: Value -> Int
-totalSize (Value _ _ size _) = size
+totalSize (Value _ _ total _) = total
 {-# INLINE totalSize #-}
 
 -- | Size of the largest inner map.
@@ -297,7 +298,7 @@ instance Pretty Value where
 {-| \(O(\log \max(m, k))\), where \(m\) is the size of the outer map, and \(k\) is
 the size of the largest inner map. -}
 insertCoin :: ByteString -> ByteString -> Integer -> Value -> BuiltinResult Value
-insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes size neg)
+insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes total neg)
   | unsafeAmount == 0 = pure $ deleteCoin unsafeCurrency unsafeToken v
   | otherwise = case (k unsafeCurrency, k unsafeToken, quantity unsafeAmount) of
       (Nothing, _, _) -> fail $ "insertCoin: invalid currency: " <> show (B.unpack unsafeCurrency)
@@ -318,15 +319,15 @@ insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes size neg
                       Map.insertLookupWithKey (\_ _ _ -> qty) token qty inner
                  in (maybe (Left (Map.size inner)) Right mOldQuantity, Just inner')
             (res, outer') = Map.alterF f currency outer
-            (sizes', size', neg') = case res of
+            (sizes', total', neg') = case res of
               Left oldSize ->
                 ( updateSizes oldSize (oldSize + 1) sizes
-                , size + 1
+                , total + 1
                 , if qty < zeroQuantity then neg + 1 else neg
                 )
               Right oldQuantity ->
                 ( sizes
-                , size
+                , total
                 , if oldQuantity < zeroQuantity && qty > zeroQuantity
                     then neg - 1
                     else
@@ -334,22 +335,22 @@ insertCoin unsafeCurrency unsafeToken unsafeAmount v@(Value outer sizes size neg
                         then neg + 1
                         else neg
                 )
-         in pure $ Value outer' sizes' size' neg'
+         in pure $ Value outer' sizes' total' neg'
 {-# INLINEABLE insertCoin #-}
 
 -- | \(O(\log \max(m, k))\)
 deleteCoin :: ByteString -> ByteString -> Value -> Value
-deleteCoin (UnsafeK -> currency) (UnsafeK -> token) (Value outer sizes size neg) =
-  Value outer' sizes' size' neg'
+deleteCoin (UnsafeK -> currency) (UnsafeK -> token) (Value outer sizes total neg) =
+  Value outer' sizes' total' neg'
   where
     (mold, outer') = Map.alterF f currency outer
-    (sizes', size', neg') = case mold of
+    (sizes', total', neg') = case mold of
       Just (oldSize, oldQuantity) ->
         ( updateSizes oldSize (oldSize - 1) sizes
-        , size - 1
+        , total - 1
         , if oldQuantity < zeroQuantity then neg - 1 else neg
         )
-      Nothing -> (sizes, size, neg)
+      Nothing -> (sizes, total, neg)
     f
       :: Maybe (Map K Quantity)
       -> ( -- Just (old size of inner map, old quantity) if the total size shrinks by 1,
@@ -440,33 +441,85 @@ valueData = Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack
     tokensData = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList
 {-# INLINEABLE valueData #-}
 
-{-| \(O(n \log n)\). Decodes `Data` into `Value`, in the same way as non-builtin @Value@.
+{-| \(O(n)\). Decodes `Data` into `Value`.
 This is the denotation of @UnValueData@ in Plutus V1, V2 and V3. -}
 unValueData :: Data -> BuiltinResult Value
-unValueData =
-  fmap pack . \case
-    Map cs -> do
-      -- Use unchecked addition during construction
-      outerMap <-
-        Map.fromListWith (Map.unionWith unsafeAddQuantity) <$> traverse (bitraverse unB unTokens) cs
-      -- Validate all quantities are within bounds
-      validateQuantities outerMap
-    _ -> fail "unValueData: non-Map constructor"
+unValueData = \case
+  Map cs -> do
+    (outerList, sizes, total, neg) <- goCurrencies cs
+    pure $ Value (Map.fromDistinctDescList outerList) sizes total neg
+  _ -> fail "unValueData: non-Map constructor"
   where
     unB :: Data -> BuiltinResult K
     unB = \case
       B b -> maybe (fail $ "unValueData: invalid key: " <> show (B.unpack b)) pure (k b)
       _ -> fail "unValueData: non-B constructor"
+    {-# INLINEABLE unB #-}
 
     unQ :: Data -> BuiltinResult Quantity
     unQ = \case
-      I i -> pure (UnsafeQuantity i)
+      I i
+        | i == 0 || i < unQuantity minBound || i > unQuantity maxBound ->
+            fail "unValueData: invalid quantity"
+        | otherwise -> pure (UnsafeQuantity i)
       _ -> fail "unValueData: non-I constructor"
+    {-# INLINEABLE unQ #-}
 
-    unTokens :: Data -> BuiltinResult (Map K Quantity)
+    -- Returns the inner map and the number of negative quantities in it.
+    unTokens :: Data -> BuiltinResult (Map K Quantity, Int)
     unTokens = \case
-      Map ts -> fmap (Map.fromListWith unsafeAddQuantity) (traverse (bitraverse unB unQ) ts)
+      Map ts -> do
+        when (null ts) $ fail "unValueData: empty inner map"
+        (innerList, neg) <- goTokens ts
+        pure (Map.fromDistinctDescList innerList, neg)
       _ -> fail "unValueData: non-Map constructor"
+    {-# INLINEABLE unTokens #-}
+
+    -- Returns outer map's list, plus stats (sizes, total, neg).
+    goCurrencies
+      :: [(Data, Data)]
+      -> BuiltinResult ([(K, Map K Quantity)], IntMap Int, Int, Int)
+    goCurrencies = go Nothing mempty mempty 0 0
+      where
+        go !prev !acc !sizes !total !neg = \case
+          [] -> pure (acc, sizes, total, neg)
+          (cData, tsData) : rest -> do
+            !c <- unB cData
+            -- Verify that currencies are strictly ascending
+            whenJust
+              prev
+              ( \p ->
+                  unless
+                    (p < c)
+                    (fail "unValueData: currency symbols not strictly ascending")
+              )
+            (!inner, !innerNeg) <- unTokens tsData
+            let sizes' = IntMap.alter (maybe (Just 1) (Just . (+ 1))) (Map.size inner) sizes
+                total' = total + Map.size inner
+                neg' = neg + innerNeg
+                acc' = (c, inner) : acc
+            go (Just c) acc' sizes' total' neg' rest
+
+    -- Returns inner map's list, plus the number of negative quantities in the inner map.
+    goTokens :: [(Data, Data)] -> BuiltinResult ([(K, Quantity)], Int)
+    goTokens = go Nothing mempty 0
+      where
+        go !prev !acc !neg = \case
+          [] -> pure (acc, neg)
+          (tData, qData) : rest -> do
+            !t <- unB tData
+            -- Verify that token names within an inner map are strictly ascending
+            whenJust
+              prev
+              ( \p ->
+                  unless
+                    (p < t)
+                    (fail "unValueData: token names not strictly ascending")
+              )
+            !q <- unQ qData
+            let neg' = if q < zeroQuantity then neg + 1 else neg
+                acc' = (t, q) : acc
+            go (Just t) acc' neg' rest
 {-# INLINEABLE unValueData #-}
 
 -- | Decrement bucket @old@, and increment bucket @new@.

@@ -139,8 +139,11 @@ test-suite test-detailed
   hs-source-dirs:     test/detailed
   build-depends:
     , base
+    , base16-bytestring  ^>=1.0
+    , bytestring
     , directory
     , extra
+    , filepath
     , plutus-core        ^>=1.57
     , plutus-metatheory  ^>=1.57
     , process
