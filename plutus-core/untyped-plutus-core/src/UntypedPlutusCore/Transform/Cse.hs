@@ -77,10 +77,10 @@ three case branches are 2, 3, 4 (the actual numbers don't matter, as long as the
 The path for the first `1+(2+x)` and the first `2+x` is "0.1"; the path for the second
 `1+(2+x)` and the second `2+x` is "0.1.2"; the path for `4+x` is "0.1.4".
 
-In the third pass, we calculate a count for each `(term, path)` pair, where `term` is a
-non-workfree term, and `path` is its path. If the same term has two paths, and one is an
-ancestor (i.e., prefix) of the other, we increment the count for the ancestor path in both
-instances.
+In the third pass, we calculate a count for each (term, path). Depending on the `cseWhichSubterms`
+option, `term` can be any subterm or a subterm that is not work-free, while `path` is the
+path of that term. If the same term has two paths, and one is an ancestor (i.e., prefix)
+of the other, we increment the count for the ancestor path in both instances.
 
 In the above example, there are three occurrences of `2+x`, whose paths are "0.1", "0.1.2"
 and "0.1.3", respectively. The first path is an ancestor of the latter two. Therefore,
@@ -89,9 +89,10 @@ is 0. The following all have a count of 1: `(3+x, "0.1.2")`, `(3+x, "0.1.3")` an
 `(4+x, "0.1.4")`.
 
 Now, each `(term, path)` pair whose count is greater than 1 is a CSE candidate.
-In the above example, the CSE candidates are `(2+x, "0.1")` and `(1+(2+x), "0.1")`.
-Note that `3+x` is not a CSE candidate, because it has two paths, and neither has a count
-greater than 1. `2+` is also not a CSE candidate, because it is workfree.
+In the above example, the CSE candidates are `(2+x, "0.1")` and `(1+(2+x), "0.1")`, assuming
+we are excluding work-free subterms during this pass. Note that `3+x` is not a CSE candidate,
+because it has two paths, and neither has a count greater than 1. `2+` is also not a CSE candidate,
+because it is workfree.
 
 The CSE candidates are then processed in descending order of their `termAstSize`s. For each CSE
 candidate, we generate a fresh variable, create a LamAbs for it under its path, and substitute
