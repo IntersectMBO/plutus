@@ -1,4 +1,13 @@
 
+<a id='changelog-1.57.0.0'></a>
+# 1.57.0.0 — 2026-01-20
+
+## Added
+
+- Brought back Ratio.from/toGHC as deprecated.
+
+- Added new `Value` builtin functions to the ledger api: `insertCoin`, `unionValue` and `scaleValue`.
+
 <a id='changelog-1.56.0.0'></a>
 # 1.56.0.0 — 2025-11-27
 

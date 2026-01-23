@@ -1,4 +1,18 @@
 
+<a id='changelog-1.57.0.0'></a>
+# 1.57.0.0 — 2026-01-20
+
+## Added
+
+- Added cost models for the new `Value` builtins `insertCoin`, `unionValue` and `scaleValue`.
+
+## Changed
+
+- Improved performance of `unionValue` in its edge cases.
+
+- The Plutus Core cost models have been updated to include costs for all of the
+  new builtins to be released in Protocol Version 11.
+
 <a id='changelog-1.56.0.0'></a>
 # 1.56.0.0 — 2025-11-27
 
