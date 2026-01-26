@@ -43,8 +43,9 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
-    buildable: False
+  -- if (impl(ghc <9.6) || impl(ghc >=9.7))
+  --   buildable: False
+  buildable: True
 
 common os-support
   if (impl(ghcjs) || os(windows))
