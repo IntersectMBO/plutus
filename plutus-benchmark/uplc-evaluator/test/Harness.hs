@@ -8,9 +8,8 @@ module Harness
 
 import Control.Concurrent (threadDelay)
 import Control.Exception (bracket)
-import System.Directory (doesFileExist, getCurrentDirectory, removeDirectoryRecursive)
+import System.Directory (findExecutable, removeDirectoryRecursive)
 import System.Exit (ExitCode (..))
-import System.FilePath ((</>))
 import System.IO (hPutStrLn, stderr)
 import System.IO.Temp (createTempDirectory, getCanonicalTemporaryDirectory)
 import System.Process
@@ -92,37 +91,20 @@ withEvaluatorService executablePath action =
 
 {-| Find the uplc-evaluator executable
 
-Searches in common locations where cabal places built executables.
-Returns the path if found, or an error message if not found. -}
+Relies on build-tool-depends to make the executable available in PATH.
+This works for both cabal builds (cabal test) and nix builds.
+Returns the path if found in PATH, or an error message if not found. -}
 findEvaluatorExecutable :: IO FilePath
 findEvaluatorExecutable = do
-  -- Get current directory to build absolute paths
-  -- Tests may run from plutus-benchmark subdirectory, so check both
-  cwd <- getCurrentDirectory
-
-  -- Try the standard cabal dist-newstyle locations
-  let relativeCandidates =
-        [ "dist-newstyle/build/x86_64-linux/ghc-9.6.7/plutus-benchmark-0.1.0.0/x/uplc-evaluator/build/uplc-evaluator/uplc-evaluator"
-        , "dist-newstyle/build/x86_64-linux/ghc-9.8.4/plutus-benchmark-0.1.0.0/x/uplc-evaluator/build/uplc-evaluator/uplc-evaluator"
-        , "dist-newstyle/build/x86_64-linux/ghc-9.10.1/plutus-benchmark-0.1.0.0/x/uplc-evaluator/build/uplc-evaluator/uplc-evaluator"
-        , -- Also try with aarch64 for Apple Silicon Macs
-          "dist-newstyle/build/aarch64-osx/ghc-9.6.7/plutus-benchmark-0.1.0.0/x/uplc-evaluator/build/uplc-evaluator/uplc-evaluator"
-        , "dist-newstyle/build/aarch64-osx/ghc-9.8.4/plutus-benchmark-0.1.0.0/x/uplc-evaluator/build/uplc-evaluator/uplc-evaluator"
-        , "dist-newstyle/build/aarch64-osx/ghc-9.10.1/plutus-benchmark-0.1.0.0/x/uplc-evaluator/build/uplc-evaluator/uplc-evaluator"
-        ]
-      -- Convert to absolute paths from both current directory and parent directory
-      candidates = map (cwd </>) relativeCandidates ++ map ((cwd </> "..") </>) relativeCandidates
-
-  -- Find first existing candidate
-  findFirst candidates
-  where
-    findFirst :: [FilePath] -> IO FilePath
-    findFirst [] =
+  -- Check if uplc-evaluator is available in PATH
+  -- This works because build-tool-depends makes it available for both:
+  --   - cabal builds (cabal test adds build-tools to PATH)
+  --   - nix builds (nix adds dependencies to PATH)
+  pathResult <- findExecutable "uplc-evaluator"
+  case pathResult of
+    Just path -> return path
+    Nothing ->
       error $
-        "Could not find uplc-evaluator executable. "
-          ++ "Please build it first with: cabal build uplc-evaluator"
-    findFirst (path : rest) = do
-      exists <- doesFileExist path
-      if exists
-        then return path
-        else findFirst rest
+        "Could not find uplc-evaluator executable in PATH. "
+          ++ "This test suite requires build-tool-depends to make the executable available. "
+          ++ "Please ensure you're running tests with 'cabal test' or 'nix build'."
