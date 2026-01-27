@@ -1,5 +1,5 @@
 # editorconfig-checker-disable-file
-{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages, project-variant mkFourmolu }:
+{ inputs, pkgs, lib, project, agda-tools, metatheory, r-with-packages, project-variant, mkFourmolu }:
 
 let
 
@@ -9,7 +9,7 @@ let
     "ghc96".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest";
     "ghc96".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest";
     "ghc96".stylish-haskell = project.projectVariants.ghc96.tool "stylish-haskell" "latest";
-    "ghc96".fourmolu = mkFourmolu ghc;
+    "ghc96".fourmolu = mkFourmolu "ghc96";
     "ghc96".hlint = project.projectVariants.ghc96.tool "hlint" "3.8";
     "ghc96".hp2ps = project.projectVariants.ghc96.tool "hp2ps" "latest";
     "ghc96".eventlog2html = project.projectVariants.ghc96.tool "eventlog2html" "latest";
@@ -18,7 +18,7 @@ let
     "ghc912".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc9122
     "ghc912".haskell-language-server = project.projectVariants.ghc912.tool "haskell-language-server" "latest";
     "ghc912".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
-    "ghc912".fourmolu = mkFourmolu ghc;
+    "ghc912".fourmolu = mkFourmolu "ghc912";
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
     "ghc912".hp2ps = project.projectVariants.ghc912.tool "hp2ps" "latest";
     "ghc912".eventlog2html = project.projectVariants.ghc912.tool "eventlog2html" "latest";
