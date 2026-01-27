@@ -61,11 +61,17 @@ testDischargeFree =
   testGroup "discharge" $
     fmap
       (uncurry testCase)
-      [ ("freeRemains1", freeRemains1)
-      , ("freeRemains2", freeRemains2)
+      [ ("delayWithEmptyEnv", delayWithEmptyEnv)
+      , ("boundEnvAndFreeVars", boundEnvAndFreeVars)
+      , ("freeRemainsUnderLambda", freeRemainsUnderLambda)
+      , ("freeRemainsUnder2Lambdas", freeRemainsUnder2Lambdas)
+      , ("freeRemainsUnder3Lambdas", freeRemainsUnder3Lambdas)
+      , ("freeRemainsInNestedEnv", freeRemainsInNestedEnv)
+      , ("deepFreeVarRemains", deepFreeVarRemains)
+      , ("multipleFreeVarsRemain", multipleFreeVarsRemain)
       ]
   where
-    freeRemains1 =
+    delayWithEmptyEnv =
       -- dis( empty |- (delay (\x ->var0)) ) === (delay (\x -> var0))
       dis
         ( VDelay
@@ -74,7 +80,7 @@ testDischargeFree =
         )
         @?= DischargeNonConstant (toFakeTerm $ Delay () fun0var0)
 
-    freeRemains2 =
+    boundEnvAndFreeVars =
       -- dis( y:unit |- \x-> x y var0) ) === (\x -> x unit var0)
       -- x is bound so it is left alone
       -- y is discharged from the env
@@ -98,6 +104,108 @@ testDischargeFree =
                 -- substituted y
                    , var0 -- free
                    ]
+          )
+
+    freeRemainsUnderLambda =
+      -- Issue #7526: Variable capture in dischargeCekValue
+      -- (\\0 \\0 var 2) (delay (var 1)) evaluates to:
+      --   VLamAbs _ (var 2) [VDelay (var 1) []]
+      -- Free var 1 in delay should shift to var 2 under 1 lambda
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            (toFakeTerm $ v 2)
+            [VDelay (toFakeTerm $ v 1) []]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 $
+              Delay () (v 2) -- var 1 shifted by 1
+          )
+
+    freeRemainsUnder2Lambdas =
+      -- VLamAbs _ (LamAbs _ (var 3)) [VDelay (var 1) []]
+      -- Body var 3 under 2 lambdas looks up idx 3-2=1 in env -> VDelay (var 1) []
+      -- Free var 1 in delay should shift to var 3 under 2 lambdas
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            ( toFakeTerm $
+                LamAbs () (DeBruijn deBruijnInitIndex) (v 3)
+            )
+            [VDelay (toFakeTerm $ v 1) []]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 . lamAbs0 $
+              Delay () (v 3) -- var 1 shifted by 2
+          )
+
+    freeRemainsUnder3Lambdas =
+      -- Same pattern but with 3 lambdas
+      -- Free var 1 should shift to var 4 under 3 lambdas
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            ( toFakeTerm $
+                LamAbs () (DeBruijn deBruijnInitIndex) $
+                  LamAbs () (DeBruijn deBruijnInitIndex) (v 4)
+            )
+            [VDelay (toFakeTerm $ v 1) []]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 . lamAbs0 . lamAbs0 $
+              Delay () (v 4) -- var 1 shifted by 3
+          )
+
+    freeRemainsInNestedEnv =
+      -- Outer: VLamAbs _ (var 2) [innerVal]
+      -- Inner: VLamAbs _ (var 2) [VDelay (var 1) []]
+      -- Discharging: \\0 (\\0 delay (var ?))
+      -- Free var 1 should shift to var 3 (1 from outer + 1 from inner lambda)
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            (toFakeTerm $ v 2)
+            [ VLamAbs
+                (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+                (toFakeTerm $ v 2)
+                [VDelay (toFakeTerm $ v 1) []]
+            ]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 . lamAbs0 $
+              Delay () (v 3) -- var 1 shifted by 2 (1 from each lambda)
+          )
+
+    deepFreeVarRemains =
+      -- VLamAbs _ (var 2) [VDelay (var 3) []]
+      -- var 3 in delay is free and deeply indexed
+      -- Should shift to var 4 under 1 lambda
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            (toFakeTerm $ v 2)
+            [VDelay (toFakeTerm $ v 3) []]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 $
+              Delay () (v 4) -- var 3 shifted by 1
+          )
+
+    multipleFreeVarsRemain =
+      -- VLamAbs _ (LamAbs _ (var 3)) [VDelay (var 1 @ var 2) []]
+      -- var 1 and var 2 in delay are both free
+      -- Both should shift by 2: var 1 -> var 3, var 2 -> var 4
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            ( toFakeTerm $
+                LamAbs () (DeBruijn deBruijnInitIndex) (v 3)
+            )
+            [VDelay (toFakeTerm $ v 1 @@ [v 2]) []]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 . lamAbs0 $
+              Delay () (v 3 @@ [v 4]) -- var 1 -> var 3, var 2 -> var 4
           )
 
     dis = dischargeCekValue @DefaultUni @DefaultFun
