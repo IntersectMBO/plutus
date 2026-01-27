@@ -689,8 +689,8 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
                 maybe
                   -- var is free, leave it alone
                   (Var () named)
-                  -- var is in the env, discharge its value
-                  goValue
+                  -- var is in the env, discharge its value and shift free vars
+                  (shiftTermBy shift . goValue)
                   -- index relative to (as seen from the point of view of) the environment
                   (Env.indexOne env $ idx - shift)
           Apply _ fun arg -> Apply () (go shift fun) $ go shift arg
@@ -701,6 +701,27 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Error _ -> Error ()
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
+
+{-| Shift all free variables in a term by the given amount.
+A variable is free if its index is greater than the current binding depth. -}
+shiftTermBy :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
+shiftTermBy 0 term = term -- Optimization: no-op when shift is 0
+shiftTermBy shiftAmount term = go 0 term
+  where
+    go :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
+    go !depth = \case
+      Var ann (NamedDeBruijn n (coerce -> idx))
+        | idx <= depth -> Var ann (NamedDeBruijn n (coerce idx)) -- Bound: unchanged
+        | otherwise -> Var ann (NamedDeBruijn n (coerce (idx + shiftAmount))) -- Free: shift
+      LamAbs ann name body -> LamAbs ann name $ go (depth + 1) body
+      Apply ann fun arg -> Apply ann (go depth fun) (go depth arg)
+      Delay ann t -> Delay ann $ go depth t
+      Force ann t -> Force ann $ go depth t
+      Constant ann val -> Constant ann val
+      Builtin ann fun -> Builtin ann fun
+      Error ann -> Error ann
+      Constr ann ind args -> Constr ann ind $ map (go depth) args
+      Case ann scrut alts -> Case ann (go depth scrut) $ fmap (go depth) alts
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
