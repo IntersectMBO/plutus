@@ -899,15 +899,16 @@ executable uplc-evaluator
     , with-utf8
 
 test-suite uplc-evaluator-integration-tests
-  import:         lang, os-support
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
+  import:             lang, os-support
+  type:               exitcode-stdio-1.0
+  main-is:            Spec.hs
   other-modules:
     Harness
     TestHelpers
 
-  hs-source-dirs: uplc-evaluator/test
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N1
+  hs-source-dirs:     uplc-evaluator/test
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N1
+  build-tool-depends: plutus-benchmark:uplc-evaluator
   build-depends:
     , aeson               >=2.0
     , base                >=4.9 && <5
