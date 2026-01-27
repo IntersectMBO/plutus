@@ -12,6 +12,7 @@ let
     "ghc96".fourmolu = mkFourmolu ghc;
     "ghc96".hlint = project.projectVariants.ghc96.tool "hlint" "3.8";
     "ghc96".hp2ps = project.projectVariants.ghc96.tool "hp2ps" "latest";
+    "ghc96".eventlog2html = project.projectVariants.ghc96.tool "eventlog2html" "latest";
 
     "ghc912".cabal = project.projectVariants.ghc912.tool "cabal" "latest";
     "ghc912".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc9122
@@ -20,6 +21,7 @@ let
     "ghc912".fourmolu = mkFourmolu ghc;
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
     "ghc912".hp2ps = project.projectVariants.ghc912.tool "hp2ps" "latest";
+    "ghc912".eventlog2html = project.projectVariants.ghc912.tool "eventlog2html" "latest";
 
     "ghc96-profiled" = ghc96;
 
@@ -100,6 +102,7 @@ let
     tools.cabal
     tools.hlint
     tools.cabal-fmt
+    tools.eventlog2html
 
     pkgs.ghcid
     pkgs.texliveFull
