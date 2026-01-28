@@ -25,7 +25,7 @@ module PlutusLedgerApi.V3.Data.MintValue
   )
 where
 
-import PlutusTx.Prelude
+import PlutusTx.Prelude as PlutusTx
 
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Data.Value (CurrencySymbol, TokenName, Value (..))
@@ -62,8 +62,12 @@ newtype MintValue = UnsafeMintValue (Map CurrencySymbol (Map TokenName Integer))
   deriving newtype (ToData, FromData, UnsafeFromData)
   deriving (Pretty) via (PrettyShow MintValue)
 
-instance Haskell.Eq MintValue where
+instance PlutusTx.Eq MintValue where
+  {-# INLINEABLE (==) #-}
   l == r = mintValueMinted l == mintValueMinted r && mintValueBurned l == mintValueBurned r
+
+instance Haskell.Eq MintValue where
+  (==) = (PlutusTx.==)
 
 instance HasBlueprintDefinition MintValue where
   type Unroll MintValue = '[MintValue, CurrencySymbol, TokenName, Integer]

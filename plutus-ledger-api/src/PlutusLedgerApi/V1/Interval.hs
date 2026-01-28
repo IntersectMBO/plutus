@@ -238,26 +238,14 @@ instance Pretty a => Pretty (LowerBound a) where
   pretty (LowerBound a True) = pretty "[" <+> pretty a
   pretty (LowerBound a False) = pretty "(" <+> pretty a
 
-instance Eq a => Eq (Extended a) where
-  {-# INLINEABLE (==) #-}
-  NegInf == NegInf = True
-  PosInf == PosInf = True
-  Finite l == Finite r = l == r
-  _ == _ = False
+deriveEq ''Extended
+deriveOrd ''Extended
 
+-- MAYBE: get rid of these and switch to deriving stock, when deriveOrd is merged
 instance Eq a => Haskell.Eq (Extended a) where
   (==) = (PlutusTx.==)
 
-instance Ord a => Ord (Extended a) where
-  {-# INLINEABLE compare #-}
-  NegInf `compare` NegInf = EQ
-  NegInf `compare` _ = LT
-  _ `compare` NegInf = GT
-  PosInf `compare` PosInf = EQ
-  _ `compare` PosInf = LT
-  PosInf `compare` _ = GT
-  Finite l `compare` Finite r = l `compare` r
-
+-- MAYBE: get rid of these and switch to deriving stock, when deriveOrd is merged
 instance Ord a => Haskell.Ord (Extended a) where
   compare = PlutusTx.compare
 
