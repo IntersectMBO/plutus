@@ -886,14 +886,16 @@ executable uplc-evaluator
   main-is:          Main.hs
   hs-source-dirs:   uplc-evaluator
   build-depends:
-    , aeson                 >=2.0
-    , base                  >=4.9 && <5
+    , aeson                  >=2.0
+    , base                   >=4.9   && <5
     , bytestring
     , containers
+    , criterion-measurement  >=0.1
+    , deepseq
     , directory
     , filepath
     , optparse-applicative
-    , random
+    , plutus-core            ^>=1.57
     , text
     , uuid
     , with-utf8
