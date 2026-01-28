@@ -1,52 +1,21 @@
 let
-  ~`$fMkNilInteger` : (\arep -> list arep) integer = []
-  ~mkNil : all arep. (\arep -> list arep) arep -> list arep
-    = /\arep -> \(v : (\arep -> list arep) arep) -> v
-  ~empty : all a. (\arep -> list arep) a -> list a = mkNil
-  !caseList' : all a r. r -> (a -> list a -> r) -> list a -> r
-    = /\a r -> \(z : r) (f : a -> list a -> r) (xs : list a) -> case r xs [f, z]
-  ~lastEmptyBuiltinListError : string = "PT25"
   data Unit | Unit_match where
     Unit : Unit
-  !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
-  !trace : all a. string -> a -> a = trace
-  !unitval : unit = ()
-  ~traceError : all a. string -> a
-    = /\a ->
-        \(str : string) ->
-          let
-            !str : string = str
-            !x : Unit = trace {Unit} str Unit
-          in
-          error {a} unitval
 in
 letrec
-  ~last : all a. list a -> a
+  !last : all a. list a -> a
     = /\a ->
         \(eta : list a) ->
-          let
-            !l : list a = eta
-          in
-          caseList'
-            {a}
-            {Unit -> a}
-            (\(ds : Unit) -> traceError {a} lastEmptyBuiltinListError)
-            (\(x : a) ->
-               let
-                 !x : a = x
-               in
-               \(xs : list a) ->
+          case
+            (Unit -> a)
+            eta
+            [ (\(x : a) (xs : list a) (ds : Unit) ->
+                 case a xs [(\(ds : a) (ds : list a) -> last {a} xs), x])
+            , (\(ds : Unit) ->
                  let
-                   !xs : list a = xs
+                   !x : Unit = trace {Unit} "PT25" Unit
                  in
-                 \(ds : Unit) ->
-                   caseList'
-                     {a}
-                     {a}
-                     x
-                     (\(ds : a) (ds : list a) -> last {a} xs)
-                     xs)
-            l
+                 error {a}) ]
             Unit
 in
-\(ds : list integer) -> last {integer} (empty {integer} `$fMkNilInteger`)
+\(ds : list integer) -> last {integer} []
