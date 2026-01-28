@@ -74,11 +74,16 @@ common lang
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
-    -Wincomplete-record-updates -Wredundant-constraints -Widentities
-    -Wunused-packages -Wmissing-deriving-strategies
+    -Wincomplete-record-updates -Widentities -Wunused-packages
+    -Wmissing-deriving-strategies
 
   if impl(ghc >=9.8)
     ghc-options: -Wno-x-partial
+
+  -- ghc-9.14 gives redundant constraint warnings on some constraints
+  -- that are needed for earlier compilers.
+  if impl(ghc <9.14)
+    ghc-options: -Wredundant-constraints
 
 -- This contains UPLC+TPLC, PIR must be explicitly included by depending
 -- on the public sub-library.
@@ -735,7 +740,7 @@ executable plutus
     , singletons-th
     , text
     , text-zipper
-    , vty                    ^>=6.2
+    , vty                    ^>=6.5
     , vty-crossplatform      ^>=0.4
 
   ghc-options:        -O2 -threaded -rtsopts -with-rtsopts=-N
