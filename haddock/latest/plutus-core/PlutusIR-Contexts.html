@@ -1,0 +1,904 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Contexts</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Contexts.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Contexts</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Datatypes representing 'contexts with holes' in Plutus IR terms.</p
+	  ><p
+	  >Useful for focussing on a sub-part of a term and then reconstructing the term, but
+with the context as a reified datatype that can be inspected and modified. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:AppContext"
+	      >AppContext</a
+	      > tyname name uni fun ann<ul class="subs"
+	      ><li
+		>= <a href="#v:TermAppContext"
+		  >TermAppContext</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann) ann (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun ann)</li
+		><li
+		>| <a href="#v:TypeAppContext"
+		  >TypeAppContext</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni ann) ann (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun ann)</li
+		><li
+		>| <a href="#v:AppContextEnd"
+		  >AppContextEnd</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:splitApplication"
+	      >splitApplication</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann, <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun ann)</li
+	    ><li class="src short"
+	    ><a href="#v:fillAppContext"
+	      >fillAppContext</a
+	      > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun ann</li
+	    ><li class="src short"
+	    ><a href="#v:dropAppContext"
+	      >dropAppContext</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:lengthContext"
+	      >lengthContext</a
+	      > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:splitAppContext"
+	      >splitAppContext</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a, <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:appendAppContext"
+	      >appendAppContext</a
+	      > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Saturation"
+	      >Saturation</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Oversaturated"
+		  >Oversaturated</a
+		  ></li
+		><li
+		>| <a href="#v:Undersaturated"
+		  >Undersaturated</a
+		  ></li
+		><li
+		>| <a href="#v:Saturated"
+		  >Saturated</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:saturates"
+	      >saturates</a
+	      > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	      >Arity</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusIR-Contexts.html#t:Saturation" title="PlutusIR.Contexts"
+	      >Saturation</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:SplitMatchContext"
+	      >SplitMatchContext</a
+	      > tyname name uni fun a = <a href="#v:SplitMatchContext"
+	      >SplitMatchContext</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:smTyVars"
+		  >smTyVars</a
+		  > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun a</li
+		><li
+		><a href="#v:smScrutinee"
+		  >smScrutinee</a
+		  > &#8759; (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun a, <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni (), a)</li
+		><li
+		><a href="#v:smResTy"
+		  >smResTy</a
+		  > &#8759; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni a, a)</li
+		><li
+		><a href="#v:smBranches"
+		  >smBranches</a
+		  > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun a</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:extractTyArgs"
+	      >extractTyArgs</a
+	      > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > [<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > tyname uni a]</li
+	    ><li class="src short"
+	    ><a href="#v:splitNormalDatatypeMatch"
+	      >splitNormalDatatypeMatch</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >) &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; name &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	      >SplitMatchContext</a
+	      > tyname name uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:reconstructNormalDatatypeMatch"
+	      >reconstructNormalDatatypeMatch</a
+	      > &#8759; <a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	      >SplitMatchContext</a
+	      > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a</li
+	    ><li class="src short"
+	    ><a href="#v:asNormalDatatypeMatch"
+	      >asNormalDatatypeMatch</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >) &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; name &#8594; Prism' (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	      >AppContext</a
+	      > tyname name uni fun a) (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	      >SplitMatchContext</a
+	      > tyname name uni fun a)</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:AppContext" class="def"
+	    >AppContext</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Contexts.html#AppContext" class="link"
+	    >Source</a
+	    > <a href="#t:AppContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A context for an iterated term/type application, with the hole at the head of the
+application. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:TermAppContext" class="def"
+		  >TermAppContext</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		  >Term</a
+		  > tyname name uni fun ann) ann (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun ann)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:TypeAppContext" class="def"
+		  >TypeAppContext</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > tyname uni ann) ann (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		  >AppContext</a
+		  > tyname name uni fun ann)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:AppContextEnd" class="def"
+		  >AppContextEnd</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AppContext"
+	    >Instances</h4
+	    ><details id="i:AppContext" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AppContext:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		      >AppContext</a
+		      > tyname name uni fun a)</span
+		    > <a href="src/PlutusIR.Contexts.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:AppContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AppContext:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Contexts.html"
+			>PlutusIR.Contexts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a] &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AppContext:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		      >AppContext</a
+		      > tyname name uni fun a)</span
+		    > <a href="src/PlutusIR.Contexts.html#line-98" class="link"
+		    >Source</a
+		    > <a href="#t:AppContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AppContext:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Contexts.html"
+			>PlutusIR.Contexts</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a) &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:splitApplication" class="def"
+	    >splitApplication</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann, <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun ann) <a href="src/PlutusIR.Contexts.html#splitApplication" class="link"
+	    >Source</a
+	    > <a href="#v:splitApplication" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Takes a term and views it as a head plus an <code
+	      ><a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		>AppContext</a
+		></code
+	      >, e.g.</p
+	    ><pre
+	    >    [{ f t } u v]
+    --&gt;
+    (f, [{ _ t } u v])
+    ==
+    f (TypeAppContext t (TermAppContext u (TermAppContext v AppContextEnd)))
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fillAppContext" class="def"
+	    >fillAppContext</a
+	    > &#8759; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun ann <a href="src/PlutusIR.Contexts.html#fillAppContext" class="link"
+	    >Source</a
+	    > <a href="#v:fillAppContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Fills in the hole in an <code
+	      ><a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		>AppContext</a
+		></code
+	      >, the inverse of <code
+	      ><a href="PlutusIR-Contexts.html#v:splitApplication" title="PlutusIR.Contexts"
+		>splitApplication</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:dropAppContext" class="def"
+	    >dropAppContext</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Contexts.html#dropAppContext" class="link"
+	    >Source</a
+	    > <a href="#v:dropAppContext" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:lengthContext" class="def"
+	    >lengthContext</a
+	    > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusIR.Contexts.html#lengthContext" class="link"
+	    >Source</a
+	    > <a href="#v:lengthContext" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:splitAppContext" class="def"
+	    >splitAppContext</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a, <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Contexts.html#splitAppContext" class="link"
+	    >Source</a
+	    > <a href="#v:splitAppContext" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:appendAppContext" class="def"
+	    >appendAppContext</a
+	    > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Contexts.html#appendAppContext" class="link"
+	    >Source</a
+	    > <a href="#v:appendAppContext" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Saturation" class="def"
+	    >Saturation</a
+	    > <a href="src/PlutusIR.Contexts.html#Saturation" class="link"
+	    >Source</a
+	    > <a href="#t:Saturation" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Oversaturated" class="def"
+		  >Oversaturated</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Undersaturated" class="def"
+		  >Undersaturated</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Saturated" class="def"
+		  >Saturated</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:saturates" class="def"
+	    >saturates</a
+	    > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="../plutus-core/PlutusCore-Arity.html#t:Arity" title="PlutusCore.Arity"
+	    >Arity</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusIR-Contexts.html#t:Saturation" title="PlutusIR.Contexts"
+	    >Saturation</a
+	    > <a href="src/PlutusIR.Contexts.html#saturates" class="link"
+	    >Source</a
+	    > <a href="#v:saturates" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Do the given arguments saturate the given arity?</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:SplitMatchContext" class="def"
+	    >SplitMatchContext</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Contexts.html#SplitMatchContext" class="link"
+	    >Source</a
+	    > <a href="#t:SplitMatchContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A split up version of the <code
+	      ><a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		>AppContext</a
+		></code
+	      > for a datatype match, with the various
+parts we might want to look at.</p
+	    ><p
+	    >We have this datatype to make it easier to abstract over different ways that
+a match might be constructed at the term level. For example, some builtin
+&quot;matchers&quot; have the arguments in a different order to the matchers from normal
+PIR datatypes. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:SplitMatchContext" class="def"
+		  >SplitMatchContext</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:smTyVars" class="def"
+			  >smTyVars</a
+			  > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:smScrutinee" class="def"
+			  >smScrutinee</a
+			  > &#8759; (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+			  >Term</a
+			  > tyname name uni fun a, <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+			  >Type</a
+			  > tyname uni (), a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:smResTy" class="def"
+			  >smResTy</a
+			  > &#8759; (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+			  >Type</a
+			  > tyname uni a, a)</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:smBranches" class="def"
+			  >smBranches</a
+			  > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+			  >AppContext</a
+			  > tyname name uni fun a</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:extractTyArgs" class="def"
+	    >extractTyArgs</a
+	    > &#8759; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > [<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > tyname uni a] <a href="src/PlutusIR.Contexts.html#extractTyArgs" class="link"
+	    >Source</a
+	    > <a href="#v:extractTyArgs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Extract the type application arguments from an <code
+	      ><a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+		>AppContext</a
+		></code
+	      >.
+Returns <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#v:Nothing" title="Data.Maybe"
+		>Nothing</a
+		></code
+	      > if the context contains a TermAppContext.
+See <code
+	      >test_extractTyArgs</code
+	      > </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:splitNormalDatatypeMatch" class="def"
+	    >splitNormalDatatypeMatch</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >) &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; name &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	    >SplitMatchContext</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Contexts.html#splitNormalDatatypeMatch" class="link"
+	    >Source</a
+	    > <a href="#v:splitNormalDatatypeMatch" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a normal datatype <code
+	      >match</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:reconstructNormalDatatypeMatch" class="def"
+	    >reconstructNormalDatatypeMatch</a
+	    > &#8759; <a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	    >SplitMatchContext</a
+	    > tyname name uni fun a &#8594; <a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a <a href="src/PlutusIR.Contexts.html#reconstructNormalDatatypeMatch" class="link"
+	    >Source</a
+	    > <a href="#v:reconstructNormalDatatypeMatch" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Reconstruct a normal datatype <code
+	      >match</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asNormalDatatypeMatch" class="def"
+	    >asNormalDatatypeMatch</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >) &#8658; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; name &#8594; Prism' (<a href="PlutusIR-Contexts.html#t:AppContext" title="PlutusIR.Contexts"
+	    >AppContext</a
+	    > tyname name uni fun a) (<a href="PlutusIR-Contexts.html#t:SplitMatchContext" title="PlutusIR.Contexts"
+	    >SplitMatchContext</a
+	    > tyname name uni fun a) <a href="src/PlutusIR.Contexts.html#asNormalDatatypeMatch" class="link"
+	    >Source</a
+	    > <a href="#v:asNormalDatatypeMatch" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Split a normal datatype <code
+	      >match</code
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

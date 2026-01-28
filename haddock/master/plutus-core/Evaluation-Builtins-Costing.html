@@ -1,0 +1,1772 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Costing</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Costing.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Costing</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:eqCostStream"
+	      >eqCostStream</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromCostList"
+	      >fromCostList</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	      >NonEmptyList</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toCostList"
+	      >toCostList</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	      >CostStream</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	      >NonEmptyList</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	      >CostingInteger</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:toExBudgetList"
+	      >toExBudgetList</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	      >ExBudgetStream</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	      >NonEmptyList</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:magnitudes"
+	      >magnitudes</a
+	      > &#8759; [(<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      >, <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      >)]</li
+	    ><li class="src short"
+	    ><a href="#v:toRange"
+	      >toRange</a
+	      > &#8759; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      > &#8594; (<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      >, <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:chooseSatInt"
+	      >chooseSatInt</a
+	      > &#8759; (<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      >, <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      >) &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:checkEqualsVia"
+	      >checkEqualsVia</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	      >Show</a
+	      > a &#8658; (a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) &#8594; a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:bottom"
+	      >bottom</a
+	      > &#8759; a</li
+	    ><li class="src short"
+	    ><a href="#v:test_magnitudes"
+	      >test_magnitudes</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_CostStreamDistribution"
+	      >test_CostStreamDistribution</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_toCostListRoundtrip"
+	      >test_toCostListRoundtrip</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_fromCostListRoundtrip"
+	      >test_fromCostListRoundtrip</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_unconsCostRoundtrip"
+	      >test_unconsCostRoundtrip</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_sumCostStreamIsSum"
+	      >test_sumCostStreamIsSum</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_mapCostStreamIsMap"
+	      >test_mapCostStreamIsMap</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_addCostStreamIsAdd"
+	      >test_addCostStreamIsAdd</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_minCostStreamIsMin"
+	      >test_minCostStreamIsMin</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_zipCostStreamIsZip"
+	      >test_zipCostStreamIsZip</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_mapCostStreamReasonableLength"
+	      >test_mapCostStreamReasonableLength</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_addCostStreamReasonableLength"
+	      >test_addCostStreamReasonableLength</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_minCostStreamReasonableLength"
+	      >test_minCostStreamReasonableLength</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_zipCostStreamReasonableLength"
+	      >test_zipCostStreamReasonableLength</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_mapCostStreamHandlesBottom"
+	      >test_mapCostStreamHandlesBottom</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_addCostStreamHandlesBottom"
+	      >test_addCostStreamHandlesBottom</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_minCostStreamHandlesBottom"
+	      >test_minCostStreamHandlesBottom</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:postAlignWith"
+	      >postAlignWith</a
+	      > &#8759; a &#8594; [a] &#8594; [a] &#8594; ([a], [a])</li
+	    ><li class="src short"
+	    ><a href="#v:test_zipCostStreamHandlesBottom"
+	      >test_zipCostStreamHandlesBottom</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sierpinskiSize"
+	      >sierpinskiSize</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:sierpinskiRose"
+	      >sierpinskiRose</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_flattenCostRoseIsLinearForSierpinskiRose"
+	      >test_flattenCostRoseIsLinearForSierpinskiRose</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_flattenCostRoseIsLinear"
+	      >test_flattenCostRoseIsLinear</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:genCostRose"
+	      >genCostRose</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	      >NonEmptyList</a
+	      > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      > &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	      >Gen</a
+	      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:fromCostRose"
+	      >fromCostRose</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	      >NonEmptyList</a
+	      > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	      >SatInt</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:collectListLengths"
+	      >collectListLengths</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	      >CostRose</a
+	      > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:test_CostRoseListLengthsDistribution"
+	      >test_CostRoseListLengthsDistribution</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_genCostRoseSound"
+	      >test_genCostRoseSound</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_flattenCostRoseSound"
+	      >test_flattenCostRoseSound</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_flattenCostRoseHandlesBottom"
+	      >test_flattenCostRoseHandlesBottom</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_costsAreNeverNegative"
+	      >test_costsAreNeverNegative</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:test_costing"
+	      >test_costing</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:eqCostStream" class="def"
+	    >eqCostStream</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#eqCostStream" class="link"
+	    >Source</a
+	    > <a href="#v:eqCostStream" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Direct equality of two <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >s. Same as <code
+	      >deriving stock Eq</code
+	      >. We don't want to do the
+latter, because the semantics of a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      > are those of the sum of its elements and the
+derived <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		>Eq</a
+		></code
+	      > instance would conflict with that. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromCostList" class="def"
+	    >fromCostList</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	    >NonEmptyList</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#fromCostList" class="link"
+	    >Source</a
+	    > <a href="#v:fromCostList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toCostList" class="def"
+	    >toCostList</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+	    >CostStream</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	    >NonEmptyList</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemory.html#t:CostingInteger" title="PlutusCore.Evaluation.Machine.ExMemory"
+	    >CostingInteger</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#toCostList" class="link"
+	    >Source</a
+	    > <a href="#v:toCostList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toExBudgetList" class="def"
+	    >toExBudgetList</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudgetStream.html#t:ExBudgetStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+	    >ExBudgetStream</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	    >NonEmptyList</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#toExBudgetList" class="link"
+	    >Source</a
+	    > <a href="#v:toExBudgetList" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:magnitudes" class="def"
+	    >magnitudes</a
+	    > &#8759; [(<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    >, <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    >)] <a href="src/Evaluation.Builtins.Costing.html#magnitudes" class="link"
+	    >Source</a
+	    > <a href="#v:magnitudes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A list of ranges: <code
+	      >(0, 0), (1, 10) : (11, 100) : (101, 1000) : ... : [(10^18, maxBound)]</code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toRange" class="def"
+	    >toRange</a
+	    > &#8759; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > &#8594; (<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    >, <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    >) <a href="src/Evaluation.Builtins.Costing.html#toRange" class="link"
+	    >Source</a
+	    > <a href="#v:toRange" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the range (in the sense of <code
+	      ><a href="Evaluation-Builtins-Costing.html#v:magnitudes" title="Evaluation.Builtins.Costing"
+		>magnitudes</a
+		></code
+	      >) in which the given <code
+	      ><a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		>SatInt</a
+		></code
+	      > belongs. E.g.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toRange 42
+</code
+		></strong
+	      >(11,100)
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>toRange 1234
+</code
+		></strong
+	      >(1001,10000) 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:chooseSatInt" class="def"
+	    >chooseSatInt</a
+	    > &#8759; (<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    >, <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    >) &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#chooseSatInt" class="link"
+	    >Source</a
+	    > <a href="#v:chooseSatInt" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		>SatInt</a
+		></code
+	      > in the given range.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkEqualsVia" class="def"
+	    >checkEqualsVia</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+	    >Show</a
+	    > a &#8658; (a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) &#8594; a &#8594; a &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Property" title="Test.Tasty.QuickCheck"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#checkEqualsVia" class="link"
+	    >Source</a
+	    > <a href="#v:checkEqualsVia" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Same as <code
+	      ><a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#v:-61--61--61-" title="Test.Tasty.QuickCheck"
+		>(===)</a
+		></code
+	      > except accepts a custom equality checking function.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:bottom" class="def"
+	    >bottom</a
+	    > &#8759; a <a href="src/Evaluation.Builtins.Costing.html#bottom" class="link"
+	    >Source</a
+	    > <a href="#v:bottom" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A value to use in tests to make sure what's not supposed to be forced isn't forced.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_magnitudes" class="def"
+	    >test_magnitudes</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_magnitudes" class="link"
+	    >Source</a
+	    > <a href="#v:test_magnitudes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="Evaluation-Builtins-Costing.html#v:magnitudes" title="Evaluation.Builtins.Costing"
+		>magnitudes</a
+		></code
+	      > has the correct bounds.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_CostStreamDistribution" class="def"
+	    >test_CostStreamDistribution</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_CostStreamDistribution" class="link"
+	    >Source</a
+	    > <a href="#v:test_CostStreamDistribution" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Show the distribution of generated <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >s as a diagnostic.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_toCostListRoundtrip" class="def"
+	    >test_toCostListRoundtrip</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_toCostListRoundtrip" class="link"
+	    >Source</a
+	    > <a href="#v:test_toCostListRoundtrip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      >fromCostList . toCostList</code
+	      > is identity.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_fromCostListRoundtrip" class="def"
+	    >test_fromCostListRoundtrip</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_fromCostListRoundtrip" class="link"
+	    >Source</a
+	    > <a href="#v:test_fromCostListRoundtrip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      >toCostList . fromCostList</code
+	      > is identity.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_unconsCostRoundtrip" class="def"
+	    >test_unconsCostRoundtrip</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_unconsCostRoundtrip" class="link"
+	    >Source</a
+	    > <a href="#v:test_unconsCostRoundtrip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      >uncurry reconsCost . unconsCost</code
+	      > is identity.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_sumCostStreamIsSum" class="def"
+	    >test_sumCostStreamIsSum</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_sumCostStreamIsSum" class="link"
+	    >Source</a
+	    > <a href="#v:test_sumCostStreamIsSum" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:sumCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>sumCostStream</a
+		></code
+	      > returns the sum of the elements of a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_mapCostStreamIsMap" class="def"
+	    >test_mapCostStreamIsMap</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_mapCostStreamIsMap" class="link"
+	    >Source</a
+	    > <a href="#v:test_mapCostStreamIsMap" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:mapCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>mapCostStream</a
+		></code
+	      > applies a function to each element of a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>CostStream</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_addCostStreamIsAdd" class="def"
+	    >test_addCostStreamIsAdd</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_addCostStreamIsAdd" class="link"
+	    >Source</a
+	    > <a href="#v:test_addCostStreamIsAdd" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that the sum of a stream returned by <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:addCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>addCostStream</a
+		></code
+	      > equals the sum of the sums of its two
+arguments. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_minCostStreamIsMin" class="def"
+	    >test_minCostStreamIsMin</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_minCostStreamIsMin" class="link"
+	    >Source</a
+	    > <a href="#v:test_minCostStreamIsMin" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that the sum of a stream returned by <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:minCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>minCostStream</a
+		></code
+	      > equals the minimum of the sums of its
+two arguments. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_zipCostStreamIsZip" class="def"
+	    >test_zipCostStreamIsZip</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_zipCostStreamIsZip" class="link"
+	    >Source</a
+	    > <a href="#v:test_zipCostStreamIsZip" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that the sum of a stream returned by <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudgetStream.html#v:zipCostStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>zipCostStream</a
+		></code
+	      > equals an <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+		>ExBudget</a
+		></code
+	      > containing the
+sums of its two arguments. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_mapCostStreamReasonableLength" class="def"
+	    >test_mapCostStreamReasonableLength</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_mapCostStreamReasonableLength" class="link"
+	    >Source</a
+	    > <a href="#v:test_mapCostStreamReasonableLength" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:mapCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>mapCostStream</a
+		></code
+	      > preserves the length of the stream.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_addCostStreamReasonableLength" class="def"
+	    >test_addCostStreamReasonableLength</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_addCostStreamReasonableLength" class="link"
+	    >Source</a
+	    > <a href="#v:test_addCostStreamReasonableLength" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that the length of the stream returned by <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:addCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>addCostStream</a
+		></code
+	      > equals the sum of the lengths of
+its two arguments. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_minCostStreamReasonableLength" class="def"
+	    >test_minCostStreamReasonableLength</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_minCostStreamReasonableLength" class="link"
+	    >Source</a
+	    > <a href="#v:test_minCostStreamReasonableLength" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that the length of the stream returned by <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:addCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>addCostStream</a
+		></code
+	      > is</p
+	    ><ol
+	    ><li value="1"
+	      >greater than or equal to the minimum of the lengths of its two arguments</li
+	      ><li value="2"
+	      >smaller than or equal to the sum of the lengths of its two arguments. </li
+	      ></ol
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_zipCostStreamReasonableLength" class="def"
+	    >test_zipCostStreamReasonableLength</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_zipCostStreamReasonableLength" class="link"
+	    >Source</a
+	    > <a href="#v:test_zipCostStreamReasonableLength" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that the length of the stream returned by <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudgetStream.html#v:zipCostStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>zipCostStream</a
+		></code
+	      > equals the maximum of the
+lengths of its two arguments. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_mapCostStreamHandlesBottom" class="def"
+	    >test_mapCostStreamHandlesBottom</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_mapCostStreamHandlesBottom" class="link"
+	    >Source</a
+	    > <a href="#v:test_mapCostStreamHandlesBottom" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:mapCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>mapCostStream</a
+		></code
+	      > preserves the laziness of its argument.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_addCostStreamHandlesBottom" class="def"
+	    >test_addCostStreamHandlesBottom</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_addCostStreamHandlesBottom" class="link"
+	    >Source</a
+	    > <a href="#v:test_addCostStreamHandlesBottom" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:mapCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>mapCostStream</a
+		></code
+	      > preserves the laziness of its two arguments.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_minCostStreamHandlesBottom" class="def"
+	    >test_minCostStreamHandlesBottom</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_minCostStreamHandlesBottom" class="link"
+	    >Source</a
+	    > <a href="#v:test_minCostStreamHandlesBottom" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#v:minCostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		>minCostStream</a
+		></code
+	      > preserves the laziness of its two arguments.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:postAlignWith" class="def"
+	    >postAlignWith</a
+	    > &#8759; a &#8594; [a] &#8594; [a] &#8594; ([a], [a]) <a href="src/Evaluation.Builtins.Costing.html#postAlignWith" class="link"
+	    >Source</a
+	    > <a href="#v:postAlignWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pad the shortest of the given lists by appending the given element to it until the length of
+the result matches the length of the other list.</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>postAlignWith 'a' &quot;bcd&quot; &quot;e&quot;
+</code
+		></strong
+	      >(&quot;bcd&quot;,&quot;eaa&quot;)
+<code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>postAlignWith 'a' &quot;b&quot; &quot;cdef&quot;
+</code
+		></strong
+	      >(&quot;baaa&quot;,&quot;cdef&quot;) 
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_zipCostStreamHandlesBottom" class="def"
+	    >test_zipCostStreamHandlesBottom</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_zipCostStreamHandlesBottom" class="link"
+	    >Source</a
+	    > <a href="#v:test_zipCostStreamHandlesBottom" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudgetStream.html#v:zipCostStream" title="PlutusCore.Evaluation.Machine.ExBudgetStream"
+		>zipCostStream</a
+		></code
+	      > preserves the laziness of its two arguments.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sierpinskiSize" class="def"
+	    >sierpinskiSize</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#sierpinskiSize" class="link"
+	    >Source</a
+	    > <a href="#v:sierpinskiSize" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The size <code
+	      ><a href="Evaluation-Builtins-Costing.html#v:sierpinskiRose" title="Evaluation.Builtins.Costing"
+		>sierpinskiRose</a
+		></code
+	      > of the given depth.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sierpinskiRose" class="def"
+	    >sierpinskiRose</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >CostRose</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#sierpinskiRose" class="link"
+	    >Source</a
+	    > <a href="#v:sierpinskiRose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return a finite balanced tree with each node (apart from the leaves) having exactly 3 children.
+The parameter is the depth of the tree.
+Named after <a href="https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle"
+	      >https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle</a
+	      > </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_flattenCostRoseIsLinearForSierpinskiRose" class="def"
+	    >test_flattenCostRoseIsLinearForSierpinskiRose</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_flattenCostRoseIsLinearForSierpinskiRose" class="link"
+	    >Source</a
+	    > <a href="#v:test_flattenCostRoseIsLinearForSierpinskiRose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Traverse a <code
+	      ><a href="Evaluation-Builtins-Costing.html#v:sierpinskiRose" title="Evaluation.Builtins.Costing"
+		>sierpinskiRose</a
+		></code
+	      > of the given depth and display the total amount of elements
+processed. See <code
+	      ><a href="Evaluation-Builtins-Costing.html#v:test_flattenCostRoseIsLinear" title="Evaluation.Builtins.Costing"
+		>test_flattenCostRoseIsLinear</a
+		></code
+	      > for why we do this. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_flattenCostRoseIsLinear" class="def"
+	    >test_flattenCostRoseIsLinear</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_flattenCostRoseIsLinear" class="link"
+	    >Source</a
+	    > <a href="#v:test_flattenCostRoseIsLinear" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that traversing a larger <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      > takes _linearly_ more time. The actual test can only
+be done with eyes unfortunately, because the tests are way too noisy for evaluation times to be
+reported even remotely accurately. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:genCostRose" class="def"
+	    >genCostRose</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	    >NonEmptyList</a
+	    > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+	    >Gen</a
+	    > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >CostRose</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#genCostRose" class="link"
+	    >Source</a
+	    > <a href="#v:genCostRose" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Generate a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      > from the given list by splitting the list into sublists and generating
+a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      > for each of them recursively. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromCostRose" class="def"
+	    >fromCostRose</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >CostRose</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+	    >NonEmptyList</a
+	    > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+	    >SatInt</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#fromCostRose" class="link"
+	    >Source</a
+	    > <a href="#v:fromCostRose" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:collectListLengths" class="def"
+	    >collectListLengths</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+	    >CostRose</a
+	    > &#8594; [<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    >] <a href="src/Evaluation.Builtins.Costing.html#collectListLengths" class="link"
+	    >Source</a
+	    > <a href="#v:collectListLengths" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Return the lengths of all the forests in a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_CostRoseListLengthsDistribution" class="def"
+	    >test_CostRoseListLengthsDistribution</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_CostRoseListLengthsDistribution" class="link"
+	    >Source</a
+	    > <a href="#v:test_CostRoseListLengthsDistribution" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Show the distribution of forest lengths in generated <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      > values as a diagnostic.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_genCostRoseSound" class="def"
+	    >test_genCostRoseSound</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_genCostRoseSound" class="link"
+	    >Source</a
+	    > <a href="#v:test_genCostRoseSound" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="Evaluation-Builtins-Costing.html#v:genCostRose" title="Evaluation.Builtins.Costing"
+		>genCostRose</a
+		></code
+	      > only takes costs from its argument when generating a <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>CostRose</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_flattenCostRoseSound" class="def"
+	    >test_flattenCostRoseSound</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_flattenCostRoseSound" class="link"
+	    >Source</a
+	    > <a href="#v:test_flattenCostRoseSound" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#v:flattenCostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>flattenCostRose</a
+		></code
+	      > returns the elements of its argument.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_flattenCostRoseHandlesBottom" class="def"
+	    >test_flattenCostRoseHandlesBottom</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_flattenCostRoseHandlesBottom" class="link"
+	    >Source</a
+	    > <a href="#v:test_flattenCostRoseHandlesBottom" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#v:flattenCostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>flattenCostRose</a
+		></code
+	      > is lazy.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_costsAreNeverNegative" class="def"
+	    >test_costsAreNeverNegative</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_costsAreNeverNegative" class="link"
+	    >Source</a
+	    > <a href="#v:test_costsAreNeverNegative" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that <code
+	      ><a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#v:memoryUsage" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		>memoryUsage</a
+		></code
+	      > called over a value of a built-in type never returns a stream
+containing a negative cost. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:test_costing" class="def"
+	    >test_costing</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    > <a href="src/Evaluation.Builtins.Costing.html#test_costing" class="link"
+	    >Source</a
+	    > <a href="#v:test_costing" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:1"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		  >CostStream</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.Costing.html#line-91" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitraryCostStream" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		      >CostStream</a
+		      > <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		      >CostStream</a
+		      > &#8594; [<a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		      >CostStream</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:2"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		  >CostRose</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.Costing.html#line-382" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitraryCostRose" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >CostRose</a
+		      > <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >CostRose</a
+		      > &#8594; [<a href="../plutus-core/PlutusCore-Evaluation-Machine-ExMemoryUsage.html#t:CostRose" title="PlutusCore.Evaluation.Machine.ExMemoryUsage"
+		      >CostRose</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Arbitrary:Arbitrary:3"
+		  ></span
+		  > <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Arbitrary" title="PlutusCore.Generators.QuickCheck.GenTm"
+		  >Arbitrary</a
+		  > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		  >SatInt</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.Costing.html#line-83" class="link"
+		>Source</a
+		> <a href="#v:-36-fArbitrarySatInt" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc"
+	      ><p
+		>Generate asymptotically bigger <code
+		  ><a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		    >SatInt</a
+		    ></code
+		  >s with exponentially lower chance. This is in order to
+make the generator of <code
+		  ><a href="../plutus-core/PlutusCore-Evaluation-Machine-CostStream.html#t:CostStream" title="PlutusCore.Evaluation.Machine.CostStream"
+		    >CostStream</a
+		    ></code
+		  > produce streams whose sums are more or less evenly distributed
+across <code
+		  ><a href="Evaluation-Builtins-Costing.html#v:magnitudes" title="Evaluation.Builtins.Costing"
+		    >magnitudes</a
+		    ></code
+		  >. </p
+		></td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Arbitrary:Arbitrary:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:arbitrary"
+		      >arbitrary</a
+		      > &#8759; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      > <a href="#v:arbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:shrink"
+		      >shrink</a
+		      > &#8759; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      > &#8594; [<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      >] <a href="#v:shrink" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:CoArbitrary:CoArbitrary:4"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:CoArbitrary" title="Test.Tasty.QuickCheck"
+		  >CoArbitrary</a
+		  > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		  >SatInt</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.Costing.html#line-107" class="link"
+		>Source</a
+		> <a href="#v:-36-fCoArbitrarySatInt" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:CoArbitrary:CoArbitrary:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:coarbitrary"
+		      >coarbitrary</a
+		      > &#8759; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      > &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > b &#8594; <a href="../plutus-core/PlutusCore-Generators-QuickCheck-GenTm.html#t:Gen" title="PlutusCore.Generators.QuickCheck.GenTm"
+		      >Gen</a
+		      > b <a href="#v:coarbitrary" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Function:Function:5"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:Function" title="Test.Tasty.QuickCheck"
+		  >Function</a
+		  > <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		  >SatInt</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.Costing.html#line-111" class="link"
+		>Source</a
+		> <a href="#v:-36-fFunctionSatInt" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Function:Function:5"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:function"
+		      >function</a
+		      > &#8759; (<a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      > &#8594; b) &#8594; <a href="../plutus-core/Data-SatInt.html#t:SatInt" title="Data.SatInt"
+		      >SatInt</a
+		      > :-&gt; b <a href="#v:function" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Foldable:Foldable:6"
+		  ></span
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Foldable.html#t:Foldable" title="Data.Foldable"
+		  >Foldable</a
+		  > <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		  >NonEmptyList</a
+		  ></span
+		> <a href="src/Evaluation.Builtins.Costing.html#line-27" class="link"
+		>Source</a
+		> <a href="#v:-36-fFoldableNonEmptyList" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Foldable:Foldable:6"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:fold"
+		      >fold</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > m &#8658; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > m &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:fold" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldMap"
+		      >foldMap</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > m &#8658; (a &#8594; m) &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldMap" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldMap-39-"
+		      >foldMap'</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > m &#8658; (a &#8594; m) &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; m <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldMap-39-" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldr"
+		      >foldr</a
+		      > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldr" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldr-39-"
+		      >foldr'</a
+		      > &#8759; (a &#8594; b &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldr-39-" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldl"
+		      >foldl</a
+		      > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldl" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldl-39-"
+		      >foldl'</a
+		      > &#8759; (b &#8594; a &#8594; b) &#8594; b &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldl-39-" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldr1"
+		      >foldr1</a
+		      > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldr1" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:foldl1"
+		      >foldl1</a
+		      > &#8759; (a &#8594; a &#8594; a) &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:foldl1" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:toList"
+		      >toList</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; [a] <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:toList" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:null"
+		      >null</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:null" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:length"
+		      >length</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		      >Int</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:length" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:elem"
+		      >elem</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > a &#8658; a &#8594; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		      >Bool</a
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:elem" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:maximum"
+		      >maximum</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:maximum" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:minimum"
+		      >minimum</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:minimum" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:sum"
+		      >sum</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:sum" class="selflink"
+		      >#</a
+		      ></p
+		    ><p class="src"
+		    ><a href="#v:product"
+		      >product</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Num" title="Prelude"
+		      >Num</a
+		      > a &#8658; <a href="https://hackage.haskell.org/package/tasty-quickcheck-0.11.1/docs/Test-Tasty-QuickCheck.html#t:NonEmptyList" title="Test.Tasty.QuickCheck"
+		      >NonEmptyList</a
+		      > a &#8594; a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+		      >Source</a
+		      > <a href="#v:product" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

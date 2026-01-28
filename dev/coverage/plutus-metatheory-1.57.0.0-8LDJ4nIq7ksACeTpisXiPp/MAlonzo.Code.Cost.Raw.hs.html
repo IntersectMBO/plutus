@@ -1,0 +1,456 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Cost.Raw where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
+<span class="lineno">   16 </span>                    quotInt, remInt, geqInt, ltInt, eqInt, add64, sub64, mul64, quot64,
+<span class="lineno">   17 </span>                    rem64, lt64, eq64, word64FromNat, word64ToNat)
+<span class="lineno">   18 </span>import qualified MAlonzo.RTE
+<span class="lineno">   19 </span>import qualified Data.Text
+<span class="lineno">   20 </span>import qualified MAlonzo.Code.Cost.Base
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>import Data.SatInt (fromSatInt)
+<span class="lineno">   23 </span>import Data.Functor.Identity (Identity, runIdentity)
+<span class="lineno">   24 </span>import PlutusCore.Evaluation.Machine.ExBudget (ExBudget(..))
+<span class="lineno">   25 </span>import PlutusCore.Evaluation.Machine.ExMemory (ExCPU(..), ExMemory(..))
+<span class="lineno">   26 </span>import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCostsForTesting)
+<span class="lineno">   27 </span>import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCostsBase(..))
+<span class="lineno">   28 </span>import PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
+<span class="lineno">   29 </span>-- Cost.Raw.HCekMachineCosts
+<span class="lineno">   30 </span>type T_HCekMachineCosts_4 = CekMachineCostsBase Identity
+<span class="lineno">   31 </span><span class="decl"><span class="nottickedoff">d_HCekMachineCosts_4</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="nottickedoff">= error</span>
+<span class="lineno">   33 </span><span class="spaces">      </span><span class="nottickedoff">&quot;MAlonzo Runtime Error: postulate evaluated: Cost.Raw.HCekMachineCosts&quot;</span></span>
+<span class="lineno">   34 </span>-- Cost.Raw.HExBudget
+<span class="lineno">   35 </span>type T_HExBudget_6 = ExBudget
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">d_HExBudget_6</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">= error</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">&quot;MAlonzo Runtime Error: postulate evaluated: Cost.Raw.HExBudget&quot;</span></span>
+<span class="lineno">   39 </span>-- Cost.Raw.getCekStartupCost
+<span class="lineno">   40 </span>d_getCekStartupCost_8 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   41 </span><span class="decl"><span class="istickedoff">d_getCekStartupCost_8 = runIdentity . cekStartupCost</span></span>
+<span class="lineno">   42 </span>-- Cost.Raw.getCekVarCost
+<span class="lineno">   43 </span>d_getCekVarCost_10 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   44 </span><span class="decl"><span class="istickedoff">d_getCekVarCost_10 = runIdentity . cekVarCost</span></span>
+<span class="lineno">   45 </span>-- Cost.Raw.getCekConstCost
+<span class="lineno">   46 </span>d_getCekConstCost_12 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">d_getCekConstCost_12 = runIdentity . cekConstCost</span></span>
+<span class="lineno">   48 </span>-- Cost.Raw.getCekLamCost
+<span class="lineno">   49 </span>d_getCekLamCost_14 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">d_getCekLamCost_14 = runIdentity . cekLamCost</span></span>
+<span class="lineno">   51 </span>-- Cost.Raw.getCekDelayCost
+<span class="lineno">   52 </span>d_getCekDelayCost_16 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   53 </span><span class="decl"><span class="istickedoff">d_getCekDelayCost_16 = runIdentity . cekDelayCost</span></span>
+<span class="lineno">   54 </span>-- Cost.Raw.getCekForceCost
+<span class="lineno">   55 </span>d_getCekForceCost_18 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   56 </span><span class="decl"><span class="istickedoff">d_getCekForceCost_18 = runIdentity . cekForceCost</span></span>
+<span class="lineno">   57 </span>-- Cost.Raw.getCekApplyCost
+<span class="lineno">   58 </span>d_getCekApplyCost_20 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">d_getCekApplyCost_20 = runIdentity . cekApplyCost</span></span>
+<span class="lineno">   60 </span>-- Cost.Raw.getCekBuiltinCost
+<span class="lineno">   61 </span>d_getCekBuiltinCost_22 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   62 </span><span class="decl"><span class="istickedoff">d_getCekBuiltinCost_22 = runIdentity . cekBuiltinCost</span></span>
+<span class="lineno">   63 </span>-- Cost.Raw.getCekConstrCost
+<span class="lineno">   64 </span>d_getCekConstrCost_24 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   65 </span><span class="decl"><span class="nottickedoff">d_getCekConstrCost_24 = runIdentity . cekConstrCost</span></span>
+<span class="lineno">   66 </span>-- Cost.Raw.getCekCaseCost
+<span class="lineno">   67 </span>d_getCekCaseCost_26 :: T_HCekMachineCosts_4 -&gt; T_HExBudget_6
+<span class="lineno">   68 </span><span class="decl"><span class="istickedoff">d_getCekCaseCost_26 = runIdentity . cekCaseCost</span></span>
+<span class="lineno">   69 </span>-- Cost.Raw.getCPUCost
+<span class="lineno">   70 </span>d_getCPUCost_28 :: T_HExBudget_6 -&gt; Integer
+<span class="lineno">   71 </span><span class="decl"><span class="istickedoff">d_getCPUCost_28 = fromSatInt . (\(ExCPU x) -&gt; x) . exBudgetCPU</span></span>
+<span class="lineno">   72 </span>-- Cost.Raw.getMemoryCost
+<span class="lineno">   73 </span>d_getMemoryCost_30 :: T_HExBudget_6 -&gt; Integer
+<span class="lineno">   74 </span><span class="decl"><span class="istickedoff">d_getMemoryCost_30</span>
+<span class="lineno">   75 </span><span class="spaces">  </span><span class="istickedoff">= fromSatInt . (\(ExMemory x) -&gt; x) . exBudgetMemory</span></span>
+<span class="lineno">   76 </span>-- Cost.Raw.LinearFunction
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">d_LinearFunction_32 = ()</span></span>
+<span class="lineno">   78 </span>type T_LinearFunction_32 = LinearFunction
+<span class="lineno">   79 </span>pattern C_mkLinearFunction_42 a0 a1 = <span class="istickedoff"><span class="nottickedoff">LinearFunction a0 a1</span></span>
+<span class="lineno">   80 </span>check_mkLinearFunction_42 ::
+<span class="lineno">   81 </span>  Integer -&gt; Integer -&gt; T_LinearFunction_32
+<span class="lineno">   82 </span><span class="decl"><span class="nottickedoff">check_mkLinearFunction_42 = LinearFunction</span></span>
+<span class="lineno">   83 </span>cover_LinearFunction_32 :: LinearFunction -&gt; ()
+<span class="lineno">   84 </span><span class="decl"><span class="nottickedoff">cover_LinearFunction_32 x</span>
+<span class="lineno">   85 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="nottickedoff">LinearFunction _ _ -&gt; ()</span></span>
+<span class="lineno">   87 </span>-- Cost.Raw.LinearFunction.intercept
+<span class="lineno">   88 </span>d_intercept_38 :: T_LinearFunction_32 -&gt; Integer
+<span class="lineno">   89 </span><span class="decl"><span class="nottickedoff">d_intercept_38 v0</span>
+<span class="lineno">   90 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="nottickedoff">C_mkLinearFunction_42 v1 v2 -&gt; coe v1</span>
+<span class="lineno">   92 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   93 </span>-- Cost.Raw.LinearFunction.slope
+<span class="lineno">   94 </span>d_slope_40 :: T_LinearFunction_32 -&gt; Integer
+<span class="lineno">   95 </span><span class="decl"><span class="nottickedoff">d_slope_40 v0</span>
+<span class="lineno">   96 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   97 </span><span class="spaces">      </span><span class="nottickedoff">C_mkLinearFunction_42 v1 v2 -&gt; coe v2</span>
+<span class="lineno">   98 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   99 </span>-- Cost.Raw.OneVariableQuadraticFunction
+<span class="lineno">  100 </span><span class="decl"><span class="nottickedoff">d_OneVariableQuadraticFunction_44 = ()</span></span>
+<span class="lineno">  101 </span>type T_OneVariableQuadraticFunction_44 =
+<span class="lineno">  102 </span>  OneVariableQuadraticFunction
+<span class="lineno">  103 </span>pattern C_mkOneVariableQuadraticFunction_58 a0 a1 a2 = <span class="istickedoff"><span class="nottickedoff">OneVariableQuadraticFunction a0 a1 a2</span></span>
+<span class="lineno">  104 </span>check_mkOneVariableQuadraticFunction_58 ::
+<span class="lineno">  105 </span>  Integer -&gt; Integer -&gt; Integer -&gt; T_OneVariableQuadraticFunction_44
+<span class="lineno">  106 </span><span class="decl"><span class="nottickedoff">check_mkOneVariableQuadraticFunction_58</span>
+<span class="lineno">  107 </span><span class="spaces">  </span><span class="nottickedoff">= OneVariableQuadraticFunction</span></span>
+<span class="lineno">  108 </span>cover_OneVariableQuadraticFunction_44 ::
+<span class="lineno">  109 </span>  OneVariableQuadraticFunction -&gt; ()
+<span class="lineno">  110 </span><span class="decl"><span class="nottickedoff">cover_OneVariableQuadraticFunction_44 x</span>
+<span class="lineno">  111 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">  112 </span><span class="spaces">      </span><span class="nottickedoff">OneVariableQuadraticFunction _ _ _ -&gt; ()</span></span>
+<span class="lineno">  113 </span>-- Cost.Raw.OneVariableQuadraticFunction.coeff0
+<span class="lineno">  114 </span>d_coeff0_52 :: T_OneVariableQuadraticFunction_44 -&gt; Integer
+<span class="lineno">  115 </span><span class="decl"><span class="nottickedoff">d_coeff0_52 v0</span>
+<span class="lineno">  116 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  117 </span><span class="spaces">      </span><span class="nottickedoff">C_mkOneVariableQuadraticFunction_58 v1 v2 v3 -&gt; coe v1</span>
+<span class="lineno">  118 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  119 </span>-- Cost.Raw.OneVariableQuadraticFunction.coeff1
+<span class="lineno">  120 </span>d_coeff1_54 :: T_OneVariableQuadraticFunction_44 -&gt; Integer
+<span class="lineno">  121 </span><span class="decl"><span class="nottickedoff">d_coeff1_54 v0</span>
+<span class="lineno">  122 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">C_mkOneVariableQuadraticFunction_58 v1 v2 v3 -&gt; coe v2</span>
+<span class="lineno">  124 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  125 </span>-- Cost.Raw.OneVariableQuadraticFunction.coeff2
+<span class="lineno">  126 </span>d_coeff2_56 :: T_OneVariableQuadraticFunction_44 -&gt; Integer
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">d_coeff2_56 v0</span>
+<span class="lineno">  128 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  129 </span><span class="spaces">      </span><span class="nottickedoff">C_mkOneVariableQuadraticFunction_58 v1 v2 v3 -&gt; coe v3</span>
+<span class="lineno">  130 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  131 </span>-- Cost.Raw.TwoVariableLinearFunction
+<span class="lineno">  132 </span><span class="decl"><span class="nottickedoff">d_TwoVariableLinearFunction_60 = ()</span></span>
+<span class="lineno">  133 </span>type T_TwoVariableLinearFunction_60 = TwoVariableLinearFunction
+<span class="lineno">  134 </span>pattern C_mkTwoVariableLinearFunction_74 a0 a1 a2 = <span class="istickedoff"><span class="nottickedoff">TwoVariableLinearFunction a0 a1 a2</span></span>
+<span class="lineno">  135 </span>check_mkTwoVariableLinearFunction_74 ::
+<span class="lineno">  136 </span>  Integer -&gt; Integer -&gt; Integer -&gt; T_TwoVariableLinearFunction_60
+<span class="lineno">  137 </span><span class="decl"><span class="nottickedoff">check_mkTwoVariableLinearFunction_74 = TwoVariableLinearFunction</span></span>
+<span class="lineno">  138 </span>cover_TwoVariableLinearFunction_60 ::
+<span class="lineno">  139 </span>  TwoVariableLinearFunction -&gt; ()
+<span class="lineno">  140 </span><span class="decl"><span class="nottickedoff">cover_TwoVariableLinearFunction_60 x</span>
+<span class="lineno">  141 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">  142 </span><span class="spaces">      </span><span class="nottickedoff">TwoVariableLinearFunction _ _ _ -&gt; ()</span></span>
+<span class="lineno">  143 </span>-- Cost.Raw.TwoVariableLinearFunction.intercept
+<span class="lineno">  144 </span>d_intercept_68 :: T_TwoVariableLinearFunction_60 -&gt; Integer
+<span class="lineno">  145 </span><span class="decl"><span class="nottickedoff">d_intercept_68 v0</span>
+<span class="lineno">  146 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  147 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableLinearFunction_74 v1 v2 v3 -&gt; coe v1</span>
+<span class="lineno">  148 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  149 </span>-- Cost.Raw.TwoVariableLinearFunction.slope1
+<span class="lineno">  150 </span>d_slope1_70 :: T_TwoVariableLinearFunction_60 -&gt; Integer
+<span class="lineno">  151 </span><span class="decl"><span class="nottickedoff">d_slope1_70 v0</span>
+<span class="lineno">  152 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  153 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableLinearFunction_74 v1 v2 v3 -&gt; coe v2</span>
+<span class="lineno">  154 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  155 </span>-- Cost.Raw.TwoVariableLinearFunction.slope2
+<span class="lineno">  156 </span>d_slope2_72 :: T_TwoVariableLinearFunction_60 -&gt; Integer
+<span class="lineno">  157 </span><span class="decl"><span class="nottickedoff">d_slope2_72 v0</span>
+<span class="lineno">  158 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  159 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableLinearFunction_74 v1 v2 v3 -&gt; coe v3</span>
+<span class="lineno">  160 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  161 </span>-- Cost.Raw.TwoVariableQuadraticFunction
+<span class="lineno">  162 </span><span class="decl"><span class="nottickedoff">d_TwoVariableQuadraticFunction_76 = ()</span></span>
+<span class="lineno">  163 </span>type T_TwoVariableQuadraticFunction_76 =
+<span class="lineno">  164 </span>  TwoVariableQuadraticFunction
+<span class="lineno">  165 </span>pattern C_mkTwoVariableQuadraticFunction_106 a0 a1 a2 a3 a4 a5 a6 = <span class="istickedoff"><span class="nottickedoff">TwoVariableQuadraticFunction a0 a1 a2 a3 a4 a5 a6</span></span>
+<span class="lineno">  166 </span>check_mkTwoVariableQuadraticFunction_106 ::
+<span class="lineno">  167 </span>  Integer -&gt;
+<span class="lineno">  168 </span>  Integer -&gt;
+<span class="lineno">  169 </span>  Integer -&gt;
+<span class="lineno">  170 </span>  Integer -&gt;
+<span class="lineno">  171 </span>  Integer -&gt; Integer -&gt; Integer -&gt; T_TwoVariableQuadraticFunction_76
+<span class="lineno">  172 </span><span class="decl"><span class="nottickedoff">check_mkTwoVariableQuadraticFunction_106</span>
+<span class="lineno">  173 </span><span class="spaces">  </span><span class="nottickedoff">= TwoVariableQuadraticFunction</span></span>
+<span class="lineno">  174 </span>cover_TwoVariableQuadraticFunction_76 ::
+<span class="lineno">  175 </span>  TwoVariableQuadraticFunction -&gt; ()
+<span class="lineno">  176 </span><span class="decl"><span class="nottickedoff">cover_TwoVariableQuadraticFunction_76 x</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">  178 </span><span class="spaces">      </span><span class="nottickedoff">TwoVariableQuadraticFunction _ _ _ _ _ _ _ -&gt; ()</span></span>
+<span class="lineno">  179 </span>-- Cost.Raw.TwoVariableQuadraticFunction.minimum
+<span class="lineno">  180 </span>d_minimum_92 :: T_TwoVariableQuadraticFunction_76 -&gt; Integer
+<span class="lineno">  181 </span><span class="decl"><span class="nottickedoff">d_minimum_92 v0</span>
+<span class="lineno">  182 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  183 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -&gt; coe v1</span>
+<span class="lineno">  184 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  185 </span>-- Cost.Raw.TwoVariableQuadraticFunction.coeff00
+<span class="lineno">  186 </span>d_coeff00_94 :: T_TwoVariableQuadraticFunction_76 -&gt; Integer
+<span class="lineno">  187 </span><span class="decl"><span class="nottickedoff">d_coeff00_94 v0</span>
+<span class="lineno">  188 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  189 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -&gt; coe v2</span>
+<span class="lineno">  190 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  191 </span>-- Cost.Raw.TwoVariableQuadraticFunction.coeff10
+<span class="lineno">  192 </span>d_coeff10_96 :: T_TwoVariableQuadraticFunction_76 -&gt; Integer
+<span class="lineno">  193 </span><span class="decl"><span class="nottickedoff">d_coeff10_96 v0</span>
+<span class="lineno">  194 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  195 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -&gt; coe v3</span>
+<span class="lineno">  196 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  197 </span>-- Cost.Raw.TwoVariableQuadraticFunction.coeff01
+<span class="lineno">  198 </span>d_coeff01_98 :: T_TwoVariableQuadraticFunction_76 -&gt; Integer
+<span class="lineno">  199 </span><span class="decl"><span class="nottickedoff">d_coeff01_98 v0</span>
+<span class="lineno">  200 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  201 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -&gt; coe v4</span>
+<span class="lineno">  202 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  203 </span>-- Cost.Raw.TwoVariableQuadraticFunction.coeff20
+<span class="lineno">  204 </span>d_coeff20_100 :: T_TwoVariableQuadraticFunction_76 -&gt; Integer
+<span class="lineno">  205 </span><span class="decl"><span class="nottickedoff">d_coeff20_100 v0</span>
+<span class="lineno">  206 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  207 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -&gt; coe v5</span>
+<span class="lineno">  208 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  209 </span>-- Cost.Raw.TwoVariableQuadraticFunction.coeff11
+<span class="lineno">  210 </span>d_coeff11_102 :: T_TwoVariableQuadraticFunction_76 -&gt; Integer
+<span class="lineno">  211 </span><span class="decl"><span class="nottickedoff">d_coeff11_102 v0</span>
+<span class="lineno">  212 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  213 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -&gt; coe v6</span>
+<span class="lineno">  214 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  215 </span>-- Cost.Raw.TwoVariableQuadraticFunction.coeff02
+<span class="lineno">  216 </span>d_coeff02_104 :: T_TwoVariableQuadraticFunction_76 -&gt; Integer
+<span class="lineno">  217 </span><span class="decl"><span class="nottickedoff">d_coeff02_104 v0</span>
+<span class="lineno">  218 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  219 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableQuadraticFunction_106 v1 v2 v3 v4 v5 v6 v7 -&gt; coe v7</span>
+<span class="lineno">  220 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  221 </span>-- Cost.Raw.TwoVariableWithInteractionFunction
+<span class="lineno">  222 </span><span class="decl"><span class="nottickedoff">d_TwoVariableWithInteractionFunction_108 = ()</span></span>
+<span class="lineno">  223 </span>type T_TwoVariableWithInteractionFunction_108 =
+<span class="lineno">  224 </span>  TwoVariableWithInteractionFunction
+<span class="lineno">  225 </span>pattern C_mkTwoVariableWithInteractionFunction_126 a0 a1 a2 a3 = <span class="nottickedoff">TwoVariableWithInteractionFunction a0 a1 a2 a3</span>
+<span class="lineno">  226 </span>check_mkTwoVariableWithInteractionFunction_126 ::
+<span class="lineno">  227 </span>  Integer -&gt;
+<span class="lineno">  228 </span>  Integer -&gt;
+<span class="lineno">  229 </span>  Integer -&gt; Integer -&gt; T_TwoVariableWithInteractionFunction_108
+<span class="lineno">  230 </span><span class="decl"><span class="nottickedoff">check_mkTwoVariableWithInteractionFunction_126</span>
+<span class="lineno">  231 </span><span class="spaces">  </span><span class="nottickedoff">= TwoVariableWithInteractionFunction</span></span>
+<span class="lineno">  232 </span>cover_TwoVariableWithInteractionFunction_108 ::
+<span class="lineno">  233 </span>  TwoVariableWithInteractionFunction -&gt; ()
+<span class="lineno">  234 </span><span class="decl"><span class="nottickedoff">cover_TwoVariableWithInteractionFunction_108 x</span>
+<span class="lineno">  235 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">  236 </span><span class="spaces">      </span><span class="nottickedoff">TwoVariableWithInteractionFunction _ _ _ _ -&gt; ()</span></span>
+<span class="lineno">  237 </span>-- Cost.Raw.TwoVariableWithInteractionFunction.coeff00'
+<span class="lineno">  238 </span>d_coeff00''_118 ::
+<span class="lineno">  239 </span>  T_TwoVariableWithInteractionFunction_108 -&gt; Integer
+<span class="lineno">  240 </span><span class="decl"><span class="nottickedoff">d_coeff00''_118 v0</span>
+<span class="lineno">  241 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  242 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -&gt; coe v1</span>
+<span class="lineno">  243 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  244 </span>-- Cost.Raw.TwoVariableWithInteractionFunction.coeff10'
+<span class="lineno">  245 </span>d_coeff10''_120 ::
+<span class="lineno">  246 </span>  T_TwoVariableWithInteractionFunction_108 -&gt; Integer
+<span class="lineno">  247 </span><span class="decl"><span class="nottickedoff">d_coeff10''_120 v0</span>
+<span class="lineno">  248 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  249 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -&gt; coe v2</span>
+<span class="lineno">  250 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  251 </span>-- Cost.Raw.TwoVariableWithInteractionFunction.coeff01'
+<span class="lineno">  252 </span>d_coeff01''_122 ::
+<span class="lineno">  253 </span>  T_TwoVariableWithInteractionFunction_108 -&gt; Integer
+<span class="lineno">  254 </span><span class="decl"><span class="nottickedoff">d_coeff01''_122 v0</span>
+<span class="lineno">  255 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  256 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -&gt; coe v3</span>
+<span class="lineno">  257 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  258 </span>-- Cost.Raw.TwoVariableWithInteractionFunction.coeff11'
+<span class="lineno">  259 </span>d_coeff11''_124 ::
+<span class="lineno">  260 </span>  T_TwoVariableWithInteractionFunction_108 -&gt; Integer
+<span class="lineno">  261 </span><span class="decl"><span class="nottickedoff">d_coeff11''_124 v0</span>
+<span class="lineno">  262 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  263 </span><span class="spaces">      </span><span class="nottickedoff">C_mkTwoVariableWithInteractionFunction_126 v1 v2 v3 v4 -&gt; coe v4</span>
+<span class="lineno">  264 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  265 </span>-- Cost.Raw.ExpModCostingFunction
+<span class="lineno">  266 </span><span class="decl"><span class="nottickedoff">d_ExpModCostingFunction_128 = ()</span></span>
+<span class="lineno">  267 </span>type T_ExpModCostingFunction_128 = ExpModCostingFunction
+<span class="lineno">  268 </span>pattern C_mkExpModCostingFunction_142 a0 a1 a2 = <span class="istickedoff"><span class="nottickedoff">ExpModCostingFunction a0 a1 a2</span></span>
+<span class="lineno">  269 </span>check_mkExpModCostingFunction_142 ::
+<span class="lineno">  270 </span>  Integer -&gt; Integer -&gt; Integer -&gt; T_ExpModCostingFunction_128
+<span class="lineno">  271 </span><span class="decl"><span class="nottickedoff">check_mkExpModCostingFunction_142 = ExpModCostingFunction</span></span>
+<span class="lineno">  272 </span>cover_ExpModCostingFunction_128 :: ExpModCostingFunction -&gt; ()
+<span class="lineno">  273 </span><span class="decl"><span class="nottickedoff">cover_ExpModCostingFunction_128 x</span>
+<span class="lineno">  274 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">  275 </span><span class="spaces">      </span><span class="nottickedoff">ExpModCostingFunction _ _ _ -&gt; ()</span></span>
+<span class="lineno">  276 </span>-- Cost.Raw.ExpModCostingFunction.coeff00
+<span class="lineno">  277 </span>d_coeff00_136 :: T_ExpModCostingFunction_128 -&gt; Integer
+<span class="lineno">  278 </span><span class="decl"><span class="nottickedoff">d_coeff00_136 v0</span>
+<span class="lineno">  279 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  280 </span><span class="spaces">      </span><span class="nottickedoff">C_mkExpModCostingFunction_142 v1 v2 v3 -&gt; coe v1</span>
+<span class="lineno">  281 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  282 </span>-- Cost.Raw.ExpModCostingFunction.coeff11
+<span class="lineno">  283 </span>d_coeff11_138 :: T_ExpModCostingFunction_128 -&gt; Integer
+<span class="lineno">  284 </span><span class="decl"><span class="nottickedoff">d_coeff11_138 v0</span>
+<span class="lineno">  285 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  286 </span><span class="spaces">      </span><span class="nottickedoff">C_mkExpModCostingFunction_142 v1 v2 v3 -&gt; coe v2</span>
+<span class="lineno">  287 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  288 </span>-- Cost.Raw.ExpModCostingFunction.coeff12
+<span class="lineno">  289 </span>d_coeff12_140 :: T_ExpModCostingFunction_128 -&gt; Integer
+<span class="lineno">  290 </span><span class="decl"><span class="nottickedoff">d_coeff12_140 v0</span>
+<span class="lineno">  291 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  292 </span><span class="spaces">      </span><span class="nottickedoff">C_mkExpModCostingFunction_142 v1 v2 v3 -&gt; coe v3</span>
+<span class="lineno">  293 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  294 </span>-- Cost.Raw.RawModel
+<span class="lineno">  295 </span><span class="decl"><span class="nottickedoff">d_RawModel_144 = ()</span></span>
+<span class="lineno">  296 </span>type T_RawModel_144 = Model
+<span class="lineno">  297 </span>pattern C_ConstantCost_146 a0 = <span class="istickedoff"><span class="nottickedoff">ConstantCost a0</span></span>
+<span class="lineno">  298 </span>pattern C_AddedSizes_148 a0 = <span class="istickedoff"><span class="nottickedoff">AddedSizes a0</span></span>
+<span class="lineno">  299 </span>pattern C_MultipliedSizes_150 a0 = <span class="istickedoff"><span class="nottickedoff">MultipliedSizes a0</span></span>
+<span class="lineno">  300 </span>pattern C_MinSize_152 a0 = <span class="istickedoff"><span class="nottickedoff">MinSize a0</span></span>
+<span class="lineno">  301 </span>pattern C_MaxSize_154 a0 = <span class="istickedoff"><span class="nottickedoff">MaxSize a0</span></span>
+<span class="lineno">  302 </span>pattern C_LinearInX_156 a0 = <span class="istickedoff"><span class="nottickedoff">LinearInX a0</span></span>
+<span class="lineno">  303 </span>pattern C_LinearInY_158 a0 = <span class="istickedoff"><span class="nottickedoff">LinearInY a0</span></span>
+<span class="lineno">  304 </span>pattern C_LinearInZ_160 a0 = <span class="istickedoff"><span class="nottickedoff">LinearInZ a0</span></span>
+<span class="lineno">  305 </span>pattern C_LinearInU_162 a0 = <span class="nottickedoff">LinearInU a0</span>
+<span class="lineno">  306 </span>pattern C_LiteralInYOrLinearInZ_164 a0 = <span class="istickedoff"><span class="nottickedoff">LiteralInYOrLinearInZ a0</span></span>
+<span class="lineno">  307 </span>pattern C_LinearInMaxYZ_166 a0 = <span class="istickedoff"><span class="nottickedoff">LinearInMaxYZ a0</span></span>
+<span class="lineno">  308 </span>pattern C_LinearInXAndY_168 a0 = <span class="nottickedoff">LinearInXAndY a0</span>
+<span class="lineno">  309 </span>pattern C_LinearInYAndZ_170 a0 = <span class="istickedoff"><span class="nottickedoff">LinearInYAndZ a0</span></span>
+<span class="lineno">  310 </span>pattern C_QuadraticInX_172 a0 = <span class="istickedoff"><span class="nottickedoff">QuadraticInX a0</span></span>
+<span class="lineno">  311 </span>pattern C_QuadraticInY_174 a0 = <span class="istickedoff"><span class="nottickedoff">QuadraticInY a0</span></span>
+<span class="lineno">  312 </span>pattern C_QuadraticInZ_176 a0 = <span class="istickedoff"><span class="nottickedoff">QuadraticInZ a0</span></span>
+<span class="lineno">  313 </span>pattern C_QuadraticInXAndY_178 a0 = <span class="istickedoff"><span class="nottickedoff">QuadraticInXAndY a0</span></span>
+<span class="lineno">  314 </span>pattern C_WithInteractionInXAndY_180 a0 = <span class="nottickedoff">WithInteractionInXAndY a0</span>
+<span class="lineno">  315 </span>pattern C_SubtractedSizes_182 a0 a1 = <span class="istickedoff"><span class="nottickedoff">SubtractedSizes a0 a1</span></span>
+<span class="lineno">  316 </span>pattern C_ConstAboveDiagonal_184 a0 a1 = <span class="istickedoff"><span class="nottickedoff">ConstAboveDiagonal a0 a1</span></span>
+<span class="lineno">  317 </span>pattern C_ConstBelowDiagonal_186 a0 a1 = <span class="istickedoff"><span class="nottickedoff">ConstBelowDiagonal a0 a1</span></span>
+<span class="lineno">  318 </span>pattern C_ConstOffDiagonal_188 a0 a1 = <span class="istickedoff"><span class="nottickedoff">ConstOffDiagonal a0 a1</span></span>
+<span class="lineno">  319 </span>pattern C_ExpModCost_190 a0 = <span class="istickedoff"><span class="nottickedoff">ExpModCost a0</span></span>
+<span class="lineno">  320 </span>check_ConstantCost_146 :: Integer -&gt; T_RawModel_144
+<span class="lineno">  321 </span><span class="decl"><span class="nottickedoff">check_ConstantCost_146 = ConstantCost</span></span>
+<span class="lineno">  322 </span>check_AddedSizes_148 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  323 </span><span class="decl"><span class="nottickedoff">check_AddedSizes_148 = AddedSizes</span></span>
+<span class="lineno">  324 </span>check_MultipliedSizes_150 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  325 </span><span class="decl"><span class="nottickedoff">check_MultipliedSizes_150 = MultipliedSizes</span></span>
+<span class="lineno">  326 </span>check_MinSize_152 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  327 </span><span class="decl"><span class="nottickedoff">check_MinSize_152 = MinSize</span></span>
+<span class="lineno">  328 </span>check_MaxSize_154 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  329 </span><span class="decl"><span class="nottickedoff">check_MaxSize_154 = MaxSize</span></span>
+<span class="lineno">  330 </span>check_LinearInX_156 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  331 </span><span class="decl"><span class="nottickedoff">check_LinearInX_156 = LinearInX</span></span>
+<span class="lineno">  332 </span>check_LinearInY_158 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  333 </span><span class="decl"><span class="nottickedoff">check_LinearInY_158 = LinearInY</span></span>
+<span class="lineno">  334 </span>check_LinearInZ_160 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  335 </span><span class="decl"><span class="nottickedoff">check_LinearInZ_160 = LinearInZ</span></span>
+<span class="lineno">  336 </span>check_LinearInU_162 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  337 </span><span class="decl"><span class="nottickedoff">check_LinearInU_162 = LinearInU</span></span>
+<span class="lineno">  338 </span>check_LiteralInYOrLinearInZ_164 ::
+<span class="lineno">  339 </span>  T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  340 </span><span class="decl"><span class="nottickedoff">check_LiteralInYOrLinearInZ_164 = LiteralInYOrLinearInZ</span></span>
+<span class="lineno">  341 </span>check_LinearInMaxYZ_166 :: T_LinearFunction_32 -&gt; T_RawModel_144
+<span class="lineno">  342 </span><span class="decl"><span class="nottickedoff">check_LinearInMaxYZ_166 = LinearInMaxYZ</span></span>
+<span class="lineno">  343 </span>check_LinearInXAndY_168 ::
+<span class="lineno">  344 </span>  T_TwoVariableLinearFunction_60 -&gt; T_RawModel_144
+<span class="lineno">  345 </span><span class="decl"><span class="nottickedoff">check_LinearInXAndY_168 = LinearInXAndY</span></span>
+<span class="lineno">  346 </span>check_LinearInYAndZ_170 ::
+<span class="lineno">  347 </span>  T_TwoVariableLinearFunction_60 -&gt; T_RawModel_144
+<span class="lineno">  348 </span><span class="decl"><span class="nottickedoff">check_LinearInYAndZ_170 = LinearInYAndZ</span></span>
+<span class="lineno">  349 </span>check_QuadraticInX_172 ::
+<span class="lineno">  350 </span>  T_OneVariableQuadraticFunction_44 -&gt; T_RawModel_144
+<span class="lineno">  351 </span><span class="decl"><span class="nottickedoff">check_QuadraticInX_172 = QuadraticInX</span></span>
+<span class="lineno">  352 </span>check_QuadraticInY_174 ::
+<span class="lineno">  353 </span>  T_OneVariableQuadraticFunction_44 -&gt; T_RawModel_144
+<span class="lineno">  354 </span><span class="decl"><span class="nottickedoff">check_QuadraticInY_174 = QuadraticInY</span></span>
+<span class="lineno">  355 </span>check_QuadraticInZ_176 ::
+<span class="lineno">  356 </span>  T_OneVariableQuadraticFunction_44 -&gt; T_RawModel_144
+<span class="lineno">  357 </span><span class="decl"><span class="nottickedoff">check_QuadraticInZ_176 = QuadraticInZ</span></span>
+<span class="lineno">  358 </span>check_QuadraticInXAndY_178 ::
+<span class="lineno">  359 </span>  T_TwoVariableQuadraticFunction_76 -&gt; T_RawModel_144
+<span class="lineno">  360 </span><span class="decl"><span class="nottickedoff">check_QuadraticInXAndY_178 = QuadraticInXAndY</span></span>
+<span class="lineno">  361 </span>check_WithInteractionInXAndY_180 ::
+<span class="lineno">  362 </span>  T_TwoVariableWithInteractionFunction_108 -&gt; T_RawModel_144
+<span class="lineno">  363 </span><span class="decl"><span class="nottickedoff">check_WithInteractionInXAndY_180 = WithInteractionInXAndY</span></span>
+<span class="lineno">  364 </span>check_SubtractedSizes_182 ::
+<span class="lineno">  365 </span>  T_LinearFunction_32 -&gt; Integer -&gt; T_RawModel_144
+<span class="lineno">  366 </span><span class="decl"><span class="nottickedoff">check_SubtractedSizes_182 = SubtractedSizes</span></span>
+<span class="lineno">  367 </span>check_ConstAboveDiagonal_184 ::
+<span class="lineno">  368 </span>  Integer -&gt; T_RawModel_144 -&gt; T_RawModel_144
+<span class="lineno">  369 </span><span class="decl"><span class="nottickedoff">check_ConstAboveDiagonal_184 = ConstAboveDiagonal</span></span>
+<span class="lineno">  370 </span>check_ConstBelowDiagonal_186 ::
+<span class="lineno">  371 </span>  Integer -&gt; T_RawModel_144 -&gt; T_RawModel_144
+<span class="lineno">  372 </span><span class="decl"><span class="nottickedoff">check_ConstBelowDiagonal_186 = ConstBelowDiagonal</span></span>
+<span class="lineno">  373 </span>check_ConstOffDiagonal_188 ::
+<span class="lineno">  374 </span>  Integer -&gt; T_RawModel_144 -&gt; T_RawModel_144
+<span class="lineno">  375 </span><span class="decl"><span class="nottickedoff">check_ConstOffDiagonal_188 = ConstOffDiagonal</span></span>
+<span class="lineno">  376 </span>check_ExpModCost_190 ::
+<span class="lineno">  377 </span>  T_ExpModCostingFunction_128 -&gt; T_RawModel_144
+<span class="lineno">  378 </span><span class="decl"><span class="nottickedoff">check_ExpModCost_190 = ExpModCost</span></span>
+<span class="lineno">  379 </span>cover_RawModel_144 :: Model -&gt; ()
+<span class="lineno">  380 </span><span class="decl"><span class="nottickedoff">cover_RawModel_144 x</span>
+<span class="lineno">  381 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">  382 </span><span class="spaces">      </span><span class="nottickedoff">ConstantCost _ -&gt; ()</span>
+<span class="lineno">  383 </span><span class="spaces">      </span><span class="nottickedoff">AddedSizes _ -&gt; ()</span>
+<span class="lineno">  384 </span><span class="spaces">      </span><span class="nottickedoff">MultipliedSizes _ -&gt; ()</span>
+<span class="lineno">  385 </span><span class="spaces">      </span><span class="nottickedoff">MinSize _ -&gt; ()</span>
+<span class="lineno">  386 </span><span class="spaces">      </span><span class="nottickedoff">MaxSize _ -&gt; ()</span>
+<span class="lineno">  387 </span><span class="spaces">      </span><span class="nottickedoff">LinearInX _ -&gt; ()</span>
+<span class="lineno">  388 </span><span class="spaces">      </span><span class="nottickedoff">LinearInY _ -&gt; ()</span>
+<span class="lineno">  389 </span><span class="spaces">      </span><span class="nottickedoff">LinearInZ _ -&gt; ()</span>
+<span class="lineno">  390 </span><span class="spaces">      </span><span class="nottickedoff">LinearInU _ -&gt; ()</span>
+<span class="lineno">  391 </span><span class="spaces">      </span><span class="nottickedoff">LiteralInYOrLinearInZ _ -&gt; ()</span>
+<span class="lineno">  392 </span><span class="spaces">      </span><span class="nottickedoff">LinearInMaxYZ _ -&gt; ()</span>
+<span class="lineno">  393 </span><span class="spaces">      </span><span class="nottickedoff">LinearInXAndY _ -&gt; ()</span>
+<span class="lineno">  394 </span><span class="spaces">      </span><span class="nottickedoff">LinearInYAndZ _ -&gt; ()</span>
+<span class="lineno">  395 </span><span class="spaces">      </span><span class="nottickedoff">QuadraticInX _ -&gt; ()</span>
+<span class="lineno">  396 </span><span class="spaces">      </span><span class="nottickedoff">QuadraticInY _ -&gt; ()</span>
+<span class="lineno">  397 </span><span class="spaces">      </span><span class="nottickedoff">QuadraticInZ _ -&gt; ()</span>
+<span class="lineno">  398 </span><span class="spaces">      </span><span class="nottickedoff">QuadraticInXAndY _ -&gt; ()</span>
+<span class="lineno">  399 </span><span class="spaces">      </span><span class="nottickedoff">WithInteractionInXAndY _ -&gt; ()</span>
+<span class="lineno">  400 </span><span class="spaces">      </span><span class="nottickedoff">SubtractedSizes _ _ -&gt; ()</span>
+<span class="lineno">  401 </span><span class="spaces">      </span><span class="nottickedoff">ConstAboveDiagonal _ _ -&gt; ()</span>
+<span class="lineno">  402 </span><span class="spaces">      </span><span class="nottickedoff">ConstBelowDiagonal _ _ -&gt; ()</span>
+<span class="lineno">  403 </span><span class="spaces">      </span><span class="nottickedoff">ConstOffDiagonal _ _ -&gt; ()</span>
+<span class="lineno">  404 </span><span class="spaces">      </span><span class="nottickedoff">ExpModCost _ -&gt; ()</span></span>
+<span class="lineno">  405 </span>-- Cost.Raw.CpuAndMemoryModel
+<span class="lineno">  406 </span><span class="decl"><span class="nottickedoff">d_CpuAndMemoryModel_192 = ()</span></span>
+<span class="lineno">  407 </span>type T_CpuAndMemoryModel_192 = CpuAndMemoryModel
+<span class="lineno">  408 </span>pattern C_mkCpuAndMemoryModel_202 a0 a1 = <span class="istickedoff"><span class="nottickedoff">CpuAndMemoryModel a0 a1</span></span>
+<span class="lineno">  409 </span>check_mkCpuAndMemoryModel_202 ::
+<span class="lineno">  410 </span>  T_RawModel_144 -&gt; T_RawModel_144 -&gt; T_CpuAndMemoryModel_192
+<span class="lineno">  411 </span><span class="decl"><span class="nottickedoff">check_mkCpuAndMemoryModel_202 = CpuAndMemoryModel</span></span>
+<span class="lineno">  412 </span>cover_CpuAndMemoryModel_192 :: CpuAndMemoryModel -&gt; ()
+<span class="lineno">  413 </span><span class="decl"><span class="nottickedoff">cover_CpuAndMemoryModel_192 x</span>
+<span class="lineno">  414 </span><span class="spaces">  </span><span class="nottickedoff">= case x of</span>
+<span class="lineno">  415 </span><span class="spaces">      </span><span class="nottickedoff">CpuAndMemoryModel _ _ -&gt; ()</span></span>
+<span class="lineno">  416 </span>-- Cost.Raw.CpuAndMemoryModel.cpuModel
+<span class="lineno">  417 </span>d_cpuModel_198 :: T_CpuAndMemoryModel_192 -&gt; T_RawModel_144
+<span class="lineno">  418 </span><span class="decl"><span class="nottickedoff">d_cpuModel_198 v0</span>
+<span class="lineno">  419 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  420 </span><span class="spaces">      </span><span class="nottickedoff">C_mkCpuAndMemoryModel_202 v1 v2 -&gt; coe v1</span>
+<span class="lineno">  421 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  422 </span>-- Cost.Raw.CpuAndMemoryModel.memoryModel
+<span class="lineno">  423 </span>d_memoryModel_200 :: T_CpuAndMemoryModel_192 -&gt; T_RawModel_144
+<span class="lineno">  424 </span><span class="decl"><span class="nottickedoff">d_memoryModel_200 v0</span>
+<span class="lineno">  425 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">  426 </span><span class="spaces">      </span><span class="nottickedoff">C_mkCpuAndMemoryModel_202 v1 v2 -&gt; coe v2</span>
+<span class="lineno">  427 </span><span class="spaces">      </span><span class="nottickedoff">_ -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">  428 </span>-- Cost.Raw.BuiltinCostMap
+<span class="lineno">  429 </span>d_BuiltinCostMap_204 :: ()
+<span class="lineno">  430 </span><span class="decl"><span class="nottickedoff">d_BuiltinCostMap_204 = erased</span></span>
+<span class="lineno">  431 </span>-- Cost.Raw.RawCostModel
+<span class="lineno">  432 </span>d_RawCostModel_206 :: ()
+<span class="lineno">  433 </span><span class="decl"><span class="nottickedoff">d_RawCostModel_206 = erased</span></span>
+
+</pre>
+</body>
+</html>

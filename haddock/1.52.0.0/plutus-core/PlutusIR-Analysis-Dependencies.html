@@ -1,0 +1,553 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Analysis.Dependencies</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.52.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Analysis.Dependencies.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Analysis.Dependencies</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Functions for computing the dependency graph of variables within a term or type.
+A &quot;dependency&quot; between two nodes &quot;A depends on B&quot; means that B cannot be removed
+from the program without also removing A.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Node"
+	      >Node</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:Variable"
+		  >Variable</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		  >Unique</a
+		  ></li
+		><li
+		>| <a href="#v:Root"
+		  >Root</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:DepGraph"
+	      >DepGraph</a
+	      > g = (<a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/Algebra-Graph-Class.html#t:Graph" title="Algebra.Graph.Class"
+	      >Graph</a
+	      > g, <a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/Algebra-Graph-Class.html#t:Vertex" title="Algebra.Graph.Class"
+	      >Vertex</a
+	      > g <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	      >~</a
+	      > <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+	      >Node</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:runTermDeps"
+	      >runTermDeps</a
+	      > &#8759; (<a href="PlutusIR-Analysis-Dependencies.html#t:DepGraph" title="PlutusIR.Analysis.Dependencies"
+	      >DepGraph</a
+	      > g, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	      >TypeUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	      >HasUnique</a
+	      > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	      >TermUnique</a
+	      >, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	      >ToBuiltinMeaning</a
+	      > uni fun) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	      >BuiltinsInfo</a
+	      > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	      >VarsInfo</a
+	      > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > tyname name uni fun a &#8594; g</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Node" class="def"
+	    >Node</a
+	    > <a href="src/PlutusIR.Analysis.Dependencies.html#Node" class="link"
+	    >Source</a
+	    > <a href="#t:Node" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A node in a dependency graph. Either a specific <code
+	      ><a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		>Unique</a
+		></code
+	      >, or a specific
+node indicating the root of the graph. We need the root node because when computing the
+dependency graph of, say, a term, there will not be a binding for the term itself which
+we can use to represent it in the graph.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Variable" class="def"
+		  >Variable</a
+		  > <a href="../plutus-core/PlutusCore-Name-Unique.html#t:Unique" title="PlutusCore.Name.Unique"
+		  >Unique</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:Root" class="def"
+		  >Root</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Node"
+	    >Instances</h4
+	    ><details id="i:Node" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Node:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+		      >Node</a
+		      ></span
+		    > <a href="src/PlutusIR.Analysis.Dependencies.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:Node" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Node:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Analysis-Dependencies.html"
+			>PlutusIR.Analysis.Dependencies</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Node:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+		      >Node</a
+		      ></span
+		    > <a href="src/PlutusIR.Analysis.Dependencies.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:Node" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Node:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Analysis-Dependencies.html"
+			>PlutusIR.Analysis.Dependencies</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Node:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+		      >Node</a
+		      ></span
+		    > <a href="src/PlutusIR.Analysis.Dependencies.html#line-42" class="link"
+		    >Source</a
+		    > <a href="#t:Node" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Node:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Analysis-Dependencies.html"
+			>PlutusIR.Analysis.Dependencies</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > &#8594; <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+			  >Node</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:DepGraph" class="def"
+	    >DepGraph</a
+	    > g = (<a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/Algebra-Graph-Class.html#t:Graph" title="Algebra.Graph.Class"
+	    >Graph</a
+	    > g, <a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/Algebra-Graph-Class.html#t:Vertex" title="Algebra.Graph.Class"
+	    >Vertex</a
+	    > g <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Type-Equality.html#t:-126-" title="Data.Type.Equality"
+	    >~</a
+	    > <a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+	    >Node</a
+	    >) <a href="src/PlutusIR.Analysis.Dependencies.html#DepGraph" class="link"
+	    >Source</a
+	    > <a href="#t:DepGraph" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A constraint requiring <code
+	      >g</code
+	      > to be a <code
+	      ><a href="https://hackage.haskell.org/package/algebraic-graphs-0.7/docs/Algebra-Graph-Class.html#t:Graph" title="Algebra.Graph.Class"
+		>Graph</a
+		></code
+	      > (so we can compute e.g. a <code
+	      >Relation</code
+	      > from
+it), whose vertices are <code
+	      ><a href="PlutusIR-Analysis-Dependencies.html#t:Node" title="PlutusIR.Analysis.Dependencies"
+		>Node</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runTermDeps" class="def"
+	    >runTermDeps</a
+	    > &#8759; (<a href="PlutusIR-Analysis-Dependencies.html#t:DepGraph" title="PlutusIR.Analysis.Dependencies"
+	    >DepGraph</a
+	    > g, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > tyname <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TypeUnique" title="PlutusCore.Name.Unique"
+	    >TypeUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Name-Unique.html#t:HasUnique" title="PlutusCore.Name.Unique"
+	    >HasUnique</a
+	    > name <a href="../plutus-core/PlutusCore-Name-Unique.html#t:TermUnique" title="PlutusCore.Name.Unique"
+	    >TermUnique</a
+	    >, <a href="../plutus-core/PlutusCore-Builtin-Meaning.html#t:ToBuiltinMeaning" title="PlutusCore.Builtin.Meaning"
+	    >ToBuiltinMeaning</a
+	    > uni fun) &#8658; <a href="PlutusIR-Analysis-Builtins.html#t:BuiltinsInfo" title="PlutusIR.Analysis.Builtins"
+	    >BuiltinsInfo</a
+	    > uni fun &#8594; <a href="PlutusIR-Analysis-VarInfo.html#t:VarsInfo" title="PlutusIR.Analysis.VarInfo"
+	    >VarsInfo</a
+	    > tyname name uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > tyname name uni fun a &#8594; g <a href="src/PlutusIR.Analysis.Dependencies.html#runTermDeps" class="link"
+	    >Source</a
+	    > <a href="#v:runTermDeps" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compute the dependency graph of a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+		>Term</a
+		></code
+	      >. The <code
+	      ><a href="PlutusIR-Analysis-Dependencies.html#v:Root" title="PlutusIR.Analysis.Dependencies"
+		>Root</a
+		></code
+	      > node will correspond to the term itself.</p
+	    ><p
+	    >For example, the graph of <code
+	      >[(let (nonrec) (vardecl x t) y) [x z]]</code
+	      > is
+<code
+	      >
+    ROOT -&gt; x
+    ROOT -&gt; z
+    x -&gt; y
+    x -&gt; t
+</code
+	      ></p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

@@ -1,0 +1,141 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE CPP        #-}
+<span class="lineno">    2 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    3 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">    4 </span>
+<span class="lineno">    5 </span>module PlutusCore.Builtin.Runtime where
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>import PlutusPrelude
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import PlutusCore.Builtin.KnownType
+<span class="lineno">   10 </span>import PlutusCore.Evaluation.Machine.ExBudgetStream
+<span class="lineno">   11 </span>
+<span class="lineno">   12 </span>import Control.DeepSeq
+<span class="lineno">   13 </span>import Control.Monad.Except (throwError)
+<span class="lineno">   14 </span>import NoThunks.Class
+<span class="lineno">   15 </span>
+<span class="lineno">   16 </span>-- | A 'BuiltinRuntime' represents a possibly partial builtin application, including an empty
+<span class="lineno">   17 </span>-- builtin application (i.e. just the builtin with no arguments).
+<span class="lineno">   18 </span>--
+<span class="lineno">   19 </span>-- Applying or type-instantiating a builtin peels off the corresponding constructor from its
+<span class="lineno">   20 </span>-- 'BuiltinRuntime'.
+<span class="lineno">   21 </span>--
+<span class="lineno">   22 </span>-- 'BuiltinCostedResult' contains the cost (an 'ExBudgetStream') and the result (a
+<span class="lineno">   23 </span>-- @BuiltinResult (HeadSpine val)@) of the builtin application. The cost is stored strictly, since
+<span class="lineno">   24 </span>-- the evaluator is going to look at it and the result is stored lazily, since it's not supposed to
+<span class="lineno">   25 </span>-- be forced before accounting for the cost of the application. If the cost exceeds the available
+<span class="lineno">   26 </span>-- budget, the evaluator discards the result of the builtin application without ever forcing it and
+<span class="lineno">   27 </span>-- terminates with evaluation failure. Allowing the user to compute something that they don't have
+<span class="lineno">   28 </span>-- the budget for would be a major bug.
+<span class="lineno">   29 </span>--
+<span class="lineno">   30 </span>-- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
+<span class="lineno">   31 </span>-- the result of the builtin application unconditionally.
+<span class="lineno">   32 </span>data BuiltinRuntime val
+<span class="lineno">   33 </span>    = BuiltinCostedResult ExBudgetStream ~(BuiltinResult val)
+<span class="lineno">   34 </span>    | BuiltinExpectArgument (val -&gt; BuiltinRuntime val)
+<span class="lineno">   35 </span>    | BuiltinExpectForce (BuiltinRuntime val)
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>instance <span class="decl"><span class="nottickedoff">NoThunks (BuiltinRuntime val)</span></span> where
+<span class="lineno">   38 </span>    <span class="decl"><span class="nottickedoff">wNoThunks ctx = \case</span>
+<span class="lineno">   39 </span><span class="spaces">        </span><span class="nottickedoff">-- Unreachable, because we don't allow nullary builtins and the 'BuiltinArrow' case only</span>
+<span class="lineno">   40 </span><span class="spaces">        </span><span class="nottickedoff">-- checks for WHNF without recursing. Hence we can throw if we reach this clause somehow.</span>
+<span class="lineno">   41 </span><span class="spaces">        </span><span class="nottickedoff">-- TODO: remove the CPP when rest of IOE moves to nothunks&gt;=0.2</span>
+<span class="lineno">   42 </span><span class="spaces"></span><span class="nottickedoff">#if MIN_VERSION_nothunks(0,3,0)</span>
+<span class="lineno">   43 </span><span class="spaces">        </span><span class="nottickedoff">BuiltinCostedResult _ _    -&gt; pure . Just $ ThunkInfo ctx Nothing</span>
+<span class="lineno">   44 </span><span class="spaces"></span><span class="nottickedoff">#elif MIN_VERSION_nothunks(0,2,0)</span>
+<span class="lineno">   45 </span><span class="spaces">        </span><span class="nottickedoff">BuiltinCostedResult _ _    -&gt; pure . Just . ThunkInfo $ Left ctx</span>
+<span class="lineno">   46 </span><span class="spaces"></span><span class="nottickedoff">#else</span>
+<span class="lineno">   47 </span><span class="spaces">        </span><span class="nottickedoff">-- Plutus has moved to nothunks&gt;=0.2, but some other IOE repos are using nothunks&lt;0.2.</span>
+<span class="lineno">   48 </span><span class="spaces">        </span><span class="nottickedoff">-- As a consequence, cardano-constitution:create-json-envelope cannot be build.</span>
+<span class="lineno">   49 </span><span class="spaces">        </span><span class="nottickedoff">-- This is a workaround to make it build (default is buildable:False). See `cabal.project`</span>
+<span class="lineno">   50 </span><span class="spaces">        </span><span class="nottickedoff">BuiltinCostedResult _ _    -&gt; pure . Just $ ThunkInfo ctx</span>
+<span class="lineno">   51 </span><span class="spaces"></span><span class="nottickedoff">#endif</span>
+<span class="lineno">   52 </span><span class="spaces">        </span><span class="nottickedoff">-- This one doesn't do much. It only checks that the function stored in the 'BuiltinArrow'</span>
+<span class="lineno">   53 </span><span class="spaces">        </span><span class="nottickedoff">-- is in WHNF. The function may contain thunks inside of it. Not sure if it's possible to do</span>
+<span class="lineno">   54 </span><span class="spaces">        </span><span class="nottickedoff">-- better, since the final 'BuiltinCostedResult' contains a thunk for the result of the</span>
+<span class="lineno">   55 </span><span class="spaces">        </span><span class="nottickedoff">-- builtin application anyway.</span>
+<span class="lineno">   56 </span><span class="spaces">        </span><span class="nottickedoff">BuiltinExpectArgument f    -&gt; noThunks ctx f</span>
+<span class="lineno">   57 </span><span class="spaces">        </span><span class="nottickedoff">BuiltinExpectForce runtime -&gt; noThunks ctx runtime</span></span>
+<span class="lineno">   58 </span>
+<span class="lineno">   59 </span>    <span class="decl"><span class="nottickedoff">showTypeOf = const &quot;PlutusCore.Builtin.Runtime.BuiltinRuntime&quot;</span></span>
+<span class="lineno">   60 </span>
+<span class="lineno">   61 </span>instance NFData (BuiltinRuntime val) where
+<span class="lineno">   62 </span>    -- 'BuiltinRuntime' is strict (verified by the 'NoThunks' tests), hence we only need to force
+<span class="lineno">   63 </span>    -- this to WHNF to get it forced to NF.
+<span class="lineno">   64 </span>    <span class="decl"><span class="nottickedoff">rnf = rwhnf</span></span>
+<span class="lineno">   65 </span>
+<span class="lineno">   66 </span>{- Note [DO NOT newtype-wrap functions]
+<span class="lineno">   67 </span>If you put a functional type into a @newtype@ rather than strict @data@, the GHC optimizer will be
+<span class="lineno">   68 </span>able to see through it and will feel compelled to rearrange lambdas and case-expressions as it sees
+<span class="lineno">   69 </span>fit, which it often does incorrectly due to @-fpedantic-bottoms@ not being enabled by default.
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>We've had a very confusing case of GHC turning
+<span class="lineno">   72 </span>
+<span class="lineno">   73 </span>    case y of
+<span class="lineno">   74 </span>        y' -&gt; \x -&gt; z
+<span class="lineno">   75 </span>
+<span class="lineno">   76 </span>into
+<span class="lineno">   77 </span>
+<span class="lineno">   78 </span>    \x -&gt; case y of
+<span class="lineno">   79 </span>        y' -&gt; z
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>and ruining carefully set up optimizations
+<span class="lineno">   82 </span>(see https://github.com/IntersectMBO/plutus/pull/4914#issuecomment-1396306606).
+<span class="lineno">   83 </span>
+<span class="lineno">   84 </span>Even strict @data@ is slower than @newtype@, but in practice GHC is going to
+<span class="lineno">   85 </span>worker-wrapper-transform such code making it as efficient as the @newtype@ version.
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span>So you should never newtype-wrap functions, use strict @data@ instead.
+<span class="lineno">   88 </span>-}
+<span class="lineno">   89 </span>
+<span class="lineno">   90 </span>-- See Note [DO NOT newtype-wrap functions].
+<span class="lineno">   91 </span>-- | A @data@ wrapper around a function returning the 'BuiltinRuntime' of a built-in function.
+<span class="lineno">   92 </span>--
+<span class="lineno">   93 </span>-- In order for lookups to be efficient the 'BuiltinRuntime's need to be cached, i.e. pulled out
+<span class="lineno">   94 </span>-- of the function statically. See 'makeBuiltinMeaning' for how we achieve that.
+<span class="lineno">   95 </span>data BuiltinsRuntime fun val = BuiltinsRuntime
+<span class="lineno">   96 </span>    { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">unBuiltinsRuntime</span></span></span> :: fun -&gt; BuiltinRuntime val
+<span class="lineno">   97 </span>    }
+<span class="lineno">   98 </span>
+<span class="lineno">   99 </span>instance (Bounded fun, Enum fun) =&gt; NFData (BuiltinsRuntime fun val) where
+<span class="lineno">  100 </span>    -- Force every 'BuiltinRuntime' stored in the environment.
+<span class="lineno">  101 </span>    <span class="decl"><span class="istickedoff">rnf (BuiltinsRuntime env) = foldr (\fun res -&gt; env fun `seq` res) () enumerate</span></span>
+<span class="lineno">  102 </span>
+<span class="lineno">  103 </span>instance <span class="decl"><span class="nottickedoff">(Bounded fun, Enum fun) =&gt; NoThunks (BuiltinsRuntime fun val)</span></span> where
+<span class="lineno">  104 </span>    -- Ensure that every 'BuiltinRuntime' doesn't contain thunks after forcing it initially
+<span class="lineno">  105 </span>    -- (we can't avoid the initial forcing, because we can't lookup the 'BuiltinRuntime' without
+<span class="lineno">  106 </span>    -- forcing it, see https://stackoverflow.com/q/63441862).
+<span class="lineno">  107 </span>    <span class="decl"><span class="nottickedoff">wNoThunks ctx (BuiltinsRuntime env) = allNoThunks $ map (wNoThunks ctx . env) enumerate</span></span>
+<span class="lineno">  108 </span>    <span class="decl"><span class="nottickedoff">showTypeOf = const &quot;PlutusCore.Builtin.Runtime.BuiltinsRuntime&quot;</span></span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>builtinRuntimeFailure :: BuiltinError -&gt; BuiltinRuntime val
+<span class="lineno">  111 </span><span class="decl"><span class="istickedoff">builtinRuntimeFailure = BuiltinCostedResult (ExBudgetLast mempty) . throwError</span></span>
+<span class="lineno">  112 </span>-- See Note [INLINE and OPAQUE on error-related definitions].
+<span class="lineno">  113 </span>{-# OPAQUE builtinRuntimeFailure #-}
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span>-- | Look up the runtime info of a built-in function during evaluation.
+<span class="lineno">  116 </span>lookupBuiltin :: fun -&gt; BuiltinsRuntime fun val -&gt; BuiltinRuntime val
+<span class="lineno">  117 </span><span class="decl"><span class="istickedoff">lookupBuiltin fun (BuiltinsRuntime env) = env fun</span></span>
+<span class="lineno">  118 </span>{-# INLINE lookupBuiltin #-}
+
+</pre>
+</body>
+</html>

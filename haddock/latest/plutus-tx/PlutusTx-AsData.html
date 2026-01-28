@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.AsData</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.56.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.AsData.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.AsData</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:asData"
+	      >asData</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:asDataFor"
+	      >asDataFor</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	      >Dec</a
+	      >]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asData" class="def"
+	    >asData</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.AsData.html#asData" class="link"
+	    >Source</a
+	    > <a href="#v:asData" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    ><code
+	      ><a href="PlutusTx-AsData.html#v:asData" title="PlutusTx.AsData"
+		>asData</a
+		></code
+	      > takes a datatype declaration and &quot;backs it&quot; by <code
+	      >BuiltinData</code
+	      >. It does
+this by replacing the datatype with a newtype around <code
+	      >BuiltinData</code
+	      >, and providing
+pattern synonyms that match the behaviour of the original datatype.</p
+	    ><p
+	    >Since <code
+	      >BuiltinData</code
+	      > can only contain <code
+	      >BuiltinData</code
+	      >, the pattern synonyms
+encode and decode all the fields using <code
+	      >toBuiltinData</code
+	      > and <code
+	      >unsafeFromBuiltinData</code
+	      >.
+That means that these operations are called on every pattern match or construction.
+This *can* be very efficient if, for example, the datatypes for the fields have
+also been defined with <code
+	      ><a href="PlutusTx-AsData.html#v:asData" title="PlutusTx.AsData"
+		>asData</a
+		></code
+	      >, and so have trivial conversions to/from <code
+	      >BuiltinData</code
+	      >
+(or have very cheap conversions, like <code
+	      ><a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		>Integer</a
+		></code
+	      > and <code
+	      >ByteString</code
+	      >).
+But it can be very expensive otherwise, so take care.</p
+	    ><p
+	    >Deriving clauses are transferred from the quoted declaration to the generated newtype
+declaration. Note that you may therefore need to do strange things like use
+<code
+	      >deriving newtype</code
+	      > on a data declaration.</p
+	    ><p
+	    ><strong
+	      >Example</strong
+	      >:</p
+	    ><pre
+	    >  $(asData [d|
+      data Example a = Ex1 Integer | Ex2 a a
+        deriving newtype (Eq)
+    |])
+</pre
+	    ><p
+	    >becomes</p
+	    ><pre
+	    >  newtype Example a = Example BuiltinData
+    deriving newtype (Eq)
+
+  pattern Ex1 :: (ToData a, UnsafeFromData a) =&gt; Integer -&gt; Example a
+  pattern Ex1 i <a href="-"
+	      >Example (unsafeDataAsConstr -</a
+	      > ((==) 0 -&gt; True, [unsafeFromBuiltinData -&gt; i]))
+    where Ex1 i = Example (mkConstr 0 [toBuiltinData i])
+
+  pattern Ex2 :: (ToData a, UnsafeFromData a) =&gt; a -&gt; a -&gt; Example a
+  pattern Ex2 a1 a2 <a href="-"
+	      >Example (unsafeDataAsConstr -</a
+	      > ((==) 1 -&gt; True,
+    [ unsafeFromBuiltinData -&gt; a1
+    , unsafeFromBuiltinData -&gt; a2
+    ]))
+    where Ex2 a1 a2 = Example (mkConstr 1 [toBuiltinData a1, toBuiltinData a2])
+
+  {-# COMPLETE Ex1, Ex2 #-}
+</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:asDataFor" class="def"
+	    >asDataFor</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > [<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Dec" title="Language.Haskell.TH.Syntax"
+	    >Dec</a
+	    >] <a href="src/PlutusTx.AsData.html#asDataFor" class="link"
+	    >Source</a
+	    > <a href="#v:asDataFor" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

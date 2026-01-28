@@ -1,0 +1,771 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.TypeCheck</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.53.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.TypeCheck.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.TypeCheck</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Configuration.</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Type checking, extending the plc typechecker</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Kind<em
+	    >type inference</em
+	    >checking, mirroring PlutusCore.TypeCheck</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:BuiltinTypes"
+	      >BuiltinTypes</a
+	      > (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	      >Type</a
+	      >) fun = <a href="#v:BuiltinTypes"
+	      >BuiltinTypes</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unBuiltinTypes"
+		  >unBuiltinTypes</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array.html#t:Array" title="Data.Array"
+		  >Array</a
+		  > fun (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+		  >Dupable</a
+		  > (<a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+		  >Normalized</a
+		  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+		  >Type</a
+		  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+		  >TyName</a
+		  > uni ())))</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PirTCConfig"
+	      >PirTCConfig</a
+	      > uni fun = <a href="#v:PirTCConfig"
+	      >PirTCConfig</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_pirConfigTCConfig"
+		  >_pirConfigTCConfig</a
+		  > &#8759; <a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+		  >TypeCheckConfig</a
+		  > uni fun</li
+		><li
+		><a href="#v:_pirConfigAllowEscape"
+		  >_pirConfigAllowEscape</a
+		  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:AllowEscape" title="PlutusIR.Compiler.Types"
+		  >AllowEscape</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:tccBuiltinTypes"
+	      >tccBuiltinTypes</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HasTypeCheckConfig" title="PlutusCore.TypeCheck.Internal"
+	      >HasTypeCheckConfig</a
+	      > cfg uni fun &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > cfg (<a href="PlutusIR-TypeCheck.html#t:BuiltinTypes" title="PlutusIR.TypeCheck"
+	      >BuiltinTypes</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:getDefTypeCheckConfig"
+	      >getDefTypeCheckConfig</a
+	      > &#8759; (<a href="PlutusIR-TypeCheck-Internal.html#t:MonadKindCheck" title="PlutusIR.TypeCheck.Internal"
+	      >MonadKindCheck</a
+	      > (<a href="PlutusIR-Error.html#t:TypeError" title="PlutusIR.Error"
+	      >TypeError</a
+	      > term uni fun ann) term uni fun ann m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	      >Typecheckable</a
+	      > uni fun) &#8658; ann &#8594; m (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	      >PirTCConfig</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:inferType"
+	      >inferType</a
+	      > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	      >MonadTypeCheckPir</a
+	      > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann &#8594; m (<a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	      >Normalized</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ()))</li
+	    ><li class="src short"
+	    ><a href="#v:checkType"
+	      >checkType</a
+	      > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	      >MonadTypeCheckPir</a
+	      > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	      >PirTCConfig</a
+	      > uni fun &#8594; ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann &#8594; <a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	      >Normalized</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ()) &#8594; m ()</li
+	    ><li class="src short"
+	    ><a href="#v:inferTypeOfProgram"
+	      >inferTypeOfProgram</a
+	      > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	      >MonadTypeCheckPir</a
+	      > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	      >PirTCConfig</a
+	      > uni fun &#8594; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann &#8594; m (<a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	      >Normalized</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ()))</li
+	    ><li class="src short"
+	    ><a href="#v:checkTypeOfProgram"
+	      >checkTypeOfProgram</a
+	      > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	      >MonadTypeCheckPir</a
+	      > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	      >PirTCConfig</a
+	      > uni fun &#8594; ann &#8594; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	      >Program</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ann &#8594; <a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	      >Normalized</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ()) &#8594; m ()</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:MonadTypeCheckPir"
+	      >MonadTypeCheckPir</a
+	      > uni fun ann m = <a href="PlutusIR-TypeCheck-Internal.html#t:MonadTypeCheck" title="PlutusIR.TypeCheck.Internal"
+	      >MonadTypeCheck</a
+	      > (<a href="PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	      >Error</a
+	      > uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	      >Term</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni fun ()) uni fun ann m</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >Configuration.</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:BuiltinTypes" class="def"
+	    >BuiltinTypes</a
+	    > (uni &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Kind.html#t:Type" title="Data.Kind"
+	    >Type</a
+	    >) fun <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#t:BuiltinTypes" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Mapping from <code
+	      ><a href="../plutus-core/PlutusCore-Core-Type.html#v:Builtin" title="PlutusCore.Core.Type"
+		>Builtin</a
+		></code
+	      >s to their <code
+	      ><a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+		>Normalized</a
+		></code
+	      > <code
+	      ><a href="PlutusIR-Core-Type.html#t:Kind" title="PlutusIR.Core.Type"
+		>Kind</a
+		></code
+	      >s.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:BuiltinTypes" class="def"
+		  >BuiltinTypes</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unBuiltinTypes" class="def"
+			  >unBuiltinTypes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/array-0.5.8.0/docs/Data-Array.html#t:Array" title="Data.Array"
+			  >Array</a
+			  > fun (<a href="../plutus-core/PlutusCore-Rename-Internal.html#t:Dupable" title="PlutusCore.Rename.Internal"
+			  >Dupable</a
+			  > (<a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+			  >Normalized</a
+			  > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+			  >Type</a
+			  > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+			  >TyName</a
+			  > uni ())))</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PirTCConfig" class="def"
+	    >PirTCConfig</a
+	    > uni fun <a href="src/PlutusIR.Compiler.Types.html#PirTCConfig" class="link"
+	    >Source</a
+	    > <a href="#t:PirTCConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >extending the plc typecheck config with AllowEscape</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PirTCConfig" class="def"
+		  >PirTCConfig</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_pirConfigTCConfig" class="def"
+			  >_pirConfigTCConfig</a
+			  > &#8759; <a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+			  >TypeCheckConfig</a
+			  > uni fun</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_pirConfigAllowEscape" class="def"
+			  >_pirConfigAllowEscape</a
+			  > &#8759; <a href="PlutusIR-Compiler-Types.html#t:AllowEscape" title="PlutusIR.Compiler.Types"
+			  >AllowEscape</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:PirTCConfig"
+	    >Instances</h4
+	    ><details id="i:PirTCConfig" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PirTCConfig:HasKindCheckConfig:1"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HasKindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+		      >HasKindCheckConfig</a
+		      > (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+		      >PirTCConfig</a
+		      > uni fun)</span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-50" class="link"
+		    >Source</a
+		    > <a href="#t:PirTCConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PirTCConfig:HasKindCheckConfig:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:kindCheckConfig"
+			  >kindCheckConfig</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+			  >PirTCConfig</a
+			  > uni fun) <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:KindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+			  >KindCheckConfig</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:kindCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:kccHandleNameMismatches"
+			  >kccHandleNameMismatches</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+			  >PirTCConfig</a
+			  > uni fun) <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HandleNameMismatches" title="PlutusCore.TypeCheck.Internal"
+			  >HandleNameMismatches</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:kccHandleNameMismatches" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:PirTCConfig:HasTypeCheckConfig:2"
+		      ></span
+		      > <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HasTypeCheckConfig" title="PlutusCore.TypeCheck.Internal"
+		      >HasTypeCheckConfig</a
+		      > (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+		      >PirTCConfig</a
+		      > uni fun) uni fun</span
+		    > <a href="src/PlutusIR.Compiler.Types.html#line-53" class="link"
+		    >Source</a
+		    > <a href="#t:PirTCConfig" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:PirTCConfig:HasTypeCheckConfig:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusIR-Compiler-Types.html"
+			>PlutusIR.Compiler.Types</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:typeCheckConfig"
+			  >typeCheckConfig</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+			  >PirTCConfig</a
+			  > uni fun) (<a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+			  >TypeCheckConfig</a
+			  > uni fun) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:typeCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tccKindCheckConfig"
+			  >tccKindCheckConfig</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+			  >PirTCConfig</a
+			  > uni fun) <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:KindCheckConfig" title="PlutusCore.TypeCheck.Internal"
+			  >KindCheckConfig</a
+			  > <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:tccKindCheckConfig" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:tccBuiltinTypes"
+			  >tccBuiltinTypes</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+			  >PirTCConfig</a
+			  > uni fun) (<a href="PlutusIR-TypeCheck.html#t:BuiltinTypes" title="PlutusIR.TypeCheck"
+			  >BuiltinTypes</a
+			  > uni fun) <a href="../../plutus-core/src" class="link"
+			  >Source</a
+			  > <a href="#v:tccBuiltinTypes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:tccBuiltinTypes" class="def"
+	    >tccBuiltinTypes</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-TypeCheck-Internal.html#t:HasTypeCheckConfig" title="PlutusCore.TypeCheck.Internal"
+	    >HasTypeCheckConfig</a
+	    > cfg uni fun &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > cfg (<a href="PlutusIR-TypeCheck.html#t:BuiltinTypes" title="PlutusIR.TypeCheck"
+	    >BuiltinTypes</a
+	    > uni fun) <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:tccBuiltinTypes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:getDefTypeCheckConfig" class="def"
+	    >getDefTypeCheckConfig</a
+	    > &#8759; (<a href="PlutusIR-TypeCheck-Internal.html#t:MonadKindCheck" title="PlutusIR.TypeCheck.Internal"
+	    >MonadKindCheck</a
+	    > (<a href="PlutusIR-Error.html#t:TypeError" title="PlutusIR.Error"
+	    >TypeError</a
+	    > term uni fun ann) term uni fun ann m, <a href="../plutus-core/PlutusCore-TypeCheck.html#t:Typecheckable" title="PlutusCore.TypeCheck"
+	    >Typecheckable</a
+	    > uni fun) &#8658; ann &#8594; m (<a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	    >PirTCConfig</a
+	    > uni fun) <a href="src/PlutusIR.TypeCheck.html#getDefTypeCheckConfig" class="link"
+	    >Source</a
+	    > <a href="#v:getDefTypeCheckConfig" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The default <code
+	      ><a href="PlutusIR-TypeCheck-Internal.html#t:TypeCheckConfig" title="PlutusIR.TypeCheck.Internal"
+		>TypeCheckConfig</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Type checking, extending the plc typechecker</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferType" class="def"
+	    >inferType</a
+	    > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	    >MonadTypeCheckPir</a
+	    > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	    >PirTCConfig</a
+	    > uni fun &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann &#8594; m (<a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	    >Normalized</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ())) <a href="src/PlutusIR.TypeCheck.html#inferType" class="link"
+	    >Source</a
+	    > <a href="#v:inferType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Infer the type of a term.
+Note: The &quot;inferred type&quot; can escape its scope if YesEscape config is passed, see
+[PIR vs Paper Escaping Types Difference]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkType" class="def"
+	    >checkType</a
+	    > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	    >MonadTypeCheckPir</a
+	    > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	    >PirTCConfig</a
+	    > uni fun &#8594; ann &#8594; <a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann &#8594; <a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	    >Normalized</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ()) &#8594; m () <a href="src/PlutusIR.TypeCheck.html#checkType" class="link"
+	    >Source</a
+	    > <a href="#v:checkType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check a term against a type.
+Infers the type of the term and checks that it's equal to the given type
+throwing a <code
+	      ><a href="PlutusIR-Error.html#t:TypeError" title="PlutusIR.Error"
+		>TypeError</a
+		></code
+	      > (annotated with the value of the <code
+	      >ann</code
+	      > argument) otherwise.
+Note: this may allow witnessing a type that escapes its scope, see
+[PIR vs Paper Escaping Types Difference]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:inferTypeOfProgram" class="def"
+	    >inferTypeOfProgram</a
+	    > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	    >MonadTypeCheckPir</a
+	    > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	    >PirTCConfig</a
+	    > uni fun &#8594; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann &#8594; m (<a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	    >Normalized</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ())) <a href="src/PlutusIR.TypeCheck.html#inferTypeOfProgram" class="link"
+	    >Source</a
+	    > <a href="#v:inferTypeOfProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Infer the type of a program.
+Note: The &quot;inferred type&quot; can escape its scope if YesEscape config is passed, see
+[PIR vs Paper Escaping Types Difference]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:checkTypeOfProgram" class="def"
+	    >checkTypeOfProgram</a
+	    > &#8759; <a href="PlutusIR-TypeCheck.html#t:MonadTypeCheckPir" title="PlutusIR.TypeCheck"
+	    >MonadTypeCheckPir</a
+	    > uni fun ann m &#8658; <a href="PlutusIR-TypeCheck.html#t:PirTCConfig" title="PlutusIR.TypeCheck"
+	    >PirTCConfig</a
+	    > uni fun &#8594; ann &#8594; <a href="PlutusIR-Core-Type.html#t:Program" title="PlutusIR.Core.Type"
+	    >Program</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ann &#8594; <a href="PlutusIR-Error.html#t:Normalized" title="PlutusIR.Error"
+	    >Normalized</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ()) &#8594; m () <a href="src/PlutusIR.TypeCheck.html#checkTypeOfProgram" class="link"
+	    >Source</a
+	    > <a href="#v:checkTypeOfProgram" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Check a program against a type.
+Infers the type of the program and checks that it's equal to the given type
+throwing a <code
+	      ><a href="PlutusIR-Error.html#t:TypeError" title="PlutusIR.Error"
+		>TypeError</a
+		></code
+	      > (annotated with the value of the <code
+	      >ann</code
+	      > argument) otherwise.
+Note: this may allow witnessing a type that escapes its scope, see
+[PIR vs Paper Escaping Types Difference]</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:MonadTypeCheckPir" class="def"
+	    >MonadTypeCheckPir</a
+	    > uni fun ann m = <a href="PlutusIR-TypeCheck-Internal.html#t:MonadTypeCheck" title="PlutusIR.TypeCheck.Internal"
+	    >MonadTypeCheck</a
+	    > (<a href="PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+	    >Error</a
+	    > uni fun ann) (<a href="PlutusIR-Core-Type.html#t:Term" title="PlutusIR.Core.Type"
+	    >Term</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni fun ()) uni fun ann m <a href="src/PlutusIR.TypeCheck.Internal.html#MonadTypeCheckPir" class="link"
+	    >Source</a
+	    > <a href="#t:MonadTypeCheckPir" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The constraints that are required for type checking Plutus IR.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

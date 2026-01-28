@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Examples.Data.Shad</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.55.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Examples.Data.Shad.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Examples.Data.Shad</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:shad"
+	      >shad</a
+	      > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeLevel`</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:mkShad"
+	      >mkShad</a
+	      > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeAndTermLevel`</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	      >Integer</a
+	      > &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ><li class="src short"
+	    ><a href="#v:recUnit"
+	      >recUnit</a
+	      > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeLevel`</a
+	      > () &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni ()</li
+	    ><li class="src short"
+	    ><a href="#v:runRecUnit"
+	      >runRecUnit</a
+	      > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	      >`HasTypeAndTermLevel`</a
+	      > () &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun ()</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shad" class="def"
+	    >shad</a
+	    > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeLevel`</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Shad.html#shad" class="link"
+	    >Source</a
+	    > <a href="#v:shad" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >\(a :: *) -&gt; ifix (getShadF a) a</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkShad" class="def"
+	    >mkShad</a
+	    > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeAndTermLevel`</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integer" title="Prelude"
+	    >Integer</a
+	    > &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Shad.html#mkShad" class="link"
+	    >Source</a
+	    > <a href="#v:mkShad" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that shadowing does not result in variable capture. The definition is as follows:</p
+	    ><pre
+	    >/\(a :: *) -&gt; wrap (getShadF a) a (\(x : a) -&gt; /\(f :: * -&gt; *) -&gt; \(y : f i) -&gt; 0)</pre
+	    ><p
+	    >Type checking this term we eventually reach</p
+	    ><pre
+	    >NORM (vPat (\(a :: k) -&gt; ifix vPat a) arg)</pre
+	    ><p
+	    >(where in our case <code
+	      >vPat</code
+	      > is <code
+	      >shadF</code
+	      > and <code
+	      >arg</code
+	      > is <code
+	      >a</code
+	      >), which, if we were naive,
+ would unfold into</p
+	    ><pre
+	    >a -&gt; all (a :: * -&gt; *). a a -&gt; integer</pre
+	    ><p
+	    >i.e. we substituted the outer <code
+	      >a</code
+	      > for <code
+	      >i</code
+	      >, but due to variable capture via <code
+	      >all</code
+	      > that outer <code
+	      >a</code
+	      >
+ now became an inner one, which would be a bug.</p
+	    ><p
+	    >But that problem is already solved before type checking starts as we rename the program and that
+ makes all binders uniques, so no variable capture is possible due to the outer and inner bindings
+ being distinct.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:recUnit" class="def"
+	    >recUnit</a
+	    > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeLevel`</a
+	    > () &#8658; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () <a href="src/PlutusCore.Examples.Data.Shad.html#recUnit" class="link"
+	    >Source</a
+	    > <a href="#v:recUnit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><pre
+	    >ifix recUnitF ()</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:runRecUnit" class="def"
+	    >runRecUnit</a
+	    > &#8759; uni <a href="PlutusCore-Builtin-KnownTypeAst.html#t:HasTypeAndTermLevel" title="PlutusCore.Builtin.KnownTypeAst"
+	    >`HasTypeAndTermLevel`</a
+	    > () &#8658; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () <a href="src/PlutusCore.Examples.Data.Shad.html#runRecUnit" class="link"
+	    >Source</a
+	    > <a href="#v:runRecUnit" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test that a binder in a pattern functor does not get duplicated. The definition is as follows:</p
+	    ><pre
+	    >/\(a :: *) -&gt; \(ru : recUnit) -&gt; unwrap ru {a} ru</pre
+	    ><p
+	    >Type checking this term we eventually reach</p
+	    ><pre
+	    >NORM (vPat (\(a :: k) -&gt; ifix vPat a) arg)</pre
+	    ><p
+	    >(where in our case <code
+	      >vPat</code
+	      > is <code
+	      >recUnitF</code
+	      > and <code
+	      >arg</code
+	      > is <code
+	      >()</code
+	      >), which, if we were naive,
+ would unfold into</p
+	    ><pre
+	    >all (r :: *). ifix (\(rec :: * -&gt; *) (i :: *) -&gt; all (r :: *). rec i -&gt; r -&gt; r) () -&gt; r -&gt; r</pre
+	    ><p
+	    >and break global uniqueness as the <code
+	      >all (r :: *)</code
+	      > binder appears twice.</p
+	    ><p
+	    >But this doesn't happen in the actual code, since when a variable gets looked up during type
+ normalization, its value gets renamed, which means that a fresh variable will be generated for
+ the inner binder and there will be no shadowing.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

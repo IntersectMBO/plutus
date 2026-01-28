@@ -1,0 +1,50 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE TemplateHaskell #-}
+<span class="lineno">    2 </span>
+<span class="lineno">    3 </span>module PlutusCore.Compiler.Opts
+<span class="lineno">    4 </span>  ( CompilationOpts (..)
+<span class="lineno">    5 </span>  , coSimplifyOpts
+<span class="lineno">    6 </span>  , coBuiltinSemanticsVariant
+<span class="lineno">    7 </span>  , defaultCompilationOpts
+<span class="lineno">    8 </span>  ) where
+<span class="lineno">    9 </span>
+<span class="lineno">   10 </span>import Control.Lens (makeLenses)
+<span class="lineno">   11 </span>import Data.Default.Class (Default (def))
+<span class="lineno">   12 </span>import PlutusCore.Builtin.Meaning (BuiltinSemanticsVariant)
+<span class="lineno">   13 </span>import UntypedPlutusCore.Simplify.Opts (SimplifyOpts, defaultSimplifyOpts)
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>data CompilationOpts name fun a = CompilationOpts
+<span class="lineno">   16 </span>  { <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_coSimplifyOpts</span></span></span> :: SimplifyOpts name a
+<span class="lineno">   17 </span>  , <span class="nottickedoff"><span class="decl"><span class="nottickedoff">_coBuiltinSemanticsVariant</span></span></span> :: BuiltinSemanticsVariant fun
+<span class="lineno">   18 </span>  }
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>$<span class="nottickedoff"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">(makeLenses ''CompilationOpts)</span></span></span></span></span></span></span>
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>defaultCompilationOpts :: Default (BuiltinSemanticsVariant fun) =&gt; CompilationOpts name fun a
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">defaultCompilationOpts =</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">CompilationOpts</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="istickedoff">{ _coSimplifyOpts = defaultSimplifyOpts</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="istickedoff">, _coBuiltinSemanticsVariant = <span class="nottickedoff">def</span></span>
+<span class="lineno">   27 </span><span class="spaces">    </span><span class="istickedoff">}</span></span>
+
+</pre>
+</body>
+</html>

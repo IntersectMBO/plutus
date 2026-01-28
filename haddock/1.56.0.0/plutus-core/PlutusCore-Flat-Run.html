@@ -1,0 +1,287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.Run</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.Run.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.Run</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Encoding and decoding functions</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:flat"
+	      >flat</a
+	      > &#8759; <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a &#8658; a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	      >ByteString</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:flatRaw"
+	      >flatRaw</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a, <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	      >AsByteString</a
+	      > b) &#8658; a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:unflat"
+	      >unflat</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a, <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	      >AsByteString</a
+	      > b) &#8658; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	      >Decoded</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:unflatWith"
+	      >unflatWith</a
+	      > &#8759; <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	      >AsByteString</a
+	      > b &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	      >Get</a
+	      > a &#8594; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	      >Decoded</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:unflatRaw"
+	      >unflatRaw</a
+	      > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > a, <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	      >AsByteString</a
+	      > b) &#8658; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	      >Decoded</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:unflatRawWith"
+	      >unflatRawWith</a
+	      > &#8759; <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	      >AsByteString</a
+	      > b &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	      >Get</a
+	      > a &#8594; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	      >Decoded</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:unflatRawWithOffset"
+	      >unflatRawWithOffset</a
+	      > &#8759; <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	      >AsByteString</a
+	      > b &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	      >Get</a
+	      > a &#8594; b &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	      >NumBits</a
+	      > &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	      >Decoded</a
+	      > a</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:flat" class="def"
+	    >flat</a
+	    > &#8759; <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a &#8658; a &#8594; <a href="https://hackage.haskell.org/package/bytestring-0.11.5.4/docs/Data-ByteString.html#t:ByteString" title="Data.ByteString"
+	    >ByteString</a
+	    > <a href="src/PlutusCore.Flat.Run.html#flat" class="link"
+	    >Source</a
+	    > <a href="#v:flat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode padded value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:flatRaw" class="def"
+	    >flatRaw</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a, <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	    >AsByteString</a
+	    > b) &#8658; a &#8594; b <a href="src/PlutusCore.Flat.Run.html#flatRaw" class="link"
+	    >Source</a
+	    > <a href="#v:flatRaw" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Encode unpadded value</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unflat" class="def"
+	    >unflat</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a, <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	    >AsByteString</a
+	    > b) &#8658; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	    >Decoded</a
+	    > a <a href="src/PlutusCore.Flat.Run.html#unflat" class="link"
+	    >Source</a
+	    > <a href="#v:unflat" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode padded value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unflatWith" class="def"
+	    >unflatWith</a
+	    > &#8759; <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	    >AsByteString</a
+	    > b &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	    >Get</a
+	    > a &#8594; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	    >Decoded</a
+	    > a <a href="src/PlutusCore.Flat.Run.html#unflatWith" class="link"
+	    >Source</a
+	    > <a href="#v:unflatWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode padded value, using the provided unpadded decoder.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unflatRaw" class="def"
+	    >unflatRaw</a
+	    > &#8759; (<a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > a, <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	    >AsByteString</a
+	    > b) &#8658; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	    >Decoded</a
+	    > a <a href="src/PlutusCore.Flat.Run.html#unflatRaw" class="link"
+	    >Source</a
+	    > <a href="#v:unflatRaw" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Decode unpadded value.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unflatRawWith" class="def"
+	    >unflatRawWith</a
+	    > &#8759; <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	    >AsByteString</a
+	    > b &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	    >Get</a
+	    > a &#8594; b &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	    >Decoded</a
+	    > a <a href="src/PlutusCore.Flat.Run.html#unflatRawWith" class="link"
+	    >Source</a
+	    > <a href="#v:unflatRawWith" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Unflat unpadded value, using provided decoder</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:unflatRawWithOffset" class="def"
+	    >unflatRawWithOffset</a
+	    > &#8759; <a href="PlutusCore-Flat-Data-ByteString-Convert.html#t:AsByteString" title="PlutusCore.Flat.Data.ByteString.Convert"
+	    >AsByteString</a
+	    > b &#8658; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+	    >Get</a
+	    > a &#8594; b &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	    >NumBits</a
+	    > &#8594; <a href="PlutusCore-Flat-Decoder-Types.html#t:Decoded" title="PlutusCore.Flat.Decoder.Types"
+	    >Decoded</a
+	    > a <a href="src/PlutusCore.Flat.Run.html#unflatRawWithOffset" class="link"
+	    >Source</a
+	    > <a href="#v:unflatRawWithOffset" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

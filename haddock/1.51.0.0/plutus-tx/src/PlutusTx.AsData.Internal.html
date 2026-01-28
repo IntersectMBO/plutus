@@ -1,0 +1,595 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE Strict #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fexpose-all-unfoldings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Functions in this module are for internal compiler use only, and should not
+be used elsewhere.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.AsData.Internal</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BI</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Compiling AsData Matchers and Their Invocations]</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.AsData.Internal.html#wrapUnsafeDataAsConstr"
+	><span class="hs-identifier hs-type"
+	  >wrapUnsafeDataAsConstr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinPair"
+	><span class="hs-identifier hs-type"
+	  >BuiltinPair</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinInteger"
+	><span class="hs-identifier hs-type"
+	  >BuiltinInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	><span class="hs-identifier hs-type"
+	  >BuiltinList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span id="wrapUnsafeDataAsConstr"
+      ><span class="annot"
+	><span class="annottext"
+	  >wrapUnsafeDataAsConstr :: BuiltinData -&gt; BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
+</span
+	  ><a href="PlutusTx.AsData.Internal.html#wrapUnsafeDataAsConstr"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wrapUnsafeDataAsConstr</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinPair BuiltinInteger (BuiltinList BuiltinData)
+</span
+	><a href="PlutusTx.Builtins.Internal.html#unsafeDataAsConstr"
+	><span class="hs-identifier hs-var"
+	  >BI.unsafeDataAsConstr</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPAQUE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.AsData.Internal.html#wrapUnsafeDataAsConstr"
+	><span class="hs-pragma hs-type"
+	  >wrapUnsafeDataAsConstr</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span id="local-6989586621680030429"
+      ><span class="annot"
+	><a href="PlutusTx.AsData.Internal.html#wrapTail"
+	  ><span class="hs-identifier hs-type"
+	    >wrapTail</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680030429"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680030429"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span id="wrapTail"
+      ><span class="annot"
+	><span class="annottext"
+	  >wrapTail :: forall a. BuiltinList a -&gt; BuiltinList a
+</span
+	  ><a href="PlutusTx.AsData.Internal.html#wrapTail"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wrapTail</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList a -&gt; BuiltinList a
+forall a. BuiltinList a -&gt; BuiltinList a
+</span
+	><a href="PlutusTx.Builtins.Internal.html#tail"
+	><span class="hs-identifier hs-var"
+	  >BI.tail</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPAQUE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.AsData.Internal.html#wrapTail"
+	><span class="hs-pragma hs-type"
+	  >wrapTail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-comment"
+      >-- Like `unsafeUncons` but uses `wrapTail` instead of the regular `tail`.</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-comment"
+      >-- This function can be inlined, because the Plinth compiler does not rely on it being present.</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-comment"
+      >--</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-comment"
+      >-- We don't need a `wrapHead`, because there are no strict dead bindings of the form</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-comment"
+      >-- `let !y = head xs`. The dead bindings are only in the form of `let !ys = tail xs`</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >-- and `let !y = unsafeFromBuiltinData (head xs)`.</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span id="local-6989586621680030431"
+      ><span class="annot"
+	><a href="PlutusTx.AsData.Internal.html#wrapUnsafeUncons"
+	  ><span class="hs-identifier hs-type"
+	    >wrapUnsafeUncons</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680030431"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621680030431"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Builtins.Internal.html#BuiltinList"
+	  ><span class="hs-identifier hs-type"
+	    >BuiltinList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621680030431"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span id="wrapUnsafeUncons"
+      ><span class="annot"
+	><span class="annottext"
+	  >wrapUnsafeUncons :: forall a. BuiltinList a -&gt; (a, BuiltinList a)
+</span
+	  ><a href="PlutusTx.AsData.Internal.html#wrapUnsafeUncons"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >wrapUnsafeUncons</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621680030439"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList a
+</span
+	  ><a href="#local-6989586621680030439"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList a -&gt; a
+forall a. BuiltinList a -&gt; a
+</span
+	><a href="PlutusTx.Builtins.Internal.html#head"
+	><span class="hs-identifier hs-var"
+	  >BI.head</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList a
+</span
+	><a href="#local-6989586621680030439"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList a -&gt; BuiltinList a
+forall a. BuiltinList a -&gt; BuiltinList a
+</span
+	><a href="PlutusTx.AsData.Internal.html#wrapTail"
+	><span class="hs-identifier hs-var"
+	  >wrapTail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList a
+</span
+	><a href="#local-6989586621680030439"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.AsData.Internal.html#wrapUnsafeUncons"
+	><span class="hs-pragma hs-type"
+	  >wrapUnsafeUncons</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Compiling AsData Matchers and Their Invocations]
+
+The AsData matchers, such as `AsData.Budget.Types.$mInts`, eagerly unpack all fields,
+even for unused fields. This leads to strict dead bindings. Since they are strict and
+the inliner doesn't know that they are effect-free, it can't remove them.
+
+It is not uncommon that only one or a small number of fields in `ScriptContext` are used,
+so this could cause severe performance penalties.
+
+The matches are generated by GHC for pattern synonyms, not written by hand. As a result,
+they are unfortunately not customizable - for example, by attaching certain annotations
+to certain variables as signals for the Plinth compiler.
+
+The workaround are the wrapper functions in this module. `wrapUnsafeDataAsConstr`
+is marked OPAQUE so that GHC doesn't inline it, yet its unfolding is made available
+via `-fexpose-all-unfoldings`. `wrapUnsafeDataAsConstr` is supposed to be used by
+AsData only, and not elsewhere, and the Plinth compiler relies on it to identify
+which functions are AsData matchers.
+
+An AsData matcher unpacks the fields and passes them to a continuation. What we need is
+to mark the variables bound in the continuation as safe to inline. For instance, if the
+continuation is `\x y z w -&gt; f x` (indicating a data type with 4 fields, of which only the
+first is used), marking `x`, `y`, `z` and `w` as safe to inline allows the inliner to
+drop the unused ones.
+
+This eliminates unused field accessors, but there are still the `tailList` dead bindings, which
+are intermediate artifacts in generating the field accessors. This is what `wrapTail` is for.
+`wrapTail` appears in `case` scrutinees, as in `case wrapTail @BuiltinData l of l' -&gt; ...`.
+So the compiler detects such `case` expressions, and mark the binder, `l'`, as
+safe to inline.
+
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

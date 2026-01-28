@@ -1,0 +1,6113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Flat.Instances.Mono</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	><span class="hs-identifier"
+	  >sizeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	><span class="hs-identifier"
+	  >encodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	><span class="hs-identifier"
+	  >decodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeList"
+	><span class="hs-identifier"
+	  >sizeList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	><span class="hs-identifier"
+	  >encodeList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	><span class="hs-identifier"
+	  >decodeList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeSet"
+	><span class="hs-identifier"
+	  >sizeSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeSet"
+	><span class="hs-identifier"
+	  >encodeSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeSet"
+	><span class="hs-identifier"
+	  >decodeSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeMap"
+	><span class="hs-identifier"
+	  >sizeMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeMap"
+	><span class="hs-identifier"
+	  >encodeMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeMap"
+	><span class="hs-identifier"
+	  >decodeMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#AsArray"
+	><span class="hs-identifier"
+	  >AsArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#AsList"
+	><span class="hs-identifier"
+	  >AsList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#AsSet"
+	><span class="hs-identifier"
+	  >AsSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#AsMap"
+	><span class="hs-identifier"
+	  >AsMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html"
+	><span class="hs-identifier"
+	  >Data.Containers</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html"
+	><span class="hs-identifier"
+	  >Data.Foldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>F</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html"
+	><span class="hs-identifier"
+	  >Data.MonoTraversable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	><span class="hs-identifier"
+	  >Element</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#MonoFoldable"
+	><span class="hs-identifier"
+	  >MonoFoldable</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#ofoldl%27"
+	><span class="hs-identifier"
+	  >ofoldl'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#otoList"
+	><span class="hs-identifier"
+	  >otoList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html"
+	><span class="hs-identifier"
+	  >Data.Sequences</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#IsSequence"
+	><span class="hs-identifier"
+	  >IsSequence</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html"
+	><span class="hs-identifier"
+	  >Data.Sequences</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>S</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Util.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Flat.Instances.Util</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-$setup
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Base()
+&gt;&gt;&gt; import PlutusCore.Flat.Instances.Test
+&gt;&gt;&gt; import Data.Word
+&gt;&gt;&gt; import qualified Data.Set
+&gt;&gt;&gt; import qualified Data.Map -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Sequences are defined as Arrays:
+
+Array v = A0
+        | A1 v (Array v)
+        | A2 v v (Array v)
+        ...
+        | A255 ... (Array v)
+
+In practice, this means that the sequence is encoded as a sequence of blocks of up to 255 elements, with every block preceded by the count of the elements in the block and a final 0-length block.
+
+Lists are defined as:
+
+List a &#8801;  Nil
+        | Cons a (List a)
+
+In practice, this means that the list elements will be prefixed with a 1 bit and followed by a final 0 bit.
+
+The AsList/AsArray wrappers can be used to serialise sequences as Lists or Arrays.
+
+Let's see some examples.
+
+&gt;&gt;&gt; flatBits $ AsList [True,True,True]
+&quot;1111110&quot;
+
+So we have Cons True (11) repeated three times, followed by a final Nil (0).
+
+The list encoding is the default one for lists so AsList is in this case unnecessary:
+
+&gt;&gt;&gt; flatBits $ [True,True,True]
+&quot;1111110&quot;
+
+We can force a list to be encoded as an Array with AsArray:
+
+&gt;&gt;&gt; flatBits $ AsArray [True,True,True]
+&quot;00000011 11100000 000&quot;
+
+We have the initial block with a count of 3 (3 == 00000011) followed by the elements True True True (111) and then the final block of 0 elements (&quot;00000 000&quot;).
+
+&gt;&gt;&gt; flatBits $ [AsArray [True,True,True]]
+&quot;10000001 11110000 00000&quot;
+
+&gt;&gt;&gt; flatBits $ (True,True,True,AsArray $ replicate 7 True)
+&quot;11100000 11111111 11000000 00&quot;
+
+&gt;&gt;&gt; flatBits $ AsArray ([]::[()])
+&quot;00000000&quot;
+
+&gt;&gt;&gt; flatBits $ AsList ([]::[()])
+&quot;0&quot;
+
+&gt;&gt;&gt; tst (AsList [11::Word8,22,33])
+(True,28,[133,197,164,32])
+
+&gt;&gt;&gt; tst (AsSet (Data.Set.fromList [11::Word8,22,33]))
+(True,28,[133,197,164,32])
+
+&gt;&gt;&gt; tst [AsArray [1..3], AsArray [4..8]]
+(True,99,[129,129,2,3,0,65,66,2,131,3,132,0,0])
+
+&gt;&gt;&gt; tst $ [AsArray [(1::Word8)..3], AsArray [4..8]]
+(True,99,[129,128,129,1,128,65,65,1,65,129,194,0,0])
+
+&gt;&gt;&gt; tst $ [AsArray [(1::Int)..3]]
+(True,42,[129,129,2,3,0,0]) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="AsArray"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsArray"
+	  ><span class="hs-identifier hs-var"
+	    >AsArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104253"
+      ><span class="annot"
+	><a href="#local-6989586621679104253"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="AsArray"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsArray"
+	  ><span class="hs-identifier hs-var"
+	    >AsArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unArray"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. AsArray a -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#unArray"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unArray</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679104253"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104388"
+      ><span id="local-6989586621679104393"
+	><span id="local-6989586621679104397"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; AsArray a -&gt; ShowS
+[AsArray a] -&gt; ShowS
+AsArray a -&gt; String
+(Int -&gt; AsArray a -&gt; ShowS)
+-&gt; (AsArray a -&gt; String)
+-&gt; ([AsArray a] -&gt; ShowS)
+-&gt; Show (AsArray a)
+forall a. Show a =&gt; Int -&gt; AsArray a -&gt; ShowS
+forall a. Show a =&gt; [AsArray a] -&gt; ShowS
+forall a. Show a =&gt; AsArray a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; AsArray a -&gt; ShowS
+showsPrec :: Int -&gt; AsArray a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; AsArray a -&gt; String
+show :: AsArray a -&gt; String
+$cshowList :: forall a. Show a =&gt; [AsArray a] -&gt; ShowS
+showList :: [AsArray a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104402"
+      ><span id="local-6989586621679104406"
+	><span class="annot"
+	  ><span class="annottext"
+	    >AsArray a -&gt; AsArray a -&gt; Bool
+(AsArray a -&gt; AsArray a -&gt; Bool)
+-&gt; (AsArray a -&gt; AsArray a -&gt; Bool) -&gt; Eq (AsArray a)
+forall a. Eq a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+== :: AsArray a -&gt; AsArray a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+/= :: AsArray a -&gt; AsArray a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104416"
+      ><span id="local-6989586621679104420"
+	><span id="local-6989586621679104424"
+	  ><span id="local-6989586621679104428"
+	    ><span id="local-6989586621679104432"
+	      ><span id="local-6989586621679104436"
+		><span id="local-6989586621679104440"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (AsArray a)
+Eq (AsArray a) =&gt;
+(AsArray a -&gt; AsArray a -&gt; Ordering)
+-&gt; (AsArray a -&gt; AsArray a -&gt; Bool)
+-&gt; (AsArray a -&gt; AsArray a -&gt; Bool)
+-&gt; (AsArray a -&gt; AsArray a -&gt; Bool)
+-&gt; (AsArray a -&gt; AsArray a -&gt; Bool)
+-&gt; (AsArray a -&gt; AsArray a -&gt; AsArray a)
+-&gt; (AsArray a -&gt; AsArray a -&gt; AsArray a)
+-&gt; Ord (AsArray a)
+AsArray a -&gt; AsArray a -&gt; Bool
+AsArray a -&gt; AsArray a -&gt; Ordering
+AsArray a -&gt; AsArray a -&gt; AsArray a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (AsArray a)
+forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; Ordering
+forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; AsArray a
+$ccompare :: forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; Ordering
+compare :: AsArray a -&gt; AsArray a -&gt; Ordering
+$c&lt; :: forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+&lt; :: AsArray a -&gt; AsArray a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+&lt;= :: AsArray a -&gt; AsArray a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+&gt; :: AsArray a -&gt; AsArray a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; Bool
+&gt;= :: AsArray a -&gt; AsArray a -&gt; Bool
+$cmax :: forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; AsArray a
+max :: AsArray a -&gt; AsArray a -&gt; AsArray a
+$cmin :: forall a. Ord a =&gt; AsArray a -&gt; AsArray a -&gt; AsArray a
+min :: AsArray a -&gt; AsArray a -&gt; AsArray a
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104276"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#IsSequence"
+	  ><span class="hs-identifier hs-type"
+	    >IsSequence</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104276"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104276"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsArray"
+	  ><span class="hs-identifier hs-type"
+	    >AsArray</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104276"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104459"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: AsArray r -&gt; Int -&gt; Int
+</span
+	  ><a href="#local-6989586621679104459"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#AsArray"
+	><span class="hs-identifier hs-type"
+	  >AsArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104461"
+      ><span class="annot"
+	><span class="annottext"
+	  >r
+</span
+	  ><a href="#local-6989586621679104461"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r -&gt; Int -&gt; Int
+forall mono.
+(IsSequence mono, Flat (Element mono)) =&gt;
+mono -&gt; Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	><span class="hs-identifier hs-var"
+	  >sizeSequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+</span
+	><a href="#local-6989586621679104461"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104464"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: AsArray r -&gt; Encoding
+</span
+	  ><a href="#local-6989586621679104464"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#AsArray"
+	><span class="hs-identifier hs-type"
+	  >AsArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104466"
+      ><span class="annot"
+	><span class="annottext"
+	  >r
+</span
+	  ><a href="#local-6989586621679104466"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	><span class="hs-identifier hs-var"
+	  >encodeSequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+</span
+	><a href="#local-6989586621679104466"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104471"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (AsArray r)
+</span
+	  ><a href="#local-6989586621679104471"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r -&gt; AsArray r
+forall a. a -&gt; AsArray a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsArray"
+	><span class="hs-identifier hs-var"
+	  >AsArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(r -&gt; AsArray r) -&gt; Get r -&gt; Get (AsArray r)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get r
+forall b. (Flat (Element b), IsSequence b) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	><span class="hs-identifier hs-var"
+	  >decodeSequence</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Calculate size of an instance of IsSequence as the sum:
+
+* of the size of all the elements
+
+* plus the size of the array constructors (1 byte every 255 elements plus one final byte) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span id="local-6989586621679104281"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	  ><span class="hs-identifier hs-type"
+	    >sizeSequence</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-123"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#IsSequence"
+	  ><span class="hs-identifier hs-type"
+	    >IsSequence</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104281"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104281"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104281"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Types.html#NumBits"
+	  ><span class="hs-identifier hs-type"
+	    >NumBits</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Types.html#NumBits"
+	  ><span class="hs-identifier hs-type"
+	    >NumBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span id="sizeSequence"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeSequence :: forall mono.
+(IsSequence mono, Flat (Element mono)) =&gt;
+mono -&gt; Int -&gt; Int
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeSequence</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104481"
+      ><span class="annot"
+	><span class="annottext"
+	  >mono
+</span
+	  ><a href="#local-6989586621679104481"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104482"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104482"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104487"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104487"
+	  ><span class="hs-identifier hs-var"
+	    >sz</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104488"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104488"
+	  ><span class="hs-identifier hs-var"
+	    >len</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Int, Int) -&gt; Element mono -&gt; (Int, Int))
+-&gt; (Int, Int) -&gt; mono -&gt; (Int, Int)
+forall mono a.
+MonoFoldable mono =&gt;
+(a -&gt; Element mono -&gt; a) -&gt; a -&gt; mono -&gt; a
+forall a. (a -&gt; Element mono -&gt; a) -&gt; a -&gt; mono -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#ofoldl%27"
+	><span class="hs-identifier hs-var"
+	  >ofoldl'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104489"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104489"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104490"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104490"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104491"
+      ><span class="annot"
+	><span class="annottext"
+	  >Element mono
+</span
+	  ><a href="#local-6989586621679104491"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element mono -&gt; Int -&gt; Int
+forall a. Flat a =&gt; a -&gt; Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element mono
+</span
+	><a href="#local-6989586621679104491"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104489"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104490"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104482"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Types.html#NumBits"
+	><span class="hs-identifier hs-type"
+	  >NumBits</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>mono
+</span
+	><a href="#local-6989586621679104481"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104487"
+	><span class="hs-identifier hs-var"
+	  >sz</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Encoder.Size.html#arrayBits"
+	><span class="hs-identifier hs-var"
+	  >arrayBits</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104488"
+	><span class="hs-identifier hs-var"
+	  >len</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeSequence"
+	><span class="hs-pragma hs-type"
+	  >sizeSequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="hs-comment"
+      >-- TODO: check which one is faster</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span class="hs-comment"
+      >-- sizeSequence s acc = ofoldl' (flip size) acc s + arrayBits (olength s)</span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Encode an instance of IsSequence, as an array</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span id="local-6989586621679104282"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	  ><span class="hs-identifier hs-type"
+	    >encodeSequence</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104282"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#MonoFoldable"
+	  ><span class="hs-identifier hs-type"
+	    >MonoFoldable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104282"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104282"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	  ><span class="hs-identifier hs-type"
+	    >Encoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-135"
+      ></span
+      ><span id="encodeSequence"
+      ><span class="annot"
+	><span class="annottext"
+	  >encodeSequence :: forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encodeSequence</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Element mono] -&gt; Encoding
+forall a. Flat a =&gt; [a] -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Util.html#encodeArray"
+	><span class="hs-identifier hs-var"
+	  >encodeArray</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Element mono] -&gt; Encoding)
+-&gt; (mono -&gt; [Element mono]) -&gt; mono -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>mono -&gt; [Element mono]
+forall mono. MonoFoldable mono =&gt; mono -&gt; [Element mono]
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#otoList"
+	><span class="hs-identifier hs-var"
+	  >otoList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-136"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeSequence"
+	><span class="hs-pragma hs-type"
+	  >encodeSequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-137"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-138"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Decode an instance of IsSequence, as an array</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span id="local-6989586621679104286"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	  ><span class="hs-identifier hs-type"
+	    >decodeSequence</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104286"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#IsSequence"
+	  ><span class="hs-identifier hs-type"
+	    >IsSequence</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104286"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104286"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span id="decodeSequence"
+      ><span class="annot"
+	><span class="annottext"
+	  >decodeSequence :: forall b. (Flat (Element b), IsSequence b) =&gt; Get b
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >decodeSequence</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Element b] -&gt; b
+forall seq. IsSequence seq =&gt; [Element seq] -&gt; seq
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >S.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Element b] -&gt; b) -&gt; Get [Element b] -&gt; Get b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Element b) -&gt; Get [Element b]
+forall a. Get a -&gt; Get [a]
+</span
+	><a href="PlutusCore.Flat.Decoder.Strict.html#decodeArrayWith"
+	><span class="hs-identifier hs-var"
+	  >decodeArrayWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Element b)
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-141"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeSequence"
+	><span class="hs-pragma hs-type"
+	  >decodeSequence</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="AsList"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsList"
+	  ><span class="hs-identifier hs-var"
+	    >AsList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104298"
+      ><span class="annot"
+	><a href="#local-6989586621679104298"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="AsList"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsList"
+	  ><span class="hs-identifier hs-var"
+	    >AsList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unList"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. AsList a -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#unList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679104298"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104511"
+      ><span id="local-6989586621679104515"
+	><span id="local-6989586621679104519"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; AsList a -&gt; ShowS
+[AsList a] -&gt; ShowS
+AsList a -&gt; String
+(Int -&gt; AsList a -&gt; ShowS)
+-&gt; (AsList a -&gt; String) -&gt; ([AsList a] -&gt; ShowS) -&gt; Show (AsList a)
+forall a. Show a =&gt; Int -&gt; AsList a -&gt; ShowS
+forall a. Show a =&gt; [AsList a] -&gt; ShowS
+forall a. Show a =&gt; AsList a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; AsList a -&gt; ShowS
+showsPrec :: Int -&gt; AsList a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; AsList a -&gt; String
+show :: AsList a -&gt; String
+$cshowList :: forall a. Show a =&gt; [AsList a] -&gt; ShowS
+showList :: [AsList a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104523"
+      ><span id="local-6989586621679104527"
+	><span class="annot"
+	  ><span class="annottext"
+	    >AsList a -&gt; AsList a -&gt; Bool
+(AsList a -&gt; AsList a -&gt; Bool)
+-&gt; (AsList a -&gt; AsList a -&gt; Bool) -&gt; Eq (AsList a)
+forall a. Eq a =&gt; AsList a -&gt; AsList a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; AsList a -&gt; AsList a -&gt; Bool
+== :: AsList a -&gt; AsList a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; AsList a -&gt; AsList a -&gt; Bool
+/= :: AsList a -&gt; AsList a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104536"
+      ><span id="local-6989586621679104540"
+	><span id="local-6989586621679104544"
+	  ><span id="local-6989586621679104548"
+	    ><span id="local-6989586621679104552"
+	      ><span id="local-6989586621679104556"
+		><span id="local-6989586621679104560"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (AsList a)
+Eq (AsList a) =&gt;
+(AsList a -&gt; AsList a -&gt; Ordering)
+-&gt; (AsList a -&gt; AsList a -&gt; Bool)
+-&gt; (AsList a -&gt; AsList a -&gt; Bool)
+-&gt; (AsList a -&gt; AsList a -&gt; Bool)
+-&gt; (AsList a -&gt; AsList a -&gt; Bool)
+-&gt; (AsList a -&gt; AsList a -&gt; AsList a)
+-&gt; (AsList a -&gt; AsList a -&gt; AsList a)
+-&gt; Ord (AsList a)
+AsList a -&gt; AsList a -&gt; Bool
+AsList a -&gt; AsList a -&gt; Ordering
+AsList a -&gt; AsList a -&gt; AsList a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (AsList a)
+forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; Bool
+forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; Ordering
+forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; AsList a
+$ccompare :: forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; Ordering
+compare :: AsList a -&gt; AsList a -&gt; Ordering
+$c&lt; :: forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; Bool
+&lt; :: AsList a -&gt; AsList a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; Bool
+&lt;= :: AsList a -&gt; AsList a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; Bool
+&gt; :: AsList a -&gt; AsList a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; Bool
+&gt;= :: AsList a -&gt; AsList a -&gt; Bool
+$cmax :: forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; AsList a
+max :: AsList a -&gt; AsList a -&gt; AsList a
+$cmin :: forall a. Ord a =&gt; AsList a -&gt; AsList a -&gt; AsList a
+min :: AsList a -&gt; AsList a -&gt; AsList a
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104308"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#IsSequence"
+	  ><span class="hs-identifier hs-type"
+	    >IsSequence</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104308"
+	  ><span class="hs-identifier hs-type"
+	    >l</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104308"
+	  ><span class="hs-identifier hs-type"
+	    >l</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsList"
+	  ><span class="hs-identifier hs-type"
+	    >AsList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104308"
+	  ><span class="hs-identifier hs-type"
+	    >l</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- size   = sizeList . S.unpack . unList</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- encode = encodeList . S.unpack . unList</span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- decode = AsList . S.fromList &lt;$&gt; decodeListotoList</span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104574"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: AsList l -&gt; Int -&gt; Int
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>l -&gt; Int -&gt; Int
+forall mono.
+(MonoFoldable mono, Flat (Element mono)) =&gt;
+mono -&gt; Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeList"
+	><span class="hs-identifier hs-var"
+	  >sizeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(l -&gt; Int -&gt; Int) -&gt; (AsList l -&gt; l) -&gt; AsList l -&gt; Int -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsList l -&gt; l
+forall a. AsList a -&gt; a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#unList"
+	><span class="hs-identifier hs-var"
+	  >unList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104577"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: AsList l -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>l -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	><span class="hs-identifier hs-var"
+	  >encodeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(l -&gt; Encoding) -&gt; (AsList l -&gt; l) -&gt; AsList l -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsList l -&gt; l
+forall a. AsList a -&gt; a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#unList"
+	><span class="hs-identifier hs-var"
+	  >unList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104581"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (AsList l)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>l -&gt; AsList l
+forall a. a -&gt; AsList a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsList"
+	><span class="hs-identifier hs-var"
+	  >AsList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(l -&gt; AsList l) -&gt; Get l -&gt; Get (AsList l)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get l
+forall b. (IsSequence b, Flat (Element b)) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	><span class="hs-identifier hs-var"
+	  >decodeList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeList"
+	><span class="hs-pragma hs-type"
+	  >sizeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span id="local-6989586621679104309"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeList"
+	  ><span class="hs-identifier hs-type"
+	    >sizeList</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-160"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#MonoFoldable"
+	  ><span class="hs-identifier hs-type"
+	    >MonoFoldable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104309"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104309"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104309"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Types.html#NumBits"
+	  ><span class="hs-identifier hs-type"
+	    >NumBits</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Types.html#NumBits"
+	  ><span class="hs-identifier hs-type"
+	    >NumBits</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span id="sizeList"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeList :: forall mono.
+(MonoFoldable mono, Flat (Element mono)) =&gt;
+mono -&gt; Int -&gt; Int
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#sizeList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104590"
+      ><span class="annot"
+	><span class="annottext"
+	  >mono
+</span
+	  ><a href="#local-6989586621679104590"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104591"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104591"
+	  ><span class="hs-identifier hs-var"
+	    >sz</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Element mono -&gt; Int) -&gt; Int -&gt; mono -&gt; Int
+forall mono a.
+MonoFoldable mono =&gt;
+(a -&gt; Element mono -&gt; a) -&gt; a -&gt; mono -&gt; a
+forall a. (a -&gt; Element mono -&gt; a) -&gt; a -&gt; mono -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#ofoldl%27"
+	><span class="hs-identifier hs-var"
+	  >ofoldl'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679104592"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104592"
+	  ><span class="hs-identifier hs-var"
+	    >s</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104593"
+      ><span class="annot"
+	><span class="annottext"
+	  >Element mono
+</span
+	  ><a href="#local-6989586621679104593"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element mono -&gt; Int -&gt; Int
+forall a. Flat a =&gt; a -&gt; Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element mono
+</span
+	><a href="#local-6989586621679104593"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104592"
+	><span class="hs-identifier hs-var"
+	  >s</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104591"
+	><span class="hs-identifier hs-var"
+	  >sz</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>mono
+</span
+	><a href="#local-6989586621679104590"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	><span class="hs-pragma hs-type"
+	  >encodeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-164"
+      ></span
+      ><span id="local-6989586621679104594"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	  ><span class="hs-identifier hs-type"
+	    >encodeList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104594"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#MonoFoldable"
+	  ><span class="hs-identifier hs-type"
+	    >MonoFoldable</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104594"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104594"
+	  ><span class="hs-identifier hs-type"
+	    >mono</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	  ><span class="hs-identifier hs-type"
+	    >Encoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-165"
+      ></span
+      ><span id="encodeList"
+      ><span class="annot"
+	><span class="annottext"
+	  >encodeList :: forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encodeList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Element mono -&gt; Encoding) -&gt; [Element mono] -&gt; Encoding
+forall t. (t -&gt; Encoding) -&gt; [t] -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#encodeListWith"
+	><span class="hs-identifier hs-var"
+	  >encodeListWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element mono -&gt; Encoding
+forall a. Flat a =&gt; a -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Element mono] -&gt; Encoding)
+-&gt; (mono -&gt; [Element mono]) -&gt; mono -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>mono -&gt; [Element mono]
+forall mono. MonoFoldable mono =&gt; mono -&gt; [Element mono]
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#otoList"
+	><span class="hs-identifier hs-var"
+	  >otoList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-166"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-167"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	><span class="hs-pragma hs-type"
+	  >decodeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-168"
+      ></span
+      ><span id="local-6989586621679104310"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	  ><span class="hs-identifier hs-type"
+	    >decodeList</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#IsSequence"
+	  ><span class="hs-identifier hs-type"
+	    >IsSequence</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104310"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104310"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104310"
+	  ><span class="hs-identifier hs-type"
+	    >b</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-169"
+      ></span
+      ><span id="decodeList"
+      ><span class="annot"
+	><span class="annottext"
+	  >decodeList :: forall b. (IsSequence b, Flat (Element b)) =&gt; Get b
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >decodeList</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Element b] -&gt; b
+forall seq. IsSequence seq =&gt; [Element seq] -&gt; seq
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Sequences.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >S.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Element b] -&gt; b) -&gt; Get [Element b] -&gt; Get b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Element b) -&gt; Get [Element b]
+forall a. Get a -&gt; Get [a]
+</span
+	><a href="PlutusCore.Flat.Decoder.Strict.html#decodeListWith"
+	><span class="hs-identifier hs-var"
+	  >decodeListWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (Element b)
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Sets are saved as lists of values.
+
+&gt;&gt;&gt; tstBits $ AsSet (Data.Set.fromList ([False,True,False]::[Bool]))
+(True,5,&quot;10110&quot;) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="AsSet"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsSet"
+	  ><span class="hs-identifier hs-var"
+	    >AsSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104315"
+      ><span class="annot"
+	><a href="#local-6989586621679104315"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="AsSet"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsSet"
+	  ><span class="hs-identifier hs-var"
+	    >AsSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unSet"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. AsSet a -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#unSet"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679104315"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-180"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104610"
+      ><span id="local-6989586621679104614"
+	><span id="local-6989586621679104618"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; AsSet a -&gt; ShowS
+[AsSet a] -&gt; ShowS
+AsSet a -&gt; String
+(Int -&gt; AsSet a -&gt; ShowS)
+-&gt; (AsSet a -&gt; String) -&gt; ([AsSet a] -&gt; ShowS) -&gt; Show (AsSet a)
+forall a. Show a =&gt; Int -&gt; AsSet a -&gt; ShowS
+forall a. Show a =&gt; [AsSet a] -&gt; ShowS
+forall a. Show a =&gt; AsSet a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; AsSet a -&gt; ShowS
+showsPrec :: Int -&gt; AsSet a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; AsSet a -&gt; String
+show :: AsSet a -&gt; String
+$cshowList :: forall a. Show a =&gt; [AsSet a] -&gt; ShowS
+showList :: [AsSet a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104622"
+      ><span id="local-6989586621679104626"
+	><span class="annot"
+	  ><span class="annottext"
+	    >AsSet a -&gt; AsSet a -&gt; Bool
+(AsSet a -&gt; AsSet a -&gt; Bool)
+-&gt; (AsSet a -&gt; AsSet a -&gt; Bool) -&gt; Eq (AsSet a)
+forall a. Eq a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+== :: AsSet a -&gt; AsSet a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+/= :: AsSet a -&gt; AsSet a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104635"
+      ><span id="local-6989586621679104639"
+	><span id="local-6989586621679104643"
+	  ><span id="local-6989586621679104647"
+	    ><span id="local-6989586621679104651"
+	      ><span id="local-6989586621679104655"
+		><span id="local-6989586621679104659"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (AsSet a)
+Eq (AsSet a) =&gt;
+(AsSet a -&gt; AsSet a -&gt; Ordering)
+-&gt; (AsSet a -&gt; AsSet a -&gt; Bool)
+-&gt; (AsSet a -&gt; AsSet a -&gt; Bool)
+-&gt; (AsSet a -&gt; AsSet a -&gt; Bool)
+-&gt; (AsSet a -&gt; AsSet a -&gt; Bool)
+-&gt; (AsSet a -&gt; AsSet a -&gt; AsSet a)
+-&gt; (AsSet a -&gt; AsSet a -&gt; AsSet a)
+-&gt; Ord (AsSet a)
+AsSet a -&gt; AsSet a -&gt; Bool
+AsSet a -&gt; AsSet a -&gt; Ordering
+AsSet a -&gt; AsSet a -&gt; AsSet a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (AsSet a)
+forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; Ordering
+forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; AsSet a
+$ccompare :: forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; Ordering
+compare :: AsSet a -&gt; AsSet a -&gt; Ordering
+$c&lt; :: forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+&lt; :: AsSet a -&gt; AsSet a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+&lt;= :: AsSet a -&gt; AsSet a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+&gt; :: AsSet a -&gt; AsSet a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; Bool
+&gt;= :: AsSet a -&gt; AsSet a -&gt; Bool
+$cmax :: forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; AsSet a
+max :: AsSet a -&gt; AsSet a -&gt; AsSet a
+$cmin :: forall a. Ord a =&gt; AsSet a -&gt; AsSet a -&gt; AsSet a
+min :: AsSet a -&gt; AsSet a -&gt; AsSet a
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-181"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-182"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104326"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsSet"
+	  ><span class="hs-identifier hs-type"
+	    >IsSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104326"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104326"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsSet"
+	  ><span class="hs-identifier hs-type"
+	    >AsSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104326"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-183"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104675"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: AsSet set -&gt; Int -&gt; Int
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size set
+forall set. (IsSet set, Flat (Element set)) =&gt; Size set
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSet"
+	><span class="hs-identifier hs-var"
+	  >sizeSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size set -&gt; (AsSet set -&gt; set) -&gt; AsSet set -&gt; Int -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsSet set -&gt; set
+forall a. AsSet a -&gt; a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#unSet"
+	><span class="hs-identifier hs-var"
+	  >unSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-184"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104678"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: AsSet set -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>set -&gt; Encoding
+forall set. (IsSet set, Flat (Element set)) =&gt; set -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSet"
+	><span class="hs-identifier hs-var"
+	  >encodeSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(set -&gt; Encoding) -&gt; (AsSet set -&gt; set) -&gt; AsSet set -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsSet set -&gt; set
+forall a. AsSet a -&gt; a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#unSet"
+	><span class="hs-identifier hs-var"
+	  >unSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104682"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (AsSet set)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>set -&gt; AsSet set
+forall a. a -&gt; AsSet a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsSet"
+	><span class="hs-identifier hs-var"
+	  >AsSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(set -&gt; AsSet set) -&gt; Get set -&gt; Get (AsSet set)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get set
+forall set. (IsSet set, Flat (Element set)) =&gt; Get set
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSet"
+	><span class="hs-identifier hs-var"
+	  >decodeSet</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span id="local-6989586621679104330"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeSet"
+	  ><span class="hs-identifier hs-type"
+	    >sizeSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsSet"
+	  ><span class="hs-identifier hs-type"
+	    >IsSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104330"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104330"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Encoder.Types.html#Size"
+	  ><span class="hs-identifier hs-type"
+	    >Size</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104330"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span id="sizeSet"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeSet :: forall set. (IsSet set, Flat (Element set)) =&gt; Size set
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#sizeSet"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104698"
+      ><span class="annot"
+	><span class="annottext"
+	  >set
+</span
+	  ><a href="#local-6989586621679104698"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104699"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104699"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Element set -&gt; Int) -&gt; Int -&gt; set -&gt; Int
+forall mono a.
+MonoFoldable mono =&gt;
+(a -&gt; Element mono -&gt; a) -&gt; a -&gt; mono -&gt; a
+forall a. (a -&gt; Element set -&gt; a) -&gt; a -&gt; set -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#ofoldl%27"
+	><span class="hs-identifier hs-var"
+	  >ofoldl'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679104700"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104700"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104701"
+      ><span class="annot"
+	><span class="annottext"
+	  >Element set
+</span
+	  ><a href="#local-6989586621679104701"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ContainerKey set -&gt; Int -&gt; Int
+forall a. Flat a =&gt; a -&gt; Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Element set
+ContainerKey set
+</span
+	><a href="#local-6989586621679104701"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104700"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104699"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>set
+</span
+	><a href="#local-6989586621679104698"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeSet"
+	><span class="hs-pragma hs-type"
+	  >sizeSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span id="local-6989586621679104331"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeSet"
+	  ><span class="hs-identifier hs-type"
+	    >encodeSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsSet"
+	  ><span class="hs-identifier hs-type"
+	    >IsSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104331"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104331"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104331"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	  ><span class="hs-identifier hs-type"
+	    >Encoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span id="encodeSet"
+      ><span class="annot"
+	><span class="annottext"
+	  >encodeSet :: forall set. (IsSet set, Flat (Element set)) =&gt; set -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#encodeSet"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encodeSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ContainerKey set] -&gt; Encoding
+forall mono.
+(Flat (Element mono), MonoFoldable mono) =&gt;
+mono -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeList"
+	><span class="hs-identifier hs-var"
+	  >encodeList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([ContainerKey set] -&gt; Encoding)
+-&gt; (set -&gt; [ContainerKey set]) -&gt; set -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>set -&gt; [Element set]
+set -&gt; [ContainerKey set]
+forall set. IsSet set =&gt; set -&gt; [Element set]
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#setToList"
+	><span class="hs-identifier hs-var"
+	  >setToList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeSet"
+	><span class="hs-pragma hs-type"
+	  >encodeSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span id="local-6989586621679104332"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeSet"
+	  ><span class="hs-identifier hs-type"
+	    >decodeSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsSet"
+	  ><span class="hs-identifier hs-type"
+	    >IsSet</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104332"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.MonoTraversable.html#Element"
+	  ><span class="hs-identifier hs-type"
+	    >Element</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104332"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104332"
+	  ><span class="hs-identifier hs-type"
+	    >set</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span id="decodeSet"
+      ><span class="annot"
+	><span class="annottext"
+	  >decodeSet :: forall set. (IsSet set, Flat (Element set)) =&gt; Get set
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#decodeSet"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >decodeSet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Element set] -&gt; set
+[ContainerKey set] -&gt; set
+forall set. IsSet set =&gt; [Element set] -&gt; set
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#setFromList"
+	><span class="hs-identifier hs-var"
+	  >setFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([ContainerKey set] -&gt; set) -&gt; Get [ContainerKey set] -&gt; Get set
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get [ContainerKey set]
+forall b. (IsSequence b, Flat (Element b)) =&gt; Get b
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeList"
+	><span class="hs-identifier hs-var"
+	  >decodeList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeSet"
+	><span class="hs-pragma hs-type"
+	  >decodeSet</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-|
+Maps are saved as lists of (key,value) tuples.
+
+&gt;&gt;&gt; tst (AsMap (Data.Map.fromList ([]::[(Word8,())])))
+(True,1,[0])
+
+&gt;&gt;&gt; tst (AsMap (Data.Map.fromList [(3::Word,9::Word)]))
+(True,18,[129,132,128]) -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="AsMap"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsMap"
+	  ><span class="hs-identifier hs-var"
+	    >AsMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104340"
+      ><span class="annot"
+	><a href="#local-6989586621679104340"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="AsMap"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsMap"
+	  ><span class="hs-identifier hs-var"
+	    >AsMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall a. AsMap a -&gt; a
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#unMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679104340"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104727"
+      ><span id="local-6989586621679104731"
+	><span id="local-6989586621679104735"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; AsMap a -&gt; ShowS
+[AsMap a] -&gt; ShowS
+AsMap a -&gt; String
+(Int -&gt; AsMap a -&gt; ShowS)
+-&gt; (AsMap a -&gt; String) -&gt; ([AsMap a] -&gt; ShowS) -&gt; Show (AsMap a)
+forall a. Show a =&gt; Int -&gt; AsMap a -&gt; ShowS
+forall a. Show a =&gt; [AsMap a] -&gt; ShowS
+forall a. Show a =&gt; AsMap a -&gt; String
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: forall a. Show a =&gt; Int -&gt; AsMap a -&gt; ShowS
+showsPrec :: Int -&gt; AsMap a -&gt; ShowS
+$cshow :: forall a. Show a =&gt; AsMap a -&gt; String
+show :: AsMap a -&gt; String
+$cshowList :: forall a. Show a =&gt; [AsMap a] -&gt; ShowS
+showList :: [AsMap a] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104739"
+      ><span id="local-6989586621679104743"
+	><span class="annot"
+	  ><span class="annottext"
+	    >AsMap a -&gt; AsMap a -&gt; Bool
+(AsMap a -&gt; AsMap a -&gt; Bool)
+-&gt; (AsMap a -&gt; AsMap a -&gt; Bool) -&gt; Eq (AsMap a)
+forall a. Eq a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall a. Eq a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+== :: AsMap a -&gt; AsMap a -&gt; Bool
+$c/= :: forall a. Eq a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+/= :: AsMap a -&gt; AsMap a -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104752"
+      ><span id="local-6989586621679104756"
+	><span id="local-6989586621679104760"
+	  ><span id="local-6989586621679104764"
+	    ><span id="local-6989586621679104768"
+	      ><span id="local-6989586621679104772"
+		><span id="local-6989586621679104776"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (AsMap a)
+Eq (AsMap a) =&gt;
+(AsMap a -&gt; AsMap a -&gt; Ordering)
+-&gt; (AsMap a -&gt; AsMap a -&gt; Bool)
+-&gt; (AsMap a -&gt; AsMap a -&gt; Bool)
+-&gt; (AsMap a -&gt; AsMap a -&gt; Bool)
+-&gt; (AsMap a -&gt; AsMap a -&gt; Bool)
+-&gt; (AsMap a -&gt; AsMap a -&gt; AsMap a)
+-&gt; (AsMap a -&gt; AsMap a -&gt; AsMap a)
+-&gt; Ord (AsMap a)
+AsMap a -&gt; AsMap a -&gt; Bool
+AsMap a -&gt; AsMap a -&gt; Ordering
+AsMap a -&gt; AsMap a -&gt; AsMap a
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall a. Ord a =&gt; Eq (AsMap a)
+forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; Ordering
+forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; AsMap a
+$ccompare :: forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; Ordering
+compare :: AsMap a -&gt; AsMap a -&gt; Ordering
+$c&lt; :: forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+&lt; :: AsMap a -&gt; AsMap a -&gt; Bool
+$c&lt;= :: forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+&lt;= :: AsMap a -&gt; AsMap a -&gt; Bool
+$c&gt; :: forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+&gt; :: AsMap a -&gt; AsMap a -&gt; Bool
+$c&gt;= :: forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; Bool
+&gt;= :: AsMap a -&gt; AsMap a -&gt; Bool
+$cmax :: forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; AsMap a
+max :: AsMap a -&gt; AsMap a -&gt; AsMap a
+$cmin :: forall a. Ord a =&gt; AsMap a -&gt; AsMap a -&gt; AsMap a
+min :: AsMap a -&gt; AsMap a -&gt; AsMap a
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104352"
+      ><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsMap"
+	  ><span class="hs-identifier hs-type"
+	    >IsMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104352"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#ContainerKey"
+	  ><span class="hs-identifier hs-type"
+	    >ContainerKey</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104352"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#MapValue"
+	  ><span class="hs-identifier hs-type"
+	    >MapValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104352"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsMap"
+	  ><span class="hs-identifier hs-type"
+	    >AsMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104352"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104790"
+      ><span class="annot"
+	><span class="annottext"
+	  >size :: AsMap map -&gt; Int -&gt; Int
+</span
+	  ><a href="PlutusCore.Flat.Class.html#size"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >size</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size map
+forall r.
+(Flat (ContainerKey r), Flat (MapValue r), IsMap r) =&gt;
+Size r
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeMap"
+	><span class="hs-identifier hs-var"
+	  >sizeMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Size map -&gt; (AsMap map -&gt; map) -&gt; AsMap map -&gt; Int -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsMap map -&gt; map
+forall a. AsMap a -&gt; a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#unMap"
+	><span class="hs-identifier hs-var"
+	  >unMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104794"
+      ><span class="annot"
+	><span class="annottext"
+	  >encode :: AsMap map -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Class.html#encode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >encode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>map -&gt; Encoding
+forall map.
+(Flat (ContainerKey map), Flat (MapValue map), IsMap map) =&gt;
+map -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeMap"
+	><span class="hs-identifier hs-var"
+	  >encodeMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(map -&gt; Encoding) -&gt; (AsMap map -&gt; map) -&gt; AsMap map -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>AsMap map -&gt; map
+forall a. AsMap a -&gt; a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#unMap"
+	><span class="hs-identifier hs-var"
+	  >unMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679104799"
+      ><span class="annot"
+	><span class="annottext"
+	  >decode :: Get (AsMap map)
+</span
+	  ><a href="PlutusCore.Flat.Class.html#decode"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >decode</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>map -&gt; AsMap map
+forall a. a -&gt; AsMap a
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#AsMap"
+	><span class="hs-identifier hs-var"
+	  >AsMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(map -&gt; AsMap map) -&gt; Get map -&gt; Get (AsMap map)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get map
+forall map.
+(Flat (ContainerKey map), Flat (MapValue map), IsMap map) =&gt;
+Get map
+</span
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeMap"
+	><span class="hs-identifier hs-var"
+	  >decodeMap</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#sizeMap"
+	><span class="hs-pragma hs-type"
+	  >sizeMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span id="local-6989586621679104353"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#sizeMap"
+	  ><span class="hs-identifier hs-type"
+	    >sizeMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#ContainerKey"
+	  ><span class="hs-identifier hs-type"
+	    >ContainerKey</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104353"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#MapValue"
+	  ><span class="hs-identifier hs-type"
+	    >MapValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104353"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsMap"
+	  ><span class="hs-identifier hs-type"
+	    >IsMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104353"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Encoder.Types.html#Size"
+	  ><span class="hs-identifier hs-type"
+	    >Size</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104353"
+	  ><span class="hs-identifier hs-type"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span id="sizeMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >sizeMap :: forall r.
+(Flat (ContainerKey r), Flat (MapValue r), IsMap r) =&gt;
+Size r
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#sizeMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >sizeMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104812"
+      ><span class="annot"
+	><span class="annottext"
+	  >r
+</span
+	  ><a href="#local-6989586621679104812"
+	  ><span class="hs-identifier hs-var"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679104813"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104813"
+	  ><span class="hs-identifier hs-var"
+	    >acc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; (ContainerKey r, MapValue r) -&gt; Int)
+-&gt; Int -&gt; [(ContainerKey r, MapValue r)] -&gt; Int
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#foldl%27"
+	><span class="hs-identifier hs-var"
+	  >F.foldl'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679104815"
+      ><span class="annot"
+	><span class="annottext"
+	  >Int
+</span
+	  ><a href="#local-6989586621679104815"
+	  ><span class="hs-identifier hs-var"
+	    >acc'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104816"
+      ><span class="annot"
+	><span class="annottext"
+	  >ContainerKey r
+</span
+	  ><a href="#local-6989586621679104816"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104817"
+      ><span class="annot"
+	><span class="annottext"
+	  >MapValue r
+</span
+	  ><a href="#local-6989586621679104817"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ContainerKey r -&gt; Int -&gt; Int
+forall a. Flat a =&gt; a -&gt; Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ContainerKey r
+</span
+	><a href="#local-6989586621679104816"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>MapValue r -&gt; Int -&gt; Int
+forall a. Flat a =&gt; a -&gt; Int -&gt; Int
+</span
+	><a href="PlutusCore.Flat.Class.html#size"
+	><span class="hs-identifier hs-var"
+	  >size</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MapValue r
+</span
+	><a href="#local-6989586621679104817"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104815"
+	><span class="hs-identifier hs-var"
+	  >acc'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621679104813"
+	><span class="hs-identifier hs-var"
+	  >acc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Int -&gt; Int
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Num.html#%2B"
+	><span class="hs-operator hs-var"
+	  >+</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(ContainerKey r, MapValue r)] -&gt; Int)
+-&gt; (r -&gt; [(ContainerKey r, MapValue r)]) -&gt; r -&gt; Int
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r -&gt; [(ContainerKey r, MapValue r)]
+forall map. IsMap map =&gt; map -&gt; [(ContainerKey map, MapValue map)]
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#mapToList"
+	><span class="hs-identifier hs-var"
+	  >mapToList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(r -&gt; Int) -&gt; r -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>r
+</span
+	><a href="#local-6989586621679104812"
+	><span class="hs-identifier hs-var"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span class="hs-comment"
+      >-- sizeMap l sz = ofoldl' (\s (k, v) -&gt; size k (size v (s + 1))) (sz + 1) l</span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#encodeMap"
+	><span class="hs-pragma hs-type"
+	  >encodeMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Encode an instance of IsMap, as a list of (Key,Value) tuples</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span id="local-6989586621679104354"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#encodeMap"
+	  ><span class="hs-identifier hs-type"
+	    >encodeMap</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-231"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#ContainerKey"
+	  ><span class="hs-identifier hs-type"
+	    >ContainerKey</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104354"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#MapValue"
+	  ><span class="hs-identifier hs-type"
+	    >MapValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104354"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsMap"
+	  ><span class="hs-identifier hs-type"
+	    >IsMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104354"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	>
+</span
+	><span id="line-232"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104354"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-233"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Encoder.Strict.html#Encoding"
+	  ><span class="hs-identifier hs-type"
+	    >Encoding</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span id="encodeMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >encodeMap :: forall map.
+(Flat (ContainerKey map), Flat (MapValue map), IsMap map) =&gt;
+map -&gt; Encoding
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#encodeMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >encodeMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((ContainerKey map, MapValue map) -&gt; Encoding)
+-&gt; [(ContainerKey map, MapValue map)] -&gt; Encoding
+forall t. (t -&gt; Encoding) -&gt; [t] -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Encoder.Strict.html#encodeListWith"
+	><span class="hs-identifier hs-var"
+	  >encodeListWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679104827"
+      ><span class="annot"
+	><span class="annottext"
+	  >ContainerKey map
+</span
+	  ><a href="#local-6989586621679104827"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679104828"
+      ><span class="annot"
+	><span class="annottext"
+	  >MapValue map
+</span
+	  ><a href="#local-6989586621679104828"
+	  ><span class="hs-identifier hs-var"
+	    >v</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ContainerKey map -&gt; Encoding
+forall a. Flat a =&gt; a -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ContainerKey map
+</span
+	><a href="#local-6989586621679104827"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Encoding -&gt; Encoding -&gt; Encoding
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MapValue map -&gt; Encoding
+forall a. Flat a =&gt; a -&gt; Encoding
+</span
+	><a href="PlutusCore.Flat.Class.html#encode"
+	><span class="hs-identifier hs-var"
+	  >encode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>MapValue map
+</span
+	><a href="#local-6989586621679104828"
+	><span class="hs-identifier hs-var"
+	  >v</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(ContainerKey map, MapValue map)] -&gt; Encoding)
+-&gt; (map -&gt; [(ContainerKey map, MapValue map)]) -&gt; map -&gt; Encoding
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>map -&gt; [(ContainerKey map, MapValue map)]
+forall map. IsMap map =&gt; map -&gt; [(ContainerKey map, MapValue map)]
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#mapToList"
+	><span class="hs-identifier hs-var"
+	  >mapToList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Flat.Instances.Mono.html#decodeMap"
+	><span class="hs-pragma hs-type"
+	  >decodeMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Decode an instance of IsMap, as a list of (Key,Value) tuples</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span id="local-6989586621679104355"
+      ><span class="annot"
+	><a href="PlutusCore.Flat.Instances.Mono.html#decodeMap"
+	  ><span class="hs-identifier hs-type"
+	    >decodeMap</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-240"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#ContainerKey"
+	  ><span class="hs-identifier hs-type"
+	    >ContainerKey</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104355"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Class.html#Flat"
+	  ><span class="hs-identifier hs-type"
+	    >Flat</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#MapValue"
+	  ><span class="hs-identifier hs-type"
+	    >MapValue</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104355"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#IsMap"
+	  ><span class="hs-identifier hs-type"
+	    >IsMap</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104355"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Flat.Decoder.Types.html#Get"
+	  ><span class="hs-identifier hs-type"
+	    >Get</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679104355"
+	  ><span class="hs-identifier hs-type"
+	    >map</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span id="decodeMap"
+      ><span class="annot"
+	><span class="annottext"
+	  >decodeMap :: forall map.
+(Flat (ContainerKey map), Flat (MapValue map), IsMap map) =&gt;
+Get map
+</span
+	  ><a href="PlutusCore.Flat.Instances.Mono.html#decodeMap"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >decodeMap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(ContainerKey map, MapValue map)] -&gt; map
+forall map. IsMap map =&gt; [(ContainerKey map, MapValue map)] -&gt; map
+</span
+	><a href="https://hackage.haskell.org/package/mono-traversable-1.0.21.0/docs/src/Data.Containers.html#mapFromList"
+	><span class="hs-identifier hs-var"
+	  >mapFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(ContainerKey map, MapValue map)] -&gt; map)
+-&gt; Get [(ContainerKey map, MapValue map)] -&gt; Get map
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (ContainerKey map, MapValue map)
+-&gt; Get [(ContainerKey map, MapValue map)]
+forall a. Get a -&gt; Get [a]
+</span
+	><a href="PlutusCore.Flat.Decoder.Strict.html#decodeListWith"
+	><span class="hs-identifier hs-var"
+	  >decodeListWith</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >,</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ContainerKey map
+ -&gt; MapValue map -&gt; (ContainerKey map, MapValue map))
+-&gt; Get (ContainerKey map)
+-&gt; Get (MapValue map -&gt; (ContainerKey map, MapValue map))
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (ContainerKey map)
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (MapValue map -&gt; (ContainerKey map, MapValue map))
+-&gt; Get (MapValue map) -&gt; Get (ContainerKey map, MapValue map)
+forall a b. Get (a -&gt; b) -&gt; Get a -&gt; Get b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Get (MapValue map)
+forall a. Flat a =&gt; Get a
+</span
+	><a href="PlutusCore.Flat.Class.html#decode"
+	><span class="hs-identifier hs-var"
+	  >decode</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

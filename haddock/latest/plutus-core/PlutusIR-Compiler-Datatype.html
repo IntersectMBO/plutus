@@ -1,0 +1,476 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusIR.Compiler.Datatype</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusIR.Compiler.Datatype.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusIR.Compiler.Datatype</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Functions for compiling let-bound PIR datatypes into PLC.</p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:compileDatatype"
+	      >compileDatatype</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	      >Compiling</a
+	      > m uni fun a &#8658; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	      >Recursivity</a
+	      > &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a) &#8594; m (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:compileDatatypeDefs"
+	      >compileDatatypeDefs</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	      >DatatypeCompilationOpts</a
+	      > &#8594; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	      >Recursivity</a
+	      > &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a) &#8594; m (<a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	      >Def</a
+	      > (<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	      >TyVarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) (<a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	      >PLCRecType</a
+	      > uni fun a), [<a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	      >Def</a
+	      > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a)], <a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	      >Def</a
+	      > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	      >VarDecl</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a))</li
+	    ><li class="src short"
+	    ><a href="#v:compileRecDatatypes"
+	      >compileRecDatatypes</a
+	      > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	      >Compiling</a
+	      > m uni fun a &#8658; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	      >Provenance</a
+	      > a)) &#8594; m (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	      >PIRTerm</a
+	      > uni fun a)</li
+	    ><li class="src short"
+	    ><a href="#v:mkDatatypeValueType"
+	      >mkDatatypeValueType</a
+	      > &#8759; a &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni a</li
+	    ><li class="src short"
+	    ><a href="#v:mkDestructorTy"
+	      >mkDestructorTy</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni a)</li
+	    ><li class="src short"
+	    ><a href="#v:mkScottTy"
+	      >mkScottTy</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; ann &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	      >Type</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > uni ann)</li
+	    ><li class="src short"
+	    ><a href="#v:resultTypeName"
+	      >resultTypeName</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	      >MonadQuote</a
+	      > m &#8658; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	      >Datatype</a
+	      > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	      >Name</a
+	      > uni a &#8594; m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	      >TyName</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileDatatype" class="def"
+	    >compileDatatype</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun a &#8658; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	    >Recursivity</a
+	    > &#8594; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) &#8594; m (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a) <a href="src/PlutusIR.Compiler.Datatype.html#compileDatatype" class="link"
+	    >Source</a
+	    > <a href="#v:compileDatatype" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compile a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		>Datatype</a
+		></code
+	      > bound with the given body.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileDatatypeDefs" class="def"
+	    >compileDatatypeDefs</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	    >DatatypeCompilationOpts</a
+	    > &#8594; <a href="PlutusIR-Core-Type.html#t:Recursivity" title="PlutusIR.Core.Type"
+	    >Recursivity</a
+	    > &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a) &#8594; m (<a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	    >Def</a
+	    > (<a href="PlutusIR-Core-Type.html#t:TyVarDecl" title="PlutusIR.Core.Type"
+	    >TyVarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) (<a href="PlutusIR-Compiler-Types.html#t:PLCRecType" title="PlutusIR.Compiler.Types"
+	    >PLCRecType</a
+	    > uni fun a), [<a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	    >Def</a
+	    > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a)], <a href="../plutus-core/PlutusCore-MkPlc.html#t:Def" title="PlutusCore.MkPlc"
+	    >Def</a
+	    > (<a href="PlutusIR-Core-Type.html#t:VarDecl" title="PlutusIR.Core.Type"
+	    >VarDecl</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a)) <a href="src/PlutusIR.Compiler.Datatype.html#compileDatatypeDefs" class="link"
+	    >Source</a
+	    > <a href="#v:compileDatatypeDefs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Compile a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		>Datatype</a
+		></code
+	      > to a triple of type-constructor, data-constructors, destructor definitions.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:compileRecDatatypes" class="def"
+	    >compileRecDatatypes</a
+	    > &#8759; <a href="PlutusIR-Compiler-Types.html#t:Compiling" title="PlutusIR.Compiler.Types"
+	    >Compiling</a
+	    > m uni fun a &#8658; <a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	    >NonEmpty</a
+	    > (<a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni (<a href="PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+	    >Provenance</a
+	    > a)) &#8594; m (<a href="PlutusIR-Compiler-Types.html#t:PIRTerm" title="PlutusIR.Compiler.Types"
+	    >PIRTerm</a
+	    > uni fun a) <a href="src/PlutusIR.Compiler.Datatype.html#compileRecDatatypes" class="link"
+	    >Source</a
+	    > <a href="#v:compileRecDatatypes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkDatatypeValueType" class="def"
+	    >mkDatatypeValueType</a
+	    > &#8759; a &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni a &#8594; <a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni a <a href="src/PlutusIR.Compiler.Datatype.html#mkDatatypeValueType" class="link"
+	    >Source</a
+	    > <a href="#v:mkDatatypeValueType" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The type of a datatype-value is of the form `[TyCon tyarg1 tyarg2 ... tyargn]`</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkDestructorTy" class="def"
+	    >mkDestructorTy</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni a &#8594; m (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni a) <a href="src/PlutusIR.Compiler.Datatype.html#mkDestructorTy" class="link"
+	    >Source</a
+	    > <a href="#v:mkDestructorTy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make the type of a destructor for a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		>Datatype</a
+		></code
+	      >.
+<code
+	      >
+    mkDestructorTy List
+        = forall (a :: *) . List a -&gt; forall (out_List :: *) . (out_List -&gt; (a -&gt; List a -&gt; out_List) -&gt; out_List)
+</code
+	      > </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:mkScottTy" class="def"
+	    >mkScottTy</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; ann &#8594; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni ann &#8594; m (<a href="PlutusIR-Core-Type.html#t:Type" title="PlutusIR.Core.Type"
+	    >Type</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > uni ann) <a href="src/PlutusIR.Compiler.Datatype.html#mkScottTy" class="link"
+	    >Source</a
+	    > <a href="#v:mkScottTy" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Make the &quot;Scott-encoded&quot; type for a <code
+	      ><a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+		>Datatype</a
+		></code
+	      >, with type variables free.
+This is exactly the type of an eliminator function for the datatype.</p
+	    ><pre
+	    >mkScottTy Maybe = forall out_Maybe. out_Maybe -&gt; (a -&gt; out_Maybe) -&gt; out_Maybe</pre
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:resultTypeName" class="def"
+	    >resultTypeName</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Quote.html#t:MonadQuote" title="PlutusCore.Quote"
+	    >MonadQuote</a
+	    > m &#8658; <a href="PlutusIR-Core-Type.html#t:Datatype" title="PlutusIR.Core.Type"
+	    >Datatype</a
+	    > <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="PlutusIR-Core-Type.html#t:Name" title="PlutusIR.Core.Type"
+	    >Name</a
+	    > uni a &#8594; m <a href="PlutusIR-Core-Type.html#t:TyName" title="PlutusIR.Core.Type"
+	    >TyName</a
+	    > <a href="src/PlutusIR.Compiler.Datatype.html#resultTypeName" class="link"
+	    >Source</a
+	    > <a href="#v:resultTypeName" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

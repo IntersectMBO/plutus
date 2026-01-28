@@ -1,0 +1,2756 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Options</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.52.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Options.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Options</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PluginOptions"
+	      >PluginOptions</a
+	      > = <a href="#v:PluginOptions"
+	      >PluginOptions</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:_posPlcTargetVersion"
+		  >_posPlcTargetVersion</a
+		  > &#8759; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+		  >Version</a
+		  ></li
+		><li
+		><a href="#v:_posDoTypecheck"
+		  >_posDoTypecheck</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDeferErrors"
+		  >_posDeferErrors</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posConservativeOpts"
+		  >_posConservativeOpts</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posContextLevel"
+		  >_posContextLevel</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_posDumpPir"
+		  >_posDumpPir</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDumpPlc"
+		  >_posDumpPlc</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDumpUPlc"
+		  >_posDumpUPlc</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posOptimize"
+		  >_posOptimize</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posPedantic"
+		  >_posPedantic</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posVerbosity"
+		  >_posVerbosity</a
+		  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+		  >Verbosity</a
+		  ></li
+		><li
+		><a href="#v:_posDatatypes"
+		  >_posDatatypes</a
+		  > &#8759; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+		  >DatatypeCompilationOpts</a
+		  ></li
+		><li
+		><a href="#v:_posMaxSimplifierIterationsPir"
+		  >_posMaxSimplifierIterationsPir</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_posMaxSimplifierIterationsUPlc"
+		  >_posMaxSimplifierIterationsUPlc</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_posMaxCseIterations"
+		  >_posMaxCseIterations</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_posDoSimplifierUnwrapCancel"
+		  >_posDoSimplifierUnwrapCancel</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDoSimplifierBeta"
+		  >_posDoSimplifierBeta</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDoSimplifierInline"
+		  >_posDoSimplifierInline</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDoSimplifierEvaluateBuiltins"
+		  >_posDoSimplifierEvaluateBuiltins</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDoSimplifierStrictifyBindings"
+		  >_posDoSimplifierStrictifyBindings</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDoSimplifierRemoveDeadBindings"
+		  >_posDoSimplifierRemoveDeadBindings</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posProfile"
+		  >_posProfile</a
+		  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+		  >ProfileOpts</a
+		  ></li
+		><li
+		><a href="#v:_posCoverageAll"
+		  >_posCoverageAll</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posCoverageLocation"
+		  >_posCoverageLocation</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posCoverageBoolean"
+		  >_posCoverageBoolean</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posRelaxedFloatin"
+		  >_posRelaxedFloatin</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posCaseOfCaseConservative"
+		  >_posCaseOfCaseConservative</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posInlineCallsiteGrowth"
+		  >_posInlineCallsiteGrowth</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  ></li
+		><li
+		><a href="#v:_posInlineConstants"
+		  >_posInlineConstants</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posInlineFix"
+		  >_posInlineFix</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posPreserveLogging"
+		  >_posPreserveLogging</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posRemoveTrace"
+		  >_posRemoveTrace</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posDumpCompilationTrace"
+		  >_posDumpCompilationTrace</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  ></li
+		><li
+		><a href="#v:_posCertify"
+		  >_posCertify</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><a href="#v:posVerbosity"
+	      >posVerbosity</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+	      >Verbosity</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posRemoveTrace"
+	      >posRemoveTrace</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posRelaxedFloatin"
+	      >posRelaxedFloatin</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posProfile"
+	      >posProfile</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+	      >ProfileOpts</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posPreserveLogging"
+	      >posPreserveLogging</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posPlcTargetVersion"
+	      >posPlcTargetVersion</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	      >Version</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posPedantic"
+	      >posPedantic</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posOptimize"
+	      >posOptimize</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posMaxSimplifierIterationsUPlc"
+	      >posMaxSimplifierIterationsUPlc</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posMaxSimplifierIterationsPir"
+	      >posMaxSimplifierIterationsPir</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posMaxCseIterations"
+	      >posMaxCseIterations</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posInlineFix"
+	      >posInlineFix</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posInlineConstants"
+	      >posInlineConstants</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posInlineCallsiteGrowth"
+	      >posInlineCallsiteGrowth</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDumpUPlc"
+	      >posDumpUPlc</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDumpPlc"
+	      >posDumpPlc</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDumpPir"
+	      >posDumpPir</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDumpCompilationTrace"
+	      >posDumpCompilationTrace</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDoTypecheck"
+	      >posDoTypecheck</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDoSimplifierUnwrapCancel"
+	      >posDoSimplifierUnwrapCancel</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDoSimplifierStrictifyBindings"
+	      >posDoSimplifierStrictifyBindings</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDoSimplifierRemoveDeadBindings"
+	      >posDoSimplifierRemoveDeadBindings</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDoSimplifierInline"
+	      >posDoSimplifierInline</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDoSimplifierEvaluateBuiltins"
+	      >posDoSimplifierEvaluateBuiltins</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDoSimplifierBeta"
+	      >posDoSimplifierBeta</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDeferErrors"
+	      >posDeferErrors</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posDatatypes"
+	      >posDatatypes</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	      >DatatypeCompilationOpts</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posCoverageLocation"
+	      >posCoverageLocation</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posCoverageBoolean"
+	      >posCoverageBoolean</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posCoverageAll"
+	      >posCoverageAll</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posContextLevel"
+	      >posContextLevel</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posConservativeOpts"
+	      >posConservativeOpts</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:posCertify"
+	      >posCertify</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:posCaseOfCaseConservative"
+	      >posCaseOfCaseConservative</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:OptionKey"
+	      >OptionKey</a
+	      > = <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:OptionValue"
+	      >OptionValue</a
+	      > = <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Implication"
+	      >Implication</a
+	      > a = &#8704; b. <a href="#v:Implication"
+	      >Implication</a
+	      > (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >) (<a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > b) b</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PluginOption"
+	      >PluginOption</a
+	      > = &#8704; a.<a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > a &#8658; <a href="#v:PluginOption"
+	      >PluginOption</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:poTypeRep"
+		  >poTypeRep</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+		  >TypeRep</a
+		  > a</li
+		><li
+		><a href="#v:poFun"
+		  >poFun</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+		  >Maybe</a
+		  > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+		  >OptionValue</a
+		  > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+		  >Validation</a
+		  > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+		  >ParseError</a
+		  > (a &#8594; a)</li
+		><li
+		><a href="#v:poLens"
+		  >poLens</a
+		  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+		  >Lens'</a
+		  > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+		  >PluginOptions</a
+		  > a</li
+		><li
+		><a href="#v:poDescription"
+		  >poDescription</a
+		  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		><a href="#v:poImplications"
+		  >poImplications</a
+		  > &#8759; [<a href="PlutusTx-Options.html#t:Implication" title="PlutusTx.Options"
+		  >Implication</a
+		  > a]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:ParseError"
+	      >ParseError</a
+	      ><ul class="subs"
+	      ><li
+		>= <a href="#v:CannotParseValue"
+		  >CannotParseValue</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  > !<a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+		  >OptionValue</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:SomeTypeRep" title="Type.Reflection"
+		  >SomeTypeRep</a
+		  ></li
+		><li
+		>| <a href="#v:UnexpectedValue"
+		  >UnexpectedValue</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  > !<a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+		  >OptionValue</a
+		  ></li
+		><li
+		>| <a href="#v:MissingValue"
+		  >MissingValue</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  ></li
+		><li
+		>| <a href="#v:UnrecognisedOption"
+		  >UnrecognisedOption</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  > ![<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  >]</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:ParseErrors"
+	      >ParseErrors</a
+	      > = <a href="#v:ParseErrors"
+	      >ParseErrors</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+	      >NonEmpty</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:renderParseError"
+	      >renderParseError</a
+	      > &#8759; <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	      >Text</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:pluginOptions"
+	      >pluginOptions</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	      >Map</a
+	      > <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      > <a href="PlutusTx-Options.html#t:PluginOption" title="PlutusTx.Options"
+	      >PluginOption</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:flag"
+	      >flag</a
+	      > &#8759; (a &#8594; a) &#8594; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > (a &#8594; a)</li
+	    ><li class="src short"
+	    ><a href="#v:setTrue"
+	      >setTrue</a
+	      > &#8759; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	      >Bool</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:plcParserOption"
+	      >plcParserOption</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	      >Parser</a
+	      > a &#8594; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > (a &#8594; a)</li
+	    ><li class="src short"
+	    ><a href="#v:readOption"
+	      >readOption</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+	      >Read</a
+	      > a &#8658; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > (a &#8594; a)</li
+	    ><li class="src short"
+	    ><a href="#v:fromReadOption"
+	      >fromReadOption</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+	      >Read</a
+	      > a &#8658; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      > &#8594; (a &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > (b &#8594; b)</li
+	    ><li class="src short"
+	    ><a href="#v:defaultPluginOptions"
+	      >defaultPluginOptions</a
+	      > &#8759; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:processOne"
+	      >processOne</a
+	      > &#8759; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	      >ParseError</a
+	      > (<a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:applyImplications"
+	      >applyImplications</a
+	      > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	      >Lens'</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > a &#8594; [<a href="PlutusTx-Options.html#t:Implication" title="PlutusTx.Options"
+	      >Implication</a
+	      > a] &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:processAll"
+	      >processAll</a
+	      > &#8759; [(<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      >)] &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+	      >ParseErrors</a
+	      > [<a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:toKeyValue"
+	      >toKeyValue</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      > &#8594; (<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	      >OptionKey</a
+	      >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	      >Maybe</a
+	      > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	      >OptionValue</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:parsePluginOptions"
+	      >parsePluginOptions</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	      >CommandLineOption</a
+	      >] &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	      >Validation</a
+	      > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+	      >ParseErrors</a
+	      > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	      >PluginOptions</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PluginOptions" class="def"
+	    >PluginOptions</a
+	    > <a href="src/PlutusTx.Options.html#PluginOptions" class="link"
+	    >Source</a
+	    > <a href="#t:PluginOptions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PluginOptions" class="def"
+		  >PluginOptions</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:_posPlcTargetVersion" class="def"
+			  >_posPlcTargetVersion</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+			  >Version</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDoTypecheck" class="def"
+			  >_posDoTypecheck</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDeferErrors" class="def"
+			  >_posDeferErrors</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posConservativeOpts" class="def"
+			  >_posConservativeOpts</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posContextLevel" class="def"
+			  >_posContextLevel</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDumpPir" class="def"
+			  >_posDumpPir</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDumpPlc" class="def"
+			  >_posDumpPlc</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDumpUPlc" class="def"
+			  >_posDumpUPlc</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posOptimize" class="def"
+			  >_posOptimize</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posPedantic" class="def"
+			  >_posPedantic</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posVerbosity" class="def"
+			  >_posVerbosity</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+			  >Verbosity</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDatatypes" class="def"
+			  >_posDatatypes</a
+			  > &#8759; <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+			  >DatatypeCompilationOpts</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posMaxSimplifierIterationsPir" class="def"
+			  >_posMaxSimplifierIterationsPir</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posMaxSimplifierIterationsUPlc" class="def"
+			  >_posMaxSimplifierIterationsUPlc</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posMaxCseIterations" class="def"
+			  >_posMaxCseIterations</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDoSimplifierUnwrapCancel" class="def"
+			  >_posDoSimplifierUnwrapCancel</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDoSimplifierBeta" class="def"
+			  >_posDoSimplifierBeta</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDoSimplifierInline" class="def"
+			  >_posDoSimplifierInline</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDoSimplifierEvaluateBuiltins" class="def"
+			  >_posDoSimplifierEvaluateBuiltins</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDoSimplifierStrictifyBindings" class="def"
+			  >_posDoSimplifierStrictifyBindings</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDoSimplifierRemoveDeadBindings" class="def"
+			  >_posDoSimplifierRemoveDeadBindings</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posProfile" class="def"
+			  >_posProfile</a
+			  > &#8759; <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+			  >ProfileOpts</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posCoverageAll" class="def"
+			  >_posCoverageAll</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posCoverageLocation" class="def"
+			  >_posCoverageLocation</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posCoverageBoolean" class="def"
+			  >_posCoverageBoolean</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posRelaxedFloatin" class="def"
+			  >_posRelaxedFloatin</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posCaseOfCaseConservative" class="def"
+			  >_posCaseOfCaseConservative</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posInlineCallsiteGrowth" class="def"
+			  >_posInlineCallsiteGrowth</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posInlineConstants" class="def"
+			  >_posInlineConstants</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posInlineFix" class="def"
+			  >_posInlineFix</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posPreserveLogging" class="def"
+			  >_posPreserveLogging</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >Whether to try and retain the logging behaviour of the program.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posRemoveTrace" class="def"
+			  >_posRemoveTrace</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posDumpCompilationTrace" class="def"
+			  >_posDumpCompilationTrace</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:_posCertify" class="def"
+			  >_posCertify</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  ></dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posVerbosity" class="def"
+	    >posVerbosity</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:Verbosity" title="PlutusTx.Compiler.Types"
+	    >Verbosity</a
+	    > <a href="src/PlutusTx.Options.html#posVerbosity" class="link"
+	    >Source</a
+	    > <a href="#v:posVerbosity" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posRemoveTrace" class="def"
+	    >posRemoveTrace</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posRemoveTrace" class="link"
+	    >Source</a
+	    > <a href="#v:posRemoveTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posRelaxedFloatin" class="def"
+	    >posRelaxedFloatin</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posRelaxedFloatin" class="link"
+	    >Source</a
+	    > <a href="#v:posRelaxedFloatin" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posProfile" class="def"
+	    >posProfile</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="PlutusTx-Compiler-Types.html#t:ProfileOpts" title="PlutusTx.Compiler.Types"
+	    >ProfileOpts</a
+	    > <a href="src/PlutusTx.Options.html#posProfile" class="link"
+	    >Source</a
+	    > <a href="#v:posProfile" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posPreserveLogging" class="def"
+	    >posPreserveLogging</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posPreserveLogging" class="link"
+	    >Source</a
+	    > <a href="#v:posPreserveLogging" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posPlcTargetVersion" class="def"
+	    >posPlcTargetVersion</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="../plutus-core/PlutusCore-Version.html#t:Version" title="PlutusCore.Version"
+	    >Version</a
+	    > <a href="src/PlutusTx.Options.html#posPlcTargetVersion" class="link"
+	    >Source</a
+	    > <a href="#v:posPlcTargetVersion" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posPedantic" class="def"
+	    >posPedantic</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posPedantic" class="link"
+	    >Source</a
+	    > <a href="#v:posPedantic" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posOptimize" class="def"
+	    >posOptimize</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posOptimize" class="link"
+	    >Source</a
+	    > <a href="#v:posOptimize" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posMaxSimplifierIterationsUPlc" class="def"
+	    >posMaxSimplifierIterationsUPlc</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusTx.Options.html#posMaxSimplifierIterationsUPlc" class="link"
+	    >Source</a
+	    > <a href="#v:posMaxSimplifierIterationsUPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posMaxSimplifierIterationsPir" class="def"
+	    >posMaxSimplifierIterationsPir</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusTx.Options.html#posMaxSimplifierIterationsPir" class="link"
+	    >Source</a
+	    > <a href="#v:posMaxSimplifierIterationsPir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posMaxCseIterations" class="def"
+	    >posMaxCseIterations</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusTx.Options.html#posMaxCseIterations" class="link"
+	    >Source</a
+	    > <a href="#v:posMaxCseIterations" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posInlineFix" class="def"
+	    >posInlineFix</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posInlineFix" class="link"
+	    >Source</a
+	    > <a href="#v:posInlineFix" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posInlineConstants" class="def"
+	    >posInlineConstants</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posInlineConstants" class="link"
+	    >Source</a
+	    > <a href="#v:posInlineConstants" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posInlineCallsiteGrowth" class="def"
+	    >posInlineCallsiteGrowth</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusTx.Options.html#posInlineCallsiteGrowth" class="link"
+	    >Source</a
+	    > <a href="#v:posInlineCallsiteGrowth" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDumpUPlc" class="def"
+	    >posDumpUPlc</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDumpUPlc" class="link"
+	    >Source</a
+	    > <a href="#v:posDumpUPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDumpPlc" class="def"
+	    >posDumpPlc</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDumpPlc" class="link"
+	    >Source</a
+	    > <a href="#v:posDumpPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDumpPir" class="def"
+	    >posDumpPir</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDumpPir" class="link"
+	    >Source</a
+	    > <a href="#v:posDumpPir" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDumpCompilationTrace" class="def"
+	    >posDumpCompilationTrace</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDumpCompilationTrace" class="link"
+	    >Source</a
+	    > <a href="#v:posDumpCompilationTrace" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDoTypecheck" class="def"
+	    >posDoTypecheck</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDoTypecheck" class="link"
+	    >Source</a
+	    > <a href="#v:posDoTypecheck" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDoSimplifierUnwrapCancel" class="def"
+	    >posDoSimplifierUnwrapCancel</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDoSimplifierUnwrapCancel" class="link"
+	    >Source</a
+	    > <a href="#v:posDoSimplifierUnwrapCancel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDoSimplifierStrictifyBindings" class="def"
+	    >posDoSimplifierStrictifyBindings</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDoSimplifierStrictifyBindings" class="link"
+	    >Source</a
+	    > <a href="#v:posDoSimplifierStrictifyBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDoSimplifierRemoveDeadBindings" class="def"
+	    >posDoSimplifierRemoveDeadBindings</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDoSimplifierRemoveDeadBindings" class="link"
+	    >Source</a
+	    > <a href="#v:posDoSimplifierRemoveDeadBindings" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDoSimplifierInline" class="def"
+	    >posDoSimplifierInline</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDoSimplifierInline" class="link"
+	    >Source</a
+	    > <a href="#v:posDoSimplifierInline" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDoSimplifierEvaluateBuiltins" class="def"
+	    >posDoSimplifierEvaluateBuiltins</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDoSimplifierEvaluateBuiltins" class="link"
+	    >Source</a
+	    > <a href="#v:posDoSimplifierEvaluateBuiltins" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDoSimplifierBeta" class="def"
+	    >posDoSimplifierBeta</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDoSimplifierBeta" class="link"
+	    >Source</a
+	    > <a href="#v:posDoSimplifierBeta" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDeferErrors" class="def"
+	    >posDeferErrors</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posDeferErrors" class="link"
+	    >Source</a
+	    > <a href="#v:posDeferErrors" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posDatatypes" class="def"
+	    >posDatatypes</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="../plutus-core/PlutusIR-Compiler-Types.html#t:DatatypeCompilationOpts" title="PlutusIR.Compiler.Types"
+	    >DatatypeCompilationOpts</a
+	    > <a href="src/PlutusTx.Options.html#posDatatypes" class="link"
+	    >Source</a
+	    > <a href="#v:posDatatypes" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posCoverageLocation" class="def"
+	    >posCoverageLocation</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posCoverageLocation" class="link"
+	    >Source</a
+	    > <a href="#v:posCoverageLocation" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posCoverageBoolean" class="def"
+	    >posCoverageBoolean</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posCoverageBoolean" class="link"
+	    >Source</a
+	    > <a href="#v:posCoverageBoolean" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posCoverageAll" class="def"
+	    >posCoverageAll</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posCoverageAll" class="link"
+	    >Source</a
+	    > <a href="#v:posCoverageAll" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posContextLevel" class="def"
+	    >posContextLevel</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > <a href="src/PlutusTx.Options.html#posContextLevel" class="link"
+	    >Source</a
+	    > <a href="#v:posContextLevel" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posConservativeOpts" class="def"
+	    >posConservativeOpts</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posConservativeOpts" class="link"
+	    >Source</a
+	    > <a href="#v:posConservativeOpts" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posCertify" class="def"
+	    >posCertify</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    >) <a href="src/PlutusTx.Options.html#posCertify" class="link"
+	    >Source</a
+	    > <a href="#v:posCertify" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:posCaseOfCaseConservative" class="def"
+	    >posCaseOfCaseConservative</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > <a href="src/PlutusTx.Options.html#posCaseOfCaseConservative" class="link"
+	    >Source</a
+	    > <a href="#v:posCaseOfCaseConservative" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:OptionKey" class="def"
+	    >OptionKey</a
+	    > = <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Options.html#OptionKey" class="link"
+	    >Source</a
+	    > <a href="#t:OptionKey" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:OptionValue" class="def"
+	    >OptionValue</a
+	    > = <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Options.html#OptionValue" class="link"
+	    >Source</a
+	    > <a href="#t:OptionValue" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Implication" class="def"
+	    >Implication</a
+	    > a <a href="src/PlutusTx.Options.html#Implication" class="link"
+	    >Source</a
+	    > <a href="#t:Implication" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A data type representing option <code
+	      >a</code
+	      > implying option <code
+	      >b</code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8704; b. <a id="v:Implication" class="def"
+		  >Implication</a
+		  > (a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+		  >Bool</a
+		  >) (<a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+		  >Lens'</a
+		  > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+		  >PluginOptions</a
+		  > b) b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PluginOption" class="def"
+	    >PluginOption</a
+	    > <a href="src/PlutusTx.Options.html#PluginOption" class="link"
+	    >Source</a
+	    > <a href="#t:PluginOption" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A plugin option definition for a <code
+	      ><a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+		>PluginOptions</a
+		></code
+	      > field of type <code
+	      >a</code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8704; a.<a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+		  >Pretty</a
+		  > a &#8658;  <a id="v:PluginOption" class="def"
+		  >PluginOption</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:poTypeRep" class="def"
+			  >poTypeRep</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+			  >TypeRep</a
+			  > a</dfn
+			><div class="doc"
+			><p
+			  ><code
+			    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:TypeRep" title="Type.Reflection"
+			      >TypeRep</a
+			      ></code
+			    > used for pretty printing the option.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:poFun" class="def"
+			  >poFun</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+			  >OptionValue</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+			  >Validation</a
+			  > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+			  >ParseError</a
+			  > (a &#8594; a)</dfn
+			><div class="doc"
+			><p
+			  >Consumes an optional value, and either updates the field or reports an error.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:poLens" class="def"
+			  >poLens</a
+			  > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+			  >Lens'</a
+			  > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+			  >PluginOptions</a
+			  > a</dfn
+			><div class="doc"
+			><p
+			  >Lens focusing on the field. This is for modifying the field, as well as
+  getting the field value from <code
+			    ><a href="PlutusTx-Options.html#v:defaultPluginOptions" title="PlutusTx.Options"
+			      >defaultPluginOptions</a
+			      ></code
+			    > for pretty printing.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:poDescription" class="def"
+			  >poDescription</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+			  >Text</a
+			  ></dfn
+			><div class="doc"
+			><p
+			  >A description of the option.</p
+			  ></div
+			></li
+		      ><li
+		      ><dfn class="src"
+			><a id="v:poImplications" class="def"
+			  >poImplications</a
+			  > &#8759; [<a href="PlutusTx-Options.html#t:Implication" title="PlutusTx.Options"
+			  >Implication</a
+			  > a]</dfn
+			><div class="doc"
+			><p
+			  >Implications of this option being set to a particular value.
+  An option should not imply itself.</p
+			  ></div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:ParseError" class="def"
+	    >ParseError</a
+	    > <a href="src/PlutusTx.Options.html#ParseError" class="link"
+	    >Source</a
+	    > <a href="#t:ParseError" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:CannotParseValue" class="def"
+		  >CannotParseValue</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  > !<a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+		  >OptionValue</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Type-Reflection.html#t:SomeTypeRep" title="Type.Reflection"
+		  >SomeTypeRep</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnexpectedValue" class="def"
+		  >UnexpectedValue</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  > !<a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+		  >OptionValue</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:MissingValue" class="def"
+		  >MissingValue</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnrecognisedOption" class="def"
+		  >UnrecognisedOption</a
+		  > !<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  > ![<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+		  >OptionKey</a
+		  >]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ParseError"
+	    >Instances</h4
+	    ><details id="i:ParseError" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParseError:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+		      >ParseError</a
+		      ></span
+		    > <a href="src/PlutusTx.Options.html#line-118" class="link"
+		    >Source</a
+		    > <a href="#t:ParseError" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParseError:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Options.html"
+			>PlutusTx.Options</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+			  >ParseError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+			  >ParseError</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+			  >ParseError</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:ParseErrors" class="def"
+	    >ParseErrors</a
+	    > <a href="src/PlutusTx.Options.html#ParseErrors" class="link"
+	    >Source</a
+	    > <a href="#t:ParseErrors" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:ParseErrors" class="def"
+		  >ParseErrors</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+		  >NonEmpty</a
+		  > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+		  >ParseError</a
+		  >)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:ParseErrors"
+	    >Instances</h4
+	    ><details id="i:ParseErrors" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParseErrors:Semigroup:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+		      >ParseErrors</a
+		      ></span
+		    > <a href="src/PlutusTx.Options.html#line-121" class="link"
+		    >Source</a
+		    > <a href="#t:ParseErrors" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParseErrors:Semigroup:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Options.html"
+			>PlutusTx.Options</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-List-NonEmpty.html#t:NonEmpty" title="Data.List.NonEmpty"
+			  >NonEmpty</a
+			  > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParseErrors:Exception:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:Exception" title="Control.Exception.Base"
+		      >Exception</a
+		      > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+		      >ParseErrors</a
+		      ></span
+		    > <a href="src/PlutusTx.Options.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:ParseErrors" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParseErrors:Exception:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Options.html"
+			>PlutusTx.Options</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:toException"
+			  >toException</a
+			  > &#8759; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:toException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:fromException"
+			  >fromException</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Control-Exception-Base.html#t:SomeException" title="Control.Exception.Base"
+			  >SomeException</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+			  >Maybe</a
+			  > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fromException" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:displayException"
+			  >displayException</a
+			  > &#8759; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:displayException" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:ParseErrors:Show:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+		      >ParseErrors</a
+		      ></span
+		    > <a href="src/PlutusTx.Options.html#line-123" class="link"
+		    >Source</a
+		    > <a href="#t:ParseErrors" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:ParseErrors:Show:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Options.html"
+			>PlutusTx.Options</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+			  >ParseErrors</a
+			  >] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:renderParseError" class="def"
+	    >renderParseError</a
+	    > &#8759; <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/flat-0.6/docs/Flat-Types.html#t:Text" title="Flat.Types"
+	    >Text</a
+	    > <a href="src/PlutusTx.Options.html#renderParseError" class="link"
+	    >Source</a
+	    > <a href="#v:renderParseError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pluginOptions" class="def"
+	    >pluginOptions</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/containers-0.6.7/docs/Data-Map-Strict.html#t:Map" title="Data.Map.Strict"
+	    >Map</a
+	    > <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    > <a href="PlutusTx-Options.html#t:PluginOption" title="PlutusTx.Options"
+	    >PluginOption</a
+	    > <a href="src/PlutusTx.Options.html#pluginOptions" class="link"
+	    >Source</a
+	    > <a href="#v:pluginOptions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Definition of plugin options.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:flag" class="def"
+	    >flag</a
+	    > &#8759; (a &#8594; a) &#8594; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > (a &#8594; a) <a href="src/PlutusTx.Options.html#flag" class="link"
+	    >Source</a
+	    > <a href="#v:flag" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:setTrue" class="def"
+	    >setTrue</a
+	    > &#8759; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+	    >Bool</a
+	    >) <a href="src/PlutusTx.Options.html#setTrue" class="link"
+	    >Source</a
+	    > <a href="#v:setTrue" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plcParserOption" class="def"
+	    >plcParserOption</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Parser-ParserCommon.html#t:Parser" title="PlutusCore.Parser.ParserCommon"
+	    >Parser</a
+	    > a &#8594; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > (a &#8594; a) <a href="src/PlutusTx.Options.html#plcParserOption" class="link"
+	    >Source</a
+	    > <a href="#v:plcParserOption" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:readOption" class="def"
+	    >readOption</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+	    >Read</a
+	    > a &#8658; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > (a &#8594; a) <a href="src/PlutusTx.Options.html#readOption" class="link"
+	    >Source</a
+	    > <a href="#v:readOption" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:fromReadOption" class="def"
+	    >fromReadOption</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Read.html#t:Read" title="Text.Read"
+	    >Read</a
+	    > a &#8658; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    > &#8594; (a &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > b) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > (b &#8594; b) <a href="src/PlutusTx.Options.html#fromReadOption" class="link"
+	    >Source</a
+	    > <a href="#v:fromReadOption" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Obtain an option value of type <code
+	      >a</code
+	      > from an <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		>Int</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:defaultPluginOptions" class="def"
+	    >defaultPluginOptions</a
+	    > &#8759; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="src/PlutusTx.Options.html#defaultPluginOptions" class="link"
+	    >Source</a
+	    > <a href="#v:defaultPluginOptions" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:processOne" class="def"
+	    >processOne</a
+	    > &#8759; <a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseError" title="PlutusTx.Options"
+	    >ParseError</a
+	    > (<a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    >) <a href="src/PlutusTx.Options.html#processOne" class="link"
+	    >Source</a
+	    > <a href="#v:processOne" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:applyImplications" class="def"
+	    >applyImplications</a
+	    > &#8759; <a href="../plutus-core/PlutusPrelude.html#t:Lens-39-" title="PlutusPrelude"
+	    >Lens'</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > a &#8594; [<a href="PlutusTx-Options.html#t:Implication" title="PlutusTx.Options"
+	    >Implication</a
+	    > a] &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="src/PlutusTx.Options.html#applyImplications" class="link"
+	    >Source</a
+	    > <a href="#v:applyImplications" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:processAll" class="def"
+	    >processAll</a
+	    > &#8759; [(<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    >)] &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+	    >ParseErrors</a
+	    > [<a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > &#8594; <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    >] <a href="src/PlutusTx.Options.html#processAll" class="link"
+	    >Source</a
+	    > <a href="#v:processAll" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:toKeyValue" class="def"
+	    >toKeyValue</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    > &#8594; (<a href="PlutusTx-Options.html#t:OptionKey" title="PlutusTx.Options"
+	    >OptionKey</a
+	    >, <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="PlutusTx-Options.html#t:OptionValue" title="PlutusTx.Options"
+	    >OptionValue</a
+	    >) <a href="src/PlutusTx.Options.html#toKeyValue" class="link"
+	    >Source</a
+	    > <a href="#v:toKeyValue" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parsePluginOptions" class="def"
+	    >parsePluginOptions</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/GHC-Driver-Plugins.html#t:CommandLineOption" title="GHC.Driver.Plugins"
+	    >CommandLineOption</a
+	    >] &#8594; <a href="https://hackage.haskell.org/package/either-5.0.3/docs/Data-Either-Validation.html#t:Validation" title="Data.Either.Validation"
+	    >Validation</a
+	    > <a href="PlutusTx-Options.html#t:ParseErrors" title="PlutusTx.Options"
+	    >ParseErrors</a
+	    > <a href="PlutusTx-Options.html#t:PluginOptions" title="PlutusTx.Options"
+	    >PluginOptions</a
+	    > <a href="src/PlutusTx.Options.html#parsePluginOptions" class="link"
+	    >Source</a
+	    > <a href="#v:parsePluginOptions" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Parses the arguments that were given to ghc at commandline as
+ &quot;-fplugin-opt PlutusTx.Plugin:opt&quot; or &quot;-fplugin-opt PlutusTx.Plugin:opt=val&quot;</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

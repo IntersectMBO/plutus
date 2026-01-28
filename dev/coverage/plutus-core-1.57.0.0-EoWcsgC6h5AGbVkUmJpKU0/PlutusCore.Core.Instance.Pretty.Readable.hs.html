@@ -1,0 +1,203 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE LambdaCase #-}
+<span class="lineno">    2 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    3 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    4 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    5 </span>{-# LANGUAGE ViewPatterns #-}
+<span class="lineno">    6 </span>{-# OPTIONS_GHC -fno-warn-orphans #-}
+<span class="lineno">    7 </span>
+<span class="lineno">    8 </span>-- | A &quot;readable&quot; Agda-like way to pretty-print PLC entities.
+<span class="lineno">    9 </span>module PlutusCore.Core.Instance.Pretty.Readable () where
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import PlutusPrelude
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>import PlutusCore.Core.Type
+<span class="lineno">   14 </span>import PlutusCore.Pretty.PrettyConst
+<span class="lineno">   15 </span>import PlutusCore.Pretty.Readable
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import Prettyprinter
+<span class="lineno">   18 </span>import Prettyprinter.Custom
+<span class="lineno">   19 </span>import Universe
+<span class="lineno">   20 </span>
+<span class="lineno">   21 </span>-- | Split an iterated 'KindArrow' (if any) into the list of argument types and the resulting type.
+<span class="lineno">   22 </span>viewKindArrow :: Kind ann -&gt; Maybe ([Kind ann], Kind ann)
+<span class="lineno">   23 </span><span class="decl"><span class="istickedoff">viewKindArrow kind0@KindArrow {} = Just $ go kind0</span>
+<span class="lineno">   24 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   25 </span><span class="spaces">    </span><span class="istickedoff">go (KindArrow _ dom cod) = first (dom :) $ go cod</span>
+<span class="lineno">   26 </span><span class="spaces">    </span><span class="istickedoff">go kind = ([], kind)</span>
+<span class="lineno">   27 </span><span class="spaces"></span><span class="istickedoff">viewKindArrow _ = Nothing</span></span>
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>-- | Split an iterated 'TyFun' (if any) into the list of argument types and the resulting type.
+<span class="lineno">   30 </span>viewTyFun :: Type tyname uni ann -&gt; Maybe ([Type tyname uni ann], Type tyname uni ann)
+<span class="lineno">   31 </span><span class="decl"><span class="istickedoff">viewTyFun ty0@TyFun {} = Just $ go ty0</span>
+<span class="lineno">   32 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   33 </span><span class="spaces">    </span><span class="istickedoff">go (TyFun _ dom cod) = first (dom :) $ go cod</span>
+<span class="lineno">   34 </span><span class="spaces">    </span><span class="istickedoff">go ty = ([], ty)</span>
+<span class="lineno">   35 </span><span class="spaces"></span><span class="istickedoff">viewTyFun _ = Nothing</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>-- | Split an iterated 'TyForall' (if any) into a list of variables that it binds and its body.
+<span class="lineno">   38 </span>viewTyForall :: Type tyname uni ann -&gt; Maybe ([TyVarDecl tyname ann], Type tyname uni ann)
+<span class="lineno">   39 </span><span class="decl"><span class="istickedoff">viewTyForall ty0@TyForall {} = Just $ go ty0</span>
+<span class="lineno">   40 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   41 </span><span class="spaces">    </span><span class="istickedoff">go (TyForall ann name kind body) = first (TyVarDecl <span class="nottickedoff">ann</span> name kind :) $ go body</span>
+<span class="lineno">   42 </span><span class="spaces">    </span><span class="istickedoff">go ty = ([], ty)</span>
+<span class="lineno">   43 </span><span class="spaces"></span><span class="istickedoff">viewTyForall _ = Nothing</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>-- | Split an iterated 'TyLam' (if any) into a list of variables that it binds and its body.
+<span class="lineno">   46 </span>viewTyLam :: Type tyname uni ann -&gt; Maybe ([TyVarDecl tyname ann], Type tyname uni ann)
+<span class="lineno">   47 </span><span class="decl"><span class="istickedoff">viewTyLam ty0@TyLam {} = Just $ go ty0</span>
+<span class="lineno">   48 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   49 </span><span class="spaces">    </span><span class="istickedoff">go (TyLam ann name kind body) = first (TyVarDecl <span class="nottickedoff">ann</span> name kind :) $ go body</span>
+<span class="lineno">   50 </span><span class="spaces">    </span><span class="istickedoff">go ty = ([], ty)</span>
+<span class="lineno">   51 </span><span class="spaces"></span><span class="istickedoff">viewTyLam _ = Nothing</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>-- | Split an iterated 'LamAbs' (if any) into a list of variables that it binds and its body.
+<span class="lineno">   54 </span>viewLamAbs
+<span class="lineno">   55 </span>  :: Term tyname name uni fun ann
+<span class="lineno">   56 </span>  -&gt; Maybe ([VarDecl tyname name uni ann], Term tyname name uni fun ann)
+<span class="lineno">   57 </span><span class="decl"><span class="istickedoff">viewLamAbs term0@LamAbs {} = Just $ go term0</span>
+<span class="lineno">   58 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   59 </span><span class="spaces">    </span><span class="istickedoff">go (LamAbs ann name ty body) = first (VarDecl <span class="nottickedoff">ann</span> name ty :) $ go body</span>
+<span class="lineno">   60 </span><span class="spaces">    </span><span class="istickedoff">go term = ([], term)</span>
+<span class="lineno">   61 </span><span class="spaces"></span><span class="istickedoff">viewLamAbs _ = Nothing</span></span>
+<span class="lineno">   62 </span>
+<span class="lineno">   63 </span>-- | Split an iterated 'TyAbs' (if any) into a list of variables that it binds and its body.
+<span class="lineno">   64 </span>viewTyAbs
+<span class="lineno">   65 </span>  :: Term tyname name uni fun ann -&gt; Maybe ([TyVarDecl tyname ann], Term tyname name uni fun ann)
+<span class="lineno">   66 </span><span class="decl"><span class="istickedoff">viewTyAbs term0@TyAbs {} = Just $ go term0</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   68 </span><span class="spaces">    </span><span class="istickedoff">go (TyAbs ann name kind body) = first (TyVarDecl <span class="nottickedoff">ann</span> name kind :) $ go body</span>
+<span class="lineno">   69 </span><span class="spaces">    </span><span class="istickedoff">go term = ([], term)</span>
+<span class="lineno">   70 </span><span class="spaces"></span><span class="istickedoff">viewTyAbs _ = Nothing</span></span>
+<span class="lineno">   71 </span>
+<span class="lineno">   72 </span>-- | Split an iterated 'TyApp' (if any) into the head of the application and the spine.
+<span class="lineno">   73 </span>viewTyApp
+<span class="lineno">   74 </span>  :: Type tyname uni ann -&gt; Maybe (Type tyname uni ann, [Type tyname uni ann])
+<span class="lineno">   75 </span><span class="decl"><span class="istickedoff">viewTyApp ty0 = go ty0 []</span>
+<span class="lineno">   76 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   77 </span><span class="spaces">    </span><span class="istickedoff">go (TyApp _ fun arg) args = go fun $ arg : args</span>
+<span class="lineno">   78 </span><span class="spaces">    </span><span class="istickedoff">go _ [] = Nothing</span>
+<span class="lineno">   79 </span><span class="spaces">    </span><span class="istickedoff">go fun args = Just (fun, args)</span></span>
+<span class="lineno">   80 </span>
+<span class="lineno">   81 </span>-- | Split an iterated 'Apply'/'TyInst' (if any) into the head of the application and the spine.
+<span class="lineno">   82 </span>viewApp
+<span class="lineno">   83 </span>  :: Term tyname name uni fun ann
+<span class="lineno">   84 </span>  -&gt; Maybe
+<span class="lineno">   85 </span>       ( Term tyname name uni fun ann
+<span class="lineno">   86 </span>       , [Either (Type tyname uni ann) (Term tyname name uni fun ann)]
+<span class="lineno">   87 </span>       )
+<span class="lineno">   88 </span><span class="decl"><span class="istickedoff">viewApp term0 = go term0 []</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   90 </span><span class="spaces">    </span><span class="istickedoff">go (Apply _ fun argTerm) args = go fun $ Right argTerm : args</span>
+<span class="lineno">   91 </span><span class="spaces">    </span><span class="istickedoff">go (TyInst _ fun argTy) args = go fun $ Left argTy : args</span>
+<span class="lineno">   92 </span><span class="spaces">    </span><span class="istickedoff">go _ [] = Nothing</span>
+<span class="lineno">   93 </span><span class="spaces">    </span><span class="istickedoff">go fun args = Just (fun, args)</span></span>
+<span class="lineno">   94 </span>
+<span class="lineno">   95 </span>instance
+<span class="lineno">   96 </span>  <span class="decl"><span class="nottickedoff">PrettyReadableBy configName tyname</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy (PrettyConfigReadable configName) (TyVarDecl tyname ann)</span></span>
+<span class="lineno">   98 </span>  where
+<span class="lineno">   99 </span>  <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \case</span>
+<span class="lineno">  100 </span><span class="spaces">    </span><span class="istickedoff">TyVarDecl _ x k -&gt; do</span>
+<span class="lineno">  101 </span><span class="spaces">      </span><span class="istickedoff">showKinds &lt;- view $ prettyConfig . pcrShowKinds</span>
+<span class="lineno">  102 </span><span class="spaces">      </span><span class="istickedoff">withPrettyAt ToTheRight botFixity $ \prettyBot -&gt; do</span>
+<span class="lineno">  103 </span><span class="spaces">        </span><span class="istickedoff">case showKinds of</span>
+<span class="lineno">  104 </span><span class="spaces">          </span><span class="istickedoff">ShowKindsYes -&gt; <span class="nottickedoff">encloseM binderFixity $ (prettyBot x &lt;+&gt; &quot;::&quot;) &lt;?&gt; prettyBot k</span></span>
+<span class="lineno">  105 </span><span class="spaces">          </span><span class="istickedoff">ShowKindsNonType -&gt; case k of</span>
+<span class="lineno">  106 </span><span class="spaces">            </span><span class="istickedoff">Type {} -&gt; pure $ prettyBot x</span>
+<span class="lineno">  107 </span><span class="spaces">            </span><span class="istickedoff">_ -&gt; encloseM binderFixity $ (prettyBot x &lt;+&gt; &quot;::&quot;) &lt;?&gt; prettyBot k</span>
+<span class="lineno">  108 </span><span class="spaces">          </span><span class="istickedoff">ShowKindsNo -&gt; <span class="nottickedoff">pure $ prettyBot x</span></span></span>
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span>instance
+<span class="lineno">  111 </span>  <span class="decl"><span class="nottickedoff">( PrettyReadableBy configName tyname</span>
+<span class="lineno">  112 </span><span class="spaces">  </span><span class="nottickedoff">, PrettyReadableBy configName name</span>
+<span class="lineno">  113 </span><span class="spaces">  </span><span class="nottickedoff">, PrettyUni uni</span>
+<span class="lineno">  114 </span><span class="spaces">  </span><span class="nottickedoff">)</span>
+<span class="lineno">  115 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy (PrettyConfigReadable configName) (VarDecl tyname name uni ann)</span></span>
+<span class="lineno">  116 </span>  where
+<span class="lineno">  117 </span>  <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \case</span>
+<span class="lineno">  118 </span><span class="spaces">    </span><span class="istickedoff">VarDecl _ x t -&gt; do</span>
+<span class="lineno">  119 </span><span class="spaces">      </span><span class="istickedoff">withPrettyAt ToTheRight botFixity $ \prettyBot -&gt; do</span>
+<span class="lineno">  120 </span><span class="spaces">        </span><span class="istickedoff">encloseM binderFixity $ (prettyBot x &lt;+&gt; &quot;:&quot;) &lt;?&gt; prettyBot t</span></span>
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>instance <span class="decl"><span class="nottickedoff">PrettyBy (PrettyConfigReadable configName) (Kind a)</span></span> where
+<span class="lineno">  123 </span>  <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \case</span>
+<span class="lineno">  124 </span><span class="spaces">    </span><span class="istickedoff">(viewKindArrow -&gt; Just (args, res)) -&gt; iterArrowPrettyM args res</span>
+<span class="lineno">  125 </span><span class="spaces">    </span><span class="istickedoff">KindArrow {} -&gt; <span class="nottickedoff">error &quot;Panic: 'KindArrow' is not covered by 'viewKindArrow'&quot;</span></span>
+<span class="lineno">  126 </span><span class="spaces">    </span><span class="istickedoff">Type {} -&gt; &quot;*&quot;</span></span>
+<span class="lineno">  127 </span>
+<span class="lineno">  128 </span>instance
+<span class="lineno">  129 </span>  <span class="decl"><span class="istickedoff">(PrettyReadableBy configName tyname, PrettyParens (SomeTypeIn uni))</span>
+<span class="lineno">  130 </span><span class="spaces">  </span><span class="istickedoff">=&gt; PrettyBy (PrettyConfigReadable configName) (Type tyname uni a)</span></span>
+<span class="lineno">  131 </span>  where
+<span class="lineno">  132 </span>  <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \case</span>
+<span class="lineno">  133 </span><span class="spaces">    </span><span class="istickedoff">(viewTyApp -&gt; Just (fun, args)) -&gt; iterAppPrettyM fun args</span>
+<span class="lineno">  134 </span><span class="spaces">    </span><span class="istickedoff">TyApp {} -&gt; <span class="nottickedoff">error &quot;Panic: 'TyApp' is not covered by 'viewTyApp'&quot;</span></span>
+<span class="lineno">  135 </span><span class="spaces">    </span><span class="istickedoff">TyVar _ name -&gt; prettyM name</span>
+<span class="lineno">  136 </span><span class="spaces">    </span><span class="istickedoff">(viewTyFun -&gt; Just (args, res)) -&gt; iterArrowPrettyM args res</span>
+<span class="lineno">  137 </span><span class="spaces">    </span><span class="istickedoff">TyFun {} -&gt; <span class="nottickedoff">error &quot;Panic: 'TyFun' is not covered by 'viewTyFun'&quot;</span></span>
+<span class="lineno">  138 </span><span class="spaces">    </span><span class="istickedoff">TyIFix _ pat arg -&gt; iterAppDocM $ \_ prettyArg -&gt; &quot;ifix&quot; :| map prettyArg [pat, arg]</span>
+<span class="lineno">  139 </span><span class="spaces">    </span><span class="istickedoff">(viewTyForall -&gt; Just (args, body)) -&gt; iterTyForallPrettyM args body</span>
+<span class="lineno">  140 </span><span class="spaces">    </span><span class="istickedoff">TyForall {} -&gt; <span class="nottickedoff">error &quot;Panic: 'TyForall' is not covered by 'viewTyForall'&quot;</span></span>
+<span class="lineno">  141 </span><span class="spaces">    </span><span class="istickedoff">TyBuiltin _ someUni -&gt; lmap _pcrRenderContext $ prettyM someUni</span>
+<span class="lineno">  142 </span><span class="spaces">    </span><span class="istickedoff">(viewTyLam -&gt; Just (args, body)) -&gt; iterLamAbsPrettyM args body</span>
+<span class="lineno">  143 </span><span class="spaces">    </span><span class="istickedoff">TyLam {} -&gt; <span class="nottickedoff">error &quot;Panic: 'TyLam' is not covered by 'viewTyLam'&quot;</span></span>
+<span class="lineno">  144 </span><span class="spaces">    </span><span class="istickedoff">TySOP _ tls -&gt; iterAppDocM $ \_ prettyArg -&gt; &quot;sop&quot; :| fmap prettyArg tls</span></span>
+<span class="lineno">  145 </span>
+<span class="lineno">  146 </span>instance
+<span class="lineno">  147 </span>  <span class="decl"><span class="istickedoff">( PrettyReadableBy configName tyname</span>
+<span class="lineno">  148 </span><span class="spaces">  </span><span class="istickedoff">, PrettyReadableBy configName name</span>
+<span class="lineno">  149 </span><span class="spaces">  </span><span class="istickedoff">, PrettyUni uni</span>
+<span class="lineno">  150 </span><span class="spaces">  </span><span class="istickedoff">, Pretty fun</span>
+<span class="lineno">  151 </span><span class="spaces">  </span><span class="istickedoff">)</span>
+<span class="lineno">  152 </span><span class="spaces">  </span><span class="istickedoff">=&gt; PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a)</span></span>
+<span class="lineno">  153 </span>  where
+<span class="lineno">  154 </span>  <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \case</span>
+<span class="lineno">  155 </span><span class="spaces">    </span><span class="istickedoff">Constant _ con -&gt; lmap (ConstConfig . _pcrRenderContext) $ prettyM con</span>
+<span class="lineno">  156 </span><span class="spaces">    </span><span class="istickedoff">Builtin _ bi -&gt; unitDocM $ pretty bi</span>
+<span class="lineno">  157 </span><span class="spaces">    </span><span class="istickedoff">(viewApp -&gt; Just (fun, args)) -&gt; iterInterAppPrettyM fun args</span>
+<span class="lineno">  158 </span><span class="spaces">    </span><span class="istickedoff">Apply {} -&gt; <span class="nottickedoff">error &quot;Panic: 'Apply' is not covered by 'viewApp'&quot;</span></span>
+<span class="lineno">  159 </span><span class="spaces">    </span><span class="istickedoff">TyInst {} -&gt; <span class="nottickedoff">error &quot;Panic: 'TyInst' is not covered by 'viewApp'&quot;</span></span>
+<span class="lineno">  160 </span><span class="spaces">    </span><span class="istickedoff">Var _ name -&gt; prettyM name</span>
+<span class="lineno">  161 </span><span class="spaces">    </span><span class="istickedoff">(viewTyAbs -&gt; Just (args, body)) -&gt; iterTyAbsPrettyM args body</span>
+<span class="lineno">  162 </span><span class="spaces">    </span><span class="istickedoff">TyAbs {} -&gt; <span class="nottickedoff">error &quot;Panic: 'TyAbs' is not covered by 'viewTyAbs'&quot;</span></span>
+<span class="lineno">  163 </span><span class="spaces">    </span><span class="istickedoff">(viewLamAbs -&gt; Just (args, body)) -&gt; iterLamAbsPrettyM args body</span>
+<span class="lineno">  164 </span><span class="spaces">    </span><span class="istickedoff">LamAbs {} -&gt; <span class="nottickedoff">error &quot;Panic: 'LamAbs' is not covered by 'viewLamAbs'&quot;</span></span>
+<span class="lineno">  165 </span><span class="spaces">    </span><span class="istickedoff">Unwrap _ term -&gt; iterAppDocM $ \_ prettyArg -&gt; &quot;unwrap&quot; :| [prettyArg term]</span>
+<span class="lineno">  166 </span><span class="spaces">    </span><span class="istickedoff">IWrap _ pat arg term -&gt;</span>
+<span class="lineno">  167 </span><span class="spaces">      </span><span class="istickedoff">iterAppDocM $ \_ prettyArg -&gt;</span>
+<span class="lineno">  168 </span><span class="spaces">        </span><span class="istickedoff">&quot;iwrap&quot; :| [prettyArg pat, prettyArg arg, prettyArg term]</span>
+<span class="lineno">  169 </span><span class="spaces">    </span><span class="istickedoff">Error _ ty -&gt; <span class="nottickedoff">iterAppDocM $ \_ prettyArg -&gt; &quot;error&quot; :| [prettyArg $ inBraces ty]</span></span>
+<span class="lineno">  170 </span><span class="spaces">    </span><span class="istickedoff">Constr _ ty i es -&gt;</span>
+<span class="lineno">  171 </span><span class="spaces">      </span><span class="istickedoff">iterAppDocM $ \_ prettyArg -&gt; &quot;constr&quot; :| [prettyArg ty, prettyArg i, prettyArg es]</span>
+<span class="lineno">  172 </span><span class="spaces">    </span><span class="istickedoff">Case _ ty arg cs -&gt;</span>
+<span class="lineno">  173 </span><span class="spaces">      </span><span class="istickedoff">iterAppDocM $ \_ prettyArg -&gt; &quot;case&quot; :| [prettyArg ty, prettyArg arg, prettyArg cs]</span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>instance
+<span class="lineno">  176 </span>  <span class="decl"><span class="nottickedoff">PrettyReadableBy configName (Term tyname name uni fun a)</span>
+<span class="lineno">  177 </span><span class="spaces">  </span><span class="nottickedoff">=&gt; PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a)</span></span>
+<span class="lineno">  178 </span>  where
+<span class="lineno">  179 </span>  <span class="decl"><span class="istickedoff">prettyBy = inContextM $ \(Program _ version term) -&gt;</span>
+<span class="lineno">  180 </span><span class="spaces">    </span><span class="istickedoff">iterAppDocM $ \_ prettyArg -&gt; &quot;program&quot; :| [pretty version, prettyArg term]</span></span>
+
+</pre>
+</body>
+</html>

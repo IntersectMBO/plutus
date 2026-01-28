@@ -1,0 +1,82 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    2 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    3 </span>{-# LANGUAGE QuantifiedConstraints #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TypeFamilies #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeOperators #-}
+<span class="lineno">    6 </span>{-# LANGUAGE UndecidableInstances #-}
+<span class="lineno">    7 </span>{-# LANGUAGE UndecidableSuperClasses #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>{-| A module providing a tool for making sure that each type from a particular universe implements
+<span class="lineno">   10 </span>'KnownTypeAst', 'ReadKnown' and 'MakeKnown'. Kept separate from the modules defining those
+<span class="lineno">   11 </span>classes in order not to introduce dependencies between them and because this extra safety is
+<span class="lineno">   12 </span>scary looking and it's best to keep it separate from what is necessary. -}
+<span class="lineno">   13 </span>module PlutusCore.Builtin.TestKnown
+<span class="lineno">   14 </span>  ( TestTypesFromTheUniverseAreAllKnown
+<span class="lineno">   15 </span>  ) where
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>import PlutusCore.Builtin.KnownType
+<span class="lineno">   18 </span>import PlutusCore.Builtin.KnownTypeAst
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>import Universe
+<span class="lineno">   21 </span>
+<span class="lineno">   22 </span>{-| For providing a 'KnownTypeAst' instance for a built-in type it's enough for that type to
+<span class="lineno">   23 </span>satisfy 'KnownBuiltinTypeAst'. -}
+<span class="lineno">   24 </span>class
+<span class="lineno">   25 </span>  (forall tyname. KnownBuiltinTypeAst tyname uni a =&gt; KnownTypeAst tyname uni a) =&gt;
+<span class="lineno">   26 </span>  ImplementedKnownTypeAst uni a
+<span class="lineno">   27 </span>
+<span class="lineno">   28 </span>instance
+<span class="lineno">   29 </span>  (forall tyname. KnownBuiltinTypeAst tyname uni a =&gt; KnownTypeAst tyname uni a)
+<span class="lineno">   30 </span>  =&gt; ImplementedKnownTypeAst uni a
+<span class="lineno">   31 </span>
+<span class="lineno">   32 </span>{-| For providing a 'ReadKnownIn' instance for a built-in type it's enough for that type to
+<span class="lineno">   33 </span>satisfy 'KnownBuiltinTypeIn'. -}
+<span class="lineno">   34 </span>class
+<span class="lineno">   35 </span>  (forall val. KnownBuiltinTypeIn uni val a =&gt; ReadKnownIn uni val a) =&gt;
+<span class="lineno">   36 </span>  ImplementedReadKnownIn uni a
+<span class="lineno">   37 </span>
+<span class="lineno">   38 </span>instance
+<span class="lineno">   39 </span>  (forall val. KnownBuiltinTypeIn uni val a =&gt; ReadKnownIn uni val a)
+<span class="lineno">   40 </span>  =&gt; ImplementedReadKnownIn uni a
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>{-| For providing a 'MakeKnownIn' instance for a built-in type it's enough for that type to
+<span class="lineno">   43 </span>satisfy 'KnownBuiltinTypeIn'. -}
+<span class="lineno">   44 </span>class
+<span class="lineno">   45 </span>  (forall val. KnownBuiltinTypeIn uni val a =&gt; MakeKnownIn uni val a) =&gt;
+<span class="lineno">   46 </span>  ImplementedMakeKnownIn uni a
+<span class="lineno">   47 </span>
+<span class="lineno">   48 </span>instance
+<span class="lineno">   49 </span>  (forall val. KnownBuiltinTypeIn uni val a =&gt; MakeKnownIn uni val a)
+<span class="lineno">   50 </span>  =&gt; ImplementedMakeKnownIn uni a
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>{-| An instance of this class not having any constraints ensures that every type (according to
+<span class="lineno">   53 </span>'Everywhere') from the universe has 'KnownTypeAst, 'ReadKnownIn' and 'MakeKnownIn' instances. -}
+<span class="lineno">   54 </span>class
+<span class="lineno">   55 </span>  ( uni `Everywhere` ImplementedKnownTypeAst uni
+<span class="lineno">   56 </span>  , uni `Everywhere` ImplementedReadKnownIn uni
+<span class="lineno">   57 </span>  , uni `Everywhere` ImplementedMakeKnownIn uni
+<span class="lineno">   58 </span>  ) =&gt;
+<span class="lineno">   59 </span>  TestTypesFromTheUniverseAreAllKnown uni
+
+</pre>
+</body>
+</html>

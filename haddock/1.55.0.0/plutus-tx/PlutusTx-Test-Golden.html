@@ -1,0 +1,797 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Test.Golden</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.55.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Test.Golden.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Test.Golden</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >TH CodGen</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Compilation testing</a
+	      ></li
+	    ><li
+	    ><a href="#g:3"
+	      >Golden evaluation testing</a
+	      ></li
+	    ><li
+	    ><a href="#g:4"
+	      >Combined testing</a
+	      ></li
+	    ><li
+	    ><a href="#g:5"
+	      >Pretty-printing</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:goldenCodeGen"
+	      >goldenCodeGen</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Ppr.html#t:Ppr" title="Language.Haskell.TH.Ppr"
+	      >Ppr</a
+	      > a &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	      >Q</a
+	      > a &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:ExpQ" title="Language.Haskell.TH.Lib.Internal"
+	      >ExpQ</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPir"
+	      >goldenPir</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > fun) &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirReadable"
+	      >goldenPirReadable</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > fun) &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirReadableU"
+	      >goldenPirReadableU</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > fun) &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenPirBy"
+	      >goldenPirBy</a
+	      > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	      >PrettyUni</a
+	      > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	      >Pretty</a
+	      > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	      >`Everywhere`</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	      >Flat</a
+	      > fun) &#8658; <a href="../plutus-core/PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+	      >PrettyConfigClassic</a
+	      > <a href="../plutus-core/PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	      >PrettyConfigName</a
+	      > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenTPlc"
+	      >goldenTPlc</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	      >ToTPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUPlc"
+	      >goldenUPlc</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenUPlcReadable"
+	      >goldenUPlcReadable</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenBudget"
+	      >goldenBudget</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenAstSize"
+	      >goldenAstSize</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenEvalCek"
+	      >goldenEvalCek</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenEvalCekCatch"
+	      >goldenEvalCekCatch</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenEvalCekCatchBudget"
+	      >goldenEvalCekCatchBudget</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	      >CompiledCode</a
+	      > a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenEvalCekLog"
+	      >goldenEvalCekLog</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	      >ToUPlc</a
+	      > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenBundle"
+	      >goldenBundle</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > b &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:goldenBundle-39-"
+	      >goldenBundle'</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	      >TestName</a
+	      > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	      >TestNested</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:prettyBudget"
+	      >prettyBudget</a
+	      > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	      >ExBudget</a
+	      > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:prettyCodeSize"
+	      >prettyCodeSize</a
+	      > &#8759; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	      >CompiledCodeIn</a
+	      > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	      >DefaultUni</a
+	      > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	      >DefaultFun</a
+	      > a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >TH CodGen</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenCodeGen" class="def"
+	    >goldenCodeGen</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Ppr.html#t:Ppr" title="Language.Haskell.TH.Ppr"
+	    >Ppr</a
+	    > a &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Q" title="Language.Haskell.TH.Syntax"
+	    >Q</a
+	    > a &#8594; <a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Lib-Internal.html#t:ExpQ" title="Language.Haskell.TH.Lib.Internal"
+	    >ExpQ</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenCodeGen" class="link"
+	    >Source</a
+	    > <a href="#v:goldenCodeGen" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Compilation testing</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPir" class="def"
+	    >goldenPir</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > fun) &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenPir" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPir" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Does not print uniques.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirReadable" class="def"
+	    >goldenPirReadable</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > fun) &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenPirReadable" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirReadable" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Does not print uniques.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirReadableU" class="def"
+	    >goldenPirReadableU</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > fun) &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenPirReadableU" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirReadableU" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Prints uniques. This should be used sparingly: a simple change to a script or a
+compiler pass may change all uniques, making it difficult to see the actual
+change if all uniques are printed. It is nonetheless useful sometimes.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenPirBy" class="def"
+	    >goldenPirBy</a
+	    > &#8759; (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+	    >PrettyUni</a
+	    > uni, <a href="https://hackage.haskell.org/package/optparse-applicative-0.19.0.0/docs/Options-Applicative-Help-Pretty.html#t:Pretty" title="Options.Applicative.Help.Pretty"
+	    >Pretty</a
+	    > fun, uni <a href="../plutus-core/Universe-Core.html#t:Everywhere" title="Universe.Core"
+	    >`Everywhere`</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    >, <a href="../plutus-core/PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+	    >Flat</a
+	    > fun) &#8658; <a href="../plutus-core/PlutusCore-Pretty-Classic.html#t:PrettyConfigClassic" title="PlutusCore.Pretty.Classic"
+	    >PrettyConfigClassic</a
+	    > <a href="../plutus-core/PlutusCore-Pretty-ConfigName.html#t:PrettyConfigName" title="PlutusCore.Pretty.ConfigName"
+	    >PrettyConfigName</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > uni fun a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenPirBy" class="link"
+	    >Source</a
+	    > <a href="#v:goldenPirBy" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenTPlc" class="def"
+	    >goldenTPlc</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToTPlc" title="PlutusCore.Test"
+	    >ToTPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:goldenTPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUPlc" class="def"
+	    >goldenUPlc</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUPlc" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenUPlcReadable" class="def"
+	    >goldenUPlcReadable</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:goldenUPlcReadable" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenBudget" class="def"
+	    >goldenBudget</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenBudget" class="link"
+	    >Source</a
+	    > <a href="#v:goldenBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenAstSize" class="def"
+	    >goldenAstSize</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="../../plutus-core/src" class="link"
+	    >Source</a
+	    > <a href="#v:goldenAstSize" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><a href="#g:3" id="g:3"
+	><h1
+	  >Golden evaluation testing</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenEvalCek" class="def"
+	    >goldenEvalCek</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenEvalCek" class="link"
+	    >Source</a
+	    > <a href="#v:goldenEvalCek" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenEvalCekCatch" class="def"
+	    >goldenEvalCekCatch</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenEvalCekCatch" class="link"
+	    >Source</a
+	    > <a href="#v:goldenEvalCekCatch" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenEvalCekCatchBudget" class="def"
+	    >goldenEvalCekCatchBudget</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCode" title="PlutusTx.Code"
+	    >CompiledCode</a
+	    > a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenEvalCekCatchBudget" class="link"
+	    >Source</a
+	    > <a href="#v:goldenEvalCekCatchBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenEvalCekLog" class="def"
+	    >goldenEvalCekLog</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Test.html#t:ToUPlc" title="PlutusCore.Test"
+	    >ToUPlc</a
+	    > a <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > &#8658; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenEvalCekLog" class="link"
+	    >Source</a
+	    > <a href="#v:goldenEvalCekLog" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><a href="#g:4" id="g:4"
+	><h1
+	  >Combined testing</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenBundle" class="def"
+	    >goldenBundle</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > b &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenBundle" class="link"
+	    >Source</a
+	    > <a href="#v:goldenBundle" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:goldenBundle-39-" class="def"
+	    >goldenBundle'</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestName" title="Test.Tasty.Providers"
+	    >TestName</a
+	    > &#8594; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a &#8594; <a href="../plutus-core/Test-Tasty-Extras.html#t:TestNested" title="Test.Tasty.Extras"
+	    >TestNested</a
+	    > <a href="src/PlutusTx.Test.Golden.html#goldenBundle%27" class="link"
+	    >Source</a
+	    > <a href="#v:goldenBundle-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><a href="#g:5" id="g:5"
+	><h1
+	  >Pretty-printing</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyBudget" class="def"
+	    >prettyBudget</a
+	    > &#8759; <a href="../plutus-core/PlutusCore-Evaluation-Machine-ExBudget.html#t:ExBudget" title="PlutusCore.Evaluation.Machine.ExBudget"
+	    >ExBudget</a
+	    > &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusTx.Test.Golden.html#prettyBudget" class="link"
+	    >Source</a
+	    > <a href="#v:prettyBudget" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print an Execution Budget</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:prettyCodeSize" class="def"
+	    >prettyCodeSize</a
+	    > &#8759; <a href="../plutus-tx/PlutusTx-Code.html#t:CompiledCodeIn" title="PlutusTx.Code"
+	    >CompiledCodeIn</a
+	    > <a href="../plutus-core/PlutusCore-Default-Universe.html#t:DefaultUni" title="PlutusCore.Default.Universe"
+	    >DefaultUni</a
+	    > <a href="../plutus-core/PlutusCore-Default-Builtins.html#t:DefaultFun" title="PlutusCore.Default.Builtins"
+	    >DefaultFun</a
+	    > a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/PlutusTx.Test.Golden.html#prettyCodeSize" class="link"
+	    >Source</a
+	    > <a href="#v:prettyCodeSize" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Pretty-print compiled code size</p
+	    ><p
+	    >Given a UPLC program, there are two quantification of &quot;size&quot;: AST Size and Flat Size.
+AST Size measures AST nodes of the given UPLC program. Flat Size measures the number
+of bytes when the given program serialized into bytestring using binary flat encoding format.</p
+	    ><p
+	    >Cost of storing smart contract onchain is partially determined by the Flat size. So it
+is useful to have Flat size measurement in case we adopt new or introduce optimizations
+to the flat encoding format.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

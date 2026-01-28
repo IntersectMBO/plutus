@@ -1,0 +1,160 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>{-# LANGUAGE BangPatterns              #-}
+<span class="lineno">    2 </span>{-# LANGUAGE EmptyCase                 #-}
+<span class="lineno">    3 </span>{-# LANGUAGE EmptyDataDecls            #-}
+<span class="lineno">    4 </span>{-# LANGUAGE ExistentialQuantification #-}
+<span class="lineno">    5 </span>{-# LANGUAGE NoMonomorphismRestriction #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings         #-}
+<span class="lineno">    7 </span>{-# LANGUAGE PatternSynonyms           #-}
+<span class="lineno">    8 </span>{-# LANGUAGE RankNTypes                #-}
+<span class="lineno">    9 </span>{-# LANGUAGE ScopedTypeVariables       #-}
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
+<span class="lineno">   12 </span>
+<span class="lineno">   13 </span>module MAlonzo.Code.Algebra.Construct.NaturalChoice.Base where
+<span class="lineno">   14 </span>
+<span class="lineno">   15 </span>import Data.Text qualified
+<span class="lineno">   16 </span>import MAlonzo.Code.Agda.Primitive qualified
+<span class="lineno">   17 </span>import MAlonzo.Code.Relation.Binary.Bundles qualified
+<span class="lineno">   18 </span>import MAlonzo.RTE (AgdaAny, add64, addInt, coe, eq64, eqInt, erased, geqInt, lt64, ltInt, mul64,
+<span class="lineno">   19 </span>                    mulInt, quot64, quotInt, rem64, remInt, sub64, subInt, word64FromNat,
+<span class="lineno">   20 </span>                    word64ToNat)
+<span class="lineno">   21 </span>import MAlonzo.RTE qualified
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>-- Algebra.Construct.NaturalChoice.Base._._≥_
+<span class="lineno">   24 </span>d__'8805'__96 ::
+<span class="lineno">   25 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_TotalPreorder_222 -&gt;
+<span class="lineno">   26 </span>  AgdaAny -&gt; AgdaAny -&gt; ()
+<span class="lineno">   27 </span><span class="decl"><span class="nottickedoff">d__'8805'__96 = erased</span></span>
+<span class="lineno">   28 </span>-- Algebra.Construct.NaturalChoice.Base._.MinOperator
+<span class="lineno">   29 </span><span class="decl"><span class="nottickedoff">d_MinOperator_98 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">   30 </span>data T_MinOperator_98
+<span class="lineno">   31 </span>  = C_MinOperator'46'constructor_1121 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   32 </span>                                      (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   33 </span>                                      (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   34 </span>-- Algebra.Construct.NaturalChoice.Base._.MinOperator._⊓_
+<span class="lineno">   35 </span>d__'8851'__114 :: T_MinOperator_98 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   36 </span><span class="decl"><span class="nottickedoff">d__'8851'__114 v0</span>
+<span class="lineno">   37 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   38 </span><span class="spaces">      </span><span class="nottickedoff">C_MinOperator'46'constructor_1121 v1 v2 v3 -&gt; coe v1</span>
+<span class="lineno">   39 </span><span class="spaces">      </span><span class="nottickedoff">_                                          -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   40 </span>-- Algebra.Construct.NaturalChoice.Base._.MinOperator.x≤y⇒x⊓y≈x
+<span class="lineno">   41 </span>d_x'8804'y'8658'x'8851'y'8776'x_120 ::
+<span class="lineno">   42 </span>  T_MinOperator_98 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   43 </span><span class="decl"><span class="nottickedoff">d_x'8804'y'8658'x'8851'y'8776'x_120 v0</span>
+<span class="lineno">   44 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   45 </span><span class="spaces">      </span><span class="nottickedoff">C_MinOperator'46'constructor_1121 v1 v2 v3 -&gt; coe v2</span>
+<span class="lineno">   46 </span><span class="spaces">      </span><span class="nottickedoff">_                                          -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   47 </span>-- Algebra.Construct.NaturalChoice.Base._.MinOperator.x≥y⇒x⊓y≈y
+<span class="lineno">   48 </span>d_x'8805'y'8658'x'8851'y'8776'y_126 ::
+<span class="lineno">   49 </span>  T_MinOperator_98 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   50 </span><span class="decl"><span class="nottickedoff">d_x'8805'y'8658'x'8851'y'8776'y_126 v0</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   52 </span><span class="spaces">      </span><span class="nottickedoff">C_MinOperator'46'constructor_1121 v1 v2 v3 -&gt; coe v3</span>
+<span class="lineno">   53 </span><span class="spaces">      </span><span class="nottickedoff">_                                          -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   54 </span>-- Algebra.Construct.NaturalChoice.Base._.MaxOperator
+<span class="lineno">   55 </span><span class="decl"><span class="nottickedoff">d_MaxOperator_128 a0 a1 a2 a3 = ()</span></span>
+<span class="lineno">   56 </span>data T_MaxOperator_128
+<span class="lineno">   57 </span>  = C_MaxOperator'46'constructor_1665 (AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   58 </span>                                      (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   59 </span>                                      (AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny)
+<span class="lineno">   60 </span>-- Algebra.Construct.NaturalChoice.Base._.MaxOperator._⊔_
+<span class="lineno">   61 </span>d__'8852'__144 ::
+<span class="lineno">   62 </span>  T_MaxOperator_128 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   63 </span><span class="decl"><span class="nottickedoff">d__'8852'__144 v0</span>
+<span class="lineno">   64 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   65 </span><span class="spaces">      </span><span class="nottickedoff">C_MaxOperator'46'constructor_1665 v1 v2 v3 -&gt; coe v1</span>
+<span class="lineno">   66 </span><span class="spaces">      </span><span class="nottickedoff">_                                          -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   67 </span>-- Algebra.Construct.NaturalChoice.Base._.MaxOperator.x≤y⇒x⊔y≈y
+<span class="lineno">   68 </span>d_x'8804'y'8658'x'8852'y'8776'y_150 ::
+<span class="lineno">   69 </span>  T_MaxOperator_128 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   70 </span><span class="decl"><span class="nottickedoff">d_x'8804'y'8658'x'8852'y'8776'y_150 v0</span>
+<span class="lineno">   71 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   72 </span><span class="spaces">      </span><span class="nottickedoff">C_MaxOperator'46'constructor_1665 v1 v2 v3 -&gt; coe v2</span>
+<span class="lineno">   73 </span><span class="spaces">      </span><span class="nottickedoff">_                                          -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   74 </span>-- Algebra.Construct.NaturalChoice.Base._.MaxOperator.x≥y⇒x⊔y≈x
+<span class="lineno">   75 </span>d_x'8805'y'8658'x'8852'y'8776'x_156 ::
+<span class="lineno">   76 </span>  T_MaxOperator_128 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   77 </span><span class="decl"><span class="nottickedoff">d_x'8805'y'8658'x'8852'y'8776'x_156 v0</span>
+<span class="lineno">   78 </span><span class="spaces">  </span><span class="nottickedoff">= case coe v0 of</span>
+<span class="lineno">   79 </span><span class="spaces">      </span><span class="nottickedoff">C_MaxOperator'46'constructor_1665 v1 v2 v3 -&gt; coe v3</span>
+<span class="lineno">   80 </span><span class="spaces">      </span><span class="nottickedoff">_                                          -&gt; MAlonzo.RTE.mazUnreachableError</span></span>
+<span class="lineno">   81 </span>-- Algebra.Construct.NaturalChoice.Base.MinOp⇒MaxOp
+<span class="lineno">   82 </span>d_MinOp'8658'MaxOp_158 ::
+<span class="lineno">   83 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   84 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   85 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">   86 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_TotalPreorder_222 -&gt;
+<span class="lineno">   87 </span>  T_MinOperator_98 -&gt; T_MaxOperator_128
+<span class="lineno">   88 </span><span class="decl"><span class="nottickedoff">d_MinOp'8658'MaxOp_158 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">   89 </span><span class="spaces">  </span><span class="nottickedoff">= du_MinOp'8658'MaxOp_158 v4</span></span>
+<span class="lineno">   90 </span>du_MinOp'8658'MaxOp_158 :: T_MinOperator_98 -&gt; T_MaxOperator_128
+<span class="lineno">   91 </span><span class="decl"><span class="nottickedoff">du_MinOp'8658'MaxOp_158 v0</span>
+<span class="lineno">   92 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">   93 </span><span class="spaces">      </span><span class="nottickedoff">C_MaxOperator'46'constructor_1665 (coe d__'8851'__114 (coe v0))</span>
+<span class="lineno">   94 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_x'8805'y'8658'x'8851'y'8776'y_126 (coe v0))</span>
+<span class="lineno">   95 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_x'8804'y'8658'x'8851'y'8776'x_120 (coe v0))</span></span>
+<span class="lineno">   96 </span>-- Algebra.Construct.NaturalChoice.Base._._._⊓_
+<span class="lineno">   97 </span>d__'8851'__168 :: T_MinOperator_98 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">   98 </span><span class="decl"><span class="nottickedoff">d__'8851'__168 v0 = coe d__'8851'__114 (coe v0)</span></span>
+<span class="lineno">   99 </span>-- Algebra.Construct.NaturalChoice.Base._._.x≤y⇒x⊓y≈x
+<span class="lineno">  100 </span>d_x'8804'y'8658'x'8851'y'8776'x_170 ::
+<span class="lineno">  101 </span>  T_MinOperator_98 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  102 </span><span class="decl"><span class="nottickedoff">d_x'8804'y'8658'x'8851'y'8776'x_170 v0</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_x'8804'y'8658'x'8851'y'8776'x_120 (coe v0)</span></span>
+<span class="lineno">  104 </span>-- Algebra.Construct.NaturalChoice.Base._._.x≥y⇒x⊓y≈y
+<span class="lineno">  105 </span>d_x'8805'y'8658'x'8851'y'8776'y_172 ::
+<span class="lineno">  106 </span>  T_MinOperator_98 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  107 </span><span class="decl"><span class="nottickedoff">d_x'8805'y'8658'x'8851'y'8776'y_172 v0</span>
+<span class="lineno">  108 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_x'8805'y'8658'x'8851'y'8776'y_126 (coe v0)</span></span>
+<span class="lineno">  109 </span>-- Algebra.Construct.NaturalChoice.Base.MaxOp⇒MinOp
+<span class="lineno">  110 </span>d_MaxOp'8658'MinOp_174 ::
+<span class="lineno">  111 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  112 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  113 </span>  MAlonzo.Code.Agda.Primitive.T_Level_18 -&gt;
+<span class="lineno">  114 </span>  MAlonzo.Code.Relation.Binary.Bundles.T_TotalPreorder_222 -&gt;
+<span class="lineno">  115 </span>  T_MaxOperator_128 -&gt; T_MinOperator_98
+<span class="lineno">  116 </span><span class="decl"><span class="nottickedoff">d_MaxOp'8658'MinOp_174 ~v0 ~v1 ~v2 ~v3 v4</span>
+<span class="lineno">  117 </span><span class="spaces">  </span><span class="nottickedoff">= du_MaxOp'8658'MinOp_174 v4</span></span>
+<span class="lineno">  118 </span>du_MaxOp'8658'MinOp_174 :: T_MaxOperator_128 -&gt; T_MinOperator_98
+<span class="lineno">  119 </span><span class="decl"><span class="nottickedoff">du_MaxOp'8658'MinOp_174 v0</span>
+<span class="lineno">  120 </span><span class="spaces">  </span><span class="nottickedoff">= coe</span>
+<span class="lineno">  121 </span><span class="spaces">      </span><span class="nottickedoff">C_MinOperator'46'constructor_1121 (coe d__'8852'__144 (coe v0))</span>
+<span class="lineno">  122 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_x'8805'y'8658'x'8852'y'8776'x_156 (coe v0))</span>
+<span class="lineno">  123 </span><span class="spaces">      </span><span class="nottickedoff">(coe d_x'8804'y'8658'x'8852'y'8776'y_150 (coe v0))</span></span>
+<span class="lineno">  124 </span>-- Algebra.Construct.NaturalChoice.Base._._._⊔_
+<span class="lineno">  125 </span>d__'8852'__184 ::
+<span class="lineno">  126 </span>  T_MaxOperator_128 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  127 </span><span class="decl"><span class="nottickedoff">d__'8852'__184 v0 = coe d__'8852'__144 (coe v0)</span></span>
+<span class="lineno">  128 </span>-- Algebra.Construct.NaturalChoice.Base._._.x≤y⇒x⊔y≈y
+<span class="lineno">  129 </span>d_x'8804'y'8658'x'8852'y'8776'y_186 ::
+<span class="lineno">  130 </span>  T_MaxOperator_128 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  131 </span><span class="decl"><span class="nottickedoff">d_x'8804'y'8658'x'8852'y'8776'y_186 v0</span>
+<span class="lineno">  132 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_x'8804'y'8658'x'8852'y'8776'y_150 (coe v0)</span></span>
+<span class="lineno">  133 </span>-- Algebra.Construct.NaturalChoice.Base._._.x≥y⇒x⊔y≈x
+<span class="lineno">  134 </span>d_x'8805'y'8658'x'8852'y'8776'x_188 ::
+<span class="lineno">  135 </span>  T_MaxOperator_128 -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny -&gt; AgdaAny
+<span class="lineno">  136 </span><span class="decl"><span class="nottickedoff">d_x'8805'y'8658'x'8852'y'8776'x_188 v0</span>
+<span class="lineno">  137 </span><span class="spaces">  </span><span class="nottickedoff">= coe d_x'8805'y'8658'x'8852'y'8776'x_156 (coe v0)</span></span>
+
+</pre>
+</body>
+</html>

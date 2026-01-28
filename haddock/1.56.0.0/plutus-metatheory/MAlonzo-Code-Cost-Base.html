@@ -1,0 +1,417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.Cost.Base</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.56.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.Cost.Base.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.Cost.Base</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_CostingNat_4" class="def"
+	    >d_CostingNat_4</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Cost.Base.html#d_CostingNat_4" class="link"
+	    >Source</a
+	    > <a href="#v:d_CostingNat_4" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_StepKind_6" class="def"
+	    >d_StepKind_6</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Cost.Base.html#d_StepKind_6" class="link"
+	    >Source</a
+	    > <a href="#v:d_StepKind_6" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_StepKind_6" class="def"
+	    >T_StepKind_6</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#T_StepKind_6" class="link"
+	    >Source</a
+	    > <a href="#t:T_StepKind_6" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_BConst_8" class="def"
+		  >C_BConst_8</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BVar_10" class="def"
+		  >C_BVar_10</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BLamAbs_12" class="def"
+		  >C_BLamAbs_12</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BApply_14" class="def"
+		  >C_BApply_14</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BDelay_16" class="def"
+		  >C_BDelay_16</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BForce_18" class="def"
+		  >C_BForce_18</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BBuiltin_20" class="def"
+		  >C_BBuiltin_20</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BConstr_22" class="def"
+		  >C_BConstr_22</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BCase_24" class="def"
+		  >C_BCase_24</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_showStepKind-39--39-_26" class="def"
+	    >d_showStepKind''_26</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Base.html#t:T_StepKind_6" title="MAlonzo.Code.Cost.Base"
+	    >T_StepKind_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#d_showStepKind%27%27_26" class="link"
+	    >Source</a
+	    > <a href="#v:d_showStepKind-39--39-_26" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_showStepKind_28" class="def"
+	    >d_showStepKind_28</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Base.html#t:T_StepKind_6" title="MAlonzo.Code.Cost.Base"
+	    >T_StepKind_6</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Builtin-String.html#t:T_String_6" title="MAlonzo.Code.Agda.Builtin.String"
+	    >T_String_6</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#d_showStepKind_28" class="link"
+	    >Source</a
+	    > <a href="#v:d_showStepKind_28" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_stepKindList_32" class="def"
+	    >d_stepKindList_32</a
+	    > &#8759; [<a href="MAlonzo-Code-Cost-Base.html#t:T_StepKind_6" title="MAlonzo.Code.Cost.Base"
+	    >T_StepKind_6</a
+	    >] <a href="src/MAlonzo.Code.Cost.Base.html#d_stepKindList_32" class="link"
+	    >Source</a
+	    > <a href="#v:d_stepKindList_32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_ExBudgetCategory_34" class="def"
+	    >d_ExBudgetCategory_34</a
+	    > &#8759; () <a href="src/MAlonzo.Code.Cost.Base.html#d_ExBudgetCategory_34" class="link"
+	    >Source</a
+	    > <a href="#v:d_ExBudgetCategory_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_ExBudgetCategory_34" class="def"
+	    >T_ExBudgetCategory_34</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#T_ExBudgetCategory_34" class="link"
+	    >Source</a
+	    > <a href="#t:T_ExBudgetCategory_34" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_BStep_36" class="def"
+		  >C_BStep_36</a
+		  > <a href="MAlonzo-Code-Cost-Base.html#t:T_StepKind_6" title="MAlonzo.Code.Cost.Base"
+		  >T_StepKind_6</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BBuiltinApp_40" class="def"
+		  >C_BBuiltinApp_40</a
+		  > <a href="MAlonzo-Code-Builtin.html#t:T_Builtin_2" title="MAlonzo.Code.Builtin"
+		  >T_Builtin_2</a
+		  > <a href="MAlonzo-Code-Data-Vec-Base.html#t:T_Vec_28" title="MAlonzo.Code.Data.Vec.Base"
+		  >T_Vec_28</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:C_BStartup_42" class="def"
+		  >C_BStartup_42</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_MachineParameters_46" class="def"
+	    >d_MachineParameters_46</a
+	    > &#8759; p &#8594; () <a href="src/MAlonzo.Code.Cost.Base.html#d_MachineParameters_46" class="link"
+	    >Source</a
+	    > <a href="#v:d_MachineParameters_46" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:T_MachineParameters_46" class="def"
+	    >T_MachineParameters_46</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#T_MachineParameters_46" class="link"
+	    >Source</a
+	    > <a href="#t:T_MachineParameters_46" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:C_MachineParameters-39-46-39-constructor_359" class="def"
+		  >C_MachineParameters'46'constructor_359</a
+		  > (<a href="MAlonzo-Code-Cost-Base.html#t:T_ExBudgetCategory_34" title="MAlonzo.Code.Cost.Base"
+		  >T_ExBudgetCategory_34</a
+		  > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  >) <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+		  >AgdaAny</a
+		  >) <a href="MAlonzo-Code-Algebra-Structures.html#t:T_IsMonoid_686" title="MAlonzo.Code.Algebra.Structures"
+		  >T_IsMonoid_686</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_cekMachineCost_58" class="def"
+	    >d_cekMachineCost_58</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Base.html#t:T_MachineParameters_46" title="MAlonzo.Code.Cost.Base"
+	    >T_MachineParameters_46</a
+	    > &#8594; <a href="MAlonzo-Code-Cost-Base.html#t:T_ExBudgetCategory_34" title="MAlonzo.Code.Cost.Base"
+	    >T_ExBudgetCategory_34</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#d_cekMachineCost_58" class="link"
+	    >Source</a
+	    > <a href="#v:d_cekMachineCost_58" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_-949-_60" class="def"
+	    >d_&#949;_60</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Base.html#t:T_MachineParameters_46" title="MAlonzo.Code.Cost.Base"
+	    >T_MachineParameters_46</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#d_%3B5_60" class="link"
+	    >Source</a
+	    > <a href="#v:d_-949-_60" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d__-39-8729-39-__62" class="def"
+	    >d__'8729'__62</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Base.html#t:T_MachineParameters_46" title="MAlonzo.Code.Cost.Base"
+	    >T_MachineParameters_46</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#d__%278729%27__62" class="link"
+	    >Source</a
+	    > <a href="#v:d__-39-8729-39-__62" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_costMonoid_64" class="def"
+	    >d_costMonoid_64</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Base.html#t:T_MachineParameters_46" title="MAlonzo.Code.Cost.Base"
+	    >T_MachineParameters_46</a
+	    > &#8594; <a href="MAlonzo-Code-Algebra-Structures.html#t:T_IsMonoid_686" title="MAlonzo.Code.Algebra.Structures"
+	    >T_IsMonoid_686</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#d_costMonoid_64" class="link"
+	    >Source</a
+	    > <a href="#v:d_costMonoid_64" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_startupCost_66" class="def"
+	    >d_startupCost_66</a
+	    > &#8759; () &#8594; <a href="MAlonzo-Code-Cost-Base.html#t:T_MachineParameters_46" title="MAlonzo.Code.Cost.Base"
+	    >T_MachineParameters_46</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#d_startupCost_66" class="link"
+	    >Source</a
+	    > <a href="#v:d_startupCost_66" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_startupCost_66" class="def"
+	    >du_startupCost_66</a
+	    > &#8759; <a href="MAlonzo-Code-Cost-Base.html#t:T_MachineParameters_46" title="MAlonzo.Code.Cost.Base"
+	    >T_MachineParameters_46</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Cost.Base.html#du_startupCost_66" class="link"
+	    >Source</a
+	    > <a href="#v:du_startupCost_66" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

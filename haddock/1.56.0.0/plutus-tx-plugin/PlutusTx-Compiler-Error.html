@@ -1,0 +1,690 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Compiler.Error</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-plugin-1.56.0.0: The Plutus Tx compiler and GHC plugin</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Compiler.Error.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Compiler.Error</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:CompileError"
+	      >CompileError</a
+	      > uni fun ann = <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	      >WithContext</a
+	      > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	      >Text</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+	      >Error</a
+	      > uni fun ann)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:Error"
+	      >Error</a
+	      > uni fun a<ul class="subs"
+	      ><li
+		>= <a href="#v:PLCError"
+		  >PLCError</a
+		  > !(<a href="../plutus-core/PlutusCore-Error.html#t:Error" title="PlutusCore.Error"
+		  >Error</a
+		  > uni fun a)</li
+		><li
+		>| <a href="#v:PIRError"
+		  >PIRError</a
+		  > !(<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+		  >Error</a
+		  > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a))</li
+		><li
+		>| <a href="#v:CompilationError"
+		  >CompilationError</a
+		  > !<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		>| <a href="#v:UnsupportedError"
+		  >UnsupportedError</a
+		  > !<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		>| <a href="#v:FreeVariableError"
+		  >FreeVariableError</a
+		  > !<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></li
+		><li
+		>| <a href="#v:InvalidMarkerError"
+		  >InvalidMarkerError</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></li
+		><li
+		>| <a href="#v:CoreNameLookupError"
+		  >CoreNameLookupError</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		  >Name</a
+		  ></li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:WithContext"
+	      >WithContext</a
+	      > c e<ul class="subs"
+	      ><li
+		>= <a href="#v:NoContext"
+		  >NoContext</a
+		  > e</li
+		><li
+		>| <a href="#v:WithContextC"
+		  >WithContextC</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > c (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+		  >WithContext</a
+		  > c e)</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:withContext"
+	      >withContext</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	      >WithContext</a
+	      > c e) m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; c &#8594; m a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:withContextM"
+	      >withContextM</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	      >WithContext</a
+	      > c e) m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; m c &#8594; m a &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:throwPlain"
+	      >throwPlain</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	      >MonadError</a
+	      > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	      >WithContext</a
+	      > c e) m &#8658; e &#8594; m a</li
+	    ><li class="src short"
+	    ><a href="#v:pruneContext"
+	      >pruneContext</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	      >Int</a
+	      > &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	      >WithContext</a
+	      > c e &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	      >WithContext</a
+	      > c e</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:CompileError" class="def"
+	    >CompileError</a
+	    > uni fun ann = <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	    >WithContext</a
+	    > <a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+	    >Text</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+	    >Error</a
+	    > uni fun ann) <a href="src/PlutusTx.Compiler.Error.html#CompileError" class="link"
+	    >Source</a
+	    > <a href="#t:CompileError" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:Error" class="def"
+	    >Error</a
+	    > uni fun a <a href="src/PlutusTx.Compiler.Error.html#Error" class="link"
+	    >Source</a
+	    > <a href="#t:Error" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PLCError" class="def"
+		  >PLCError</a
+		  > !(<a href="../plutus-core/PlutusCore-Error.html#t:Error" title="PlutusCore.Error"
+		  >Error</a
+		  > uni fun a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PIRError" class="def"
+		  >PIRError</a
+		  > !(<a href="../plutus-core/PlutusIR-Error.html#t:Error" title="PlutusIR.Error"
+		  >Error</a
+		  > uni fun (<a href="../plutus-core/PlutusIR-Compiler-Provenance.html#t:Provenance" title="PlutusIR.Compiler.Provenance"
+		  >Provenance</a
+		  > a))</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CompilationError" class="def"
+		  >CompilationError</a
+		  > !<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:UnsupportedError" class="def"
+		  >UnsupportedError</a
+		  > !<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:FreeVariableError" class="def"
+		  >FreeVariableError</a
+		  > !<a href="../plutus-core/PlutusCore-Flat-Types.html#t:Text" title="PlutusCore.Flat.Types"
+		  >Text</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:InvalidMarkerError" class="def"
+		  >InvalidMarkerError</a
+		  > !<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:CoreNameLookupError" class="def"
+		  >CoreNameLookupError</a
+		  > !<a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/Language-Haskell-TH-Syntax.html#t:Name" title="Language.Haskell.TH.Syntax"
+		  >Name</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Error"
+	    >Instances</h4
+	    ><details id="i:Error" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Error:PrettyBy:1"
+		      ></span
+		      > (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > a) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:PrettyBy" title="PlutusPrelude"
+		      >PrettyBy</a
+		      > <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+		      >PrettyConfigPlc</a
+		      > (<a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+		      >Error</a
+		      > uni fun a)</span
+		    > <a href="src/PlutusTx.Compiler.Error.html#line-79" class="link"
+		    >Source</a
+		    > <a href="#t:Error" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Error:PrettyBy:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Error.html"
+			>PlutusTx.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:prettyBy"
+			  >prettyBy</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlc</a
+			  > &#8594; <a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+			  >Error</a
+			  > uni fun a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyBy" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyListBy"
+			  >prettyListBy</a
+			  > &#8759; <a href="../plutus-core/PlutusCore-Pretty-Plc.html#t:PrettyConfigPlc" title="PlutusCore.Pretty.Plc"
+			  >PrettyConfigPlc</a
+			  > &#8594; [<a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+			  >Error</a
+			  > uni fun a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyListBy" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Error:Pretty:2"
+		      ></span
+		      > (<a href="../plutus-core/PlutusCore-Pretty-PrettyConst.html#t:PrettyUni" title="PlutusCore.Pretty.PrettyConst"
+		      >PrettyUni</a
+		      > uni, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > fun, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > a) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+		      >Error</a
+		      > uni fun a)</span
+		    > <a href="src/PlutusTx.Compiler.Error.html#line-75" class="link"
+		    >Source</a
+		    > <a href="#t:Error" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Error:Pretty:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Error.html"
+			>PlutusTx.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+			  >Error</a
+			  > uni fun a &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Error.html#t:Error" title="PlutusTx.Compiler.Error"
+			  >Error</a
+			  > uni fun a] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:WithContext" class="def"
+	    >WithContext</a
+	    > c e <a href="src/PlutusTx.Compiler.Error.html#WithContext" class="link"
+	    >Source</a
+	    > <a href="#t:WithContext" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An error with some (nested) context. The integer argument to <code
+	      ><a href="PlutusTx-Compiler-Error.html#v:WithContextC" title="PlutusTx.Compiler.Error"
+		>WithContextC</a
+		></code
+	      > represents
+the priority of the context when displaying it. Lower numbers are more prioritised. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:NoContext" class="def"
+		  >NoContext</a
+		  > e</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:WithContextC" class="def"
+		  >WithContextC</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		  >Int</a
+		  > c (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+		  >WithContext</a
+		  > c e)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:WithContext"
+	    >Instances</h4
+	    ><details id="i:WithContext" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:WithContext:Functor:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Functor.html#t:Functor" title="Data.Functor"
+		      >Functor</a
+		      > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+		      >WithContext</a
+		      > c)</span
+		    > <a href="src/PlutusTx.Compiler.Error.html#line-36" class="link"
+		    >Source</a
+		    > <a href="#t:WithContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:WithContext:Functor:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Error.html"
+			>PlutusTx.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:fmap"
+			  >fmap</a
+			  > &#8759; (a &#8594; b) &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+			  >WithContext</a
+			  > c a &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+			  >WithContext</a
+			  > c b <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:fmap" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--36-"
+			  >(&lt;$)</a
+			  > &#8759; a &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+			  >WithContext</a
+			  > c b &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+			  >WithContext</a
+			  > c a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--36-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:WithContext:Pretty:2"
+		      ></span
+		      > (<a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > c, <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > e) &#8658; <a href="../plutus-core/PlutusPrelude.html#t:Pretty" title="PlutusPrelude"
+		      >Pretty</a
+		      > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+		      >WithContext</a
+		      > c e)</span
+		    > <a href="src/PlutusTx.Compiler.Error.html#line-57" class="link"
+		    >Source</a
+		    > <a href="#t:WithContext" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:WithContext:Pretty:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Compiler-Error.html"
+			>PlutusTx.Compiler.Error</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:pretty"
+			  >pretty</a
+			  > &#8759; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+			  >WithContext</a
+			  > c e &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:pretty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:prettyList"
+			  >prettyList</a
+			  > &#8759; [<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+			  >WithContext</a
+			  > c e] &#8594; <a href="../plutus-core/PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+			  >Doc</a
+			  > ann <a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:prettyList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withContext" class="def"
+	    >withContext</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	    >WithContext</a
+	    > c e) m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; c &#8594; m a &#8594; m a <a href="src/PlutusTx.Compiler.Error.html#withContext" class="link"
+	    >Source</a
+	    > <a href="#v:withContext" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:withContextM" class="def"
+	    >withContextM</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	    >WithContext</a
+	    > c e) m &#8658; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; m c &#8594; m a &#8594; m a <a href="src/PlutusTx.Compiler.Error.html#withContextM" class="link"
+	    >Source</a
+	    > <a href="#v:withContextM" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:throwPlain" class="def"
+	    >throwPlain</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/Control-Monad-Error-Class.html#t:MonadError" title="Control.Monad.Error.Class"
+	    >MonadError</a
+	    > (<a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	    >WithContext</a
+	    > c e) m &#8658; e &#8594; m a <a href="src/PlutusTx.Compiler.Error.html#throwPlain" class="link"
+	    >Source</a
+	    > <a href="#v:throwPlain" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:pruneContext" class="def"
+	    >pruneContext</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+	    >Int</a
+	    > &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	    >WithContext</a
+	    > c e &#8594; <a href="PlutusTx-Compiler-Error.html#t:WithContext" title="PlutusTx.Compiler.Error"
+	    >WithContext</a
+	    > c e <a href="src/PlutusTx.Compiler.Error.html#pruneContext" class="link"
+	    >Source</a
+	    > <a href="#v:pruneContext" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

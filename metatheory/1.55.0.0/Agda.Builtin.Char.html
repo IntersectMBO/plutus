@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Agda.Builtin.Char</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--cubical-compatible</a> <a id="34" class="Pragma">--safe</a> <a id="41" class="Pragma">--no-universe-polymorphism</a>
+            <a id="80" class="Pragma">--no-sized-types</a> <a id="97" class="Pragma">--no-guardedness</a> <a id="114" class="Pragma">--level-universe</a> <a id="131" class="Symbol">#-}</a>
+
+<a id="136" class="Keyword">module</a> <a id="143" href="Agda.Builtin.Char.html" class="Module">Agda.Builtin.Char</a> <a id="161" class="Keyword">where</a>
+
+<a id="168" class="Keyword">open</a> <a id="173" class="Keyword">import</a> <a id="180" href="Agda.Builtin.Nat.html" class="Module">Agda.Builtin.Nat</a>
+<a id="197" class="Keyword">open</a> <a id="202" class="Keyword">import</a> <a id="209" href="Agda.Builtin.Bool.html" class="Module">Agda.Builtin.Bool</a>
+
+<a id="228" class="Keyword">postulate</a> <a id="Char"></a><a id="238" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a> <a id="243" class="Symbol">:</a> <a id="245" href="Agda.Primitive.html#388" class="Primitive">Set</a>
+<a id="249" class="Symbol">{-#</a> <a id="253" class="Keyword">BUILTIN</a> <a id="261" class="Keyword">CHAR</a> <a id="266" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a> <a id="271" class="Symbol">#-}</a>
+
+<a id="276" class="Keyword">primitive</a>
+  <a id="primIsLower"></a><a id="288" href="Agda.Builtin.Char.html#288" class="Primitive">primIsLower</a> <a id="primIsDigit"></a><a id="300" href="Agda.Builtin.Char.html#300" class="Primitive">primIsDigit</a> <a id="primIsAlpha"></a><a id="312" href="Agda.Builtin.Char.html#312" class="Primitive">primIsAlpha</a> <a id="primIsSpace"></a><a id="324" href="Agda.Builtin.Char.html#324" class="Primitive">primIsSpace</a> <a id="primIsAscii"></a><a id="336" href="Agda.Builtin.Char.html#336" class="Primitive">primIsAscii</a>
+    <a id="primIsLatin1"></a><a id="352" href="Agda.Builtin.Char.html#352" class="Primitive">primIsLatin1</a> <a id="primIsPrint"></a><a id="365" href="Agda.Builtin.Char.html#365" class="Primitive">primIsPrint</a> <a id="primIsHexDigit"></a><a id="377" href="Agda.Builtin.Char.html#377" class="Primitive">primIsHexDigit</a> <a id="392" class="Symbol">:</a> <a id="394" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a> <a id="399" class="Symbol">→</a> <a id="401" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a>
+  <a id="primToUpper"></a><a id="408" href="Agda.Builtin.Char.html#408" class="Primitive">primToUpper</a> <a id="primToLower"></a><a id="420" href="Agda.Builtin.Char.html#420" class="Primitive">primToLower</a> <a id="432" class="Symbol">:</a> <a id="434" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a> <a id="439" class="Symbol">→</a> <a id="441" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a>
+  <a id="primCharToNat"></a><a id="448" href="Agda.Builtin.Char.html#448" class="Primitive">primCharToNat</a> <a id="462" class="Symbol">:</a> <a id="464" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a> <a id="469" class="Symbol">→</a> <a id="471" href="Agda.Builtin.Nat.html#203" class="Datatype">Nat</a>
+  <a id="primNatToChar"></a><a id="477" href="Agda.Builtin.Char.html#477" class="Primitive">primNatToChar</a> <a id="491" class="Symbol">:</a> <a id="493" href="Agda.Builtin.Nat.html#203" class="Datatype">Nat</a> <a id="497" class="Symbol">→</a> <a id="499" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a>
+  <a id="primCharEquality"></a><a id="506" href="Agda.Builtin.Char.html#506" class="Primitive">primCharEquality</a> <a id="523" class="Symbol">:</a> <a id="525" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a> <a id="530" class="Symbol">→</a> <a id="532" href="Agda.Builtin.Char.html#238" class="Postulate">Char</a> <a id="537" class="Symbol">→</a> <a id="539" href="Agda.Builtin.Bool.html#173" class="Datatype">Bool</a>
+</pre></body></html>

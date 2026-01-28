@@ -1,0 +1,455 @@
+/* Plutus Cost Model Visualization - Shared Styles */
+
+/* Cardano brand colors */
+:root {
+  --cardano-blue: #0033AD;
+  --cardano-light-blue: #1A7BDB;
+  --cardano-dark: #001D5A;
+  --academic-gray: #2C3E50;
+  --light-gray: #ECF0F1;
+  --border-gray: #BDC3C7;
+  --text-primary: #2C3E50;
+  --text-secondary: #7F8C8D;
+  --background: #FFFFFF;
+  --plot-background: #FAFAFA;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--background);
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Typography */
+h1 {
+  font-size: 2.5em;
+  color: var(--cardano-blue);
+  margin-bottom: 0.5em;
+  border-bottom: 3px solid var(--cardano-blue);
+  padding-bottom: 0.3em;
+}
+
+h2 {
+  font-size: 1.8em;
+  color: var(--cardano-dark);
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  border-bottom: 2px solid var(--light-gray);
+  padding-bottom: 0.2em;
+}
+
+h3 {
+  font-size: 1.3em;
+  color: var(--academic-gray);
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+}
+
+p {
+  margin-bottom: 1em;
+  font-size: 1.05em;
+}
+
+ul, ol {
+  margin-left: 20px;
+  margin-bottom: 1em;
+}
+
+ul li, ol li {
+  margin-bottom: 0.5em;
+}
+
+code {
+  font-family: 'Monaco', 'Courier New', monospace;
+  background-color: var(--light-gray);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+pre {
+  background-color: var(--plot-background);
+  border: 1px solid var(--border-gray);
+  border-radius: 5px;
+  padding: 15px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+/* Navigation */
+nav {
+  background-color: var(--cardano-blue);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+nav ul li {
+  display: inline;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 15px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+nav a:hover {
+  background-color: var(--cardano-light-blue);
+}
+
+nav a.active {
+  background-color: var(--cardano-dark);
+}
+
+/* Main content container */
+.container {
+  background-color: var(--background);
+}
+
+/* Plot container */
+.plot-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 30px;
+  margin: 30px 0;
+}
+
+#plot-container {
+  background-color: var(--plot-background);
+  border: 2px solid var(--border-gray);
+  border-radius: 8px;
+  padding: 20px;
+  min-height: 600px;
+}
+
+/* Info panel */
+.info-panel {
+  background-color: var(--plot-background);
+  border: 2px solid var(--cardano-light-blue);
+  border-radius: 8px;
+  padding: 20px;
+  font-size: 0.95em;
+}
+
+.info-panel h3 {
+  color: var(--cardano-blue);
+  margin-top: 0;
+  font-size: 1.2em;
+}
+
+.info-panel .info-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.info-panel .info-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.info-panel dt {
+  font-weight: 600;
+  color: var(--academic-gray);
+  margin-top: 10px;
+}
+
+.info-panel dd {
+  margin-left: 15px;
+  margin-bottom: 5px;
+  color: var(--text-secondary);
+}
+
+.info-panel .formula {
+  font-family: 'Monaco', 'Courier New', monospace;
+  background-color: var(--light-gray);
+  padding: 10px;
+  border-radius: 4px;
+  margin: 10px 0;
+  font-size: 0.9em;
+  word-wrap: break-word;
+}
+
+/* Controls */
+.controls {
+  background-color: var(--light-gray);
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  transition: padding 0.3s ease-out, margin 0.3s ease-out;
+}
+
+.controls.collapsed {
+  padding: 10px 20px;
+  margin: 10px 0;
+}
+
+.controls h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--cardano-blue);
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: margin 0.3s ease-out;
+}
+
+.controls.collapsed h3 {
+  margin-bottom: 0;
+}
+
+.controls h3:hover {
+  color: var(--cardano-light-blue);
+}
+
+.controls h3::after {
+  content: '▼';
+  font-size: 0.8em;
+  transition: transform 0.3s;
+}
+
+.controls.collapsed h3::after {
+  transform: rotate(-90deg);
+}
+
+.controls-content {
+  max-height: 1000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+  opacity: 1;
+}
+
+.controls.collapsed .controls-content {
+  max-height: 0;
+  opacity: 0;
+}
+
+.control-group {
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-group label {
+  font-weight: 600;
+  color: var(--academic-gray);
+}
+
+.control-group-vertical {
+  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.control-group-vertical label {
+  font-weight: 600;
+  color: var(--academic-gray);
+}
+
+.branch-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.branch-input-row input {
+  flex: 1;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.branch-input-row button {
+  padding: 6px 12px;
+  font-size: 0.85em;
+}
+
+button {
+  background-color: var(--cardano-blue);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: var(--cardano-light-blue);
+}
+
+button:active {
+  background-color: var(--cardano-dark);
+}
+
+button.secondary {
+  background-color: var(--text-secondary);
+}
+
+button.secondary:hover {
+  background-color: var(--academic-gray);
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+select {
+  padding: 8px 12px;
+  border: 2px solid var(--border-gray);
+  border-radius: 4px;
+  font-size: 1em;
+  background-color: white;
+  cursor: pointer;
+}
+
+/* Function list */
+.function-list {
+  list-style: none;
+  padding: 0;
+}
+
+.function-list li {
+  margin: 15px 0;
+  padding: 15px;
+  background-color: var(--plot-background);
+  border: 1px solid var(--border-gray);
+  border-radius: 5px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.function-list li:hover {
+  border-color: var(--cardano-light-blue);
+  box-shadow: 0 2px 8px rgba(0, 51, 173, 0.1);
+}
+
+.function-list a {
+  color: var(--cardano-blue);
+  text-decoration: none;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.function-list a:hover {
+  color: var(--cardano-light-blue);
+}
+
+.function-list .description {
+  color: var(--text-secondary);
+  margin-top: 5px;
+  font-size: 0.95em;
+}
+
+/* Developer instructions */
+.instructions {
+  background-color: var(--plot-background);
+  border-left: 4px solid var(--cardano-blue);
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.instructions h3 {
+  color: var(--cardano-blue);
+  margin-top: 0;
+}
+
+.instructions ol, .instructions ul {
+  margin-left: 20px;
+}
+
+.instructions li {
+  margin: 10px 0;
+}
+
+/* Loading and error states */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+  font-size: 1.2em;
+}
+
+.error {
+  background-color: #FFF5F5;
+  border: 2px solid #E53E3E;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  color: #742A2A;
+}
+
+.error h3 {
+  color: #E53E3E;
+  margin-top: 0;
+}
+
+/* Footer */
+footer {
+  margin-top: 50px;
+  padding-top: 20px;
+  border-top: 2px solid var(--light-gray);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+footer a {
+  color: var(--cardano-blue);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Links */
+a {
+  color: var(--cardano-blue);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--cardano-light-blue);
+  text-decoration: underline;
+}
+
+/* Responsive adjustments (minimal, desktop-focused) */
+@media (max-width: 1200px) {
+  .plot-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .info-panel {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,186 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE GADTs #-}
+<span class="lineno">    3 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    4 </span>{-# LANGUAGE TupleSections #-}
+<span class="lineno">    5 </span>{-# LANGUAGE TypeApplications #-}
+<span class="lineno">    6 </span>
+<span class="lineno">    7 </span>module PlutusCore.Parser.Type where
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>import PlutusPrelude
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>import PlutusCore.Annotation
+<span class="lineno">   12 </span>import PlutusCore.Core.Type
+<span class="lineno">   13 </span>import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
+<span class="lineno">   14 </span>import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
+<span class="lineno">   15 </span>import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
+<span class="lineno">   16 </span>import PlutusCore.Data
+<span class="lineno">   17 </span>import PlutusCore.Default
+<span class="lineno">   18 </span>import PlutusCore.MkPlc (mkIterTyApp)
+<span class="lineno">   19 </span>import PlutusCore.Name.Unique
+<span class="lineno">   20 </span>import PlutusCore.Parser.ParserCommon
+<span class="lineno">   21 </span>import PlutusCore.Value (Value)
+<span class="lineno">   22 </span>
+<span class="lineno">   23 </span>import Control.Monad
+<span class="lineno">   24 </span>import Data.ByteString (ByteString)
+<span class="lineno">   25 </span>import Data.Text (Text)
+<span class="lineno">   26 </span>import Data.Vector.Strict qualified as Strict
+<span class="lineno">   27 </span>import Text.Megaparsec hiding (ParseError, State, many, parse, some)
+<span class="lineno">   28 </span>
+<span class="lineno">   29 </span>{-| A PLC @Type@ to be parsed. ATM the parser only works
+<span class="lineno">   30 </span>for types in the @DefaultUni@ with @DefaultFun@. -}
+<span class="lineno">   31 </span>type PType = Type TyName DefaultUni SrcSpan
+<span class="lineno">   32 </span>
+<span class="lineno">   33 </span>varType :: Parser PType
+<span class="lineno">   34 </span><span class="decl"><span class="istickedoff">varType = withSpan $ \sp -&gt;</span>
+<span class="lineno">   35 </span><span class="spaces">  </span><span class="istickedoff">TyVar sp &lt;$&gt; tyName</span></span>
+<span class="lineno">   36 </span>
+<span class="lineno">   37 </span>funType :: Parser PType
+<span class="lineno">   38 </span><span class="decl"><span class="istickedoff">funType = withSpan $ \sp -&gt;</span>
+<span class="lineno">   39 </span><span class="spaces">  </span><span class="istickedoff">inParens $ TyFun <span class="nottickedoff">sp</span> &lt;$&gt; (symbol &quot;fun&quot; *&gt; pType) &lt;*&gt; pType</span></span>
+<span class="lineno">   40 </span>
+<span class="lineno">   41 </span>allType :: Parser PType
+<span class="lineno">   42 </span><span class="decl"><span class="istickedoff">allType = withSpan $ \sp -&gt;</span>
+<span class="lineno">   43 </span><span class="spaces">  </span><span class="istickedoff">inParens $ TyForall <span class="nottickedoff">sp</span> &lt;$&gt; (symbol &quot;all&quot; *&gt; trailingWhitespace tyName) &lt;*&gt; kind &lt;*&gt; pType</span></span>
+<span class="lineno">   44 </span>
+<span class="lineno">   45 </span>lamType :: Parser PType
+<span class="lineno">   46 </span><span class="decl"><span class="istickedoff">lamType = withSpan $ \sp -&gt;</span>
+<span class="lineno">   47 </span><span class="spaces">  </span><span class="istickedoff">inParens $ TyLam <span class="nottickedoff">sp</span> &lt;$&gt; (symbol &quot;lam&quot; *&gt; trailingWhitespace tyName) &lt;*&gt; kind &lt;*&gt; pType</span></span>
+<span class="lineno">   48 </span>
+<span class="lineno">   49 </span>ifixType :: Parser PType
+<span class="lineno">   50 </span><span class="decl"><span class="istickedoff">ifixType = withSpan $ \sp -&gt;</span>
+<span class="lineno">   51 </span><span class="spaces">  </span><span class="istickedoff">inParens $ TyIFix <span class="nottickedoff">sp</span> &lt;$&gt; (symbol &quot;ifix&quot; *&gt; pType) &lt;*&gt; pType</span></span>
+<span class="lineno">   52 </span>
+<span class="lineno">   53 </span>builtinType :: Parser PType
+<span class="lineno">   54 </span><span class="decl"><span class="istickedoff">builtinType = withSpan $ \sp -&gt; inParens $ do</span>
+<span class="lineno">   55 </span><span class="spaces">  </span><span class="istickedoff">SomeTypeIn (Kinded uni) &lt;- symbol &quot;con&quot; *&gt; defaultUni</span>
+<span class="lineno">   56 </span><span class="spaces">  </span><span class="istickedoff">pure $ TyBuiltin <span class="nottickedoff">sp</span> (SomeTypeIn uni)</span></span>
+<span class="lineno">   57 </span>
+<span class="lineno">   58 </span>sopType :: Parser PType
+<span class="lineno">   59 </span><span class="decl"><span class="istickedoff">sopType = withSpan $ \sp -&gt; inParens $ TySOP <span class="nottickedoff">sp</span> &lt;$&gt; (symbol &quot;sop&quot; *&gt; many tyList)</span>
+<span class="lineno">   60 </span><span class="spaces">  </span><span class="istickedoff">where</span>
+<span class="lineno">   61 </span><span class="spaces">    </span><span class="istickedoff">tyList :: Parser [PType]</span>
+<span class="lineno">   62 </span><span class="spaces">    </span><span class="istickedoff">tyList = (inBrackets $ many pType) &lt;* whitespace</span></span>
+<span class="lineno">   63 </span>
+<span class="lineno">   64 </span>appType :: Parser PType
+<span class="lineno">   65 </span><span class="decl"><span class="istickedoff">appType = withSpan $ \sp -&gt; inBrackets $ do</span>
+<span class="lineno">   66 </span><span class="spaces">  </span><span class="istickedoff">fn &lt;- pType</span>
+<span class="lineno">   67 </span><span class="spaces">  </span><span class="istickedoff">args &lt;- some pType</span>
+<span class="lineno">   68 </span><span class="spaces">  </span><span class="istickedoff">-- TODO: should not use the same `sp` for all arguments.</span>
+<span class="lineno">   69 </span><span class="spaces">  </span><span class="istickedoff">pure $ mkIterTyApp fn ((<span class="nottickedoff">sp</span>,) &lt;$&gt; args)</span></span>
+<span class="lineno">   70 </span>
+<span class="lineno">   71 </span>kind :: Parser (Kind SrcSpan)
+<span class="lineno">   72 </span><span class="decl"><span class="istickedoff">kind = withSpan $ \sp -&gt;</span>
+<span class="lineno">   73 </span><span class="spaces">  </span><span class="istickedoff">let typeKind = Type <span class="nottickedoff">sp</span> &lt;$ symbol &quot;type&quot;</span>
+<span class="lineno">   74 </span><span class="spaces">      </span><span class="istickedoff">funKind = KindArrow <span class="nottickedoff">sp</span> &lt;$&gt; (symbol &quot;fun&quot; *&gt; kind) &lt;*&gt; kind</span>
+<span class="lineno">   75 </span><span class="spaces">   </span><span class="istickedoff">in inParens (typeKind &lt;|&gt; funKind)</span></span>
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>-- | Parser for @PType@.
+<span class="lineno">   78 </span>pType :: Parser PType
+<span class="lineno">   79 </span><span class="decl"><span class="istickedoff">pType =</span>
+<span class="lineno">   80 </span><span class="spaces">  </span><span class="istickedoff">choice $</span>
+<span class="lineno">   81 </span><span class="spaces">    </span><span class="istickedoff">map</span>
+<span class="lineno">   82 </span><span class="spaces">      </span><span class="istickedoff">try</span>
+<span class="lineno">   83 </span><span class="spaces">      </span><span class="istickedoff">[ funType</span>
+<span class="lineno">   84 </span><span class="spaces">      </span><span class="istickedoff">, ifixType</span>
+<span class="lineno">   85 </span><span class="spaces">      </span><span class="istickedoff">, allType</span>
+<span class="lineno">   86 </span><span class="spaces">      </span><span class="istickedoff">, builtinType</span>
+<span class="lineno">   87 </span><span class="spaces">      </span><span class="istickedoff">, lamType</span>
+<span class="lineno">   88 </span><span class="spaces">      </span><span class="istickedoff">, appType</span>
+<span class="lineno">   89 </span><span class="spaces">      </span><span class="istickedoff">, varType</span>
+<span class="lineno">   90 </span><span class="spaces">      </span><span class="istickedoff">, sopType</span>
+<span class="lineno">   91 </span><span class="spaces">      </span><span class="istickedoff">]</span></span>
+<span class="lineno">   92 </span>
+<span class="lineno">   93 </span>{-| Parser for built-in type applications.  The textual names here should match
+<span class="lineno">   94 </span>the ones in the PrettyBy instance for DefaultUni in PlutusCore.Default.Universe. -}
+<span class="lineno">   95 </span>defaultUniApplication :: Parser (SomeTypeIn (Kinded DefaultUni))
+<span class="lineno">   96 </span><span class="decl"><span class="istickedoff">defaultUniApplication = do</span>
+<span class="lineno">   97 </span><span class="spaces">  </span><span class="istickedoff">-- Parse the head of the application.</span>
+<span class="lineno">   98 </span><span class="spaces">  </span><span class="istickedoff">f &lt;- defaultUni</span>
+<span class="lineno">   99 </span><span class="spaces">  </span><span class="istickedoff">-- Parse the arguments.</span>
+<span class="lineno">  100 </span><span class="spaces">  </span><span class="istickedoff">as &lt;- many defaultUni</span>
+<span class="lineno">  101 </span><span class="spaces">  </span><span class="istickedoff">-- Iteratively apply the head to the arguments checking that the kinds match and</span>
+<span class="lineno">  102 </span><span class="spaces">  </span><span class="istickedoff">-- failing otherwise.</span>
+<span class="lineno">  103 </span><span class="spaces">  </span><span class="istickedoff">foldM tryUniApply f as</span></span>
+<span class="lineno">  104 </span>
+<span class="lineno">  105 </span>{-| Parser for built-in types (the ones from 'DefaultUni' specifically).
+<span class="lineno">  106 </span>
+<span class="lineno">  107 </span>'Kinded' is needed for checking that a type function can be applied to its argument.
+<span class="lineno">  108 </span>I.e. we do Plutus kind checking of builtin type applications during parsing, which is
+<span class="lineno">  109 </span>unfortunate, but there's no way we could construct a 'DefaultUni' otherwise.
+<span class="lineno">  110 </span>
+<span class="lineno">  111 </span>In case of kind error no sensible message is shown, only an overly general one:
+<span class="lineno">  112 </span>
+<span class="lineno">  113 </span>&gt;&gt;&gt; :set -XTypeApplications
+<span class="lineno">  114 </span>&gt;&gt;&gt; :set -XOverloadedStrings
+<span class="lineno">  115 </span>&gt;&gt;&gt; import PlutusCore.Error
+<span class="lineno">  116 </span>&gt;&gt;&gt; import PlutusCore.Quote
+<span class="lineno">  117 </span>&gt;&gt;&gt; let runP = putStrLn . either display display . runQuoteT . parseGen @ParserErrorBundle defaultUni
+<span class="lineno">  118 </span>&gt;&gt;&gt; runP &quot;(list integer)&quot;
+<span class="lineno">  119 </span>(list integer)
+<span class="lineno">  120 </span>&gt;&gt;&gt; runP &quot;(bool integer)&quot;
+<span class="lineno">  121 </span>test:1:14:
+<span class="lineno">  122 </span>  |
+<span class="lineno">  123 </span>1 | (bool integer)
+<span class="lineno">  124 </span>  |              ^
+<span class="lineno">  125 </span>expecting &quot;bool&quot;, &quot;bytestring&quot;, &quot;data&quot;, &quot;integer&quot;, &quot;list&quot;, &quot;pair&quot;, &quot;string&quot;, &quot;unit&quot;, or '('
+<span class="lineno">  126 </span>
+<span class="lineno">  127 </span>This is to be fixed.
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span>One thing we could do to avoid doing kind checking during parsing is to parse into
+<span class="lineno">  130 </span>
+<span class="lineno">  131 </span>    data TextualUni a where
+<span class="lineno">  132 </span>        TextualUni :: TextualUni (Esc (Tree Text))
+<span class="lineno">  133 </span>
+<span class="lineno">  134 </span>i.e. parse into @Tree Text@ and do the kind checking afterwards, but given that we'll still need
+<span class="lineno">  135 </span>to do the kind checking of builtins regardless (even for UPLC), we don't win much by deferring
+<span class="lineno">  136 </span>doing it. -}
+<span class="lineno">  137 </span>defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
+<span class="lineno">  138 </span><span class="decl"><span class="istickedoff">defaultUni =</span>
+<span class="lineno">  139 </span><span class="spaces">  </span><span class="istickedoff">( choice $</span>
+<span class="lineno">  140 </span><span class="spaces">      </span><span class="istickedoff">map</span>
+<span class="lineno">  141 </span><span class="spaces">        </span><span class="istickedoff">try</span>
+<span class="lineno">  142 </span><span class="spaces">        </span><span class="istickedoff">[ trailingWhitespace (inParens defaultUniApplication)</span>
+<span class="lineno">  143 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @Integer &lt;$ symbol &quot;integer&quot;</span>
+<span class="lineno">  144 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @ByteString &lt;$ symbol &quot;bytestring&quot;</span>
+<span class="lineno">  145 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @Text &lt;$ symbol &quot;string&quot;</span>
+<span class="lineno">  146 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @() &lt;$ symbol &quot;unit&quot;</span>
+<span class="lineno">  147 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @Bool &lt;$ symbol &quot;bool&quot;</span>
+<span class="lineno">  148 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @[] &lt;$ symbol &quot;list&quot;</span>
+<span class="lineno">  149 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @Strict.Vector &lt;$ symbol &quot;array&quot;</span>
+<span class="lineno">  150 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @(,) &lt;$ symbol &quot;pair&quot;</span>
+<span class="lineno">  151 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @Data &lt;$ symbol &quot;data&quot;</span>
+<span class="lineno">  152 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @BLS12_381.G1.Element &lt;$ symbol &quot;bls12_381_G1_element&quot;</span>
+<span class="lineno">  153 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @BLS12_381.G2.Element &lt;$ symbol &quot;bls12_381_G2_element&quot;</span>
+<span class="lineno">  154 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @BLS12_381.Pairing.MlResult &lt;$ symbol &quot;bls12_381_mlresult&quot;</span>
+<span class="lineno">  155 </span><span class="spaces">        </span><span class="istickedoff">, someType @_ @Value &lt;$ symbol &quot;value&quot;</span>
+<span class="lineno">  156 </span><span class="spaces">        </span><span class="istickedoff">]</span>
+<span class="lineno">  157 </span><span class="spaces">  </span><span class="istickedoff">)</span>
+<span class="lineno">  158 </span><span class="spaces">    </span><span class="istickedoff">&lt;?&gt; &quot;type name (integer, bytestring, string, unit, bool, list, array, pair,\</span>
+<span class="lineno">  159 </span><span class="spaces">        </span><span class="istickedoff">\ data, value, bls12_381_G1_element, bls12_381_G2_element,\</span>
+<span class="lineno">  160 </span><span class="spaces">        </span><span class="istickedoff">\ bls12_381_mlresult, or type application)&quot;</span></span>
+<span class="lineno">  161 </span>
+<span class="lineno">  162 </span>tyName :: Parser TyName
+<span class="lineno">  163 </span><span class="decl"><span class="istickedoff">tyName = TyName &lt;$&gt; name</span></span>
+
+</pre>
+</body>
+</html>
