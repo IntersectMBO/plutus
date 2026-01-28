@@ -10,7 +10,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 
 module PlutusTx.These
   ( These (..)
@@ -21,7 +20,6 @@ module PlutusTx.These
 import GHC.Generics (Generic)
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
-import PlutusTx.Bool
 import PlutusTx.Eq
 import PlutusTx.Lift
 import PlutusTx.Ord
@@ -34,6 +32,7 @@ data These a b = This a | That b | These a b
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
   deriving anyclass (HasBlueprintDefinition)
 
+deriveEq ''These
 deriveShow ''These
 makeLift ''These
 makeIsDataSchemaIndexed ''These [('This, 0), ('That, 1), ('These, 2)]
@@ -67,10 +66,3 @@ instance (Ord a, Ord b) => Ord (These a b) where
   compare (That _) (These _ _) = LT
   compare (These _ _) (This _) = GT
   compare (These _ _) (That _) = GT
-
-instance (Eq a, Eq b) => Eq (These a b) where
-  {-# INLINEABLE (==) #-}
-  (This a) == (This a') = a == a'
-  (That b) == (That b') = b == b'
-  (These a b) == (These a' b') = a == a' && b == b'
-  _ == _ = False

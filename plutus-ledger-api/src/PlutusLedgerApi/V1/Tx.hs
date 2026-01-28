@@ -43,7 +43,6 @@ import Prettyprinter (Pretty (pretty), hang, vsep, (<+>))
 
 import PlutusTx.Blueprint.Definition (HasBlueprintDefinition, definitionRef)
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
-import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Lift (makeLift)
@@ -102,16 +101,10 @@ data TxOutRef = TxOutRef
   deriving stock (Show, Eq, Ord, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''TxOutRef
+
 instance Pretty TxOutRef where
   pretty TxOutRef {txOutRefId, txOutRefIdx} = pretty txOutRefId <> "!" <> pretty txOutRefIdx
-
-instance PlutusTx.Eq TxOutRef where
-  {-# INLINEABLE (==) #-}
-  l == r =
-    txOutRefId l
-      PlutusTx.== txOutRefId r
-      PlutusTx.&& txOutRefIdx l
-      PlutusTx.== txOutRefIdx r
 
 {-| A transaction output, consisting of a target address ('Address'), a value ('Value'),
 and optionally a datum hash ('DatumHash'). -}
@@ -123,19 +116,11 @@ data TxOut = TxOut
   deriving stock (Show, Eq, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''TxOut
+
 instance Pretty TxOut where
   pretty TxOut {txOutAddress, txOutValue} =
     hang 2 $ vsep ["-" <+> pretty txOutValue <+> "addressed to", pretty txOutAddress]
-
-instance PlutusTx.Eq TxOut where
-  {-# INLINEABLE (==) #-}
-  l == r =
-    txOutAddress l
-      PlutusTx.== txOutAddress r
-      PlutusTx.&& txOutValue l
-      PlutusTx.== txOutValue r
-      PlutusTx.&& txOutDatumHash l
-      PlutusTx.== txOutDatumHash r
 
 -- | The datum attached to a 'TxOut', if there is one.
 txOutDatum :: TxOut -> Maybe DatumHash
