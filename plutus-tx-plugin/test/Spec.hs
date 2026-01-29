@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Enum.Spec qualified as Enum
 import Array.Spec qualified as Array
 import AsData.Budget.Spec qualified as AsData.Budget
 import AssocMap.Spec qualified as AssocMap
@@ -63,5 +64,6 @@ tests =
     , embed AssocMap.propertyTests
     , embed List.propertyTests
     , Array.smokeTests
+    , Enum.tests
     , CallTrace.tests
     ]

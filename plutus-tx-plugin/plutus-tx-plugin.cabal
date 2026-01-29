@@ -115,6 +115,7 @@ test-suite plutus-tx-plugin-tests
   hs-source-dirs:     test
   main-is:            Spec.hs
   other-modules:
+    Enum.Spec
     Array.Spec
     AsData.Budget.Spec
     AsData.Budget.Types
