@@ -23,7 +23,7 @@ module TestHelpers
     -- * Types
   , EvalResult (..)
   , EvalError (..)
-  , Measurement (..)
+  , TimingSample (..)
   ) where
 
 import Control.Concurrent (threadDelay)
@@ -42,28 +42,25 @@ import System.Directory (doesFileExist)
 import System.FilePath ((</>))
 import Test.Tasty.HUnit (assertFailure)
 
--- | Measurement data for a single evaluation run
-data Measurement = Measurement
-  { mCpuTimeMs :: Double
-  , mMemoryBytes :: Integer
-  , mCpuBudget :: Integer
-  , mMemoryBudget :: Integer
+-- | Timing sample for a single evaluation run (variable data only)
+data TimingSample = TimingSample
+  { tsCpuTimeMs :: Double
   }
   deriving stock (Generic, Show, Eq)
 
-instance FromJSON Measurement where
-  parseJSON = Aeson.withObject "Measurement" \v ->
-    Measurement
+instance FromJSON TimingSample where
+  parseJSON = Aeson.withObject "TimingSample" \v ->
+    TimingSample
       <$> v .: "cpu_time_ms"
-      <*> v .: "memory_bytes"
-      <*> v .: "cpu_budget"
-      <*> v .: "memory_budget"
 
--- | Successful evaluation result
+-- | Successful evaluation result with deterministic budget at top level
 data EvalResult = EvalResult
   { erProgramId :: Text
   , erStatus :: Text
-  , erMeasurements :: [Measurement]
+  , erCpuBudget :: Integer
+  , erMemoryBudget :: Integer
+  , erMemoryBytes :: Integer
+  , erTimingSamples :: [TimingSample]
   }
   deriving stock (Generic, Show, Eq)
 
@@ -72,7 +69,10 @@ instance FromJSON EvalResult where
     EvalResult
       <$> v .: "program_id"
       <*> v .: "status"
-      <*> v .: "measurements"
+      <*> v .: "cpu_budget"
+      <*> v .: "memory_budget"
+      <*> v .: "memory_bytes"
+      <*> v .: "timing_samples"
 
 -- | Error result
 data EvalError = EvalError
