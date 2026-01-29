@@ -656,25 +656,25 @@ dischargeResultToTerm (DischargeNonConstant term) = term
 they're bound to (which themselves have to be obtained by recursively discharging values). -}
 dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
 dischargeCekValue (VCon val) = DischargeConstant val
-dischargeCekValue value0 = DischargeNonConstant $ goValue value0
+dischargeCekValue value0 = DischargeNonConstant $ goValue 0 value0
   where
-    goValue :: CekValue uni fun ann -> NTerm uni fun ()
-    goValue = \case
+    goValue :: Word64 -> CekValue uni fun ann -> NTerm uni fun ()
+    goValue !global = \case
       VCon val -> Constant () val
-      VDelay body env -> Delay () $ goValEnv env 0 body
+      VDelay body env -> Delay () $ goValEnv env global 0 body
       VLamAbs (NamedDeBruijn n _ix) body env ->
         -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
-        LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
+        LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env global 1 body
       -- We only return a discharged builtin application when (a) it's being returned by the
       -- machine, or (b) it's needed for an error message.
       -- @term@ is fully discharged, so we can return it directly without any further discharging.
       VBuiltin _ term _ -> term
-      VConstr ind args -> Constr () ind . map goValue $ argStackToList args
+      VConstr ind args -> Constr () ind . map (goValue global) $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
-    goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
-    goValEnv env = go
+    goValEnv :: CekValEnv uni fun ann -> Word64 -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
+    goValEnv env !global = go
       where
         -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
         -- into so far.
@@ -688,10 +688,10 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
               then Var () named
               else
                 maybe
-                  -- var is free, leave it alone
-                  (Var () named)
-                  -- var is in the env, discharge its value and shift free vars
-                  (shiftTermBy shift . goValue)
+                  -- var is free, shift it by global + shift
+                  (Var () (shiftNamedDeBruijn (global + shift) named))
+                  -- var is in the env, discharge its value
+                  (goValue (global + shift))
                   -- index relative to (as seen from the point of view of) the environment
                   (Env.indexOne env $ idx - shift)
           Apply _ fun arg -> Apply () (go shift fun) $ go shift arg
@@ -702,27 +702,6 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
           Error _ -> Error ()
           Constr _ ind args -> Constr () ind $ map (go shift) args
           Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
-
-{-| Shift all free variables in a term by the given amount.
-A variable is free if its index is greater than the current binding depth. -}
-shiftTermBy :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
-shiftTermBy 0 term = term -- Optimization: no-op when shift is 0
-shiftTermBy shiftAmount term = go 0 term
-  where
-    go :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
-    go !depth = \case
-      Var ann (NamedDeBruijn n (coerce -> idx))
-        | idx <= depth -> Var ann (NamedDeBruijn n (coerce idx)) -- Bound: unchanged
-        | otherwise -> Var ann (NamedDeBruijn n (coerce (idx + shiftAmount))) -- Free: shift
-      LamAbs ann name body -> LamAbs ann name $ go (depth + 1) body
-      Apply ann fun arg -> Apply ann (go depth fun) (go depth arg)
-      Delay ann t -> Delay ann $ go depth t
-      Force ann t -> Force ann $ go depth t
-      Constant ann val -> Constant ann val
-      Builtin ann fun -> Builtin ann fun
-      Error ann -> Error ann
-      Constr ann ind args -> Constr ann ind $ map (go depth) args
-      Case ann scrut alts -> Case ann (go depth scrut) $ fmap (go depth) alts
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue

@@ -28,6 +28,7 @@ module PlutusCore.DeBruijn.Internal
   , getIndex
   , getUnique
   , unNameDeBruijn
+  , shiftNamedDeBruijn
   , unNameTyDeBruijn
   , fakeNameDeBruijn
   , fakeTyNameDeBruijn
@@ -113,6 +114,9 @@ deBruijnInitIndex = 0
 data NamedDeBruijn = NamedDeBruijn {ndbnString :: !T.Text, ndbnIndex :: !Index}
   deriving stock (Show, Generic, Read)
   deriving anyclass (Hashable, NFData)
+
+shiftNamedDeBruijn :: Word64 -> NamedDeBruijn -> NamedDeBruijn
+shiftNamedDeBruijn i (NamedDeBruijn t (Index n)) = NamedDeBruijn t (Index (n + i))
 
 {-| A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
 

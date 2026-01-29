@@ -18,6 +18,7 @@ module PlutusCore.DeBruijn
   , NamedTyDeBruijn (..)
   , FreeVariableError (..)
   , unNameDeBruijn
+  , shiftNamedDeBruijn
   , unNameTyDeBruijn
   , fakeNameDeBruijn
   , fakeTyNameDeBruijn
