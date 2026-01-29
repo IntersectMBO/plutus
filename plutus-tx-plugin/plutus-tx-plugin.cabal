@@ -131,6 +131,7 @@ test-suite plutus-tx-plugin-tests
     Budget.Spec
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
+    BuiltinCasing.Spec
     BuiltinList.Budget.Spec
     BuiltinList.NoCasing.Spec
     ByteStringLiterals.Lib

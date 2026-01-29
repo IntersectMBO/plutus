@@ -5,6 +5,7 @@ import AsData.Budget.Spec qualified as AsData.Budget
 import AssocMap.Spec qualified as AssocMap
 import Blueprint.Tests qualified
 import Budget.Spec qualified as Budget
+import BuiltinCasing.Spec qualified as BuiltinCasing
 import BuiltinList.Budget.Spec qualified as BuiltinList.Budget
 import BuiltinList.NoCasing.Spec qualified as BuiltinList.NoCasing
 import ByteStringLiterals.Spec qualified as ByteStringLiterals
@@ -64,4 +65,5 @@ tests =
     , embed List.propertyTests
     , Array.smokeTests
     , CallTrace.tests
+    , BuiltinCasing.tests
     ]
