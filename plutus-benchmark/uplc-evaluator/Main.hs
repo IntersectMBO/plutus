@@ -75,29 +75,26 @@ configParser =
           <> help "Polling interval in milliseconds (default: 1000)"
       )
 
--- | Measurement data for a single evaluation run
-data Measurement = Measurement
-  { mCpuTimeMs :: Double
-  , mMemoryBytes :: Integer
-  , mCpuBudget :: Integer
-  , mMemoryBudget :: Integer
+-- | Timing sample for a single evaluation run (variable data only)
+data TimingSample = TimingSample
+  { tsCpuTimeMs :: Double
   }
   deriving stock (Generic, Show)
 
-instance ToJSON Measurement where
-  toJSON Measurement {..} =
+instance ToJSON TimingSample where
+  toJSON TimingSample {..} =
     Aeson.object
-      [ "cpu_time_ms" .= mCpuTimeMs
-      , "memory_bytes" .= mMemoryBytes
-      , "cpu_budget" .= mCpuBudget
-      , "memory_budget" .= mMemoryBudget
+      [ "cpu_time_ms" .= tsCpuTimeMs
       ]
 
--- | Successful evaluation result
+-- | Successful evaluation result with deterministic budget at top level
 data EvalResult = EvalResult
   { erProgramId :: Text
   , erStatus :: Text
-  , erMeasurements :: [Measurement]
+  , erCpuBudget :: Integer
+  , erMemoryBudget :: Integer
+  , erMemoryBytes :: Integer
+  , erTimingSamples :: [TimingSample]
   }
   deriving stock (Generic, Show)
 
@@ -106,7 +103,10 @@ instance ToJSON EvalResult where
     Aeson.object
       [ "program_id" .= erProgramId
       , "status" .= erStatus
-      , "measurements" .= erMeasurements
+      , "cpu_budget" .= erCpuBudget
+      , "memory_budget" .= erMemoryBudget
+      , "memory_bytes" .= erMemoryBytes
+      , "timing_samples" .= erTimingSamples
       ]
 
 -- | Error result
@@ -236,13 +236,13 @@ defaultSampleCount = 15
 
 {-| Collect multiple timing samples for a UPLC term evaluation.
 Performs warm-up iterations first, then collects timing samples.
-Budget values are deterministic (same for all samples from same program).
+Budget values are deterministic and returned separately from variable timing data.
 Returns early with error if initial validation fails. -}
 collectMeasurements
   :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -> Int
   -- ^ Number of samples to collect
-  -> IO (Either EvalFailure [Measurement])
+  -> IO (Either EvalFailure (EvalBudget, [TimingSample]))
 collectMeasurements term sampleCount = do
   -- First, validate the program by evaluating once to get budget (or error)
   case evaluateWithBudget term of
@@ -254,9 +254,9 @@ collectMeasurements term sampleCount = do
       -- Collect timing samples
       timings <- replicateM sampleCount (measureSingleExecution term)
 
-      -- Build measurements with deterministic budget values
-      let measurements = map (buildMeasurement budget) timings
-      return $ Right measurements
+      -- Build timing samples (only variable timing data)
+      let samples = map buildTimingSample timings
+      return $ Right (budget, samples)
   where
     -- Measure a single execution and return wall-clock time in milliseconds
     measureSingleExecution
@@ -272,15 +272,11 @@ collectMeasurements term sampleCount = do
       -> Either EvalFailure EvalBudget
     evalTerm = evaluateWithBudget
 
-    -- Build a Measurement from budget and timing
-    buildMeasurement :: EvalBudget -> Double -> Measurement
-    buildMeasurement EvalBudget {..} cpuTimeMs =
-      Measurement
-        { mCpuTimeMs = cpuTimeMs
-        , -- ExMemory is abstract units; multiply by 8 (word size) as proxy for bytes
-          mMemoryBytes = ebMemoryBudget * 8
-        , mCpuBudget = ebCpuBudget
-        , mMemoryBudget = ebMemoryBudget
+    -- Build a TimingSample from timing (only variable data)
+    buildTimingSample :: Double -> TimingSample
+    buildTimingSample cpuTimeMs =
+      TimingSample
+        { tsCpuTimeMs = cpuTimeMs
         }
 
 -- | Process a single program file
@@ -384,12 +380,16 @@ processProgram Config {..} inputPath = do
                                 jobIdText
                                 "evaluation_error"
                                 evalErr
-                            Right measurements -> do
+                            Right (budget, samples) -> do
                               let result =
                                     EvalResult
                                       { erProgramId = jobIdText
                                       , erStatus = "success"
-                                      , erMeasurements = measurements
+                                      , erCpuBudget = ebCpuBudget budget
+                                      , erMemoryBudget = ebMemoryBudget budget
+                                      , -- ExMemory is abstract units; multiply by 8 (word size) as proxy for bytes
+                                        erMemoryBytes = ebMemoryBudget budget * 8
+                                      , erTimingSamples = samples
                                       }
                               writeResult cfgOutputDir result
 
