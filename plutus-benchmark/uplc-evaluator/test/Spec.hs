@@ -90,13 +90,13 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                 ("timing_samples should have 10-20 entries, got " ++ show sampleCount)
                 (sampleCount >= 10 && sampleCount <= 20)
 
-              -- Verify each timing sample has positive cpu_time_ms
+              -- Verify each timing sample has positive cpu_time_ns
               mapM_
                 ( \s -> do
-                    -- Check that cpu_time_ms is in reasonable range
+                    -- Check that cpu_time_ns is in reasonable range
                     assertBool
-                      ("cpu_time_ms should be > 0, got " ++ show (tsCpuTimeMs s))
-                      (tsCpuTimeMs s > 0)
+                      ("cpu_time_ns should be > 0, got " ++ show (tsCpuTimeNs s))
+                      (tsCpuTimeNs s > 0)
                 )
                 (erTimingSamples result)
 
@@ -501,14 +501,14 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                 ("memory_bytes should be >= 0 and <= 10485760, got " ++ show memBytes)
                 (memBytes >= 0 && memBytes <= 10485760)
 
-              -- Verify each timing sample has cpu_time_ms in expected range
+              -- Verify each timing sample has cpu_time_ns in expected range
               -- Simple programs can evaluate in microseconds
               mapM_
                 ( \s -> do
-                    let cpuTime = tsCpuTimeMs s
+                    let cpuTime = tsCpuTimeNs s
                     assertBool
-                      ("cpu_time_ms should be >= 0 and <= 500.0, got " ++ show cpuTime)
-                      (cpuTime >= 0 && cpuTime <= 500.0)
+                      ("cpu_time_ns should be >= 0 and <= 500000000, got " ++ show cpuTime)
+                      (cpuTime >= 0 && cpuTime <= 500000000)
                 )
                 samples
         ]
@@ -546,13 +546,13 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                 ("memory_bytes should be > 0, got " ++ show (erMemoryBytes result))
                 (erMemoryBytes result > 0)
 
-              -- cpu_time_ms values may vary (timing is non-deterministic)
+              -- cpu_time_ns values may vary (timing is non-deterministic)
               -- We just verify they exist and are positive
-              let cpuTimes = map tsCpuTimeMs samples
+              let cpuTimes = map tsCpuTimeNs samples
               mapM_
                 ( \t ->
                     assertBool
-                      ("cpu_time_ms should be > 0, got " ++ show t)
+                      ("cpu_time_ns should be > 0, got " ++ show t)
                       (t > 0)
                 )
                 cpuTimes

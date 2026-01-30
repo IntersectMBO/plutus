@@ -23,6 +23,7 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as TIO
 import Data.UUID (UUID)
 import Data.UUID qualified as UUID
+import Data.Word (Word64)
 import GHC.Generics (Generic)
 import Main.Utf8 (withUtf8)
 import Options.Applicative
@@ -75,16 +76,14 @@ configParser =
           <> help "Polling interval in milliseconds (default: 1000)"
       )
 
--- | Timing sample for a single evaluation run (variable data only)
-data TimingSample = TimingSample
-  { tsCpuTimeMs :: Double
-  }
+-- | Timing sample for a single evaluation run
+newtype TimingSample = TimingSample {tsCpuTimeNs :: Word64}
   deriving stock (Generic, Show)
 
 instance ToJSON TimingSample where
   toJSON TimingSample {..} =
     Aeson.object
-      [ "cpu_time_ms" .= tsCpuTimeMs
+      [ "cpu_time_ns" .= tsCpuTimeNs
       ]
 
 -- | Successful evaluation result with deterministic budget at top level
@@ -164,15 +163,15 @@ parseUplcProgram input =
     Right prog -> Right $ void prog
 
 {-| Measure execution time of an IO action using criterion-measurement.
-Returns the result and execution time in milliseconds.
+Returns the result and execution time in nanoseconds.
 Uses evaluate+force to ensure the result is fully evaluated before measuring end time. -}
-measureExecution :: NFData a => IO a -> IO (a, Double)
+measureExecution :: NFData a => IO a -> IO (a, Word64)
 measureExecution ioAction = do
   startTime <- getTime
   result <- evaluate . force =<< ioAction
   endTime <- getTime
-  let timeMs = (endTime - startTime) * 1000 -- Convert seconds to milliseconds
-  return (result, timeMs)
+  let timeNs = round ((endTime - startTime) * 1e9) -- Convert seconds to nanoseconds
+  return (result, timeNs)
 
 -- | Result of CEK evaluation with budget information
 data EvalBudget = EvalBudget
@@ -258,13 +257,13 @@ collectMeasurements term sampleCount = do
       let samples = map buildTimingSample timings
       return $ Right (budget, samples)
   where
-    -- Measure a single execution and return wall-clock time in milliseconds
+    -- Measure a single execution and return wall-clock time in nanoseconds
     measureSingleExecution
       :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-      -> IO Double
+      -> IO Word64
     measureSingleExecution t = do
-      (_, timeMs) <- measureExecution $ return $! evalTerm t
-      return timeMs
+      (_, timeNs) <- measureExecution $ return $! evalTerm t
+      return timeNs
 
     -- Evaluate term (used for timing, result discarded)
     evalTerm
@@ -273,10 +272,10 @@ collectMeasurements term sampleCount = do
     evalTerm = evaluateWithBudget
 
     -- Build a TimingSample from timing (only variable data)
-    buildTimingSample :: Double -> TimingSample
-    buildTimingSample cpuTimeMs =
+    buildTimingSample :: Word64 -> TimingSample
+    buildTimingSample cpuTimeNs =
       TimingSample
-        { tsCpuTimeMs = cpuTimeMs
+        { tsCpuTimeNs = cpuTimeNs
         }
 
 -- | Process a single program file
