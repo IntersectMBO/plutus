@@ -36,7 +36,7 @@ import PlutusPrelude (void)
 import System.Directory
 import System.Exit (exitFailure)
 import System.FilePath (takeBaseName, takeExtension, (</>))
-import System.IO (hPutStrLn, stderr)
+import System.IO (BufferMode (LineBuffering), hPutStrLn, hSetBuffering, stderr)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Parser qualified as UPLC.Parser
@@ -464,6 +464,7 @@ takeFileName = reverse . takeWhile (/= '/') . reverse
 -- | Main entry point
 main :: IO ()
 main = withUtf8 do
+  hSetBuffering stderr LineBuffering -- Prevent garbled output from concurrent threads
   initializeTime -- Required before using getTime from criterion-measurement
   config <- execParser opts
   hPutStrLn stderr "UPLC Evaluator Service starting..."
