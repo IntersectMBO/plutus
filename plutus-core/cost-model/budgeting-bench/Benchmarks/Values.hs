@@ -262,7 +262,7 @@ valueDataBenchmark _gen =
     ValueTotalSize
     ValueData
     []
-    generateTestValues1
+    generateTestValues2
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
@@ -281,7 +281,7 @@ unValueDataBenchmark _gen =
     DataNodeCount
     UnValueData
     []
-    (Value.valueData <$> generateTestValues1)
+    (Value.valueData <$> generateTestValues2)
 
 -- Generate test values with n coins with 1 token each
 generateTestValues1 :: [Value]
