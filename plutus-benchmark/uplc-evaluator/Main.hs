@@ -398,14 +398,16 @@ processProgram Config {..} inputPath = do
         `catch` \(e :: SomeException) ->
           hPutStrLn stderr $ "Failed to rename file: " ++ show e
 
--- | Write successful result to JSON file
+-- | Write successful result to JSON file (atomic write via temp file)
 writeResult :: FilePath -> EvalResult -> IO ()
 writeResult outputDir result = do
   let outputPath = outputDir </> T.unpack (erProgramId result) ++ ".result.json"
-  BSL.writeFile outputPath (Aeson.encode result)
+      tempPath = outputPath ++ ".tmp"
+  BSL.writeFile tempPath (Aeson.encode result)
+  renameFile tempPath outputPath
   hPutStrLn stderr $ "Wrote result: " ++ outputPath
 
--- | Write error result to JSON file
+-- | Write error result to JSON file (atomic write via temp file)
 writeError :: FilePath -> Text -> Text -> Text -> IO ()
 writeError outputDir programId errorType errorMessage = do
   let evalError =
@@ -416,7 +418,9 @@ writeError outputDir programId errorType errorMessage = do
           , eeErrorMessage = errorMessage
           }
       outputPath = outputDir </> T.unpack programId ++ ".error.json"
-  BSL.writeFile outputPath (Aeson.encode evalError)
+      tempPath = outputPath ++ ".tmp"
+  BSL.writeFile tempPath (Aeson.encode evalError)
+  renameFile tempPath outputPath
   hPutStrLn stderr $ "Wrote error: " ++ outputPath
 
 -- | Main evaluation loop
