@@ -60,7 +60,6 @@ data EvalResult = EvalResult
   , erStatus :: Text
   , erCpuBudget :: Integer
   , erMemoryBudget :: Integer
-  , erMemoryBytes :: Integer
   , erTimingSamples :: [TimingSample]
   }
   deriving stock (Generic, Show, Eq)
@@ -72,7 +71,6 @@ instance FromJSON EvalResult where
       <*> v .: "status"
       <*> v .: "cpu_budget"
       <*> v .: "memory_budget"
-      <*> v .: "memory_bytes"
       <*> v .: "timing_samples"
 
 -- | Error result
