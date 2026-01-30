@@ -924,3 +924,4 @@ test-suite uplc-evaluator-integration-tests
     , temporary
     , text
     , uuid
+    , with-utf8
