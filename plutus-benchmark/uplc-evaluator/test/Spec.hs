@@ -18,7 +18,7 @@ import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
 import TestHelpers
   ( EvalError (..)
   , EvalResult (..)
-  , Measurement (..)
+  , TimingSample (..)
   , readErrorJsonOrFail
   , readResultJson
   , readResultJsonOrFail
@@ -73,33 +73,32 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify measurements array has 10-20 entries
-              let measurementCount = length (erMeasurements result)
+              -- Verify top-level budget fields are positive
               assertBool
-                ("Measurements should have 10-20 entries, got " ++ show measurementCount)
-                (measurementCount >= 10 && measurementCount <= 20)
+                ("cpu_budget should be > 0, got " ++ show (erCpuBudget result))
+                (erCpuBudget result > 0)
+              assertBool
+                ("memory_budget should be > 0, got " ++ show (erMemoryBudget result))
+                (erMemoryBudget result > 0)
+              assertBool
+                ("memory_bytes should be > 0, got " ++ show (erMemoryBytes result))
+                (erMemoryBytes result > 0)
 
-              -- Verify each measurement has the required fields
+              -- Verify timing_samples array has 10-20 entries
+              let sampleCount = length (erTimingSamples result)
+              assertBool
+                ("timing_samples should have 10-20 entries, got " ++ show sampleCount)
+                (sampleCount >= 10 && sampleCount <= 20)
+
+              -- Verify each timing sample has positive cpu_time_ms
               mapM_
-                ( \m -> do
+                ( \s -> do
                     -- Check that cpu_time_ms is in reasonable range
                     assertBool
-                      ("cpu_time_ms should be > 0, got " ++ show (mCpuTimeMs m))
-                      (mCpuTimeMs m > 0)
-                    -- Check that memory_bytes is in reasonable range
-                    assertBool
-                      ("memory_bytes should be > 0, got " ++ show (mMemoryBytes m))
-                      (mMemoryBytes m > 0)
-                    -- Check that cpu_budget is in reasonable range
-                    assertBool
-                      ("cpu_budget should be > 0, got " ++ show (mCpuBudget m))
-                      (mCpuBudget m > 0)
-                    -- Check that memory_budget is in reasonable range
-                    assertBool
-                      ("memory_budget should be > 0, got " ++ show (mMemoryBudget m))
-                      (mMemoryBudget m > 0)
+                      ("cpu_time_ms should be > 0, got " ++ show (tsCpuTimeMs s))
+                      (tsCpuTimeMs s > 0)
                 )
-                (erMeasurements result)
+                (erTimingSamples result)
 
               -- Verify original input file is renamed to .processed
               let inputFilename = UUID.toString jobId ++ ".uplc.txt"
@@ -346,6 +345,38 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                 ( T.isInfixOf "uuid" (T.toLower (eeErrorMessage evalError))
                     || T.isInfixOf "format" (T.toLower (eeErrorMessage evalError))
                 )
+        , testCase "Runtime evaluation error produces evaluation_error" do
+            execPath <- findEvaluatorExecutable
+            withEvaluatorService execPath \handle -> do
+              -- Generate a UUID for this job
+              jobId <- UUID.nextRandom
+
+              -- Submit a syntactically valid program that causes a runtime error
+              -- This tries to apply an integer constant (42) to an argument (1)
+              -- which fails at runtime because an integer is not a function
+              let program = "(program 1.0.0 [ (con integer 42) (con integer 1) ])"
+              submitProgram handle jobId program
+
+              -- Wait for error (5 second timeout)
+              path <- waitForErrorOrFail handle jobId 5000
+              evalError <- readErrorJsonOrFail path
+
+              -- Verify program_id matches submitted UUID
+              let expectedId = T.pack (UUID.toString jobId)
+              eeProgramId evalError @?= expectedId
+
+              -- Verify status is "error"
+              eeStatus evalError @?= "error"
+
+              -- Verify error type is "evaluation_error" (not "syntax_error")
+              -- This is a runtime error, not a parse error
+              eeErrorType evalError @?= "evaluation_error"
+
+              -- Verify error message contains descriptive information
+              -- The CEK machine should report something about applying a non-function
+              assertBool
+                "Error message should contain descriptive information"
+                (not $ T.null $ eeErrorMessage evalError)
         ]
     , testGroup
         "File Filtering"
@@ -445,41 +476,86 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Wait for result (5 second timeout)
               path <- waitForResultOrFail handle jobId 5000
               result <- readResultJsonOrFail path
-              -- Verify measurements array has 10-20 entries
-              let measurements = erMeasurements result
-                  measurementCount = length measurements
+              -- Verify timing_samples array has 10-20 entries
+              let samples = erTimingSamples result
+                  sampleCount = length samples
               assertBool
-                ("Measurements should have 10-20 entries, got " ++ show measurementCount)
-                (measurementCount >= 10 && measurementCount <= 20)
+                ("timing_samples should have 10-20 entries, got " ++ show sampleCount)
+                (sampleCount >= 10 && sampleCount <= 20)
 
-              -- Verify each measurement has values in expected ranges
+              -- Verify top-level budget values are in expected ranges
+              -- Note: With real CEK evaluation, simple programs have small budget values.
+              let cpuBudget = erCpuBudget result
+              assertBool
+                ("cpu_budget should be >= 0 and <= 100000000, got " ++ show cpuBudget)
+                (cpuBudget >= 0 && cpuBudget <= 100000000)
+
+              let memBudget = erMemoryBudget result
+              assertBool
+                ("memory_budget should be >= 0 and <= 50000000, got " ++ show memBudget)
+                (memBudget >= 0 && memBudget <= 50000000)
+
+              -- memory_bytes is derived from ExMemory * 8 (word size)
+              let memBytes = erMemoryBytes result
+              assertBool
+                ("memory_bytes should be >= 0 and <= 10485760, got " ++ show memBytes)
+                (memBytes >= 0 && memBytes <= 10485760)
+
+              -- Verify each timing sample has cpu_time_ms in expected range
+              -- Simple programs can evaluate in microseconds
               mapM_
-                ( \m -> do
-                    -- cpu_time_ms should be between 0.1 and 500.0
-                    let cpuTime = mCpuTimeMs m
+                ( \s -> do
+                    let cpuTime = tsCpuTimeMs s
                     assertBool
-                      ("cpu_time_ms should be between 0.1 and 500.0, got " ++ show cpuTime)
-                      (cpuTime >= 0.1 && cpuTime <= 500.0)
-
-                    -- memory_bytes should be between 1024 and 10485760
-                    let memBytes = mMemoryBytes m
-                    assertBool
-                      ("memory_bytes should be between 1024 and 10485760, got " ++ show memBytes)
-                      (memBytes >= 1024 && memBytes <= 10485760)
-
-                    -- cpu_budget should be between 1000 and 100000000
-                    let cpuBudget = mCpuBudget m
-                    assertBool
-                      ("cpu_budget should be between 1000 and 100000000, got " ++ show cpuBudget)
-                      (cpuBudget >= 1000 && cpuBudget <= 100000000)
-
-                    -- memory_budget should be between 1000 and 50000000
-                    let memBudget = mMemoryBudget m
-                    assertBool
-                      ("memory_budget should be between 1000 and 50000000, got " ++ show memBudget)
-                      (memBudget >= 1000 && memBudget <= 50000000)
+                      ("cpu_time_ms should be >= 0 and <= 500.0, got " ++ show cpuTime)
+                      (cpuTime >= 0 && cpuTime <= 500.0)
                 )
-                measurements
+                samples
+        ]
+    , testGroup
+        "Budget Determinism"
+        [ testCase "Budget values are at top level (deterministic, not repeated in samples)" do
+            execPath <- findEvaluatorExecutable
+            withEvaluatorService execPath \handle -> do
+              -- Generate a UUID for this job
+              jobId <- UUID.nextRandom
+
+              -- Submit a valid UPLC program
+              let program = "(program 1.0.0 (con integer 42))"
+              submitProgram handle jobId program
+
+              -- Wait for result (5 second timeout)
+              path <- waitForResultOrFail handle jobId 5000
+              result <- readResultJsonOrFail path
+              -- Verify we have timing samples
+              let samples = erTimingSamples result
+                  sampleCount = length samples
+              assertBool
+                ("Should have at least 10 timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
+
+              -- Budget values are now at top level (single deterministic value)
+              -- Just verify they exist and are positive
+              assertBool
+                ("cpu_budget should be > 0, got " ++ show (erCpuBudget result))
+                (erCpuBudget result > 0)
+              assertBool
+                ("memory_budget should be > 0, got " ++ show (erMemoryBudget result))
+                (erMemoryBudget result > 0)
+              assertBool
+                ("memory_bytes should be > 0, got " ++ show (erMemoryBytes result))
+                (erMemoryBytes result > 0)
+
+              -- cpu_time_ms values may vary (timing is non-deterministic)
+              -- We just verify they exist and are positive
+              let cpuTimes = map tsCpuTimeMs samples
+              mapM_
+                ( \t ->
+                    assertBool
+                      ("cpu_time_ms should be > 0, got " ++ show t)
+                      (t > 0)
+                )
+                cpuTimes
         ]
     , testGroup
         "UUID Validation - Valid Formats"
@@ -504,11 +580,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                   -- Verify status is "success" (not validation error)
                   erStatus result @?= "success"
 
-                  -- Verify we got measurements (confirms evaluation succeeded)
-                  let measurementCount = length (erMeasurements result)
+                  -- Verify we got timing samples (confirms evaluation succeeded)
+                  let sampleCount = length (erTimingSamples result)
                   assertBool
-                    ("Should have measurements, got " ++ show measurementCount)
-                    (measurementCount >= 10)
+                    ("Should have timing samples, got " ++ show sampleCount)
+                    (sampleCount >= 10)
         , testCase "Mixed case UUID v4 format is accepted" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -527,11 +603,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                   -- Verify status is "success" (not validation error)
                   erStatus result @?= "success"
 
-                  -- Verify we got measurements
-                  let measurementCount = length (erMeasurements result)
+                  -- Verify we got timing samples
+                  let sampleCount = length (erTimingSamples result)
                   assertBool
-                    ("Should have measurements, got " ++ show measurementCount)
-                    (measurementCount >= 10)
+                    ("Should have timing samples, got " ++ show sampleCount)
+                    (sampleCount >= 10)
         , testCase "Multiple randomly generated UUID v4s are accepted" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -572,10 +648,10 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                       erProgramId r2 @?= T.pack (UUID.toString jobId2)
                       erProgramId r3 @?= T.pack (UUID.toString jobId3)
 
-                      -- Verify all have measurements
-                      assertBool "First result should have measurements" (length (erMeasurements r1) >= 10)
-                      assertBool "Second result should have measurements" (length (erMeasurements r2) >= 10)
-                      assertBool "Third result should have measurements" (length (erMeasurements r3) >= 10)
+                      -- Verify all have timing samples
+                      assertBool "First result should have timing samples" (length (erTimingSamples r1) >= 10)
+                      assertBool "Second result should have timing samples" (length (erTimingSamples r2) >= 10)
+                      assertBool "Third result should have timing samples" (length (erTimingSamples r3) >= 10)
                     (Left err, _, _) -> assertFailure $ "Failed to parse first result: " ++ err
                     (_, Left err, _) -> assertFailure $ "Failed to parse second result: " ++ err
                     (_, _, Left err) -> assertFailure $ "Failed to parse third result: " ++ err
@@ -674,15 +750,15 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
                   totalIds = length resultProgramIds
               uniqueIds @?= totalIds
 
-              -- Verify all results have measurements
+              -- Verify all results have timing samples
               mapM_
                 ( \result -> do
-                    let measurementCount = length (erMeasurements result)
+                    let sampleCount = length (erTimingSamples result)
                     assertBool
-                      ( "Result should have measurements, got "
-                          ++ show measurementCount
+                      ( "Result should have timing samples, got "
+                          ++ show sampleCount
                       )
-                      (measurementCount >= 10)
+                      (sampleCount >= 10)
                 )
                 results
         ]
@@ -704,11 +780,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         , testCase "Program with leading newlines is processed successfully" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -725,11 +801,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         , testCase "Program with leading tabs is processed successfully" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -746,11 +822,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         , testCase "Program with mixed whitespace is processed successfully" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -767,11 +843,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         ]
     , testGroup
         "SPEC.md Example Programs"
@@ -791,11 +867,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         , testCase "Example 2: Arithmetic with builtins" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -817,11 +893,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         , testCase "Example 3: Lambda application" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -845,11 +921,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         , testCase "Example 4: Constructor with version 1.1.0" do
             execPath <- findEvaluatorExecutable
             withEvaluatorService execPath \handle -> do
@@ -866,11 +942,11 @@ main = defaultMain $ testGroup "uplc-evaluator integration tests" do
               -- Verify status is "success"
               erStatus result @?= "success"
 
-              -- Verify we have measurements
-              let measurementCount = length (erMeasurements result)
+              -- Verify we have timing samples
+              let sampleCount = length (erTimingSamples result)
               assertBool
-                ("Should have measurements, got " ++ show measurementCount)
-                (measurementCount >= 10)
+                ("Should have timing samples, got " ++ show sampleCount)
+                (sampleCount >= 10)
         ]
     ]
 

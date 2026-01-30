@@ -658,7 +658,7 @@ Successful evaluation results use the `.result.json` file extension and follow t
 
 ### Format
 
-Result files are JSON objects containing raw measurement samples from UPLC program evaluation. Each measurement includes execution time, memory usage, and budget consumption metrics.
+Result files are JSON objects containing evaluation metrics from UPLC program execution. Deterministic values (budget, memory) are at the top level, while variable timing data is in the `timing_samples` array.
 
 ### Result Schema
 
@@ -666,12 +666,12 @@ Result files are JSON objects containing raw measurement samples from UPLC progr
 {
   "program_id": "<string>",
   "status": "success",
-  "measurements": [
+  "cpu_budget": <number>,
+  "memory_budget": <number>,
+  "memory_bytes": <number>,
+  "timing_samples": [
     {
-      "cpu_time_ms": <number>,
-      "memory_bytes": <number>,
-      "cpu_budget": <number>,
-      "memory_budget": <number>
+      "cpu_time_ms": <number>
     },
     ...
   ]
@@ -696,44 +696,6 @@ The evaluation status. For successful evaluations, this field is always `"succes
 
 **Value**: `"success"`
 
-#### `measurements` (required)
-
-An array of raw measurement samples collected during program evaluation. Each program is evaluated multiple times (typically 10-20 iterations) to capture execution variability.
-
-**Type**: Array of measurement objects
-
-**Length**: 10-20 samples (exact count depends on evaluation service configuration)
-
-**Important**: These are **raw samples**, not aggregated statistics. Clients are responsible for computing mean, median, standard deviation, or other statistics from these samples if needed.
-
-### Measurement Object Fields
-
-Each measurement object in the `measurements` array contains four metrics:
-
-#### `cpu_time_ms` (required)
-
-Wall-clock execution time in milliseconds. This measures the actual elapsed time for the CEK machine evaluation.
-
-**Type**: Number (floating-point)
-
-**Unit**: Milliseconds
-
-**Example**: `42.583`
-
-**Note**: This is wall-clock time, not CPU budget units. It reflects actual hardware performance.
-
-#### `memory_bytes` (required)
-
-Peak memory usage during evaluation in bytes. This measures the maximum memory allocated by the CEK machine during execution.
-
-**Type**: Number (integer)
-
-**Unit**: Bytes
-
-**Example**: `4096`
-
-**Note**: This is actual memory usage, not memory budget units.
-
 #### `cpu_budget` (required)
 
 Total CPU budget consumed during evaluation, measured in ExCPU units as defined by the cost model. This is the on-chain execution cost that would be charged for this program.
@@ -742,9 +704,9 @@ Total CPU budget consumed during evaluation, measured in ExCPU units as defined 
 
 **Unit**: ExCPU (execution CPU units)
 
-**Example**: `1000000`
+**Example**: `100000`
 
-**Note**: Budget consumption depends on the cost model parameters specified in the configuration.
+**Note**: Budget consumption is deterministic for a given program and cost model. It does not vary between runs.
 
 #### `memory_budget` (required)
 
@@ -754,9 +716,47 @@ Total memory budget consumed during evaluation, measured in ExMemory units as de
 
 **Unit**: ExMemory (execution memory units)
 
-**Example**: `500000`
+**Example**: `50000`
 
-**Note**: Budget consumption depends on the cost model parameters specified in the configuration.
+**Note**: Budget consumption is deterministic for a given program and cost model. It does not vary between runs.
+
+#### `memory_bytes` (required)
+
+Memory usage during evaluation in bytes. Derived from ExMemory budget × 8 (word size) as a proxy for actual memory consumption.
+
+**Type**: Number (integer)
+
+**Unit**: Bytes
+
+**Example**: `400000`
+
+**Note**: This is deterministic (derived from memory_budget).
+
+#### `timing_samples` (required)
+
+An array of timing samples collected during program evaluation. Each program is evaluated multiple times (typically 10-20 iterations) to capture execution variability.
+
+**Type**: Array of timing sample objects
+
+**Length**: 10-20 samples (exact count depends on evaluation service configuration)
+
+**Important**: These are **raw samples**, not aggregated statistics. Clients are responsible for computing mean, median, standard deviation, or other statistics from these samples if needed.
+
+### Timing Sample Fields
+
+Each timing sample object in the `timing_samples` array contains:
+
+#### `cpu_time_ms` (required)
+
+Wall-clock execution time in milliseconds. This measures the actual elapsed time for the CEK machine evaluation.
+
+**Type**: Number (floating-point)
+
+**Unit**: Milliseconds
+
+**Example**: `0.421`
+
+**Note**: This is wall-clock time, not CPU budget units. It reflects actual hardware performance and may vary between runs.
 
 ### Example Result: Simple Program
 
@@ -764,76 +764,28 @@ Total memory budget consumed during evaluation, measured in ExMemory units as de
 {
   "program_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "success",
-  "measurements": [
-    {
-      "cpu_time_ms": 0.421,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.398,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.415,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.402,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.419,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.408,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.411,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.425,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.403,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    },
-    {
-      "cpu_time_ms": 0.417,
-      "memory_bytes": 2048,
-      "cpu_budget": 100000,
-      "memory_budget": 50000
-    }
+  "cpu_budget": 100000,
+  "memory_budget": 50000,
+  "memory_bytes": 400000,
+  "timing_samples": [
+    {"cpu_time_ms": 0.421},
+    {"cpu_time_ms": 0.398},
+    {"cpu_time_ms": 0.415},
+    {"cpu_time_ms": 0.402},
+    {"cpu_time_ms": 0.419},
+    {"cpu_time_ms": 0.408},
+    {"cpu_time_ms": 0.411},
+    {"cpu_time_ms": 0.425},
+    {"cpu_time_ms": 0.403},
+    {"cpu_time_ms": 0.417}
   ]
 }
 ```
 
 **Observations from this example**:
-- 10 measurement samples collected
+- 10 timing samples collected
 - `cpu_time_ms` shows variation between runs (0.398 to 0.425 ms)
-- `memory_bytes` is consistent (deterministic allocation)
-- Budget consumption (`cpu_budget`, `memory_budget`) is deterministic
+- Budget values (`cpu_budget`, `memory_budget`, `memory_bytes`) are deterministic and at top level
 - Clients should compute statistics: mean CPU time ≈ 0.412 ms, std dev ≈ 0.009 ms
 
 ### Example Result: Complex Program
@@ -842,106 +794,34 @@ Total memory budget consumed during evaluation, measured in ExMemory units as de
 {
   "program_id": "a1b2c3d4-e5f6-4789-a012-3456789abcde",
   "status": "success",
-  "measurements": [
-    {
-      "cpu_time_ms": 125.842,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 123.156,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 127.934,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 124.587,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 126.419,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 122.738,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 128.205,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 125.063,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 124.178,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 126.891,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 123.542,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 127.319,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 125.684,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 124.926,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    },
-    {
-      "cpu_time_ms": 126.437,
-      "memory_bytes": 524288,
-      "cpu_budget": 50000000,
-      "memory_budget": 10000000
-    }
+  "cpu_budget": 50000000,
+  "memory_budget": 10000000,
+  "memory_bytes": 80000000,
+  "timing_samples": [
+    {"cpu_time_ms": 125.842},
+    {"cpu_time_ms": 123.156},
+    {"cpu_time_ms": 127.934},
+    {"cpu_time_ms": 124.587},
+    {"cpu_time_ms": 126.419},
+    {"cpu_time_ms": 122.738},
+    {"cpu_time_ms": 128.205},
+    {"cpu_time_ms": 125.063},
+    {"cpu_time_ms": 124.178},
+    {"cpu_time_ms": 126.891},
+    {"cpu_time_ms": 123.542},
+    {"cpu_time_ms": 127.319},
+    {"cpu_time_ms": 125.684},
+    {"cpu_time_ms": 124.926},
+    {"cpu_time_ms": 126.437}
   ]
 }
 ```
 
 **Observations from this example**:
-- 15 measurement samples collected (service may vary sample count)
+- 15 timing samples collected (service may vary sample count)
 - Higher CPU time for complex program (~125 ms vs ~0.4 ms)
-- Higher memory usage (512 KB vs 2 KB)
 - Significantly higher budget consumption (50M ExCPU vs 100K ExCPU)
+- Budget values are deterministic and at top level (not repeated in each sample)
 - Execution time still varies between runs (122.7 to 128.2 ms)
 
 ### Raw Samples vs. Aggregated Statistics
@@ -969,11 +849,11 @@ Std deviation:    0.009 ms
 
 - Results are written to `/benchmarking/output/{job_id}.result.json` when evaluation completes successfully
 - Result files remain available until cleanup (see retention policy)
-- Budget values are deterministic for a given program and cost model
-- Wall-clock times (`cpu_time_ms`, `memory_bytes`) may vary between runs due to system load
-- Multiple samples enable statistical confidence in measurements
+- Budget values (`cpu_budget`, `memory_budget`, `memory_bytes`) are deterministic for a given program and cost model
+- Wall-clock times (`cpu_time_ms`) may vary between runs due to system load
+- Multiple timing samples enable statistical confidence in measurements
 - Budget consumption is independent of hardware performance (cost model is abstract)
-- Clients should parse JSON and extract measurements array for analysis
+- Clients should parse JSON and extract timing_samples array for statistical analysis
 
 ## JSON Output Format for Error Cases
 
@@ -1620,14 +1500,14 @@ fi
 Parse the result JSON and extract metrics:
 
 ```bash
-# Parse result JSON and extract measurements
-jq '.measurements[] | {cpu_time_ms, cpu_budget, memory_budget}' ./results/${JOB_ID}.result.json
+# Parse result JSON and extract timing samples
+jq '.timing_samples[] | {cpu_time_ms}' ./results/${JOB_ID}.result.json
 
 # Compute statistics (mean CPU time)
-jq '[.measurements[].cpu_time_ms] | add / length' ./results/${JOB_ID}.result.json
+jq '[.timing_samples[].cpu_time_ms] | add / length' ./results/${JOB_ID}.result.json
 
-# Check budget consumption
-jq '.measurements[0] | {cpu_budget, memory_budget}' ./results/${JOB_ID}.result.json
+# Check budget consumption (deterministic values at top level)
+jq '{cpu_budget, memory_budget, memory_bytes}' ./results/${JOB_ID}.result.json
 ```
 
 ### Job Completion Detection
@@ -1798,10 +1678,10 @@ while [ $TOTAL_WAIT -lt $MAX_TOTAL_WAIT ]; do
     echo ""
     echo "=== Result Summary ==="
     echo "Program ID: $JOB_ID"
-    echo "Sample count: $(jq '.measurements | length' ./results/${JOB_ID}.result.json)"
-    echo "Mean CPU time: $(jq '[.measurements[].cpu_time_ms] | add / length' ./results/${JOB_ID}.result.json) ms"
-    echo "CPU budget: $(jq '.measurements[0].cpu_budget' ./results/${JOB_ID}.result.json) ExCPU"
-    echo "Memory budget: $(jq '.measurements[0].memory_budget' ./results/${JOB_ID}.result.json) ExMemory"
+    echo "Sample count: $(jq '.timing_samples | length' ./results/${JOB_ID}.result.json)"
+    echo "Mean CPU time: $(jq '[.timing_samples[].cpu_time_ms] | add / length' ./results/${JOB_ID}.result.json) ms"
+    echo "CPU budget: $(jq '.cpu_budget' ./results/${JOB_ID}.result.json) ExCPU"
+    echo "Memory budget: $(jq '.memory_budget' ./results/${JOB_ID}.result.json) ExMemory"
     echo ""
     echo "Full results: ./results/${JOB_ID}.result.json"
 
