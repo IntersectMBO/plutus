@@ -243,7 +243,7 @@ list-valid-plutus-versions() {
   local versions="$(git tag | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -rV | uniq | tr ' ' '\n')"
   echo master 
   echo latest
-  for ver in $(echo "$versions" | head -n 7); do
+  for ver in $(echo "$versions" | head -n 6); do
     echo "$ver"  
   done
 }
