@@ -92,7 +92,6 @@ data EvalResult = EvalResult
   , erStatus :: Text
   , erCpuBudget :: Integer
   , erMemoryBudget :: Integer
-  , erMemoryBytes :: Integer
   , erTimingSamples :: [TimingSample]
   }
   deriving stock (Generic, Show)
@@ -104,7 +103,6 @@ instance ToJSON EvalResult where
       , "status" .= erStatus
       , "cpu_budget" .= erCpuBudget
       , "memory_budget" .= erMemoryBudget
-      , "memory_bytes" .= erMemoryBytes
       , "timing_samples" .= erTimingSamples
       ]
 
@@ -386,8 +384,6 @@ processProgram Config {..} inputPath = do
                                       , erStatus = "success"
                                       , erCpuBudget = ebCpuBudget budget
                                       , erMemoryBudget = ebMemoryBudget budget
-                                      , -- ExMemory is abstract units; multiply by 8 (word size) as proxy for bytes
-                                        erMemoryBytes = ebMemoryBudget budget * 8
                                       , erTimingSamples = samples
                                       }
                               writeResult cfgOutputDir result
