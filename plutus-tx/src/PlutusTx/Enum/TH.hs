@@ -50,7 +50,7 @@ deriveEnum name = do
     <$> instanceD
       (pure [])
       (pure instanceType)
-      [ funD 'succ (fmap (deriveSuccPred Succ) (zip cons (tail (Just <$> cons) ++ [Nothing])))
+      [ funD 'succ (fmap (deriveSuccPred Succ) (zip cons (drop 1 (Just <$> cons) ++ [Nothing])))
       , TH.pragInlD 'succ TH.Inlinable TH.FunLike TH.AllPhases
       , funD 'pred (fmap (deriveSuccPred Pred) (zip cons (Nothing : init (Just <$> cons))))
       , TH.pragInlD 'pred TH.Inlinable TH.FunLike TH.AllPhases
