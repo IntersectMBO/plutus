@@ -19,7 +19,7 @@ integerLength = fromIntegral . BS.length
 -- Arguments for single-argument benchmarks: 150 entries.
 -- Note that the length is eight times the size.
 smallerByteStrings150 :: H.Seed -> [BS.ByteString]
-smallerByteStrings150 seed = makeSizedByteStrings seed $ fmap (10 *) [1 .. 150]
+smallerByteStrings150 seed = makeSizedByteStrings seed $ fmap (100 *) [1 .. 150]
 
 -- Arguments for two-argument benchmarks: 21 entries.
 -- Note that the length is eight times the size.
@@ -45,6 +45,7 @@ benchSameTwoByteStrings name =
   where
     inputs = smallerByteStrings150 seedA
 
+{-
 -- Here we benchmark different pairs of bytestrings elementwise.  This is used
 -- to get times for off-diagonal comparisons, which we expect to be roughly
 -- constant since the equality test returns quickly in that case.
@@ -54,6 +55,7 @@ benchDifferentByteStringsElementwise name =
   where
     inputs1 = smallerByteStrings150 seedA
     inputs2 = smallerByteStrings150 seedB
+-}
 
 -- This is constant, even for large inputs
 benchIndexByteString :: StdGen -> Benchmark
@@ -116,7 +118,6 @@ makeBenchmarks gen =
   , benchIndexByteString gen
   , benchSliceByteString
   ]
-    <> [benchDifferentByteStringsElementwise EqualsByteString]
     <> ( benchSameTwoByteStrings
            <$> [EqualsByteString, LessThanEqualsByteString, LessThanByteString]
        )

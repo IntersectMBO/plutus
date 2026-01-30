@@ -2,10 +2,11 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Benchmarks.Values (makeBenchmarks) where
+module Benchmarks.Values where
 
 import Prelude
 
@@ -18,6 +19,7 @@ import Data.ByteString qualified as BS
 import Data.Int (Int64)
 import Data.List (find, sort)
 import Data.Map.Strict qualified as Map
+import Data.Maybe (fromJust)
 import Data.Word (Word8)
 import GHC.Stack (HasCallStack)
 import PlutusCore (DefaultFun (InsertCoin, LookupCoin, ScaleValue, UnValueData, UnionValue, ValueContains, ValueData))
@@ -255,12 +257,12 @@ valueContainsArgs gen = runStateGen_ gen \g -> do
 -- We use the `nf` benchmark version here because `valueData` returns an object
 -- of the form `Map . ...` and `whnf` won't evaluate anything under `Map`.
 valueDataBenchmark :: StdGen -> Benchmark
-valueDataBenchmark gen =
+valueDataBenchmark _gen =
   createOneTermBuiltinBenchWithWrapper_NF
     ValueTotalSize
     ValueData
     []
-    (generateTestValues gen)
+    generateTestValues1
 
 ----------------------------------------------------------------------------------------------------
 -- UnValueData -------------------------------------------------------------------------------------
@@ -274,12 +276,41 @@ valueDataBenchmark gen =
 -- `unValueData`.  We reverse the lists to make the inputs less favourable (and
 -- possibly worst-case).
 unValueDataBenchmark :: StdGen -> Benchmark
-unValueDataBenchmark gen =
+unValueDataBenchmark _gen =
   createOneTermBuiltinBenchWithWrapper
     DataNodeCount
     UnValueData
     []
-    (Value.valueData <$> generateTestValues gen)
+    (Value.valueData <$> generateTestValues1)
+
+-- Generate test values with n coins with 1 token each
+generateTestValues1 :: [Value]
+generateTestValues1 =
+  fmap (Value.pack . mkEntry) $ fmap (250 *) [1 .. 200]
+  where
+    mkEntry :: Integer -> Map.Map K (Map.Map K Quantity)
+    mkEntry n = Map.fromList $ fmap (\i -> (mkKey i, Map.fromList [(mkKey i, mkQ (i + 278934278934789237894))])) [1 .. n]
+
+    mkKey :: Integer -> Value.K
+    mkKey i =
+      fromJust $ Value.k $ BS.pack (replicate 30 0xFF) <> BS.pack [fromIntegral (i `div` 256), (fromIntegral (i `mod` 256))]
+
+    mkQ :: Integer -> Value.Quantity
+    mkQ = fromJust . Value.quantity
+
+-- Generate test values with 1 currency with n tokens
+generateTestValues2 :: [Value]
+generateTestValues2 =
+  fmap (\n -> Value.pack $ Map.fromList [(mkKey 0xFFFF, Map.fromList $ mkInnerMap n)]) inputs
+  where
+    mkInnerMap :: Integer -> [(K, Quantity)]
+    mkInnerMap n = fmap (\i -> (mkKey i, mkQ (i + 78923784929238949823))) [1 .. n]
+    inputs = fmap (250 *) [1 .. 200]
+    mkKey :: Integer -> Value.K
+    mkKey i =
+      fromJust $ Value.k $ BS.pack (replicate 30 0xFF) <> BS.pack [fromIntegral (i `div` 256), (fromIntegral (i `mod` 256))]
+    mkQ :: Integer -> Value.Quantity
+    mkQ = fromJust . Value.quantity
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------
