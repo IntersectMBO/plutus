@@ -25,7 +25,9 @@ open import Data.List using (map; all)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 import Relation.Binary as Binary using (Decidable)
 open import Data.Product using (_,_)
-open import Data.Nat using (ℕ)
+open import Data.Fin using (Fin;suc;zero)
+import Data.Fin.Properties
+open import Data.Nat using (ℕ;suc)
 open import Data.List using (List)
 open import Builtin using (Builtin)
 open import RawU using (TmCon)
@@ -34,7 +36,7 @@ open import Data.List.Relation.Unary.All using (All; all?)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; floatDelayT)
 
 variable
-  X : Set
+  X : ℕ
   x x' y y' : X ⊢
 ```
 ## Translation Relation
@@ -51,43 +53,43 @@ is defined in terms of the de Brujin index of the bound variable, since this wil
 further lambdas.
 ```
 
-data AllForced (X : Set){{ _ : DecEq X}} : X → (X ⊢) → Set where
-  var : (v : X) → {v' : X} → v' ≢ v → AllForced X v (` v')
-  forced : (v : X) → AllForced X v (force (` v))
-  force : (v : X) → AllForced X v x' → AllForced X v (force x')
-  delay : (v : X) → AllForced X v x' → AllForced X v (delay x')
-  ƛ : (v : X) → {t : (Maybe X) ⊢}
-      → AllForced (Maybe X) (just v) t
+data AllForced (X : ℕ) : Fin X → (X ⊢) → Set where
+  var : (v : Fin X) → {v' : Fin X} → v' ≢ v → AllForced X v (` v')
+  forced : (v : Fin X) → AllForced X v (force (` v))
+  force : (v : Fin X) → AllForced X v x' → AllForced X v (force x')
+  delay : (v : Fin X) → AllForced X v x' → AllForced X v (delay x')
+  ƛ : (v : Fin X) → {t : suc X ⊢}
+      → AllForced (suc X) (suc v) t
       → AllForced X v (ƛ t)
-  app : (v : X)
+  app : (v : Fin X)
       → AllForced X v x
       → AllForced X v y
       → AllForced X v (x · y)
-  error : {v : X} → AllForced X v error
-  builtin : {v : X} → {b : Builtin} → AllForced X v (builtin b)
-  con : {v : X} → {c : TmCon} → AllForced X v (con c)
-  case : (v : X) → {t : X ⊢} {ts : List (X ⊢)}
+  error : {v : Fin X} → AllForced X v error
+  builtin : {v : Fin X} → {b : Builtin} → AllForced X v (builtin b)
+  con : {v : Fin X} → {c : TmCon} → AllForced X v (con c)
+  case : (v : Fin X) → {t : X ⊢} {ts : List (X ⊢)}
       → AllForced X v t
       → All (AllForced X v) ts
       → AllForced X v (case t ts)
-  constr : (v : X) → {i : ℕ} {xs : List (X ⊢)}
+  constr : (v : Fin X) → {i : ℕ} {xs : List (X ⊢)}
       → All (AllForced X v) xs
       → AllForced X v (constr i xs)
 
 {-# TERMINATING #-}
-isAllForced? : {{ _ : DecEq X}} → (v : X) → (t : X ⊢) → Dec (AllForced X v t)
+isAllForced? : (v : Fin X) → (t : X ⊢) → Dec (AllForced X v t)
 isAllForced? v t with isForce? isTerm? t
 ... | yes (isforce (isterm t)) with isVar? t
 ...           | no ¬var with isAllForced? v t
 ...                       | yes allForced = yes (force v allForced)
 ...                       | no ¬allForced = no λ { (forced .v) → ¬var (isvar v) ; (force .v p) → ¬allForced p }
-isAllForced? v t | yes (isforce (isterm _)) | yes (isvar v₁) with v₁ ≟ v
+isAllForced? v t | yes (isforce (isterm _)) | yes (isvar v₁) with Data.Fin.Properties._≟_ v₁ v
 ...                       | yes refl = yes (forced v)
 ...                       | no v₁≢v = yes (force v (var v v₁≢v))
-isAllForced? v (` x) | no ¬force with x ≟ v
+isAllForced? v (` x) | no ¬force with Data.Fin.Properties._≟_ x v
 ... | yes refl = no λ { (var .v x≢v) → x≢v refl}
 ... | no x≢v = yes (var v x≢v)
-isAllForced? {X} v (ƛ t) | no ¬force with isAllForced? {Maybe X} (just v) t
+isAllForced? {X} v (ƛ t) | no ¬force with isAllForced? {suc X} (suc v) t
 ... | yes p = yes (ƛ v p)
 ... | no ¬p = no λ { (ƛ .v p) → ¬p p}
 isAllForced? v (t₁ · t₂) | no ¬force with (isAllForced? v t₁) ×-dec (isAllForced? v t₂)
@@ -110,11 +112,11 @@ isAllForced? v error | no ¬force = yes error
 The `delay` needs to be added to all bound variables.
 ```
 {-# TERMINATING #-}
-subs-delay : {X : Set}{{de : DecEq X}} → (v : Maybe X) → (Maybe X ⊢) → (Maybe X ⊢)
-subs-delay v (` x) with v ≟ x
+subs-delay : {X : ℕ} → (v : Fin (suc X)) → (suc X ⊢) → (suc X ⊢)
+subs-delay v (` x) with Data.Fin.Properties._≟_ v x
 ... | yes refl = (delay (` x))
 ... | no _ = (` x)
-subs-delay v (ƛ t) = ƛ (subs-delay (just v) t) -- The de Brujin index has to be incremented
+subs-delay v (ƛ t) = ƛ (subs-delay (suc v) t) -- The de Brujin index has to be incremented
 subs-delay v (t · t₁) = (subs-delay v t) · (subs-delay v t₁)
 subs-delay v (force t) = force (subs-delay v t) -- This doesn't immediately apply Force-Delay
 subs-delay v (delay t) = delay (subs-delay v t)
@@ -128,29 +130,29 @@ subs-delay v error = error
 The translation relation is then fairly striaghtforward.
 
 ```
-data FlD {X : Set} {{de : DecEq X}} : (X ⊢) → (X ⊢) → Set₁ where
-  floatdelay : {y y' : X ⊢} {x x' : (Maybe X) ⊢}
-          → Translation FlD (subs-delay nothing x) x'
+data FlD {X : ℕ}  : (X ⊢) → (X ⊢) → Set where
+  floatdelay : {y y' : X ⊢} {x x' : suc X ⊢}
+          → Translation FlD (subs-delay zero x) x'
           → Translation FlD y y'
           → Pure y'
           → FlD (ƛ x · (delay y)) (ƛ x' · y')
 
-FloatDelay : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+FloatDelay : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
 FloatDelay = Translation FlD
 
 ```
 ## Decision Procedure
 ```
 
-isFloatDelay? : {X : Set} {{de : DecEq X}} → MatchOrCE (FloatDelay {X})
+isFloatDelay? : {X : ℕ} → MatchOrCE (FloatDelay {X})
 
 {-# TERMINATING #-}
-isFlD? : {X : Set} {{de : DecEq X}} → MatchOrCE (FlD {X})
+isFlD? : {X : ℕ} → MatchOrCE (FlD {X})
 isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
 ... | no ¬match = ce (λ { (floatdelay x x₁ x₂) → ¬match (isapp (islambda (isterm _)) (isdelay (isterm _)))}) floatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'
 ... | no ¬match = ce (λ { (floatdelay x x₁ x₂) → ¬match (isapp (islambda (isterm _)) (isterm _))}) floatDelayT ast ast'
-... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay nothing t₁) t₁')
+... | yes (isapp (islambda (isterm t₁')) (isterm t₂')) with (isFloatDelay? (subs-delay zero t₁) t₁')
 ...   | ce ¬p t b a = ce (λ { (floatdelay x x₁ x₂) → ¬p x}) t b a
 ...   | proof t₁=t₁' with (isFloatDelay? t₂ t₂')
 ...     | ce ¬p t b a = ce (λ { (floatdelay x x₁ x₂) → ¬p x₁}) t b a

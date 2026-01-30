@@ -126,7 +126,7 @@ parsePLC namedprog = do
   -- ^ FIXME: this should have an interface that guarantees that the
   -- shifter is run
 
-parseUPLC : ProgramNU → Either ERROR (⊥ U.⊢)
+parseUPLC : ProgramNU → Either ERROR (0 U.⊢)
 parseUPLC namedprog = do
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnifyU namedprog
   withE scopeError $ U.scopeCheckU0 (convPU prog)
@@ -177,7 +177,7 @@ showUPLCResult (□ V) = return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 showUPLCResult ◆     = inj₁ (runtimeError userError)
 showUPLCResult _     = inj₁ (runtimeError gasError)
 
-executeUPLCwithMP : ∀{A} → RawCostModel → (CostModel → MachineParameters A) → (A → String) → ⊥ U.⊢ → Either ERROR String
+executeUPLCwithMP : ∀{A} → RawCostModel → (CostModel → MachineParameters A) → (A → String) → 0 U.⊢ → Either ERROR String
 executeUPLCwithMP (cekMachineCosts , rawmodel) mkMP report t with createMap rawmodel
 ... | just model = do
     let machineparam = mkMP (cekMachineCosts , model)
@@ -187,7 +187,7 @@ executeUPLCwithMP (cekMachineCosts , rawmodel) mkMP report t with createMap rawm
     return (r ++ report exBudget)
 ... | nothing = inj₁ (jsonError "while processing parameters.")
 
-executeUPLC : BudgetMode RawCostModel → ⊥ U.⊢ → Either ERROR String
+executeUPLC : BudgetMode RawCostModel → 0 U.⊢ → Either ERROR String
 executeUPLC Silent t = (withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)) >>= showUPLCResult
 executeUPLC (Counting rcm) t = executeUPLCwithMP rcm machineParameters countingReport t
 executeUPLC (Tallying rcm) t = executeUPLCwithMP rcm tallyingMachineParameters tallyingReport t

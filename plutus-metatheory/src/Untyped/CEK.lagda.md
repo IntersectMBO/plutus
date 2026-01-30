@@ -12,6 +12,7 @@ module Untyped.CEK where
 
 ```
 open import Data.Unit using (tt)
+open import Data.Fin using (Fin;suc;zero)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-identityʳ)
 open import Function using (case_of_;_$_)
@@ -47,9 +48,9 @@ data Stack (A : Set) : Set where
 
 ```
 data Value : Set
-data Env : Set → Set where
-  [] : Env ⊥
-  _∷_ : ∀{X} → Env X → Value → Env (Maybe X)
+data Env : ℕ → Set where
+  [] : Env 0
+  _∷_ : ∀{X} → Env X → Value → Env (suc X)
 
 data BApp (b : Builtin) :
     ∀{tn tm tt} → (pt : tn ∔ tm ≣ tt)
@@ -57,7 +58,7 @@ data BApp (b : Builtin) :
   → Set
 
 data Value where
-  V-ƛ : ∀{X} → Env X → Maybe X ⊢ → Value
+  V-ƛ : ∀{X} → Env X → suc X ⊢ → Value
   V-con : (ty : TyTag) → ⟦ ty ⟧tag → Value
   V-delay : ∀{X} → Env X → X ⊢ → Value
   V-constr : (i : ℕ) → (vs : Stack Value) → Value
@@ -86,16 +87,16 @@ data BApp b where
     → BApp b pt pa
     → BApp b (bubble pt) pa
 
-env2sub : ∀{Γ} → Env Γ → Sub Γ ⊥
+env2sub : ∀{Γ} → Env Γ → Sub Γ 0
 
-discharge : Value → ⊥ ⊢
+discharge : Value → 0 ⊢
 
 dischargeB : ∀{b}
           → ∀{tn tm} → {pt : tn ∔ tm ≣ fv (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
-          → BApp b pt pa → ⊥ ⊢
+          → BApp b pt pa → 0 ⊢
 
-dischargeList : Stack Value → List (⊥ ⊢) → List (⊥ ⊢)
+dischargeList : Stack Value → List (0 ⊢) → List (0 ⊢)
 
 discharge (V-ƛ ρ t)       = ƛ (sub (lifts (env2sub ρ)) t)
 discharge (V-con t c)     = con (tmCon t c)
@@ -111,8 +112,8 @@ dischargeB {b = b} base = builtin b
 dischargeB (app vs v) = dischargeB vs · discharge v
 dischargeB (app⋆ vs)   = force (dischargeB vs)
 
-env2sub (ρ ∷ v) nothing  = discharge v
-env2sub (ρ ∷ v) (just x) = env2sub ρ x
+env2sub (ρ ∷ v) zero  = discharge v
+env2sub (ρ ∷ v) (suc x) = env2sub ρ x
 
 data Frame : Set where
   -·  : ∀{Γ} → Env Γ → Γ ⊢ → Frame
@@ -124,15 +125,15 @@ data Frame : Set where
 
 
 data State : Set where
-  _;_▻_ : {X : Set} → Stack Frame → Env X → X ⊢ → State
+  _;_▻_ : {X : ℕ} → Stack Frame → Env X → X ⊢ → State
   _◅_   : Stack Frame → Value → State
   □ : Value → State
   ◆ : State
 
 -- lookup is the same as env2sub without the discharge
-lookup : ∀{Γ} → Env Γ → Γ → Value
-lookup (ρ ∷ v) nothing  = v
-lookup (ρ ∷ v) (just x) = lookup ρ x
+lookup : ∀{Γ} → Env Γ → Fin Γ → Value
+lookup (ρ ∷ v) zero  = v
+lookup (ρ ∷ v) (suc x) = lookup ρ x
 
 V-I : ∀ b
     → ∀{tn tm} {pt : tn ∔ tm ≣ fv (signature b)}

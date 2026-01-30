@@ -41,7 +41,7 @@ This will just be an instance of the `Translation` relation once we define the "
 
 ```
 data CoC : Relation where
-  isCoC : {X : Set} {{_ : DecEq X}} → (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
+  isCoC : {X : ℕ} (b : X ⊢) (tn fn : ℕ)  (tt tt' ft ft' alts alts' : List (X ⊢)) →
              Pointwise (Translation CoC) alts alts' →
              Pointwise (Translation CoC) tt tt' →
              Pointwise (Translation CoC) ft ft' →
@@ -49,7 +49,7 @@ data CoC : Relation where
                (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
                (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
 
-CaseOfCase : {X : Set} {{_ : DecEq X}} → (ast : X ⊢) → (ast' : X ⊢) → Set₁
+CaseOfCase : {X : ℕ} (ast : X ⊢) → (ast' : X ⊢) → Set
 CaseOfCase = Translation CoC
 
 ```
@@ -64,9 +64,9 @@ detect that case. We create two "views" for the two patterns - we will tie toget
 later function `isCoC?`.
 ```
 
-data CoCCase {X : Set} : (X ⊢) → Set where
+data CoCCase {X : ℕ} : (X ⊢) → Set where
   isCoCCase : (b : X ⊢) (tn fn : ℕ)  (tt ft alts : List (X ⊢)) → CoCCase (case ((((force (builtin ifThenElse)) · b) · (constr tn tt)) · (constr fn ft)) alts)
-isCoCCase? : {X : Set} → Unary.Decidable (CoCCase {X})
+isCoCCase? : {X : ℕ} → Unary.Decidable (CoCCase {X})
 isCoCCase? t with (isCase? (isApp? (isApp? (isApp? (isForce? (isBuiltin?)) isTerm?) (isConstr? (allTerms?))) (isConstr? (allTerms?))) (allTerms?)) t
 ... | yes (iscase (isapp (isapp (isapp (isforce (isbuiltin ite)) (isterm b)) (isconstr tn (allterms tt))) (isconstr fn (allterms ft))) (allterms alts)) with ite ≟ ifThenElse
 ... | yes refl = yes (isCoCCase b tn fn tt ft alts)
@@ -78,9 +78,9 @@ isCoCCase? t  | no ¬CoCCase = no λ { (isCoCCase b tn fn alts tt ft) → ¬CoCC
                                                                                   (isconstr fn (allterms tt)))
                                                                                  (allterms ft)) }
 
-data CoCForce {X : Set} :  (X ⊢) → Set where
+data CoCForce {X : ℕ} :  (X ⊢) → Set where
   isCoCForce : (b : (X ⊢)) (tn fn : ℕ) (tt' ft' alts' : List (X ⊢)) → CoCForce (force ((((force (builtin ifThenElse)) · b) · (delay (case (constr tn tt') alts'))) · (delay (case (constr fn ft') alts'))))
-isCoCForce? : {X : Set} {{ _ : DecEq X }} → Unary.Decidable (CoCForce {X})
+isCoCForce? : {X : ℕ} → Unary.Decidable (CoCForce {X})
 isCoCForce? t with (isForce? (isApp? (isApp? (isApp? (isForce? isBuiltin?) isTerm?) (isDelay? (isCase? (isConstr? allTerms?) allTerms?))) (isDelay? (isCase? (isConstr? allTerms?) allTerms?)))) t
 ... | no ¬CoCForce = no λ { (isCoCForce b tn fn tt' ft' alts') → ¬CoCForce
                                                                   (isforce
@@ -98,10 +98,10 @@ the individual pattern decision `isCoC?` and the overall translation decision `i
 recursive, so the `isUntypedCaseOfCase?` type declaration comes first, with the implementation later.
 
 ```
-isCaseOfCase? : {X : Set} {{_ : DecEq X}} → (ast ast' : X ⊢) → ProofOrCE (Translation CoC {X} ast ast')
+isCaseOfCase? : {X : ℕ} (ast ast' : X ⊢) → ProofOrCE (Translation CoC {X} ast ast')
 
 {-# TERMINATING #-}
-isCoC? : {X : Set} {{_ : DecEq X}} →  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
+isCoC? : {X : ℕ}  (ast ast' : X ⊢) → ProofOrCE (CoC {X} ast ast')
 isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ... | no ¬cf = ce (λ { (isCoC b tn fn tt tt' ft ft' alts alts' x x₁ x₂) → ¬cf
                                                                            (isCoCCase b tn fn tt ft alts , isCoCForce b tn fn tt' ft' alts') } ) caseOfCaseT ast ast'

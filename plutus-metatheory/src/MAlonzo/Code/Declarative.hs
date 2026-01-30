@@ -114,7 +114,7 @@ d_btype_42 ::
 d_btype_42 v0 v1
   = coe
       MAlonzo.Code.Type.RenamingSubstitution.d_sub'8709'_896 (coe v0)
-      (coe MAlonzo.Code.Utils.C_'42'_654)
+      (coe MAlonzo.Code.Utils.C_'42'_684)
       (coe
          MAlonzo.Code.Builtin.Signature.du_sig2type_242
          (coe (\ v2 v3 v4 -> v4))
@@ -130,7 +130,7 @@ d_btype'45'ren_50 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Builtin.T_Builtin_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8715''8902'__14) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
@@ -140,7 +140,7 @@ d_btype'45'sub_60 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Builtin.T_Builtin_2 ->
-  (MAlonzo.Code.Utils.T_Kind_652 ->
+  (MAlonzo.Code.Utils.T_Kind_682 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.T__'8866''8902'__20) ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
@@ -159,7 +159,7 @@ d_ty2TyTag_74 v0
       (coe
          MAlonzo.Code.Type.BetaNBE.d_nf_258
          (coe MAlonzo.Code.Type.C_'8709'_4)
-         (coe MAlonzo.Code.Utils.C_'9839'_656) (coe v0))
+         (coe MAlonzo.Code.Utils.C_'9839'_686) (coe v0))
 -- Declarative.mkCaseType
 d_mkCaseType_82 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
@@ -195,7 +195,7 @@ data T__'8866'__110
     C__'183'__118 MAlonzo.Code.Type.T__'8866''8902'__20 T__'8866'__110
                   T__'8866'__110 |
     C_Λ_120 T__'8866'__110 |
-    C__'183''8902'__124 MAlonzo.Code.Utils.T_Kind_652
+    C__'183''8902'__124 MAlonzo.Code.Utils.T_Kind_682
                         MAlonzo.Code.Type.T__'8866''8902'__20 T__'8866'__110
                         MAlonzo.Code.Type.T__'8866''8902'__20 |
     C_wrap_130 T__'8866'__110 | C_unwrap_132 T__'8866'__110 |
@@ -260,7 +260,7 @@ du_typeOf'8715'_210 v0 = coe v0
 -- Declarative.piBody
 d_piBody_216 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   T_Ctx_16 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   T__'8866'__110 -> MAlonzo.Code.Type.T__'8866''8902'__20
@@ -272,7 +272,7 @@ du_piBody_216 v0 = coe v0
 -- Declarative.muPat
 d_muPat_222 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   T_Ctx_16 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
@@ -285,7 +285,7 @@ du_muPat_222 v0 = coe v0
 -- Declarative.muArg
 d_muArg_228 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_652 ->
+  MAlonzo.Code.Utils.T_Kind_682 ->
   T_Ctx_16 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->
   MAlonzo.Code.Type.T__'8866''8902'__20 ->

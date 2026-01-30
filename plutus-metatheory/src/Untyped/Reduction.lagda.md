@@ -17,9 +17,9 @@ open import RawU using (TmCon)
 open import Builtin using (Builtin; equals; decBuiltin; arity; arity₀)
 open import Data.Product using (Σ; _,_; ∃; Σ-syntax; ∃-syntax; _×_; proj₁; proj₂)
 open import Relation.Nullary using (¬_)
-open import Data.Empty using (⊥)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
 open import Relation.Nullary.Negation using (contradiction)
+open import Data.Fin using (Fin; zero; suc)
 open import Data.Nat using (ℕ; zero; suc; _<_; _≟_; _<?_; _≤_)
 open import Data.Nat.Properties using (suc-injective)
 open import Data.List using (List; []; _∷_)
@@ -45,7 +45,7 @@ want-injective₁ refl = refl
 postulate
   interleave-error : ∀ {A : Set} → A
 
-sat : {X : Set} → X ⊢ → Arity
+sat : {X : ℕ} → X ⊢ → Arity
 sat (` x) = no-builtin
 sat (ƛ t) = no-builtin
 sat (t · t₁) with sat t
@@ -65,11 +65,11 @@ sat (case t ts) = no-builtin
 sat (builtin b) = want (arity₀ b) (arity b)
 sat error = no-builtin
 
-sat-app-step : {X : Set} {a₁ : ℕ} {t t₁ : X ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
+sat-app-step : {X : ℕ} {a₁ : ℕ} {t t₁ : X ⊢} → sat t ≡ want zero (suc a₁) → sat (t · t₁) ≡ want zero a₁
 sat-app-step {t = t} sat-t with sat t
 sat-app-step {t = t} sat-t | want zero (suc x₁) = cong (want zero) (suc-injective (want-injective₁ sat-t))
 
-sat-force-step : {X : Set} {a₀ a₁ : ℕ} {t : X ⊢} → sat t ≡ want (suc a₀) a₁ → sat (force t) ≡ want a₀ a₁
+sat-force-step : {X : ℕ} {a₀ a₁ : ℕ} {t : X ⊢} → sat t ≡ want (suc a₀) a₁ → sat (force t) ≡ want a₀ a₁
 sat-force-step {t = t} sat-t with sat t
 sat-force-step {t = t} refl | want (suc a₀) a₁ = refl
 
@@ -82,11 +82,11 @@ nat-threshold {suc a} {suc b} (Data.Nat.s≤s a<b) (Data.Nat.s≤s b≤sa) = con
 ## Values
 ```
 variable
-  X Y : Set
+  X Y : ℕ
 
-data Value {X : Set} : X ⊢ → Set where
+data Value {X : ℕ} : X ⊢ → Set where
   delay : {a : X ⊢} → Value (delay a)
-  ƛ : {a : (Maybe X) ⊢ } → Value (ƛ a)
+  ƛ : {a : (suc X) ⊢ } → Value (ƛ a)
   con : {n : TmCon} → Value (con n)
   builtin : {b : Builtin} → Value (builtin b)
 
@@ -123,7 +123,7 @@ value-constr-recurse (constr (px All.∷ x)) = px All.∷ x
 ## Reduction Steps
 ```
 
-iterApp : {X : Set} → X ⊢ → List (X ⊢) → X ⊢
+iterApp : {X : ℕ} → X ⊢ → List (X ⊢) → X ⊢
 iterApp x [] = x
 iterApp x (v ∷ vs) = iterApp (x · v) vs
 
@@ -133,12 +133,12 @@ postulate
   reduceBuiltin : X ⊢ → X ⊢
 
 infix 5 _⟶_
-data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
+data _⟶_ {X : ℕ} : X ⊢ → X ⊢ → Set where
   ξ₁ : {a a' b : X ⊢} → a ⟶ a' → a · b ⟶ a' · b
   -- Value is required in ξ₂ to make this deterministically resolve the left side first
   ξ₂ : {a b b' : X ⊢} → Value a → b ⟶ b' → a · b ⟶ a · b'
   ξ₃ : {a a' : X ⊢} → a ⟶ a' → force a ⟶ force a'
-  β : {a : (Maybe X) ⊢}{b : X ⊢} → Value b → ƛ a · b ⟶ a [ b ]
+  β : {a : (suc X) ⊢}{b : X ⊢} → Value b → ƛ a · b ⟶ a [ b ]
   force-delay : {a : X ⊢} → force (delay a) ⟶ a
 
   error₁ : {a : X ⊢} → (error · a) ⟶ error
@@ -172,7 +172,7 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
     → constr i (v ∷ vs) ⟶ error
 
   -- Many of the things that you can force that aren't delay
-  force-ƛ : {a : Maybe X ⊢} → force (ƛ a) ⟶ error
+  force-ƛ : {a : suc X ⊢} → force (ƛ a) ⟶ error
   force-con : {c : TmCon} → force (con c) ⟶ error
   force-constr : {i : ℕ} {vs : List (X ⊢)} → force (constr i vs) ⟶ error
 
@@ -191,7 +191,7 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
 
   -- Many of the things that you can case that aren't constr
   case-error : {ts : List (X ⊢)} → case error ts ⟶ error
-  case-ƛ : {t : Maybe X ⊢} {ts : List (X ⊢)} → case (ƛ t) ts ⟶ error
+  case-ƛ : {t : suc X ⊢} {ts : List (X ⊢)} → case (ƛ t) ts ⟶ error
   case-delay : {t : X ⊢} {ts : List (X ⊢)} → case (delay t) ts ⟶ error
   case-con : {c : TmCon} {ts : List (X ⊢)} → case (con c) ts ⟶ error
   case-builtin : {b : Builtin} {ts : List (X ⊢)} → case (builtin b) ts ⟶ error
@@ -203,17 +203,17 @@ data _⟶_ {X : Set} : X ⊢ → X ⊢ → Set where
 
 
 infix 5 _⟶*_
-data _⟶*_ {X : Set} : X ⊢ → X ⊢ → Set where
+data _⟶*_ {X : ℕ} : X ⊢ → X ⊢ → Set where
   refl : {M : X ⊢} → M ⟶* M
   trans : { M P N : X ⊢} → M ⟶ P → P ⟶* N → M ⟶* N
 
-tran-⟶* : ∀ {X : Set}{a b c : X ⊢} → a ⟶* b → b ⟶* c → a ⟶* c
+tran-⟶* : ∀ {X : ℕ}{a b c : X ⊢} → a ⟶* b → b ⟶* c → a ⟶* c
 tran-⟶* refl b→c = b→c
 tran-⟶* (trans x a→b) refl = trans x a→b
 tran-⟶* (trans x a→b) (trans x₁ b→c) = trans x (tran-⟶* a→b (trans x₁ b→c))
 
 {-
-value-¬⟶ : ∀ {X : Set}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
+value-¬⟶ : ∀ {X : ℕ}{M : X ⊢} → Value M → ¬ (∃[ N ] ( M ⟶ N ))
 value-¬⟶ {M = M} delay = λ ()
 value-¬⟶ {M = M} ƛ = λ ()
 value-¬⟶ {M = M} con = λ ()
@@ -224,10 +224,10 @@ value-¬⟶ {M = M} (unsat₁ x v₁ v₂) = {!!}
 value-¬⟶ {M = M} (constr x) = {!!}
 value-¬⟶ {M = M} error = λ ()
 
-⟶-¬value : ∀ {X : Set}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
+⟶-¬value : ∀ {X : ℕ}{M N : X ⊢} → M ⟶ N → ¬ (Value M)
 ⟶-¬value {N = N} M⟶N VM = value-¬⟶ VM (N , M⟶N)
 
-⟶-det : ∀ {X : Set}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
+⟶-det : ∀ {X : ℕ}{M N P : X ⊢} → M ⟶ N → M ⟶ P → N ≡ P
 ⟶-det n p = {!!}
 -}
 
@@ -235,7 +235,7 @@ value-¬⟶ {M = M} error = λ ()
 ## Progress
 ```
 
-data Progress {X : Set} : (a : X ⊢) → Set where
+data Progress {X : ℕ} : (a : X ⊢) → Set where
   step : {a b : X ⊢}
         → a ⟶ b
         → Progress a
@@ -247,7 +247,7 @@ data Progress {X : Set} : (a : X ⊢) → Set where
   fail : Progress error
 
 {-# TERMINATING #-}
-progress : ∀ (M : ⊥ ⊢) → Progress M
+progress : ∀ (M : 0 ⊢) → Progress M
 progress (` ())
 progress (ƛ M) = done ƛ
 progress (L · R) with progress L
@@ -334,16 +334,16 @@ progress error = fail
 ## "Reduction" Equivalence
 ```
 infix 5 _≅_
-data _≅_ {X : Set} : X ⊢ → X ⊢ → Set where
+data _≅_ {X : ℕ} : X ⊢ → X ⊢ → Set where
   reduce : {a b c : X ⊢} → a ⟶* c → b ⟶* c → a ≅ b
 
-refl-≅ : ∀{X : Set}{a : X ⊢} → a ≅ a
+refl-≅ : ∀{X : ℕ}{a : X ⊢} → a ≅ a
 refl-≅ = reduce refl refl
 
---tran-≅ : ∀{X : Set}{a b c : X ⊢} → a ≅ b → b ≅ c → a ≅ c
+--tran-≅ : ∀{X : ℕ}{a b c : X ⊢} → a ≅ b → b ≅ c → a ≅ c
 --tran-≅ (reduce p₁ p₂) (reduce p₃ p₄) = reduce {!!} {!!}
 
---reduce-≅ : ∀{X : Set} {M N : X ⊢} → M ⟶* N → M ≅ N
+--reduce-≅ : ∀{X : ℕ} {M N : X ⊢} → M ⟶* N → M ≅ N
 --reduce-≅ = {!!}
 
 ```
@@ -352,41 +352,40 @@ refl-≅ = reduce refl refl
 open import RawU using (tag2TyTag; tmCon)
 open import Data.Nat using (ℕ)
 open import Agda.Builtin.Int using (Int)
-open import Data.Empty using (⊥)
 
 integer : RawU.TyTag
 integer = tag2TyTag RawU.integer
 
-con-integer : {X : Set} → ℕ → X ⊢
+con-integer : {X : ℕ} → ℕ → X ⊢
 con-integer n = (con (tmCon integer (Int.pos n)))
 
-_ : ƛ (` nothing) · (con-integer {⊥} 42) ⟶ (con-integer 42)
+_ : ƛ (` zero) · (con-integer {0} 42) ⟶ (con-integer 42)
 _ = β con
 
-_ : ƛ (` nothing) · (con-integer {⊥} 42) ⟶* (con-integer 42)
+_ : ƛ (` zero) · (con-integer {0} 42) ⟶* (con-integer 42)
 _ = trans (β con) refl
 
-_ : ƛ (` nothing) · (con-integer {⊥} 42) ≅ (con-integer 42)
+_ : ƛ (` zero) · (con-integer {0} 42) ≅ (con-integer 42)
 _ = reduce (trans (β con) refl) refl
 
 
-_ : (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (ƛ (` nothing))) · (con-integer {⊥} 42)) ⟶* (con-integer {⊥} 42)
+_ : (((ƛ (ƛ ((` (suc zero)) · (` zero)))) · (ƛ (` zero))) · (con-integer {0} 42)) ⟶* (con-integer {0} 42)
 _ = trans (ξ₁ (β ƛ)) (trans (β con) (trans (β con) refl))
 
 ```
 Should this work or should un-delayed `error` explode? - It _shouldn't_ work, and doesn't once we have Values.
 ```
---_ : ((ƛ (ƛ (` (just nothing)))) · (con-integer {⊥} 42)) · error ⟶* (con-integer {⊥} 42)
+--_ : ((ƛ (ƛ (` (suc zero)))) · (con-integer {0} 42)) · error ⟶* (con-integer {0} 42)
 --_ = trans (ξ₁ (β con)) (trans {!!} refl)
 ```
 Some other examples
 ```
 
-ex1 : (Maybe ⊥) ⊢
-ex1 = (((ƛ (ƛ (((` (just (just nothing))) · (` nothing))) · (` (just nothing))))) · (con-integer {Maybe ⊥} 2)) · (con-integer {Maybe ⊥} 3) --- [[(\× . \y . x - y) 2] 3] ==>  2 - 3
+ex1 : 1 ⊢
+ex1 = (((ƛ (ƛ (((` (suc (suc zero))) · (` zero))) · (` (suc zero))))) · (con-integer {1} 2)) · (con-integer {1} 3) --- [[(\× . \y . x - y) 2] 3] ==>  2 - 3
 
-ex2 : (Maybe ⊥) ⊢
-ex2 = (((ƛ (ƛ (((` (just (just nothing))) · (` (just nothing))) · (` nothing))))) · (con-integer {Maybe ⊥} 3)) · (con-integer {Maybe ⊥} 2) --- [[(\x . \y . y - x) 3] 2] ==> 2 - 3
+ex2 : 1 ⊢
+ex2 = (((ƛ (ƛ (((` (suc (suc zero))) · (` (suc zero))) · (` zero))))) · (con-integer {1} 3)) · (con-integer {1} 2) --- [[(\x . \y . y - x) 3] 2] ==> 2 - 3
 
 --_ : ex1 ≅ ex2
 --_ = reduce (trans (ξ₁ (β con)) (trans (ξ₁ {!!}) refl)) (trans (ξ₁ (β con)) (trans (β con) {!!}))

@@ -80,7 +80,7 @@ $ cabal test plutus-metatheory
 To build the documentation as a static site:
 
 ```
-$ agda --html --html-highlight=auto --html-dir=html src/index.lagda.md
+$ agda-with-stdlib --html --html-highlight=auto --html-dir=html src/index.lagda.md
 $ jekyll build -s html -d html/_site
 ```
 

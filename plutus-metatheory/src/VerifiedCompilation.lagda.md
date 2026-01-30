@@ -47,6 +47,8 @@ import VerifiedCompilation.UFloatDelay as UFlD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
+open import Data.Nat using (ℕ; suc; zero)
+open import Data.Fin using (Fin; suc; zero)
 open import Data.Empty using (⊥)
 open import Untyped.Equality using (DecEq)
 open import VerifiedCompilation.UntypedTranslation using (Relation)
@@ -76,26 +78,26 @@ which produces a `Trace` always produces a correct one, although it might be use
 ```
 
 data Transformation : SimplifierTag → Relation where
-  isCoC : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation SimplifierTag.caseOfCaseT ast ast'
-  isFD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
-  isFlD : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
-  isCSE : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
+  isCoC : {X : ℕ} → {ast ast' : X ⊢} → UCC.CaseOfCase ast ast' → Transformation SimplifierTag.caseOfCaseT ast ast'
+  isFD : {X : ℕ} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
+  isFlD : {X : ℕ} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
+  isCSE : {X : ℕ} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
   -- FIXME: Inline currently rejects some valid translations so is disabled.
-  inlineNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
-  isCaseReduce : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
-  forceCaseDelayNotImplemented : {X : Set}{{_ : DecEq X}} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
+  inlineNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
+  isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
+  forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
-data Trace : { X : Set } {{_ : DecEq X}} → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set₁ where
-  empty : {X : Set}{{_ : DecEq X}} → Trace {X} []
+data Trace : { X : ℕ }  → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set where
+  empty : {X : ℕ} → Trace {X} []
   cons
-    : {X : Set}{{_ : DecEq X}}
+    : {X : ℕ}
     {tag : SimplifierTag} {x x' : X ⊢}
     {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
     → Transformation tag x x'
     → Trace xs
     → Trace ((tag , x , x') ∷ xs)
 
-isTransformation? : {X : Set} {{_ : DecEq X}} → (tag : SimplifierTag) → MatchOrCE {X = X ⊢} (Transformation tag)
+isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → MatchOrCE {X = X ⊢} (Transformation tag)
 isTransformation? tag ast ast' with tag
 isTransformation? tag ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
 ... | ce ¬p t b a = ce (λ { (isFlD x) → ¬p x}) t b a
@@ -115,7 +117,7 @@ isTransformation? tag ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast 
 ... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
 ... | proof p = proof (isCSE p)
 
-isTrace? : {X : Set} {{_ : DecEq X}} → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → ProofOrCE (Trace {X} t)
+isTrace? : {X : ℕ}  → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → ProofOrCE (Trace {X} t)
 isTrace? [] = proof empty
 isTrace? {X} ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
 ... | ce ¬p t b a = ce (λ { (cons x xx) → ¬p xx}) t b a
@@ -152,7 +154,7 @@ postulate
 {-# COMPILE GHC hPutStrLn = TextIO.hPutStr #-}
 {-# COMPILE GHC putStrLn = TextIO.putStrLn #-}
 
-buildPairs : {X : Set} → List (Maybe X ⊢) -> List ((Maybe X ⊢) × (Maybe X ⊢))
+buildPairs : {X : ℕ} → List (suc X ⊢) -> List ((suc X ⊢) × (suc X ⊢))
 buildPairs [] = []
 buildPairs (x ∷ []) = (x , x) ∷ []
 buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
@@ -169,12 +171,12 @@ traverseEitherList f ((tag , before , after) ∷ xs) with f before
 
 data Cert : Set₂ where
   cert
-    : {X : Set} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} {{_ : DecEq X}}
+    : {X : ℕ} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} 
     → ProofOrCE (Trace {X} result)
     → Cert
 
 runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Cert
-runCertifier rawInput with traverseEitherList (toWellScoped {⊥}) rawInput
+runCertifier rawInput with traverseEitherList scopeCheckU0 rawInput
 ... | inj₁ _ = nothing
 ... | inj₂ inputTrace = just (cert (isTrace? inputTrace))
 
