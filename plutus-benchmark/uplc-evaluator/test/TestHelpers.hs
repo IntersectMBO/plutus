@@ -36,6 +36,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.UUID (UUID)
 import Data.UUID qualified as UUID
+import Data.Word (Word64)
 import GHC.Generics (Generic)
 import Harness (ServiceHandle (..))
 import System.Directory (doesFileExist)
@@ -43,15 +44,15 @@ import System.FilePath ((</>))
 import Test.Tasty.HUnit (assertFailure)
 
 -- | Timing sample for a single evaluation run (variable data only)
-data TimingSample = TimingSample
-  { tsCpuTimeMs :: Double
+newtype TimingSample = TimingSample
+  { tsCpuTimeNs :: Word64
   }
   deriving stock (Generic, Show, Eq)
 
 instance FromJSON TimingSample where
   parseJSON = Aeson.withObject "TimingSample" \v ->
     TimingSample
-      <$> v .: "cpu_time_ms"
+      <$> v .: "cpu_time_ns"
 
 -- | Successful evaluation result with deterministic budget at top level
 data EvalResult = EvalResult
