@@ -1,0 +1,248 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+span.lineno { color: white; background: #aaaaaa; border-right: solid white 12px }
+span.nottickedoff { background: yellow}
+span.istickedoff { background: white }
+span.tickonlyfalse { margin: -1px; border: 1px solid #f20913; background: #f20913 }
+span.tickonlytrue  { margin: -1px; border: 1px solid #60de51; background: #60de51 }
+span.funcount { font-size: small; color: orange; z-index: 2; position: absolute; right: 20 }
+span.decl { font-weight: bold }
+span.spaces    { background: white }
+</style>
+</head>
+<body>
+<pre>
+<span class="decl"><span class="nottickedoff">never executed</span> <span class="tickonlytrue">always true</span> <span class="tickonlyfalse">always false</span></span>
+</pre>
+<pre>
+<span class="lineno">    1 </span>-- editorconfig-checker-disable-file
+<span class="lineno">    2 </span>{-# LANGUAGE DataKinds #-}
+<span class="lineno">    3 </span>{-# LANGUAGE DeriveAnyClass #-}
+<span class="lineno">    4 </span>{-# LANGUAGE FlexibleInstances #-}
+<span class="lineno">    5 </span>{-# LANGUAGE MultiParamTypeClasses #-}
+<span class="lineno">    6 </span>{-# LANGUAGE OverloadedStrings #-}
+<span class="lineno">    7 </span>{-# LANGUAGE StrictData #-}
+<span class="lineno">    8 </span>
+<span class="lineno">    9 </span>{- Note [Strict Data for budgeting]
+<span class="lineno">   10 </span>
+<span class="lineno">   11 </span>Without the StrictData pragma here, we get a memory leak during evaluation
+<span class="lineno">   12 </span>because large unevaluated arithmetic expressions build up.  Strictness is only
+<span class="lineno">   13 </span>really required for ExBudget, but it's simpler if we jut make
+<span class="lineno">   14 </span>everything strict, and it doesn't seem to do any harm.
+<span class="lineno">   15 </span>-}
+<span class="lineno">   16 </span>
+<span class="lineno">   17 </span>-- TODO: revise this.
+<span class="lineno">   18 </span>{- Note [Budgeting]
+<span class="lineno">   19 </span>
+<span class="lineno">   20 </span>When running Plutus code on the chain, you're running code on other peoples
+<span class="lineno">   21 </span>machines, so you'll have to pay for it. And it has to be possible to determine
+<span class="lineno">   22 </span>how much money that should be before sending the transaction with the Plutus
+<span class="lineno">   23 </span>code to the chain. If you spend too little, your transaction will be rejected.
+<span class="lineno">   24 </span>If you spend too much, you're wasting money. So it must be possible to estimate
+<span class="lineno">   25 </span>how much a script will cost. The easiest way to do so is to run the script
+<span class="lineno">   26 </span>locally and determine the cost. The functional nature of Plutus allows for the
+<span class="lineno">   27 </span>assumption it will cost a similar amount locally as on the chain. See
+<span class="lineno">   28 </span>'CekBudgetMode'.
+<span class="lineno">   29 </span>
+<span class="lineno">   30 </span>Additionally, it's helpful to know which parts of the script cost how much. We
+<span class="lineno">   31 </span>assume it's useful to have a list of costs per term executed, so it's possible
+<span class="lineno">   32 </span>to estimate which parts of the script cost how much. The 'ExTally' has not been
+<span class="lineno">   33 </span>determined to be useful, but it was easy to implement.
+<span class="lineno">   34 </span>
+<span class="lineno">   35 </span>We're tracking execution cost via both memory (via 'ExMemory') and CPU (via
+<span class="lineno">   36 </span>'ExCPU'). Node operators are more interested in space limits than time limits -
+<span class="lineno">   37 </span>the memory upper limit will be reached faster than the time limit (which would
+<span class="lineno">   38 </span>be until next block). The two resources are then converted to the main currency
+<span class="lineno">   39 </span>of the chain based on protocol parameters - that way it's possible to adjust the
+<span class="lineno">   40 </span>actual fees without changing the code.
+<span class="lineno">   41 </span>
+<span class="lineno">   42 </span>When tracking memory, we ignore garbage collection - only total memory
+<span class="lineno">   43 </span>allocation is counted. This decision decouples us from the implementation of the
+<span class="lineno">   44 </span>GC itself. Additionally, sharing of references is assumed. If a builtin
+<span class="lineno">   45 </span>generates a new value, every reference of that value (e.g. in different CEK
+<span class="lineno">   46 </span>environments) is assumed to point to the same value, without any copies. So the
+<span class="lineno">   47 </span>total memory of the program is bounded to the original program + anything the
+<span class="lineno">   48 </span>builtins produce + the machine space used by the CEK machine itself. The CEK
+<span class="lineno">   49 </span>environment costs are included in the stack frame costs of the CEK machine,
+<span class="lineno">   50 </span>they're linear.
+<span class="lineno">   51 </span>
+<span class="lineno">   52 </span>The tracking of the costs themselves does not cost any CPU or memory. Currently
+<span class="lineno">   53 </span>that's an implementation detail. We may have to readjust this depending on real
+<span class="lineno">   54 </span>world experience.
+<span class="lineno">   55 </span>
+<span class="lineno">   56 </span>The CEK machine does budgeting in these steps:
+<span class="lineno">   57 </span>- The memory cost of the initial AST is added to the budget. See Note [Memory
+<span class="lineno">   58 </span>  Usage for Plutus]. This operation currently does not cost any CPU. It
+<span class="lineno">   59 </span>  currently costs as much memory as the AST itself, before aborting. See
+<span class="lineno">   60 </span>  https://github.com/IntersectMBO/plutus/issues/1799 for more discussion.
+<span class="lineno">   61 </span>- Then each machine reduction step requires a certain amount of memory and CPU.
+<span class="lineno">   62 </span>- The builtin operations may require different amounts of memory and CPU,
+<span class="lineno">   63 </span>  depending on the input size.
+<span class="lineno">   64 </span>- If a computation runs out of Memory or CPU, it is aborted, via the same
+<span class="lineno">   65 </span>  mechanism when 'error' is called.
+<span class="lineno">   66 </span>
+<span class="lineno">   67 </span>Tracking CEK machine layers is rather straightforward, albeit these numbers
+<span class="lineno">   68 </span>still have to be filled in. For builtins (e.g. +, etc.) the cost tracking can be
+<span class="lineno">   69 </span>a bit more complicated, as the required resources may depend on the size of the
+<span class="lineno">   70 </span>inputs (E.g. multiplying numbers, where the output will be around 6 words if
+<span class="lineno">   71 </span>both inputs are at 3 words each). These cost estimations will also have factors
+<span class="lineno">   72 </span>attached which can be configured at runtime via protocol parameters - so it's
+<span class="lineno">   73 </span>possible to adjust them at runtime.
+<span class="lineno">   74 </span>
+<span class="lineno">   75 </span>-}
+<span class="lineno">   76 </span>
+<span class="lineno">   77 </span>{- Note [Budgeting units]
+<span class="lineno">   78 </span>
+<span class="lineno">   79 </span> We use picoseconds for measuring times and words for measuring memory usage.
+<span class="lineno">   80 </span> Some care is required with time units because different units are used in
+<span class="lineno">   81 </span> different places.
+<span class="lineno">   82 </span>
+<span class="lineno">   83 </span> * The basic data for models of execution time is produced by Criterion
+<span class="lineno">   84 </span>   benchmarks (run via plutus-core:cost-model-budgeting-bench) and saved in
+<span class="lineno">   85 </span>   a CSV file (usually 'benching.csv').  At this point the time units are seconds.
+<span class="lineno">   86 </span>
+<span class="lineno">   87 </span> * The data in the CSV file is used by plutus-core:generate-cost-model to create
+<span class="lineno">   88 </span>   cost-prediction models for the built-in functions, and data describing these
+<span class="lineno">   89 </span>   is written to a JSON file (usually 'builtinCostModel.json'.  This process
+<span class="lineno">   90 </span>   involves several steps:
+<span class="lineno">   91 </span>
+<span class="lineno">   92 </span>     * The CreateBuiltinCostModel module reads in the data from the CSV file
+<span class="lineno">   93 </span>       and runs R code in 'models.R' to fit linear models to the benchmark
+<span class="lineno">   94 </span>       results for each builtin.  This process (and its results) necessarily
+<span class="lineno">   95 </span>       involves the use of floating-point numbers.
+<span class="lineno">   96 </span>
+<span class="lineno">   97 </span>       Builtin execution times are typically of the order of 10^(-6) or 10^(-7)
+<span class="lineno">   98 </span>       seconds, and the benching data is converted to microseconds in 'models.R'
+<span class="lineno">   99 </span>       because it's sometimes useful to work with the data interactively and this
+<span class="lineno">  100 </span>       makes the numbers a lot more human-readable.
+<span class="lineno">  101 </span>
+<span class="lineno">  102 </span>     * The coefficients from the R models are returned to the Haskell code in
+<span class="lineno">  103 </span>       CreateBuiltinCostModel and written out to a JSON file.  To avoid the
+<span class="lineno">  104 </span>       use of floats in JSON and in cost prediction at runtime (which might be
+<span class="lineno">  105 </span>       machine-dependent if floats were used), numbers are multiplied by 10^6
+<span class="lineno">  106 </span>       and rounded to the nearest integer, shifting from the microsecond scale to
+<span class="lineno">  107 </span>       the picosecond scale.  This rescaling is safe because all of our models
+<span class="lineno">  108 </span>       are (currently) linear in their inputs.
+<span class="lineno">  109 </span>
+<span class="lineno">  110 </span> * When the Plutus Core evaluator is compiled, the JSON data in
+<span class="lineno">  111 </span>   'builtinCostModel.json' is read in and used to create the defaultCostModel
+<span class="lineno">  112 </span>   object.  This also includes information about the costs of basic CEK machine
+<span class="lineno">  113 </span>   operations obtained from 'cekMachineCosts.json' (currently generated manually).
+<span class="lineno">  114 </span>
+<span class="lineno">  115 </span> * When the Plutus Core evaluator is run, the code in
+<span class="lineno">  116 </span>   PlutusCore.Evaluation.Machine.BuiltinCostModel uses the data in
+<span class="lineno">  117 </span>   defaultCostModel to create Haskell versions of the cost models which estimate
+<span class="lineno">  118 </span>   the execution time of a built-in function given the sizes of its inputs.
+<span class="lineno">  119 </span>   This (and the memory usage) are fed into a budgeting process which measures
+<span class="lineno">  120 </span>   the ongoing resource consumption during script execution.
+<span class="lineno">  121 </span>
+<span class="lineno">  122 </span>   All budget calculations are (at least on 64-bit machines) done using the
+<span class="lineno">  123 </span>   'SatInt' type which deals with overflow by truncating excessively large values
+<span class="lineno">  124 </span>   to the maximum 'SatInt' value, 2^63-1.  In picoseconds this is about 106
+<span class="lineno">  125 </span>   days, which should suffice for any code we expect to run.  Memory budgeting
+<span class="lineno">  126 </span>   is entirely in terms of machine words, and floating-point issues are
+<span class="lineno">  127 </span>   irrelevant.
+<span class="lineno">  128 </span>
+<span class="lineno">  129 </span> Some precision is lost during the conversion from R's floating-point models to
+<span class="lineno">  130 </span> the integral numbers used in the Haskell models.  However, experimentation
+<span class="lineno">  131 </span> shows that the difference is very small.  The tests in plutus-core:
+<span class="lineno">  132 </span> cost-model-test run the R models and the Haskell models with a large number of
+<span class="lineno">  133 </span> random inputs and check that they agree to within one part in 10,000, which
+<span class="lineno">  134 </span> is well within the accuracy we require for the cost model.
+<span class="lineno">  135 </span>-}
+<span class="lineno">  136 </span>
+<span class="lineno">  137 </span>module PlutusCore.Evaluation.Machine.ExBudget
+<span class="lineno">  138 </span>  ( ExBudget (..)
+<span class="lineno">  139 </span>  , minusExBudget
+<span class="lineno">  140 </span>  , ExBudgetBuiltin (..)
+<span class="lineno">  141 </span>  , ExRestrictingBudget (..)
+<span class="lineno">  142 </span>  , LowerInitialCharacter
+<span class="lineno">  143 </span>  , largeBudget
+<span class="lineno">  144 </span>  , enormousBudget
+<span class="lineno">  145 </span>  ) where
+<span class="lineno">  146 </span>
+<span class="lineno">  147 </span>import PlutusCore.Evaluation.Machine.ExMemory
+<span class="lineno">  148 </span>import PlutusPrelude hiding (toList)
+<span class="lineno">  149 </span>
+<span class="lineno">  150 </span>import Codec.Serialise (Serialise (..))
+<span class="lineno">  151 </span>import Data.Semigroup
+<span class="lineno">  152 </span>import Deriving.Aeson
+<span class="lineno">  153 </span>import Language.Haskell.TH.Lift (Lift)
+<span class="lineno">  154 </span>import NoThunks.Class
+<span class="lineno">  155 </span>import Prettyprinter
+<span class="lineno">  156 </span>
+<span class="lineno">  157 </span>{-| This is used elsewhere to convert cost models into JSON objects where the
+<span class="lineno">  158 </span>names of the fields are exactly the same as the names of the builtins. -}
+<span class="lineno">  159 </span>data LowerInitialCharacter
+<span class="lineno">  160 </span>
+<span class="lineno">  161 </span>instance StringModifier LowerInitialCharacter where
+<span class="lineno">  162 </span>  <span class="decl"><span class="istickedoff">getStringModifier = lowerInitialChar</span></span>
+<span class="lineno">  163 </span>
+<span class="lineno">  164 </span>{-| A class for injecting a 'Builtin' into an @exBudgetCat@.
+<span class="lineno">  165 </span>We need it, because the constant application machinery calls 'spendBudget' before reducing a
+<span class="lineno">  166 </span>constant application and we want to be general over @exBudgetCat@ there, but still track the
+<span class="lineno">  167 </span>built-in functions category, hence the ad hoc polymorphism. -}
+<span class="lineno">  168 </span>class ExBudgetBuiltin fun exBudgetCat where
+<span class="lineno">  169 </span>  exBudgetBuiltin :: fun -&gt; exBudgetCat
+<span class="lineno">  170 </span>
+<span class="lineno">  171 </span>-- | A dummy 'ExBudgetBuiltin' instance to be used in monads where we don't care about costing.
+<span class="lineno">  172 </span>instance ExBudgetBuiltin fun () where
+<span class="lineno">  173 </span>  <span class="decl"><span class="nottickedoff">exBudgetBuiltin _ = ()</span></span>
+<span class="lineno">  174 </span>
+<span class="lineno">  175 </span>data ExBudget = ExBudget {<span class="istickedoff"><span class="decl"><span class="istickedoff">exBudgetCPU</span></span></span> :: ExCPU, <span class="istickedoff"><span class="decl"><span class="istickedoff">exBudgetMemory</span></span></span> :: ExMemory}
+<span class="lineno">  176 </span>  deriving stock (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="istickedoff">Generic</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Lift</span></span></span></span>)
+<span class="lineno">  177 </span>  deriving anyclass (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config</span></span></span></span>, <span class="decl"><span class="istickedoff">NFData</span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">NoThunks</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Serialise</span></span></span></span></span></span></span></span>)
+<span class="lineno">  178 </span>  deriving (<span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="istickedoff">FromJSON</span></span></span></span></span></span>, <span class="decl"><span class="istickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">ToJSON</span></span></span></span></span></span></span></span></span></span>) via CustomJSON '[FieldLabelModifier LowerInitialCharacter] ExBudget
+<span class="lineno">  179 </span>
+<span class="lineno">  180 </span>-- LowerInitialCharacter won't actually do anything here, but let's have it in case we change the field names.
+<span class="lineno">  181 </span>
+<span class="lineno">  182 </span>-- | Subtract one 'ExBudget' from another. Does not guarantee that the result is positive.
+<span class="lineno">  183 </span>minusExBudget :: ExBudget -&gt; ExBudget -&gt; ExBudget
+<span class="lineno">  184 </span><span class="decl"><span class="nottickedoff">minusExBudget (ExBudget c1 m1) (ExBudget c2 m2) = ExBudget (c1 - c2) (m1 - m2)</span></span>
+<span class="lineno">  185 </span>{-# INLINE minusExBudget #-}
+<span class="lineno">  186 </span>
+<span class="lineno">  187 </span>-- These functions are performance critical, so we can't use GenericSemigroupMonoid, and we insist that they be inlined.
+<span class="lineno">  188 </span>instance <span class="decl"><span class="nottickedoff">Semigroup ExBudget</span></span> where
+<span class="lineno">  189 </span>  {-# INLINE (&lt;&gt;) #-}
+<span class="lineno">  190 </span>  <span class="decl"><span class="istickedoff">(ExBudget cpu1 mem1) &lt;&gt; (ExBudget cpu2 mem2) = ExBudget (cpu1 &lt;&gt; cpu2) (mem1 &lt;&gt; mem2)</span></span>
+<span class="lineno">  191 </span>
+<span class="lineno">  192 </span>  -- This absolutely must be inlined so that the 'fromIntegral' calls can get optimized away, or it destroys performance
+<span class="lineno">  193 </span>  {-# INLINE stimes #-}
+<span class="lineno">  194 </span>  <span class="decl"><span class="istickedoff">stimes r (ExBudget (ExCPU cpu) (ExMemory mem)) = ExBudget (ExCPU (fromIntegral r * cpu)) (ExMemory (fromIntegral r * mem))</span></span>
+<span class="lineno">  195 </span>
+<span class="lineno">  196 </span>instance <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid ExBudget</span></span></span></span> where
+<span class="lineno">  197 </span>  <span class="decl"><span class="istickedoff">mempty = ExBudget mempty mempty</span></span>
+<span class="lineno">  198 </span>  {-# INLINE mempty #-}
+<span class="lineno">  199 </span>
+<span class="lineno">  200 </span>instance <span class="decl"><span class="nottickedoff">Pretty ExBudget</span></span> where
+<span class="lineno">  201 </span>  <span class="decl"><span class="istickedoff">pretty (ExBudget cpu memory) =</span>
+<span class="lineno">  202 </span><span class="spaces">    </span><span class="istickedoff">parens $</span>
+<span class="lineno">  203 </span><span class="spaces">      </span><span class="istickedoff">braces $</span>
+<span class="lineno">  204 </span><span class="spaces">        </span><span class="istickedoff">vsep</span>
+<span class="lineno">  205 </span><span class="spaces">          </span><span class="istickedoff">[ &quot;cpu:&quot; &lt;+&gt; pretty cpu</span>
+<span class="lineno">  206 </span><span class="spaces">          </span><span class="istickedoff">, &quot;| mem:&quot; &lt;+&gt; pretty memory</span>
+<span class="lineno">  207 </span><span class="spaces">          </span><span class="istickedoff">]</span></span>
+<span class="lineno">  208 </span>
+<span class="lineno">  209 </span>newtype ExRestrictingBudget = ExRestrictingBudget
+<span class="lineno">  210 </span>  { <span class="istickedoff"><span class="decl"><span class="istickedoff">unExRestrictingBudget</span></span></span> :: ExBudget
+<span class="lineno">  211 </span>  }
+<span class="lineno">  212 </span>  deriving stock (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Show</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Eq</span></span></span></span>)
+<span class="lineno">  213 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Semigroup</span></span></span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Monoid</span></span></span></span></span></span>)
+<span class="lineno">  214 </span>  deriving newtype (<span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">Pretty</span></span></span></span>, <span class="decl"><span class="nottickedoff"><span class="decl"><span class="nottickedoff">PrettyBy config</span></span></span></span>, <span class="decl"><span class="nottickedoff">NFData</span></span>)
+<span class="lineno">  215 </span>
+<span class="lineno">  216 </span>{-| When we want to just evaluate the program that is intended to run out of budget we use the
+<span class="lineno">  217 </span>'Restricting' mode with this big budget designed to make the CEK machine terminate in a
+<span class="lineno">  218 </span>fraction of a second on the reference machine. -}
+<span class="lineno">  219 </span>largeBudget :: ExRestrictingBudget
+<span class="lineno">  220 </span><span class="decl"><span class="istickedoff">largeBudget = ExRestrictingBudget $ ExBudget (2 * 10 ^ (11 :: Int)) (10 ^ (10 :: Int))</span></span>
+<span class="lineno">  221 </span>
+<span class="lineno">  222 </span>{-| When we want to just evaluate the program we use the 'Restricting' mode with an enormous
+<span class="lineno">  223 </span>budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks. -}
+<span class="lineno">  224 </span>enormousBudget :: ExRestrictingBudget
+<span class="lineno">  225 </span><span class="decl"><span class="istickedoff">enormousBudget = ExRestrictingBudget $ ExBudget maxBound maxBound</span></span>
+
+</pre>
+</body>
+</html>

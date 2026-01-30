@@ -1,0 +1,6969 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Definition analysis for Plutus Core.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Analysis.Definitions</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+	><span class="hs-identifier"
+	  >UniqueInfos</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopeType"
+	><span class="hs-identifier"
+	  >ScopeType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#termDefs"
+	><span class="hs-identifier"
+	  >termDefs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#handleType"
+	><span class="hs-identifier"
+	  >handleType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#runTermDefs"
+	><span class="hs-identifier"
+	  >runTermDefs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#addDef"
+	><span class="hs-identifier"
+	  >addDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#addUsage"
+	><span class="hs-identifier"
+	  >addUsage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Plated.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core.Plated</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Plated.html#termSubtermsDeep"
+	><span class="hs-identifier"
+	  >termSubtermsDeep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Plated.html#termSubtypesDeep"
+	><span class="hs-identifier"
+	  >termSubtypesDeep</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Core.Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Term"
+	><span class="hs-identifier"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyAbs"
+	><span class="hs-identifier"
+	  >TyAbs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier"
+	  >Var</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Type"
+	><span class="hs-identifier"
+	  >Type</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier"
+	  >TyForall</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier"
+	  >TyLam</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Error.html#UniqueError"
+	><span class="hs-identifier"
+	  >UniqueError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+	><span class="hs-identifier"
+	  >HasUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TermUnique"
+	><span class="hs-identifier"
+	  >TermUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+	><span class="hs-identifier"
+	  >TypeUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >                               </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier"
+	  >Unique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Name.UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier"
+	  >insertByNameIndex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#lookupNameIndex"
+	><span class="hs-identifier"
+	  >lookupNameIndex</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>forMOf_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-operator"
+	>(^.)</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier"
+	  >when</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.html"
+	><span class="hs-identifier"
+	  >Control.Monad.State</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+	><span class="hs-identifier"
+	  >MonadState</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#execStateT"
+	><span class="hs-identifier"
+	  >execStateT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#gets"
+	><span class="hs-identifier"
+	  >gets</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#modify"
+	><span class="hs-identifier"
+	  >modify</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Writer</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+	><span class="hs-identifier"
+	  >MonadWriter</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Writer.Lazy.html#runWriterT"
+	><span class="hs-identifier"
+	  >runWriterT</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier"
+	  >tell</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html"
+	><span class="hs-identifier"
+	  >Data.Foldable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#for_"
+	><span class="hs-identifier"
+	  >for_</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Unique usage errors]
+The definitions analysis can find a number of problems with usage of uniques, however
+clients may not always want to throw an error on all of them, hence we simply return
+them all and allow the client to chose if they want to throw some of them.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Information about a unique, a pair of a definition if we have one and a set of uses.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="UniqueInfo"
+      ><span class="annot"
+	><a href="PlutusCore.Analysis.Definitions.html#UniqueInfo"
+	  ><span class="hs-identifier hs-var"
+	    >UniqueInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907697"
+      ><span class="annot"
+	><a href="#local-6989586621681907697"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-type"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681907697"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-type"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681907697"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="UniqueInfos"
+      ><span class="annot"
+	><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+	  ><span class="hs-identifier hs-var"
+	    >UniqueInfos</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907698"
+      ><span class="annot"
+	><a href="#local-6989586621681907698"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.UniqueMap.html#UniqueMap"
+	><span class="hs-identifier hs-type"
+	  >UniqueMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Name.Unique.html#Unique"
+	><span class="hs-identifier hs-type"
+	  >Unique</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfo"
+	><span class="hs-identifier hs-type"
+	  >UniqueInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681907698"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ScopedLoc"
+      ><span class="annot"
+	><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	  ><span class="hs-identifier hs-var"
+	    >ScopedLoc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907531"
+      ><span class="annot"
+	><a href="#local-6989586621681907531"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ScopedLoc"
+      ><span class="annot"
+	><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	  ><span class="hs-identifier hs-var"
+	    >ScopedLoc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopeType"
+	><span class="hs-identifier hs-type"
+	  >ScopeType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681907531"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681907702"
+      ><span id="local-6989586621681907707"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+(ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool)
+-&gt; (ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool) -&gt; Eq (ScopedLoc ann)
+forall ann. Eq ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: forall ann. Eq ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+== :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+$c/= :: forall ann. Eq ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+/= :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907716"
+      ><span id="local-6989586621681907721"
+	><span id="local-6989586621681907725"
+	  ><span id="local-6989586621681907729"
+	    ><span id="local-6989586621681907732"
+	      ><span id="local-6989586621681907735"
+		><span id="local-6989586621681907738"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq (ScopedLoc ann)
+Eq (ScopedLoc ann) =&gt;
+(ScopedLoc ann -&gt; ScopedLoc ann -&gt; Ordering)
+-&gt; (ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool)
+-&gt; (ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool)
+-&gt; (ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool)
+-&gt; (ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool)
+-&gt; (ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann)
+-&gt; (ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann)
+-&gt; Ord (ScopedLoc ann)
+ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+ScopedLoc ann -&gt; ScopedLoc ann -&gt; Ordering
+ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+forall ann. Ord ann =&gt; Eq (ScopedLoc ann)
+forall ann. Ord ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+forall ann. Ord ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Ordering
+forall ann.
+Ord ann =&gt;
+ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann
+$ccompare :: forall ann. Ord ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Ordering
+compare :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; Ordering
+$c&lt; :: forall ann. Ord ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+&lt; :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+$c&lt;= :: forall ann. Ord ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+&lt;= :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+$c&gt; :: forall ann. Ord ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+&gt; :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+$c&gt;= :: forall ann. Ord ann =&gt; ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+&gt;= :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; Bool
+$cmax :: forall ann.
+Ord ann =&gt;
+ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann
+max :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann
+$cmin :: forall ann.
+Ord ann =&gt;
+ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann
+min :: ScopedLoc ann -&gt; ScopedLoc ann -&gt; ScopedLoc ann
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-comment"
+      >-- | Tag for distinguishing between whether we are talking about the term scope</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-comment"
+      >-- for variables or the type scope for variables.</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ScopeType"
+      ><span class="annot"
+	><a href="PlutusCore.Analysis.Definitions.html#ScopeType"
+	  ><span class="hs-identifier hs-var"
+	    >ScopeType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="TermScope"
+      ><span class="annot"
+	><a href="PlutusCore.Analysis.Definitions.html#TermScope"
+	  ><span class="hs-identifier hs-var"
+	    >TermScope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="TypeScope"
+      ><span class="annot"
+	><a href="PlutusCore.Analysis.Definitions.html#TypeScope"
+	  ><span class="hs-identifier hs-var"
+	    >TypeScope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681907745"
+      ><span id="local-6989586621681907747"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ScopeType -&gt; ScopeType -&gt; Bool
+(ScopeType -&gt; ScopeType -&gt; Bool)
+-&gt; (ScopeType -&gt; ScopeType -&gt; Bool) -&gt; Eq ScopeType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ScopeType -&gt; ScopeType -&gt; Bool
+== :: ScopeType -&gt; ScopeType -&gt; Bool
+$c/= :: ScopeType -&gt; ScopeType -&gt; Bool
+/= :: ScopeType -&gt; ScopeType -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907752"
+      ><span id="local-6989586621681907754"
+	><span id="local-6989586621681907756"
+	  ><span id="local-6989586621681907759"
+	    ><span id="local-6989586621681907762"
+	      ><span id="local-6989586621681907765"
+		><span id="local-6989586621681907768"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq ScopeType
+Eq ScopeType =&gt;
+(ScopeType -&gt; ScopeType -&gt; Ordering)
+-&gt; (ScopeType -&gt; ScopeType -&gt; Bool)
+-&gt; (ScopeType -&gt; ScopeType -&gt; Bool)
+-&gt; (ScopeType -&gt; ScopeType -&gt; Bool)
+-&gt; (ScopeType -&gt; ScopeType -&gt; Bool)
+-&gt; (ScopeType -&gt; ScopeType -&gt; ScopeType)
+-&gt; (ScopeType -&gt; ScopeType -&gt; ScopeType)
+-&gt; Ord ScopeType
+ScopeType -&gt; ScopeType -&gt; Bool
+ScopeType -&gt; ScopeType -&gt; Ordering
+ScopeType -&gt; ScopeType -&gt; ScopeType
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: ScopeType -&gt; ScopeType -&gt; Ordering
+compare :: ScopeType -&gt; ScopeType -&gt; Ordering
+$c&lt; :: ScopeType -&gt; ScopeType -&gt; Bool
+&lt; :: ScopeType -&gt; ScopeType -&gt; Bool
+$c&lt;= :: ScopeType -&gt; ScopeType -&gt; Bool
+&lt;= :: ScopeType -&gt; ScopeType -&gt; Bool
+$c&gt; :: ScopeType -&gt; ScopeType -&gt; Bool
+&gt; :: ScopeType -&gt; ScopeType -&gt; Bool
+$c&gt;= :: ScopeType -&gt; ScopeType -&gt; Bool
+&gt;= :: ScopeType -&gt; ScopeType -&gt; Bool
+$cmax :: ScopeType -&gt; ScopeType -&gt; ScopeType
+max :: ScopeType -&gt; ScopeType -&gt; ScopeType
+$cmin :: ScopeType -&gt; ScopeType -&gt; ScopeType
+min :: ScopeType -&gt; ScopeType -&gt; ScopeType
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span id="local-6989586621681907478"
+      ><span id="local-6989586621681907479"
+	><span id="local-6989586621681907480"
+	  ><span id="local-6989586621681907483"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#lookupDef"
+		><span class="hs-identifier hs-type"
+		  >lookupDef</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-46"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		><span class="hs-identifier hs-type"
+		  >Ord</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907478"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-47"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907479"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907480"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-48"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		><span class="hs-identifier hs-type"
+		  >MonadState</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfos</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907478"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907483"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-49"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907479"
+		><span class="hs-identifier hs-type"
+		  >name</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-50"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907483"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfo"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfo</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907478"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span id="lookupDef"
+      ><span class="annot"
+	><span class="annottext"
+	  >lookupDef :: forall ann name unique (m :: * -&gt; *).
+(Ord ann, HasUnique name unique, MonadState (UniqueInfos ann) m) =&gt;
+name -&gt; m (UniqueInfo ann)
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#lookupDef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >lookupDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907788"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681907788"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681907789"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe (UniqueInfo ann)
+</span
+	  ><a href="#local-6989586621681907789"
+	  ><span class="hs-identifier hs-var"
+	    >previousDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueInfos ann -&gt; Maybe (UniqueInfo ann))
+-&gt; m (Maybe (UniqueInfo ann))
+forall s (m :: * -&gt; *) a. MonadState s m =&gt; (s -&gt; a) -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#gets"
+	><span class="hs-identifier hs-var"
+	  >gets</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((UniqueInfos ann -&gt; Maybe (UniqueInfo ann))
+ -&gt; m (Maybe (UniqueInfo ann)))
+-&gt; (UniqueInfos ann -&gt; Maybe (UniqueInfo ann))
+-&gt; m (Maybe (UniqueInfo ann))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; UniqueInfos ann -&gt; Maybe (UniqueInfo ann)
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; UniqueMap unique2 a -&gt; Maybe a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#lookupNameIndex"
+	><span class="hs-identifier hs-var"
+	  >lookupNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681907788"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (UniqueInfo ann)
+</span
+	><a href="#local-6989586621681907789"
+	><span class="hs-identifier hs-var"
+	  >previousDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907790"
+      ><span class="annot"
+	><span class="annottext"
+	  >UniqueInfo ann
+</span
+	  ><a href="#local-6989586621681907790"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann -&gt; m (UniqueInfo ann)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+</span
+	><a href="#local-6989586621681907790"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (UniqueInfo ann)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907796"
+      ><span class="annot"
+	><span class="annottext"
+	  >empty :: (Maybe a, Set (ScopedLoc ann))
+</span
+	  ><a href="#local-6989586621681907796"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >empty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (ScopedLoc ann)
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; (s -&gt; s) -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#modify"
+	><span class="hs-identifier hs-var"
+	  >modify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ())
+-&gt; (UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; UniqueInfo ann -&gt; UniqueInfos ann -&gt; UniqueInfos ann
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681907788"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+forall {a}. (Maybe a, Set (ScopedLoc ann))
+</span
+	><a href="#local-6989586621681907796"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann -&gt; m (UniqueInfo ann)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+forall {a}. (Maybe a, Set (ScopedLoc ann))
+</span
+	><a href="#local-6989586621681907796"
+	><span class="hs-identifier hs-var"
+	  >empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span id="local-6989586621681907521"
+      ><span id="local-6989586621681907522"
+	><span id="local-6989586621681907523"
+	  ><span id="local-6989586621681907524"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#addDef"
+		><span class="hs-identifier hs-type"
+		  >addDef</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-61"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		><span class="hs-identifier hs-type"
+		  >Ord</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907521"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-62"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907522"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907523"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-63"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		><span class="hs-identifier hs-type"
+		  >MonadState</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfos</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907521"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907524"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-64"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		><span class="hs-identifier hs-type"
+		  >MonadWriter</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Error.html#UniqueError"
+		><span class="hs-identifier hs-type"
+		  >UniqueError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907521"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907524"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-65"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907522"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The variable</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-66"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907521"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The annotation of the variable</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-67"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#ScopeType"
+		><span class="hs-identifier hs-type"
+		  >ScopeType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The scope type</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-68"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907524"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="addDef"
+      ><span class="annot"
+	><span class="annottext"
+	  >addDef :: forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#addDef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907813"
+      ><span class="annot"
+	><span class="annottext"
+	  >n
+</span
+	  ><a href="#local-6989586621681907813"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907814"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907814"
+	  ><span class="hs-identifier hs-var"
+	    >newDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907815"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScopeType
+</span
+	  ><a href="#local-6989586621681907815"
+	  ><span class="hs-identifier hs-var"
+	    >tpe</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907816"
+      ><span class="annot"
+	><span class="annottext"
+	  >def :: ScopedLoc ann
+</span
+	  ><a href="#local-6989586621681907816"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >def</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType -&gt; ann -&gt; ScopedLoc ann
+forall ann. ScopeType -&gt; ann -&gt; ScopedLoc ann
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-var"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="#local-6989586621681907815"
+	><span class="hs-identifier hs-var"
+	  >tpe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907814"
+	><span class="hs-identifier hs-var"
+	  >newDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681907817"
+      ><span class="annot"
+	><span class="annottext"
+	  >d :: UniqueInfo ann
+</span
+	  ><a href="#local-6989586621681907817"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (ScopedLoc ann)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907818"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set (ScopedLoc ann)
+</span
+	  ><a href="#local-6989586621681907818"
+	  ><span class="hs-identifier hs-var"
+	    >uses</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; m (UniqueInfo ann)
+forall ann name unique (m :: * -&gt; *).
+(Ord ann, HasUnique name unique, MonadState (UniqueInfos ann) m) =&gt;
+name -&gt; m (UniqueInfo ann)
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#lookupDef"
+	><span class="hs-identifier hs-var"
+	  >lookupDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907813"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+forall n u ann (m :: * -&gt; *).
+(HasUnique n u, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#checkUndefined"
+	><span class="hs-identifier hs-var"
+	  >checkUndefined</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907813"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann
+</span
+	><a href="#local-6989586621681907816"
+	><span class="hs-identifier hs-var"
+	  >def</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+</span
+	><a href="#local-6989586621681907817"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; (s -&gt; s) -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#modify"
+	><span class="hs-identifier hs-var"
+	  >modify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ())
+-&gt; (UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; UniqueInfo ann -&gt; UniqueInfos ann -&gt; UniqueInfos ann
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907813"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann -&gt; Maybe (ScopedLoc ann)
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann
+</span
+	><a href="#local-6989586621681907816"
+	><span class="hs-identifier hs-var"
+	  >def</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (ScopedLoc ann)
+</span
+	><a href="#local-6989586621681907818"
+	><span class="hs-identifier hs-var"
+	  >uses</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Check that a variable is currently undefined.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span id="local-6989586621681907532"
+      ><span id="local-6989586621681907533"
+	><span id="local-6989586621681907534"
+	  ><span id="local-6989586621681907535"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#checkUndefined"
+		><span class="hs-identifier hs-type"
+		  >checkUndefined</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-78"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907532"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907533"
+		><span class="hs-identifier hs-type"
+		  >u</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-79"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		><span class="hs-identifier hs-type"
+		  >MonadState</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfos</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907534"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907535"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-80"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		><span class="hs-identifier hs-type"
+		  >MonadWriter</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Error.html#UniqueError"
+		><span class="hs-identifier hs-type"
+		  >UniqueError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907534"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907535"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-81"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907532"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The variable</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-82"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+		><span class="hs-identifier hs-type"
+		  >ScopedLoc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907534"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The new definition</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-83"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfo"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfo</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907534"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The existing info</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-84"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907535"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span id="checkUndefined"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkUndefined :: forall n u ann (m :: * -&gt; *).
+(HasUnique n u, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#checkUndefined"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkUndefined</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907830"
+      ><span class="annot"
+	><span class="annottext"
+	  >n
+</span
+	  ><a href="#local-6989586621681907830"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-type"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907831"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907831"
+	  ><span class="hs-identifier hs-var"
+	    >newDef</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907832"
+      ><span class="annot"
+	><span class="annottext"
+	  >UniqueInfo ann
+</span
+	  ><a href="#local-6989586621681907832"
+	  ><span class="hs-identifier hs-var"
+	    >info</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+</span
+	><a href="#local-6989586621681907832"
+	><span class="hs-identifier hs-var"
+	  >info</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-type"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907833"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907833"
+	  ><span class="hs-identifier hs-var"
+	    >prevDef</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (ScopedLoc ann)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[UniqueError ann] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; ann -&gt; ann -&gt; UniqueError ann
+forall ann. Unique -&gt; ann -&gt; ann -&gt; UniqueError ann
+</span
+	><a href="PlutusCore.Error.html#MultiplyDefined"
+	><span class="hs-identifier hs-var"
+	  >MultiplyDefined</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907830"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; Getting Unique n Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique n Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' n Unique
+</span
+	><a href="PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907833"
+	><span class="hs-identifier hs-var"
+	  >prevDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907831"
+	><span class="hs-identifier hs-var"
+	  >newDef</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                               </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; m ()
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span id="local-6989586621681907835"
+      ><span id="local-6989586621681907836"
+	><span id="local-6989586621681907837"
+	  ><span id="local-6989586621681907838"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#addUsage"
+		><span class="hs-identifier hs-type"
+		  >addUsage</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-90"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		><span class="hs-identifier hs-type"
+		  >Ord</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907835"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-91"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907836"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907837"
+		><span class="hs-identifier hs-type"
+		  >unique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-92"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		><span class="hs-identifier hs-type"
+		  >MonadState</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfos</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907835"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907838"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-93"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		><span class="hs-identifier hs-type"
+		  >MonadWriter</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Error.html#UniqueError"
+		><span class="hs-identifier hs-type"
+		  >UniqueError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907835"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907838"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-94"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907836"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The variable</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-95"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907835"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The annotation of the variable</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-96"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#ScopeType"
+		><span class="hs-identifier hs-type"
+		  >ScopeType</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The scope type</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-97"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907838"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span id="addUsage"
+      ><span class="annot"
+	><span class="annottext"
+	  >addUsage :: forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#addUsage"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >addUsage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907858"
+      ><span class="annot"
+	><span class="annottext"
+	  >n
+</span
+	  ><a href="#local-6989586621681907858"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907859"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907859"
+	  ><span class="hs-identifier hs-var"
+	    >newUse</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907860"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScopeType
+</span
+	  ><a href="#local-6989586621681907860"
+	  ><span class="hs-identifier hs-var"
+	    >tpe</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907861"
+      ><span class="annot"
+	><span class="annottext"
+	  >use :: ScopedLoc ann
+</span
+	  ><a href="#local-6989586621681907861"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >use</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType -&gt; ann -&gt; ScopedLoc ann
+forall ann. ScopeType -&gt; ann -&gt; ScopedLoc ann
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-var"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="#local-6989586621681907860"
+	><span class="hs-identifier hs-var"
+	  >tpe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907859"
+	><span class="hs-identifier hs-var"
+	  >newUse</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621681907862"
+      ><span class="annot"
+	><span class="annottext"
+	  >d :: UniqueInfo ann
+</span
+	  ><a href="#local-6989586621681907862"
+	  ><span class="hs-identifier hs-var"
+	    >d</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681907863"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe (ScopedLoc ann)
+</span
+	  ><a href="#local-6989586621681907863"
+	  ><span class="hs-identifier hs-var"
+	    >def</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907864"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set (ScopedLoc ann)
+</span
+	  ><a href="#local-6989586621681907864"
+	  ><span class="hs-identifier hs-var"
+	    >uses</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; m (UniqueInfo ann)
+forall ann name unique (m :: * -&gt; *).
+(Ord ann, HasUnique name unique, MonadState (UniqueInfos ann) m) =&gt;
+name -&gt; m (UniqueInfo ann)
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#lookupDef"
+	><span class="hs-identifier hs-var"
+	  >lookupDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907858"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+forall n u ann (m :: * -&gt; *).
+(HasUnique n u, MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#checkCoherency"
+	><span class="hs-identifier hs-var"
+	  >checkCoherency</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907858"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann
+</span
+	><a href="#local-6989586621681907861"
+	><span class="hs-identifier hs-var"
+	  >use</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+</span
+	><a href="#local-6989586621681907862"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+forall n u ann (m :: * -&gt; *).
+(HasUnique n u, MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#checkDefined"
+	><span class="hs-identifier hs-var"
+	  >checkDefined</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907858"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann
+</span
+	><a href="#local-6989586621681907861"
+	><span class="hs-identifier hs-var"
+	  >use</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfo ann
+</span
+	><a href="#local-6989586621681907862"
+	><span class="hs-identifier hs-var"
+	  >d</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ()
+forall s (m :: * -&gt; *). MonadState s m =&gt; (s -&gt; s) -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#modify"
+	><span class="hs-identifier hs-var"
+	  >modify</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ())
+-&gt; (UniqueInfos ann -&gt; UniqueInfos ann) -&gt; m ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; UniqueInfo ann -&gt; UniqueInfos ann -&gt; UniqueInfos ann
+forall name unique1 unique2 a.
+(HasUnique name unique1, Coercible unique2 Unique) =&gt;
+name -&gt; a -&gt; UniqueMap unique2 a -&gt; UniqueMap unique2 a
+</span
+	><a href="PlutusCore.Name.UniqueMap.html#insertByNameIndex"
+	><span class="hs-identifier hs-var"
+	  >insertByNameIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907858"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (ScopedLoc ann)
+</span
+	><a href="#local-6989586621681907863"
+	><span class="hs-identifier hs-var"
+	  >def</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann -&gt; Set (ScopedLoc ann) -&gt; Set (ScopedLoc ann)
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#insert"
+	><span class="hs-identifier hs-var"
+	  >Set.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann
+</span
+	><a href="#local-6989586621681907861"
+	><span class="hs-identifier hs-var"
+	  >use</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (ScopedLoc ann)
+</span
+	><a href="#local-6989586621681907864"
+	><span class="hs-identifier hs-var"
+	  >uses</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span id="local-6989586621681907868"
+      ><span id="local-6989586621681907869"
+	><span id="local-6989586621681907870"
+	  ><span id="local-6989586621681907871"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#checkDefined"
+		><span class="hs-identifier hs-type"
+		  >checkDefined</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-107"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907868"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907869"
+		><span class="hs-identifier hs-type"
+		  >u</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-108"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		><span class="hs-identifier hs-type"
+		  >MonadWriter</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Error.html#UniqueError"
+		><span class="hs-identifier hs-type"
+		  >UniqueError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907870"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907871"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-109"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907868"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The variable</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-110"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+		><span class="hs-identifier hs-type"
+		  >ScopedLoc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907870"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The new definition</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-111"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfo"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfo</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907870"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The existing info</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-112"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907871"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="checkDefined"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkDefined :: forall n u ann (m :: * -&gt; *).
+(HasUnique n u, MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#checkDefined"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkDefined</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907881"
+      ><span class="annot"
+	><span class="annottext"
+	  >n
+</span
+	  ><a href="#local-6989586621681907881"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-type"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907882"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907882"
+	  ><span class="hs-identifier hs-var"
+	    >loc</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681907883"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe (ScopedLoc ann)
+</span
+	  ><a href="#local-6989586621681907883"
+	  ><span class="hs-identifier hs-var"
+	    >def</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (ScopedLoc ann)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (ScopedLoc ann)
+</span
+	><a href="#local-6989586621681907883"
+	><span class="hs-identifier hs-var"
+	  >def</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (ScopedLoc ann)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[UniqueError ann] -&gt; m ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; ann -&gt; UniqueError ann
+forall ann. Unique -&gt; ann -&gt; UniqueError ann
+</span
+	><a href="PlutusCore.Error.html#FreeVariable"
+	><span class="hs-identifier hs-var"
+	  >FreeVariable</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907881"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; Getting Unique n Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique n Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' n Unique
+</span
+	><a href="PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907882"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; m ()
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span id="local-6989586621681907555"
+      ><span id="local-6989586621681907556"
+	><span id="local-6989586621681907557"
+	  ><span id="local-6989586621681907558"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#checkCoherency"
+		><span class="hs-identifier hs-type"
+		  >checkCoherency</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-118"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907555"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907556"
+		><span class="hs-identifier hs-type"
+		  >u</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-119"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		><span class="hs-identifier hs-type"
+		  >MonadWriter</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Error.html#UniqueError"
+		><span class="hs-identifier hs-type"
+		  >UniqueError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907557"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907558"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-120"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907555"
+		><span class="hs-identifier hs-type"
+		  >n</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The variable</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-121"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+		><span class="hs-identifier hs-type"
+		  >ScopedLoc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907557"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The new definition</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-122"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfo"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfo</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907557"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><span class="hs-comment"
+		>-- ^ The existing info</span
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-123"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907558"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span id="checkCoherency"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkCoherency :: forall n u ann (m :: * -&gt; *).
+(HasUnique n u, MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ScopedLoc ann -&gt; UniqueInfo ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#checkCoherency"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkCoherency</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907903"
+      ><span class="annot"
+	><span class="annottext"
+	  >n
+</span
+	  ><a href="#local-6989586621681907903"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-type"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907904"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScopeType
+</span
+	  ><a href="#local-6989586621681907904"
+	  ><span class="hs-identifier hs-var"
+	    >tpe</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907905"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907905"
+	  ><span class="hs-identifier hs-var"
+	    >loc</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681907906"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe (ScopedLoc ann)
+</span
+	  ><a href="#local-6989586621681907906"
+	  ><span class="hs-identifier hs-var"
+	    >def</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681907907"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set (ScopedLoc ann)
+</span
+	  ><a href="#local-6989586621681907907"
+	  ><span class="hs-identifier hs-var"
+	    >uses</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (ScopedLoc ann) -&gt; (ScopedLoc ann -&gt; m ()) -&gt; m ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#for_"
+	><span class="hs-identifier hs-var"
+	  >for_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (ScopedLoc ann)
+</span
+	><a href="#local-6989586621681907906"
+	><span class="hs-identifier hs-var"
+	  >def</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann -&gt; m ()
+forall {f :: * -&gt; *}.
+MonadWriter [UniqueError ann] f =&gt;
+ScopedLoc ann -&gt; f ()
+</span
+	><a href="#local-6989586621681907908"
+	><span class="hs-identifier hs-var"
+	  >checkLoc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ScopedLoc ann] -&gt; (ScopedLoc ann -&gt; m ()) -&gt; m ()
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Foldable t, Applicative f) =&gt;
+t a -&gt; (a -&gt; f b) -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#for_"
+	><span class="hs-identifier hs-var"
+	  >for_</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (ScopedLoc ann) -&gt; [ScopedLoc ann]
+forall a. Set a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Set.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set (ScopedLoc ann)
+</span
+	><a href="#local-6989586621681907907"
+	><span class="hs-identifier hs-var"
+	  >uses</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopedLoc ann -&gt; m ()
+forall {f :: * -&gt; *}.
+MonadWriter [UniqueError ann] f =&gt;
+ScopedLoc ann -&gt; f ()
+</span
+	><a href="#local-6989586621681907908"
+	><span class="hs-identifier hs-var"
+	  >checkLoc</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621681907908"
+      ><span class="annot"
+	><span class="annottext"
+	  >checkLoc :: ScopedLoc ann -&gt; f ()
+</span
+	  ><a href="#local-6989586621681907908"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >checkLoc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Analysis.Definitions.html#ScopedLoc"
+	><span class="hs-identifier hs-type"
+	  >ScopedLoc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907929"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScopeType
+</span
+	  ><a href="#local-6989586621681907929"
+	  ><span class="hs-identifier hs-var"
+	    >tpe'</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907930"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907930"
+	  ><span class="hs-identifier hs-var"
+	    >loc'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; f () -&gt; f ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#when"
+	><span class="hs-identifier hs-var"
+	  >when</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="#local-6989586621681907929"
+	><span class="hs-identifier hs-var"
+	  >tpe'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType -&gt; ScopeType -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%2F%3D"
+	><span class="hs-operator hs-var"
+	  >/=</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="#local-6989586621681907904"
+	><span class="hs-identifier hs-var"
+	  >tpe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(f () -&gt; f ()) -&gt; f () -&gt; f ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[UniqueError ann] -&gt; f ()
+forall w (m :: * -&gt; *). MonadWriter w m =&gt; w -&gt; m ()
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#tell"
+	><span class="hs-identifier hs-var"
+	  >tell</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unique -&gt; ann -&gt; ann -&gt; UniqueError ann
+forall ann. Unique -&gt; ann -&gt; ann -&gt; UniqueError ann
+</span
+	><a href="PlutusCore.Error.html#IncoherentUsage"
+	><span class="hs-identifier hs-var"
+	  >IncoherentUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>n
+</span
+	><a href="#local-6989586621681907903"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>n -&gt; Getting Unique n Unique -&gt; Unique
+forall s a. s -&gt; Getting a s a -&gt; a
+</span
+	><span class="hs-operator hs-var"
+	>^.</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Unique n Unique
+forall name unique. HasUnique name unique =&gt; Lens' name Unique
+Lens' n Unique
+</span
+	><a href="PlutusCore.Name.Unique.html#theUnique"
+	><span class="hs-identifier hs-var"
+	  >theUnique</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907930"
+	><span class="hs-identifier hs-var"
+	  >loc'</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907905"
+	><span class="hs-identifier hs-var"
+	  >loc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span class="hs-comment"
+      >-- | Given a PLC term, add all of its term and type definitions and usages, including its subterms</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span class="hs-comment"
+      >-- and subtypes, to a global map.</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ><span id="local-6989586621681907579"
+      ><span id="local-6989586621681907580"
+	><span id="local-6989586621681907582"
+	  ><span id="local-6989586621681907584"
+	    ><span id="local-6989586621681907585"
+	      ><span id="local-6989586621681907586"
+		><span class="annot"
+		  ><a href="PlutusCore.Analysis.Definitions.html#termDefs"
+		    ><span class="hs-identifier hs-type"
+		      >termDefs</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-135"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907579"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-136"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907580"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#TermUnique"
+		    ><span class="hs-identifier hs-type"
+		      >TermUnique</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-137"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907582"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+		    ><span class="hs-identifier hs-type"
+		      >TypeUnique</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-138"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		    ><span class="hs-identifier hs-type"
+		      >MonadState</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		    ><span class="hs-identifier hs-type"
+		      >UniqueInfos</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907579"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907584"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-139"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		    ><span class="hs-identifier hs-type"
+		      >MonadWriter</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >[</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Error.html#UniqueError"
+		    ><span class="hs-identifier hs-type"
+		      >UniqueError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907579"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >]</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907584"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-140"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907582"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907580"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907585"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907586"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907579"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-141"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907584"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-142"
+      ></span
+      ><span id="termDefs"
+      ><span class="annot"
+	><span class="annottext"
+	  >termDefs :: forall ann name tyname (m :: * -&gt; *) (uni :: * -&gt; *) fun.
+(Ord ann, HasUnique name TermUnique, HasUnique tyname TypeUnique,
+ MonadState (UniqueInfos ann) m, MonadWriter [UniqueError ann] m) =&gt;
+Term tyname name uni fun ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#termDefs"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >termDefs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907959"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term tyname name uni fun ann
+</span
+	  ><a href="#local-6989586621681907959"
+	  ><span class="hs-identifier hs-var"
+	    >tm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-143"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Sequenced () m)
+  (Term tyname name uni fun ann)
+  (Term tyname name uni fun ann)
+-&gt; Term tyname name uni fun ann
+-&gt; (Term tyname name uni fun ann -&gt; m ())
+-&gt; m ()
+forall (m :: * -&gt; *) r s a.
+Monad m =&gt;
+Getting (Sequenced r m) s a -&gt; s -&gt; (a -&gt; m r) -&gt; m ()
+</span
+	><span class="hs-identifier hs-var"
+	>forMOf_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Sequenced () m)
+  (Term tyname name uni fun ann)
+  (Term tyname name uni fun ann)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+(Contravariant f, Applicative f) =&gt;
+(Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#termSubtermsDeep"
+	><span class="hs-identifier hs-var"
+	  >termSubtermsDeep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681907959"
+	><span class="hs-identifier hs-var"
+	  >tm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann -&gt; m ()
+forall ann name tyname (m :: * -&gt; *) (uni :: * -&gt; *) fun.
+(Ord ann, HasUnique name TermUnique, HasUnique tyname TypeUnique,
+ MonadState (UniqueInfos ann) m, MonadWriter [UniqueError ann] m) =&gt;
+Term tyname name uni fun ann -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#handleTerm"
+	><span class="hs-identifier hs-var"
+	  >handleTerm</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-144"
+      ></span
+      ><span
+      >   </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Sequenced () m)
+  (Term tyname name uni fun ann)
+  (Type tyname uni ann)
+-&gt; Term tyname name uni fun ann
+-&gt; (Type tyname uni ann -&gt; m ())
+-&gt; m ()
+forall (m :: * -&gt; *) r s a.
+Monad m =&gt;
+Getting (Sequenced r m) s a -&gt; s -&gt; (a -&gt; m r) -&gt; m ()
+</span
+	><span class="hs-identifier hs-var"
+	>forMOf_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting
+  (Sequenced () m)
+  (Term tyname name uni fun ann)
+  (Type tyname uni ann)
+forall tyname name (uni :: * -&gt; *) fun ann (f :: * -&gt; *).
+(Contravariant f, Applicative f) =&gt;
+(Type tyname uni ann -&gt; f (Type tyname uni ann))
+-&gt; Term tyname name uni fun ann -&gt; f (Term tyname name uni fun ann)
+</span
+	><a href="PlutusCore.Core.Plated.html#termSubtypesDeep"
+	><span class="hs-identifier hs-var"
+	  >termSubtypesDeep</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><a href="#local-6989586621681907959"
+	><span class="hs-identifier hs-var"
+	  >tm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann -&gt; m ()
+forall ann tyname (m :: * -&gt; *) (uni :: * -&gt; *).
+(Ord ann, HasUnique tyname TypeUnique,
+ MonadState (UniqueInfos ann) m, MonadWriter [UniqueError ann] m) =&gt;
+Type tyname uni ann -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#handleType"
+	><span class="hs-identifier hs-var"
+	  >handleType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-145"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-146"
+      ></span
+      ><span id="local-6989586621681907961"
+      ><span id="local-6989586621681907962"
+	><span id="local-6989586621681907963"
+	  ><span id="local-6989586621681907964"
+	    ><span id="local-6989586621681907965"
+	      ><span id="local-6989586621681907966"
+		><span class="annot"
+		  ><a href="PlutusCore.Analysis.Definitions.html#handleTerm"
+		    ><span class="hs-identifier hs-type"
+		      >handleTerm</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907961"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-147"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907962"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#TermUnique"
+		    ><span class="hs-identifier hs-type"
+		      >TermUnique</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-148"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907963"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+		    ><span class="hs-identifier hs-type"
+		      >TypeUnique</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-149"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		    ><span class="hs-identifier hs-type"
+		      >MonadState</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		    ><span class="hs-identifier hs-type"
+		      >UniqueInfos</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907961"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907964"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-150"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		    ><span class="hs-identifier hs-type"
+		      >MonadWriter</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >[</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Error.html#UniqueError"
+		    ><span class="hs-identifier hs-type"
+		      >UniqueError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907961"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >]</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907964"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-151"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907963"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907962"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907965"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907966"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907961"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-152"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907964"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span id="handleTerm"
+      ><span class="annot"
+	><span class="annottext"
+	  >handleTerm :: forall ann name tyname (m :: * -&gt; *) (uni :: * -&gt; *) fun.
+(Ord ann, HasUnique name TermUnique, HasUnique tyname TypeUnique,
+ MonadState (UniqueInfos ann) m, MonadWriter [UniqueError ann] m) =&gt;
+Term tyname name uni fun ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#handleTerm"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >handleTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#Var"
+	><span class="hs-identifier hs-type"
+	  >Var</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907987"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907987"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907988"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681907988"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; ann -&gt; ScopeType -&gt; m ()
+forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#addUsage"
+	><span class="hs-identifier hs-var"
+	  >addUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681907988"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907987"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#TermScope"
+	><span class="hs-identifier hs-var"
+	  >TermScope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#LamAbs"
+	><span class="hs-identifier hs-type"
+	  >LamAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907989"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907989"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907990"
+      ><span class="annot"
+	><span class="annottext"
+	  >name
+</span
+	  ><a href="#local-6989586621681907990"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name -&gt; ann -&gt; ScopeType -&gt; m ()
+forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#addDef"
+	><span class="hs-identifier hs-var"
+	  >addDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>name
+</span
+	><a href="#local-6989586621681907990"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907989"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#TermScope"
+	><span class="hs-identifier hs-var"
+	  >TermScope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyAbs"
+	><span class="hs-identifier hs-type"
+	  >TyAbs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907991"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681907991"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681907992"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621681907992"
+	  ><span class="hs-identifier hs-var"
+	    >tn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; ann -&gt; ScopeType -&gt; m ()
+forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#addDef"
+	><span class="hs-identifier hs-var"
+	  >addDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621681907992"
+	><span class="hs-identifier hs-var"
+	  >tn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681907991"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#TypeScope"
+	><span class="hs-identifier hs-var"
+	  >TypeScope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; m ()
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Given a type, add its type definition/usage, including its subtypes, to a global map.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span id="local-6989586621681907617"
+      ><span id="local-6989586621681907618"
+	><span id="local-6989586621681907619"
+	  ><span id="local-6989586621681907620"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#handleType"
+		><span class="hs-identifier hs-type"
+		  >handleType</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-164"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		><span class="hs-identifier hs-type"
+		  >Ord</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907617"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-165"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		><span class="hs-identifier hs-type"
+		  >HasUnique</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907618"
+		><span class="hs-identifier hs-type"
+		  >tyname</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+		><span class="hs-identifier hs-type"
+		  >TypeUnique</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-166"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+		><span class="hs-identifier hs-type"
+		  >MonadState</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		><span class="hs-identifier hs-type"
+		  >UniqueInfos</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907617"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907619"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      >
+</span
+	      ><span id="line-167"
+	      ></span
+	      ><span
+	      >        </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+		><span class="hs-identifier hs-type"
+		  >MonadWriter</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >[</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Error.html#UniqueError"
+		><span class="hs-identifier hs-type"
+		  >UniqueError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907617"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >]</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907619"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-168"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Core.Type.html#Type"
+		><span class="hs-identifier hs-type"
+		  >Type</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907618"
+		><span class="hs-identifier hs-type"
+		  >tyname</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907620"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907617"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-169"
+	      ></span
+	      ><span
+	      >    </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681907619"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-170"
+      ></span
+      ><span id="handleType"
+      ><span class="annot"
+	><span class="annottext"
+	  >handleType :: forall ann tyname (m :: * -&gt; *) (uni :: * -&gt; *).
+(Ord ann, HasUnique tyname TypeUnique,
+ MonadState (UniqueInfos ann) m, MonadWriter [UniqueError ann] m) =&gt;
+Type tyname uni ann -&gt; m ()
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#handleType"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >handleType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-171"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyVar"
+	><span class="hs-identifier hs-type"
+	  >TyVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681908012"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681908012"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681908013"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621681908013"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-172"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; ann -&gt; ScopeType -&gt; m ()
+forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#addUsage"
+	><span class="hs-identifier hs-var"
+	  >addUsage</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621681908013"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681908012"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#TypeScope"
+	><span class="hs-identifier hs-var"
+	  >TypeScope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-173"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyForall"
+	><span class="hs-identifier hs-type"
+	  >TyForall</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681908014"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681908014"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681908015"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621681908015"
+	  ><span class="hs-identifier hs-var"
+	    >tn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-174"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; ann -&gt; ScopeType -&gt; m ()
+forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#addDef"
+	><span class="hs-identifier hs-var"
+	  >addDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621681908015"
+	><span class="hs-identifier hs-var"
+	  >tn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681908014"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#TypeScope"
+	><span class="hs-identifier hs-var"
+	  >TypeScope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-175"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="PlutusCore.Core.Type.html#TyLam"
+	><span class="hs-identifier hs-type"
+	  >TyLam</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681908016"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann
+</span
+	  ><a href="#local-6989586621681908016"
+	  ><span class="hs-identifier hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681908017"
+      ><span class="annot"
+	><span class="annottext"
+	  >tyname
+</span
+	  ><a href="#local-6989586621681908017"
+	  ><span class="hs-identifier hs-var"
+	    >tn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Kind ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-176"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname -&gt; ann -&gt; ScopeType -&gt; m ()
+forall ann n unique (m :: * -&gt; *).
+(Ord ann, HasUnique n unique, MonadState (UniqueInfos ann) m,
+ MonadWriter [UniqueError ann] m) =&gt;
+n -&gt; ann -&gt; ScopeType -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#addDef"
+	><span class="hs-identifier hs-var"
+	  >addDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>tyname
+</span
+	><a href="#local-6989586621681908017"
+	><span class="hs-identifier hs-var"
+	  >tn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ann
+</span
+	><a href="#local-6989586621681908016"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScopeType
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#TypeScope"
+	><span class="hs-identifier hs-var"
+	  >TypeScope</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-177"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type tyname uni ann
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      >                    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; m ()
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-178"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-179"
+      ></span
+      ><span id="local-6989586621681907632"
+      ><span id="local-6989586621681907633"
+	><span id="local-6989586621681907634"
+	  ><span id="local-6989586621681907635"
+	    ><span id="local-6989586621681907636"
+	      ><span id="local-6989586621681907637"
+		><span class="annot"
+		  ><a href="PlutusCore.Analysis.Definitions.html#runTermDefs"
+		    ><span class="hs-identifier hs-type"
+		      >runTermDefs</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-180"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >::</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907632"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-181"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907633"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#TermUnique"
+		    ><span class="hs-identifier hs-type"
+		      >TermUnique</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-182"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#HasUnique"
+		    ><span class="hs-identifier hs-type"
+		      >HasUnique</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907634"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Name.Unique.html#TypeUnique"
+		    ><span class="hs-identifier hs-type"
+		      >TypeUnique</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  >
+</span
+		  ><span id="line-183"
+		  ></span
+		  ><span
+		  >        </span
+		  ><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Monad"
+		    ><span class="hs-identifier hs-type"
+		      >Monad</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907635"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >)</span
+		  ><span
+		  >
+</span
+		  ><span id="line-184"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >=&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Core.Type.html#Term"
+		    ><span class="hs-identifier hs-type"
+		      >Term</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907634"
+		    ><span class="hs-identifier hs-type"
+		      >tyname</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907633"
+		    ><span class="hs-identifier hs-type"
+		      >name</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907636"
+		    ><span class="hs-identifier hs-type"
+		      >uni</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907637"
+		    ><span class="hs-identifier hs-type"
+		      >fun</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907632"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span
+		  >
+</span
+		  ><span id="line-185"
+		  ></span
+		  ><span
+		  >    </span
+		  ><span class="hs-glyph"
+		  >-&gt;</span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907635"
+		    ><span class="hs-identifier hs-type"
+		      >m</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >(</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Analysis.Definitions.html#UniqueInfos"
+		    ><span class="hs-identifier hs-type"
+		      >UniqueInfos</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907632"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >,</span
+		  ><span
+		  > </span
+		  ><span class="hs-special"
+		  >[</span
+		  ><span class="annot"
+		  ><a href="PlutusCore.Error.html#UniqueError"
+		    ><span class="hs-identifier hs-type"
+		      >UniqueError</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="#local-6989586621681907632"
+		    ><span class="hs-identifier hs-type"
+		      >ann</span
+		      ></a
+		    ></span
+		  ><span class="hs-special"
+		  >]</span
+		  ><span class="hs-special"
+		  >)</span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span id="runTermDefs"
+      ><span class="annot"
+	><span class="annottext"
+	  >runTermDefs :: forall ann name tyname (m :: * -&gt; *) (uni :: * -&gt; *) fun.
+(Ord ann, HasUnique name TermUnique, HasUnique tyname TypeUnique,
+ Monad m) =&gt;
+Term tyname name uni fun ann
+-&gt; m (UniqueInfos ann, [UniqueError ann])
+</span
+	  ><a href="PlutusCore.Analysis.Definitions.html#runTermDefs"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >runTermDefs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WriterT [UniqueError ann] m (UniqueInfos ann)
+-&gt; m (UniqueInfos ann, [UniqueError ann])
+forall w (m :: * -&gt; *) a. WriterT w m a -&gt; m (a, w)
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Writer.Lazy.html#runWriterT"
+	><span class="hs-identifier hs-var"
+	  >runWriterT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(WriterT [UniqueError ann] m (UniqueInfos ann)
+ -&gt; m (UniqueInfos ann, [UniqueError ann]))
+-&gt; (Term tyname name uni fun ann
+    -&gt; WriterT [UniqueError ann] m (UniqueInfos ann))
+-&gt; Term tyname name uni fun ann
+-&gt; m (UniqueInfos ann, [UniqueError ann])
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (UniqueInfos ann) (WriterT [UniqueError ann] m) ()
+ -&gt; UniqueInfos ann
+ -&gt; WriterT [UniqueError ann] m (UniqueInfos ann))
+-&gt; UniqueInfos ann
+-&gt; StateT (UniqueInfos ann) (WriterT [UniqueError ann] m) ()
+-&gt; WriterT [UniqueError ann] m (UniqueInfos ann)
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#flip"
+	><span class="hs-identifier hs-var"
+	  >flip</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>StateT (UniqueInfos ann) (WriterT [UniqueError ann] m) ()
+-&gt; UniqueInfos ann -&gt; WriterT [UniqueError ann] m (UniqueInfos ann)
+forall (m :: * -&gt; *) s a. Monad m =&gt; StateT s m a -&gt; s -&gt; m s
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.State.Lazy.html#execStateT"
+	><span class="hs-identifier hs-var"
+	  >execStateT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>UniqueInfos ann
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(StateT (UniqueInfos ann) (WriterT [UniqueError ann] m) ()
+ -&gt; WriterT [UniqueError ann] m (UniqueInfos ann))
+-&gt; (Term tyname name uni fun ann
+    -&gt; StateT (UniqueInfos ann) (WriterT [UniqueError ann] m) ())
+-&gt; Term tyname name uni fun ann
+-&gt; WriterT [UniqueError ann] m (UniqueInfos ann)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term tyname name uni fun ann
+-&gt; StateT (UniqueInfos ann) (WriterT [UniqueError ann] m) ()
+forall ann name tyname (m :: * -&gt; *) (uni :: * -&gt; *) fun.
+(Ord ann, HasUnique name TermUnique, HasUnique tyname TypeUnique,
+ MonadState (UniqueInfos ann) m, MonadWriter [UniqueError ann] m) =&gt;
+Term tyname name uni fun ann -&gt; m ()
+</span
+	><a href="PlutusCore.Analysis.Definitions.html#termDefs"
+	><span class="hs-identifier hs-var"
+	  >termDefs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

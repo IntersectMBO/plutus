@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Prettyprinter.Custom</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Prettyprinter.Custom.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Prettyprinter.Custom</p
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:brackets-39-"
+	      >brackets'</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:braces-39-"
+	      >braces'</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:parens-39-"
+	      >parens'</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:sexp"
+	      >sexp</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a &#8594; [<a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:-60--63--62-"
+	      >(&lt;?&gt;)</a
+	      > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ><li class="src short"
+	    ><a href="#v:vcatHard"
+	      >vcatHard</a
+	      > &#8759; [<a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	      >Doc</a
+	      > ann</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:brackets-39-" class="def"
+	    >brackets'</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a <a href="src/Prettyprinter.Custom.html#brackets%27" class="link"
+	    >Source</a
+	    > <a href="#v:brackets-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This prints a document enclosed by brackets, possibly indenting the output on
+a new line if it does not fit. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:braces-39-" class="def"
+	    >braces'</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a <a href="src/Prettyprinter.Custom.html#braces%27" class="link"
+	    >Source</a
+	    > <a href="#v:braces-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This prints a document enclosed by braces, possibly indenting the output on
+a new line if it does not fit. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:parens-39-" class="def"
+	    >parens'</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a <a href="src/Prettyprinter.Custom.html#parens%27" class="link"
+	    >Source</a
+	    > <a href="#v:parens-39-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >This prints a document enclosed by parentheses, aligning the opening and
+closing parentheses. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:sexp" class="def"
+	    >sexp</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a &#8594; [<a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > a <a href="src/Prettyprinter.Custom.html#sexp" class="link"
+	    >Source</a
+	    > <a href="#v:sexp" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Print a &quot;sexp&quot;, i.e. something like &quot;(keyword arg1 ... argN)&quot;.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:-60--63--62-" class="def"
+	    >(&lt;?&gt;)</a
+	    > &#8759; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <span class="fixity"
+	    >infixr 6</span
+	    ><span class="rightedge"
+	    ></span
+	    > <a href="src/Prettyprinter.Custom.html#%3C%3F%3E" class="link"
+	    >Source</a
+	    > <a href="#v:-60--63--62-" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Separate two documents <code
+	      >p</code
+	      > and <code
+	      >q</code
+	      > and increase indentation if <code
+	      >q</code
+	      > has to be put on a new
+line. Useful to e.g. pretty-print function application like `fun <a href="?"
+	      >?</a
+	      > sep arguments`. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:vcatHard" class="def"
+	    >vcatHard</a
+	    > &#8759; [<a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann] &#8594; <a href="PlutusPrelude.html#t:Doc" title="PlutusPrelude"
+	    >Doc</a
+	    > ann <a href="src/Prettyprinter.Custom.html#vcatHard" class="link"
+	    >Source</a
+	    > <a href="#v:vcatHard" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Lay out a sequence of documents vertically with forced lines between documents. Useful
+for prettyprinting layout-sensitive things like let-bindings. </p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

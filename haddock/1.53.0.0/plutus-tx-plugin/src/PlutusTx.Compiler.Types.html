@@ -1,0 +1,6212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span id="local-6989586621679534809"
+      ><span id="local-6989586621679534810"
+	></span
+	></span
+      ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ConstraintKinds   #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DataKinds         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE Rank2Types        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusTx.Compiler.Types</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Types</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Compiler.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Coverage.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Coverage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.PIRTypes.html"
+	><span class="hs-identifier"
+	  >PlutusTx.PIRTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.PLCTypes.html"
+	><span class="hs-identifier"
+	  >PlutusTx.PLCTypes</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Analysis.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Analysis.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.Definitions.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Compiler.Definitions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.Types.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Compiler.Types</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Transform.RewriteRules.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Transform.RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Builtin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Default</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.FamInstEnv.html"
+	><span class="hs-identifier"
+	  >GHC.Core.FamInstEnv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Plugins.html"
+	><span class="hs-identifier"
+	  >GHC.Plugins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.html"
+	><span class="hs-identifier"
+	  >GHC</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Reader</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.html"
+	><span class="hs-identifier"
+	  >Control.Monad.State</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Writer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier"
+	  >Set</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html"
+	><span class="hs-identifier"
+	  >Language.Haskell.TH.Syntax</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>TH</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="NameInfo"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#NameInfo"
+	  ><span class="hs-identifier hs-var"
+	    >NameInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/template-haskell-2.20.0.0/docs/src/Language.Haskell.TH.Syntax.html#Name"
+	><span class="hs-identifier hs-type"
+	  >TH.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.TyThing.html#TyThing"
+	><span class="hs-identifier hs-type"
+	  >GHC.TyThing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compilation options.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CompileOptions"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CompileOptions"
+	  ><span class="hs-identifier hs-var"
+	    >CompileOptions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CompileOptions"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CompileOptions"
+	  ><span class="hs-identifier hs-var"
+	    >CompileOptions</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="coProfile"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileOptions -&gt; ProfileOpts
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#coProfile"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coProfile</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ProfileOpts"
+	><span class="hs-identifier hs-type"
+	  >ProfileOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coCoverage"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileOptions -&gt; CoverageOpts
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#coCoverage"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coCoverage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CoverageOpts"
+	><span class="hs-identifier hs-type"
+	  >CoverageOpts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coDatatypeStyle"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileOptions -&gt; DatatypeStyle
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#coDatatypeStyle"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coDatatypeStyle</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.Types.html#DatatypeStyle"
+	><span class="hs-identifier hs-type"
+	  >PIR.DatatypeStyle</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coRemoveTrace"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileOptions -&gt; Bool
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#coRemoveTrace"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coRemoveTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >   </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="coInlineFix"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileOptions -&gt; Bool
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#coInlineFix"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >coInlineFix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CompileContext"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CompileContext"
+	  ><span class="hs-identifier hs-var"
+	    >CompileContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679534662"
+      ><span class="annot"
+	><a href="#local-6989586621679534662"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679534663"
+      ><span class="annot"
+	><a href="#local-6989586621679534663"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CompileContext"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CompileContext"
+	  ><span class="hs-identifier hs-var"
+	    >CompileContext</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="ccOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+CompileContext uni fun -&gt; CompileOptions
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CompileOptions"
+	><span class="hs-identifier hs-type"
+	  >CompileOptions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccFlags"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; DynFlags
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccFlags"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccFlags</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Driver.Session.html#DynFlags"
+	><span class="hs-identifier hs-type"
+	  >GHC.DynFlags</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccFamInstEnvs"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; FamInstEnvs
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccFamInstEnvs"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccFamInstEnvs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Core.FamInstEnv.html#FamInstEnvs"
+	><span class="hs-identifier hs-type"
+	  >GHC.FamInstEnvs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccNameInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; NameInfo
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccNameInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccNameInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >         </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#NameInfo"
+	><span class="hs-identifier hs-type"
+	  >NameInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccScope"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Scope uni fun
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccScope"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccScope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >            </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#Scope"
+	><span class="hs-identifier hs-type"
+	  >Scope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534662"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534663"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccBlackholed"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Set Name
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccBlackholed"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccBlackholed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >       </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	><span class="hs-identifier hs-type"
+	  >GHC.Name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccCurDef"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Maybe LexName
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccCurDef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccCurDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >           </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#LexName"
+	><span class="hs-identifier hs-type"
+	  >LexName</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccModBreaks"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+CompileContext uni fun -&gt; Maybe ModBreaks
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccModBreaks"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccModBreaks</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.ByteCode.Types.html#ModBreaks"
+	><span class="hs-identifier hs-type"
+	  >GHC.ModBreaks</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccBuiltinsInfo"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+CompileContext uni fun -&gt; BuiltinsInfo uni fun
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccBuiltinsInfo"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccBuiltinsInfo</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Analysis.Builtins.html#BuiltinsInfo"
+	><span class="hs-identifier hs-type"
+	  >PIR.BuiltinsInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534662"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534663"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccBuiltinCostModel"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+CompileContext uni fun -&gt; CostingPart uni fun
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccBuiltinCostModel"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccBuiltinCostModel</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Builtin.Meaning.html#CostingPart"
+	><span class="hs-identifier hs-type"
+	  >PLC.CostingPart</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534662"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534663"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccDebugTraceOn"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Bool
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccDebugTraceOn"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccDebugTraceOn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccRewriteRules"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun.
+CompileContext uni fun -&gt; RewriteRules uni fun
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccRewriteRules"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccRewriteRules</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Transform.RewriteRules.Internal.html#RewriteRules"
+	><span class="hs-identifier hs-type"
+	  >PIR.RewriteRules</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534662"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534663"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="ccSafeToInline"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Bool
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#ccSafeToInline"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ccSafeToInline</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CompileState"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CompileState"
+	  ><span class="hs-identifier hs-var"
+	    >CompileState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CompileState"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CompileState"
+	  ><span class="hs-identifier hs-var"
+	    >CompileState</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="csNextStep"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileState -&gt; Int
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#csNextStep"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >csNextStep</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- ^ The ID of the next step to be taken by the PlutusTx compiler.
+  This is used when generating debug traces.
+  -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="csPreviousSteps"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileState -&gt; [Int]
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#csPreviousSteps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >csPreviousSteps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{- ^ The IDs of the previous steps taken by the PlutusTx compiler leading up to
+  the current point. This is used when generating debug traces.
+  -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Verbosity level of the Plutus Tx compiler.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Verbosity"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Verbosity"
+	  ><span class="hs-identifier hs-var"
+	    >Verbosity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Quiet"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Quiet"
+	  ><span class="hs-identifier hs-var"
+	    >Quiet</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Verbose"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Verbose"
+	  ><span class="hs-identifier hs-var"
+	    >Verbose</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="Debug"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Debug"
+	  ><span class="hs-identifier hs-var"
+	    >Debug</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679534847"
+      ><span id="local-6989586621679534849"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Verbosity -&gt; Verbosity -&gt; Bool
+(Verbosity -&gt; Verbosity -&gt; Bool)
+-&gt; (Verbosity -&gt; Verbosity -&gt; Bool) -&gt; Eq Verbosity
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: Verbosity -&gt; Verbosity -&gt; Bool
+== :: Verbosity -&gt; Verbosity -&gt; Bool
+$c/= :: Verbosity -&gt; Verbosity -&gt; Bool
+/= :: Verbosity -&gt; Verbosity -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534854"
+      ><span id="local-6989586621679534856"
+	><span id="local-6989586621679534860"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; Verbosity -&gt; ShowS
+[Verbosity] -&gt; ShowS
+Verbosity -&gt; String
+(Int -&gt; Verbosity -&gt; ShowS)
+-&gt; (Verbosity -&gt; String)
+-&gt; ([Verbosity] -&gt; ShowS)
+-&gt; Show Verbosity
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Verbosity -&gt; ShowS
+showsPrec :: Int -&gt; Verbosity -&gt; ShowS
+$cshow :: Verbosity -&gt; String
+show :: Verbosity -&gt; String
+$cshowList :: [Verbosity] -&gt; ShowS
+showList :: [Verbosity] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534865"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Verbosity"
+	  ><span class="hs-identifier hs-type"
+	    >Verbosity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679534870"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. Verbosity -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621679534870"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Verbosity -&gt; Doc ann
+forall a ann. Show a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#viaShow"
+	><span class="hs-identifier hs-var"
+	  >viaShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Profiling options. @All@ profiles everything. @None@ is the default.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ProfileOpts"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#ProfileOpts"
+	  ><span class="hs-identifier hs-var"
+	    >ProfileOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="All"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#All"
+	  ><span class="hs-identifier hs-var"
+	    >All</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- set this with -fplugin-opt PlutusTx.Plugin:profile-all</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="None"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#None"
+	  ><span class="hs-identifier hs-var"
+	    >None</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679534876"
+      ><span id="local-6989586621679534878"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ProfileOpts -&gt; ProfileOpts -&gt; Bool
+(ProfileOpts -&gt; ProfileOpts -&gt; Bool)
+-&gt; (ProfileOpts -&gt; ProfileOpts -&gt; Bool) -&gt; Eq ProfileOpts
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: ProfileOpts -&gt; ProfileOpts -&gt; Bool
+== :: ProfileOpts -&gt; ProfileOpts -&gt; Bool
+$c/= :: ProfileOpts -&gt; ProfileOpts -&gt; Bool
+/= :: ProfileOpts -&gt; ProfileOpts -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534882"
+      ><span id="local-6989586621679534884"
+	><span id="local-6989586621679534888"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; ProfileOpts -&gt; ShowS
+[ProfileOpts] -&gt; ShowS
+ProfileOpts -&gt; String
+(Int -&gt; ProfileOpts -&gt; ShowS)
+-&gt; (ProfileOpts -&gt; String)
+-&gt; ([ProfileOpts] -&gt; ShowS)
+-&gt; Show ProfileOpts
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; ProfileOpts -&gt; ShowS
+showsPrec :: Int -&gt; ProfileOpts -&gt; ShowS
+$cshow :: ProfileOpts -&gt; String
+show :: ProfileOpts -&gt; String
+$cshowList :: [ProfileOpts] -&gt; ShowS
+showList :: [ProfileOpts] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534892"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#ProfileOpts"
+	  ><span class="hs-identifier hs-type"
+	    >ProfileOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679534896"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. ProfileOpts -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ProfileOpts -&gt; Doc ann
+forall a ann. Show a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#viaShow"
+	><span class="hs-identifier hs-var"
+	  >viaShow</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Coverage options
+See Note [Coverage annotations]
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CoverageOpts"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CoverageOpts"
+	  ><span class="hs-identifier hs-var"
+	    >CoverageOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="CoverageOpts"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CoverageOpts"
+	  ><span class="hs-identifier hs-var"
+	    >CoverageOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="unCoverageOpts"
+      ><span class="annot"
+	><span class="annottext"
+	  >CoverageOpts -&gt; Set CoverageType
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#unCoverageOpts"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unCoverageOpts</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CoverageType"
+	><span class="hs-identifier hs-type"
+	  >CoverageType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Get the coverage types we are using</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#activeCoverageTypes"
+	><span class="hs-identifier hs-type"
+	  >activeCoverageTypes</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CompileOptions"
+	><span class="hs-identifier hs-type"
+	  >CompileOptions</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+	><span class="hs-identifier hs-type"
+	  >Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CoverageType"
+	><span class="hs-identifier hs-type"
+	  >CoverageType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span id="activeCoverageTypes"
+      ><span class="annot"
+	><span class="annottext"
+	  >activeCoverageTypes :: CompileOptions -&gt; Set CoverageType
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#activeCoverageTypes"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >activeCoverageTypes</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CoverageOpts -&gt; Set CoverageType
+</span
+	><a href="PlutusTx.Compiler.Types.html#unCoverageOpts"
+	><span class="hs-identifier hs-var"
+	  >unCoverageOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CoverageOpts -&gt; Set CoverageType)
+-&gt; (CompileOptions -&gt; CoverageOpts)
+-&gt; CompileOptions
+-&gt; Set CoverageType
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileOptions -&gt; CoverageOpts
+</span
+	><a href="PlutusTx.Compiler.Types.html#coCoverage"
+	><span class="hs-identifier hs-var"
+	  >coCoverage</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Option `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-all #-\}` enables all these
+See Note [Adding more coverage annotations].
+See Note [Coverage order]
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CoverageType"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CoverageType"
+	  ><span class="hs-identifier hs-var"
+	    >CoverageType</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Check that all source locations that we can identify in GHC Core have been covered.
+    For this to work at all we need `{\-# OPTIONS_GHC -g #-\}`
+    turn on with `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-location #-\}`
+    -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >    </span
+      ><span id="LocationCoverage"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#LocationCoverage"
+	  ><span class="hs-identifier hs-var"
+	    >LocationCoverage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| Check that every boolean valued expression that isn't `True` or `False` for which
+    we know the source location have been covered. For this to work at all we need
+    `{\-# OPTIONS_GHC -g #-\}` turn on with
+    `{\-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:coverage-boolean #-\}`
+    -}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >    </span
+      ><span id="BooleanCoverage"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#BooleanCoverage"
+	  ><span class="hs-identifier hs-var"
+	    >BooleanCoverage</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679534907"
+      ><span id="local-6989586621679534909"
+	><span id="local-6989586621679534911"
+	  ><span id="local-6989586621679534915"
+	    ><span id="local-6989586621679534918"
+	      ><span id="local-6989586621679534921"
+		><span id="local-6989586621679534924"
+		  ><span class="annot"
+		    ><span class="annottext"
+		      >Eq CoverageType
+Eq CoverageType =&gt;
+(CoverageType -&gt; CoverageType -&gt; Ordering)
+-&gt; (CoverageType -&gt; CoverageType -&gt; Bool)
+-&gt; (CoverageType -&gt; CoverageType -&gt; Bool)
+-&gt; (CoverageType -&gt; CoverageType -&gt; Bool)
+-&gt; (CoverageType -&gt; CoverageType -&gt; Bool)
+-&gt; (CoverageType -&gt; CoverageType -&gt; CoverageType)
+-&gt; (CoverageType -&gt; CoverageType -&gt; CoverageType)
+-&gt; Ord CoverageType
+CoverageType -&gt; CoverageType -&gt; Bool
+CoverageType -&gt; CoverageType -&gt; Ordering
+CoverageType -&gt; CoverageType -&gt; CoverageType
+forall a.
+Eq a =&gt;
+(a -&gt; a -&gt; Ordering)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; Bool)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; (a -&gt; a -&gt; a)
+-&gt; Ord a
+$ccompare :: CoverageType -&gt; CoverageType -&gt; Ordering
+compare :: CoverageType -&gt; CoverageType -&gt; Ordering
+$c&lt; :: CoverageType -&gt; CoverageType -&gt; Bool
+&lt; :: CoverageType -&gt; CoverageType -&gt; Bool
+$c&lt;= :: CoverageType -&gt; CoverageType -&gt; Bool
+&lt;= :: CoverageType -&gt; CoverageType -&gt; Bool
+$c&gt; :: CoverageType -&gt; CoverageType -&gt; Bool
+&gt; :: CoverageType -&gt; CoverageType -&gt; Bool
+$c&gt;= :: CoverageType -&gt; CoverageType -&gt; Bool
+&gt;= :: CoverageType -&gt; CoverageType -&gt; Bool
+$cmax :: CoverageType -&gt; CoverageType -&gt; CoverageType
+max :: CoverageType -&gt; CoverageType -&gt; CoverageType
+$cmin :: CoverageType -&gt; CoverageType -&gt; CoverageType
+min :: CoverageType -&gt; CoverageType -&gt; CoverageType
+</span
+		      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			>Ord</span
+			></a
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534928"
+      ><span id="local-6989586621679534930"
+	><span class="annot"
+	  ><span class="annottext"
+	    >CoverageType -&gt; CoverageType -&gt; Bool
+(CoverageType -&gt; CoverageType -&gt; Bool)
+-&gt; (CoverageType -&gt; CoverageType -&gt; Bool) -&gt; Eq CoverageType
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: CoverageType -&gt; CoverageType -&gt; Bool
+== :: CoverageType -&gt; CoverageType -&gt; Bool
+$c/= :: CoverageType -&gt; CoverageType -&gt; Bool
+/= :: CoverageType -&gt; CoverageType -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534933"
+      ><span id="local-6989586621679534935"
+	><span id="local-6989586621679534939"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; CoverageType -&gt; ShowS
+[CoverageType] -&gt; ShowS
+CoverageType -&gt; String
+(Int -&gt; CoverageType -&gt; ShowS)
+-&gt; (CoverageType -&gt; String)
+-&gt; ([CoverageType] -&gt; ShowS)
+-&gt; Show CoverageType
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; CoverageType -&gt; ShowS
+showsPrec :: Int -&gt; CoverageType -&gt; ShowS
+$cshow :: CoverageType -&gt; String
+show :: CoverageType -&gt; String
+$cshowList :: [CoverageType] -&gt; ShowS
+showList :: [CoverageType] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534942"
+      ><span id="local-6989586621679534950"
+	><span id="local-6989586621679534956"
+	  ><span id="local-6989586621679534966"
+	    ><span id="local-6989586621679534968"
+	      ><span id="local-6989586621679534972"
+		><span id="local-6989586621679534976"
+		  ><span id="local-6989586621679534980"
+		    ><span class="annot"
+		      ><span class="annottext"
+			>Int -&gt; CoverageType
+CoverageType -&gt; Int
+CoverageType -&gt; [CoverageType]
+CoverageType -&gt; CoverageType
+CoverageType -&gt; CoverageType -&gt; [CoverageType]
+CoverageType -&gt; CoverageType -&gt; CoverageType -&gt; [CoverageType]
+(CoverageType -&gt; CoverageType)
+-&gt; (CoverageType -&gt; CoverageType)
+-&gt; (Int -&gt; CoverageType)
+-&gt; (CoverageType -&gt; Int)
+-&gt; (CoverageType -&gt; [CoverageType])
+-&gt; (CoverageType -&gt; CoverageType -&gt; [CoverageType])
+-&gt; (CoverageType -&gt; CoverageType -&gt; [CoverageType])
+-&gt; (CoverageType -&gt; CoverageType -&gt; CoverageType -&gt; [CoverageType])
+-&gt; Enum CoverageType
+forall a.
+(a -&gt; a)
+-&gt; (a -&gt; a)
+-&gt; (Int -&gt; a)
+-&gt; (a -&gt; Int)
+-&gt; (a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; [a])
+-&gt; (a -&gt; a -&gt; a -&gt; [a])
+-&gt; Enum a
+$csucc :: CoverageType -&gt; CoverageType
+succ :: CoverageType -&gt; CoverageType
+$cpred :: CoverageType -&gt; CoverageType
+pred :: CoverageType -&gt; CoverageType
+$ctoEnum :: Int -&gt; CoverageType
+toEnum :: Int -&gt; CoverageType
+$cfromEnum :: CoverageType -&gt; Int
+fromEnum :: CoverageType -&gt; Int
+$cenumFrom :: CoverageType -&gt; [CoverageType]
+enumFrom :: CoverageType -&gt; [CoverageType]
+$cenumFromThen :: CoverageType -&gt; CoverageType -&gt; [CoverageType]
+enumFromThen :: CoverageType -&gt; CoverageType -&gt; [CoverageType]
+$cenumFromTo :: CoverageType -&gt; CoverageType -&gt; [CoverageType]
+enumFromTo :: CoverageType -&gt; CoverageType -&gt; [CoverageType]
+$cenumFromThenTo :: CoverageType -&gt; CoverageType -&gt; CoverageType -&gt; [CoverageType]
+enumFromThenTo :: CoverageType -&gt; CoverageType -&gt; CoverageType -&gt; [CoverageType]
+</span
+			><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Enum"
+			><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+			  >Enum</span
+			  ></a
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534984"
+      ><span id="local-6989586621679534986"
+	><span class="annot"
+	  ><span class="annottext"
+	    >CoverageType
+CoverageType -&gt; CoverageType -&gt; Bounded CoverageType
+forall a. a -&gt; a -&gt; Bounded a
+$cminBound :: CoverageType
+minBound :: CoverageType
+$cmaxBound :: CoverageType
+maxBound :: CoverageType
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Enum.html#Bounded"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Bounded</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Coverage order]
+   The order in which `CoverageType` constructors appear in the type determine the order in
+   which their respective transformations in `coverageCompile` will be executed. The topmost `CoverageType`
+   will be executed first, followed by the second from the top and so on. It is important to either:
+   1. Never add coverage transformations that don't commute or
+   2. BE VERY CAREFUL!
+   Currently we are employing option (1). Please don't change that unless you know what you're doing
+   and you've read the code of `coverageCompile` carefully.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-139"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-140"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A wrapper around 'GHC.Name' with a stable 'Ord' instance. Use this where the ordering
+will affect the output of the compiler, i.e. when sorting or so on. It's  fine to use
+'GHC.Name' if we're just putting them in a 'Set.Set', for example.
+
+The 'Eq' instance we derive - it's also not stable across builds, but I believe this is only
+a problem if you compare things from different builds, which we don't do.
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-147"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="LexName"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#LexName"
+	  ><span class="hs-identifier hs-var"
+	    >LexName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="LexName"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#LexName"
+	  ><span class="hs-identifier hs-var"
+	    >LexName</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	><span class="hs-identifier hs-type"
+	  >GHC.Name</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-148"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679534991"
+      ><span id="local-6989586621679534995"
+	><span class="annot"
+	  ><span class="annottext"
+	    >LexName -&gt; LexName -&gt; Bool
+(LexName -&gt; LexName -&gt; Bool)
+-&gt; (LexName -&gt; LexName -&gt; Bool) -&gt; Eq LexName
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: LexName -&gt; LexName -&gt; Bool
+== :: LexName -&gt; LexName -&gt; Bool
+$c/= :: LexName -&gt; LexName -&gt; Bool
+/= :: LexName -&gt; LexName -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-149"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-150"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679534999"
+      ><span id="local-6989586621679535004"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	    ><span class="hs-identifier hs-type"
+	      >Show</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Compiler.Types.html#LexName"
+	    ><span class="hs-identifier hs-type"
+	      >LexName</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-151"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679535007"
+      ><span class="annot"
+	><span class="annottext"
+	  >show :: LexName -&gt; String
+</span
+	  ><a href="#local-6989586621679535007"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >show</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#LexName"
+	><span class="hs-identifier hs-type"
+	  >LexName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535009"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679535009"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OccName -&gt; String
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.Occurrence.html#occNameString"
+	><span class="hs-identifier hs-var"
+	  >GHC.occNameString</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(OccName -&gt; String) -&gt; OccName -&gt; String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; OccName
+forall name. HasOccName name =&gt; name -&gt; OccName
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.Occurrence.html#occName"
+	><span class="hs-identifier hs-var"
+	  >GHC.occName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535009"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-152"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-153"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679535016"
+      ><span id="local-6989586621679535020"
+	><span id="local-6989586621679535023"
+	  ><span id="local-6989586621679535026"
+	    ><span id="local-6989586621679535029"
+	      ><span id="local-6989586621679535032"
+		><span class="annot"
+		  ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Ord"
+		    ><span class="hs-identifier hs-type"
+		      >Ord</span
+		      ></a
+		    ></span
+		  ><span
+		  > </span
+		  ><span class="annot"
+		  ><a href="PlutusTx.Compiler.Types.html#LexName"
+		    ><span class="hs-identifier hs-type"
+		      >LexName</span
+		      ></a
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-154"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679535036"
+      ><span class="annot"
+	><span class="annottext"
+	  >compare :: LexName -&gt; LexName -&gt; Ordering
+</span
+	  ><a href="#local-6989586621679535036"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >compare</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#LexName"
+	><span class="hs-identifier hs-type"
+	  >LexName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535038"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679535038"
+	  ><span class="hs-identifier hs-var"
+	    >n1</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#LexName"
+	><span class="hs-identifier hs-type"
+	  >LexName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535039"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679535039"
+	  ><span class="hs-identifier hs-var"
+	    >n2</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-155"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Name -&gt; Ordering
+</span
+	><a href="PlutusTx.Compiler.Types.html#stableNameCmp"
+	><span class="hs-identifier hs-var"
+	  >stableNameCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535038"
+	><span class="hs-identifier hs-var"
+	  >n1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535039"
+	><span class="hs-identifier hs-var"
+	  >n2</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-156"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- This case is not sound if the names are generated, so we have to</span
+      ><span
+      >
+</span
+      ><span id="line-157"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- fall back on the default sound comparison for names. This is</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- non-deterministic! But we care even more about not mixing up things</span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-comment"
+      >-- that are different than we do about determinism.</span
+      ><span
+      >
+</span
+      ><span id="line-160"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Name -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#compare"
+	><span class="hs-identifier hs-var"
+	  >compare</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535038"
+	><span class="hs-identifier hs-var"
+	  >n1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535039"
+	><span class="hs-identifier hs-var"
+	  >n2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-161"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679535041"
+      ><span class="annot"
+	><span class="annottext"
+	  >Ordering
+</span
+	  ><a href="#local-6989586621679535041"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="#local-6989586621679535041"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-162"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-163"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Stable name comparisons]
+GHC defines `stableNameCmp` which does a good job of being a stable name
+comparator across compiles. *However*, it includes, indirectly, the unit
+id that a name comes from, including the hash. While this is stable across
+compiles of exactly the same thing, it is *not* stable across compiles
+in slightly different environments, e.g. with cabal new-build vs with nix.
+
+This matters since that can eventually affect our test output.
+
+We partially fix this by making the comparison less likely to consult the
+unstable unit id. We do this by just flipping the order in which we consult
+components: normally GHC looks at the unit id first, then the module name, then
+the `OccName`. We do it in the opposite order.
+
+While we can still get instability from this, it should now only happen
+if we have a binding with the same name in the same module name but from
+different units.
+
+We would like to just copy GHC's implementation and tweak it, but it relies
+on non-exported data constructors, so we have to write our own. This is mostly
+the same, but e.g. we can't look directly at the &quot;sort&quot; of a `Name`.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-185"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-186"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Our own version of 'GHC.stableNameCmp'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-187"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#stableNameCmp"
+	><span class="hs-identifier hs-type"
+	  >stableNameCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	><span class="hs-identifier hs-type"
+	  >GHC.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	><span class="hs-identifier hs-type"
+	  >GHC.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	><span class="hs-identifier hs-type"
+	  >Ordering</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-188"
+      ></span
+      ><span id="stableNameCmp"
+      ><span class="annot"
+	><span class="annottext"
+	  >stableNameCmp :: Name -&gt; Name -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#stableNameCmp"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >stableNameCmp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535043"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679535043"
+	  ><span class="hs-identifier hs-var"
+	    >n1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535044"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679535044"
+	  ><span class="hs-identifier hs-var"
+	    >n2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-189"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; OccName
+forall name. HasOccName name =&gt; name -&gt; OccName
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.Occurrence.html#occName"
+	><span class="hs-identifier hs-var"
+	  >GHC.occName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535043"
+	><span class="hs-identifier hs-var"
+	  >n1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>OccName -&gt; OccName -&gt; Ordering
+forall a. Ord a =&gt; a -&gt; a -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#compare"
+	><span class="hs-operator hs-var"
+	  >`compare`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; OccName
+forall name. HasOccName name =&gt; name -&gt; OccName
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.Occurrence.html#occName"
+	><span class="hs-identifier hs-var"
+	  >GHC.occName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535044"
+	><span class="hs-identifier hs-var"
+	  >n2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-190"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering -&gt; Ordering -&gt; Ordering
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-191"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Stable name comparisons]</span
+      ><span
+      >
+</span
+      ><span id="line-192"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Module -&gt; Module -&gt; Ordering)
+-&gt; Maybe Module -&gt; Maybe Module -&gt; Ordering
+forall a. (a -&gt; a -&gt; Ordering) -&gt; Maybe a -&gt; Maybe a -&gt; Ordering
+</span
+	><a href="#local-6989586621679535045"
+	><span class="hs-identifier hs-var"
+	  >maybeCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Module -&gt; Ordering
+</span
+	><a href="PlutusTx.Compiler.Types.html#stableModuleCmp"
+	><span class="hs-identifier hs-var"
+	  >stableModuleCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Maybe Module
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#nameModule_maybe"
+	><span class="hs-identifier hs-var"
+	  >GHC.nameModule_maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535043"
+	><span class="hs-identifier hs-var"
+	  >n1</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Maybe Module
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#nameModule_maybe"
+	><span class="hs-identifier hs-var"
+	  >GHC.nameModule_maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535044"
+	><span class="hs-identifier hs-var"
+	  >n2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-193"
+      ></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-194"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679534728"
+      ><span class="annot"
+	><a href="#local-6989586621679535045"
+	  ><span class="hs-identifier hs-type"
+	    >maybeCmp</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="#local-6989586621679534728"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679534728"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	  ><span class="hs-identifier hs-type"
+	    >Ordering</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	  ><span class="hs-identifier hs-type"
+	    >Maybe</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679534728"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	  ><span class="hs-identifier hs-type"
+	    >Maybe</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621679534728"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	  ><span class="hs-identifier hs-type"
+	    >Ordering</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-195"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679535045"
+      ><span class="annot"
+	><span class="annottext"
+	  >maybeCmp :: forall a. (a -&gt; a -&gt; Ordering) -&gt; Maybe a -&gt; Maybe a -&gt; Ordering
+</span
+	  ><a href="#local-6989586621679535045"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >maybeCmp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535048"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; a -&gt; Ordering
+</span
+	  ><a href="#local-6989586621679535048"
+	  ><span class="hs-identifier hs-var"
+	    >cmp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535049"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679535049"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535050"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679535050"
+	  ><span class="hs-identifier hs-var"
+	    >r</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679535049"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+</span
+	><a href="#local-6989586621679535048"
+	><span class="hs-operator hs-var"
+	  >`cmp`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679535050"
+	><span class="hs-identifier hs-var"
+	  >r</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-196"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535045"
+	><span class="hs-identifier hs-var"
+	  >maybeCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#LT"
+	><span class="hs-identifier hs-var"
+	  >LT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-197"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535045"
+	><span class="hs-identifier hs-var"
+	  >maybeCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#GT"
+	><span class="hs-identifier hs-var"
+	  >GT</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-198"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535045"
+	><span class="hs-identifier hs-var"
+	  >maybeCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Ordering
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >     </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#EQ"
+	><span class="hs-identifier hs-var"
+	  >EQ</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-199"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-200"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Our own version of 'GHC.stableModuleCmp'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-201"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#stableModuleCmp"
+	><span class="hs-identifier hs-type"
+	  >stableModuleCmp</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Types.html#Module"
+	><span class="hs-identifier hs-type"
+	  >GHC.Module</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Types.html#Module"
+	><span class="hs-identifier hs-type"
+	  >GHC.Module</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Ordering"
+	><span class="hs-identifier hs-type"
+	  >Ordering</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-202"
+      ></span
+      ><span id="stableModuleCmp"
+      ><span class="annot"
+	><span class="annottext"
+	  >stableModuleCmp :: Module -&gt; Module -&gt; Ordering
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#stableModuleCmp"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >stableModuleCmp</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535052"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679535052"
+	  ><span class="hs-identifier hs-var"
+	    >m1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535053"
+      ><span class="annot"
+	><span class="annottext"
+	  >Module
+</span
+	  ><a href="#local-6989586621679535053"
+	  ><span class="hs-identifier hs-var"
+	    >m2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-203"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; ModuleName
+forall unit. GenModule unit -&gt; ModuleName
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Types.html#moduleName"
+	><span class="hs-identifier hs-var"
+	  >GHC.moduleName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679535052"
+	><span class="hs-identifier hs-var"
+	  >m1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ModuleName -&gt; ModuleName -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/Language.Haskell.Syntax.Module.Name.html#stableModuleNameCmp"
+	><span class="hs-operator hs-var"
+	  >`GHC.stableModuleNameCmp`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; ModuleName
+forall unit. GenModule unit -&gt; ModuleName
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Types.html#moduleName"
+	><span class="hs-identifier hs-var"
+	  >GHC.moduleName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679535053"
+	><span class="hs-identifier hs-var"
+	  >m2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-204"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Ordering -&gt; Ordering -&gt; Ordering
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-205"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- See Note [Stable name comparisons]</span
+      ><span
+      >
+</span
+      ><span id="line-206"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Unit
+forall unit. GenModule unit -&gt; unit
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Types.html#moduleUnit"
+	><span class="hs-identifier hs-var"
+	  >GHC.moduleUnit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679535052"
+	><span class="hs-identifier hs-var"
+	  >m1</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Unit -&gt; Unit -&gt; Ordering
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Types.html#stableUnitCmp"
+	><span class="hs-operator hs-var"
+	  >`GHC.stableUnitCmp`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module -&gt; Unit
+forall unit. GenModule unit -&gt; unit
+</span
+	><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Unit.Types.html#moduleUnit"
+	><span class="hs-identifier hs-var"
+	  >GHC.moduleUnit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Module
+</span
+	><a href="#local-6989586621679535053"
+	><span class="hs-identifier hs-var"
+	  >m2</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-207"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-208"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Scopes]</span
+      ><span
+      >
+</span
+      ><span id="line-209"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="Compiling"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Compiling"
+	  ><span class="hs-identifier hs-var"
+	    >Compiling</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535058"
+      ><span class="annot"
+	><a href="#local-6989586621679535058"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535059"
+      ><span class="annot"
+	><a href="#local-6989586621679535059"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535060"
+      ><span class="annot"
+	><a href="#local-6989586621679535060"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535061"
+      ><span class="annot"
+	><a href="#local-6989586621679535061"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-210"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	><span class="hs-identifier hs-type"
+	  >MonadError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Error.html#CompileError"
+	><span class="hs-identifier hs-type"
+	  >CompileError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535058"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535059"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535061"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535060"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-211"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html#MonadQuote"
+	><span class="hs-identifier hs-type"
+	  >MonadQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535060"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-212"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	><span class="hs-identifier hs-type"
+	  >MonadReader</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CompileContext"
+	><span class="hs-identifier hs-type"
+	  >CompileContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535058"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535059"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535060"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-213"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.State.Class.html#MonadState"
+	><span class="hs-identifier hs-type"
+	  >MonadState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CompileState"
+	><span class="hs-identifier hs-type"
+	  >CompileState</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535060"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-214"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusIR.Compiler.Definitions.html#MonadDefs"
+	><span class="hs-identifier hs-type"
+	  >MonadDefs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#LexName"
+	><span class="hs-identifier hs-type"
+	  >LexName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535058"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535059"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html#Ann"
+	><span class="hs-identifier hs-type"
+	  >Ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535060"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-215"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Writer.Class.html#MonadWriter"
+	><span class="hs-identifier hs-type"
+	  >MonadWriter</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Coverage.html#CoverageIndex"
+	><span class="hs-identifier hs-type"
+	  >CoverageIndex</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535060"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-216"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-217"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-218"
+      ></span
+      ><span class="hs-comment"
+      >-- Packing up equality constraints gives us a nice way of writing type signatures as this way</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span class="hs-comment"
+      >-- we don't need to write 'PLC.DefaultUni' everywhere (in 'PIRTerm', 'PIRType' etc) and instead</span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span class="hs-comment"
+      >-- can write the short @uni@ and know that it actually means 'PLC.DefaultUni'. Same regarding</span
+      ><span
+      >
+</span
+      ><span id="line-221"
+      ></span
+      ><span class="hs-comment"
+      >-- 'DefaultFun'.</span
+      ><span
+      >
+</span
+      ><span id="line-222"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CompilingDefault"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#CompilingDefault"
+	  ><span class="hs-identifier hs-var"
+	    >CompilingDefault</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535067"
+      ><span class="annot"
+	><a href="#local-6989586621679535067"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535068"
+      ><span class="annot"
+	><a href="#local-6989586621679535068"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535069"
+      ><span class="annot"
+	><a href="#local-6989586621679535069"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535070"
+      ><span class="annot"
+	><a href="#local-6989586621679535070"
+	  ><span class="hs-identifier hs-type"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-223"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535067"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultUni</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-224"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535068"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#~"
+	><span class="hs-operator hs-type"
+	  >~</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	><span class="hs-identifier hs-type"
+	  >PLC.DefaultFun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-225"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+	><span class="hs-identifier hs-type"
+	  >Compiling</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535067"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535068"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535069"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535070"
+	><span class="hs-identifier hs-type"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span id="local-6989586621679534735"
+      ><span id="local-6989586621679534736"
+	><span id="local-6989586621679534737"
+	  ><span id="local-6989586621679534739"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#blackhole"
+		><span class="hs-identifier hs-type"
+		  >blackhole</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+		><span class="hs-identifier hs-type"
+		  >MonadReader</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#CompileContext"
+		><span class="hs-identifier hs-type"
+		  >CompileContext</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534735"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534736"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534737"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+		><span class="hs-identifier hs-type"
+		  >GHC.Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534737"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534739"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534737"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534739"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span id="blackhole"
+      ><span class="annot"
+	><span class="annottext"
+	  >blackhole :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) a.
+MonadReader (CompileContext uni fun) m =&gt;
+Name -&gt; m a -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#blackhole"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >blackhole</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535077"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679535077"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall a.
+(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679535079"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileContext uni fun
+</span
+	  ><a href="#local-6989586621679535079"
+	  ><span class="hs-identifier hs-var"
+	    >cc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni fun
+</span
+	><a href="#local-6989586621679535079"
+	><span class="hs-identifier hs-var"
+	  >cc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccBlackholed"
+	><span class="hs-identifier hs-var"
+	  >ccBlackholed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#insert"
+	><span class="hs-identifier hs-type"
+	  >Set.insert</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535077"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccBlackholed"
+	><span class="hs-identifier hs-var"
+	  >ccBlackholed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535079"
+	><span class="hs-identifier hs-type"
+	  >cc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span id="local-6989586621679534748"
+      ><span id="local-6989586621679534749"
+	><span id="local-6989586621679534750"
+	  ><span class="annot"
+	    ><a href="PlutusTx.Compiler.Types.html#blackholed"
+	      ><span class="hs-identifier hs-type"
+		>blackholed</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#MonadReader"
+	      ><span class="hs-identifier hs-type"
+		>MonadReader</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusTx.Compiler.Types.html#CompileContext"
+	      ><span class="hs-identifier hs-type"
+		>CompileContext</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679534748"
+	      ><span class="hs-identifier hs-type"
+		>uni</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679534749"
+	      ><span class="hs-identifier hs-type"
+		>fun</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679534750"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	      ><span class="hs-identifier hs-type"
+		>GHC.Name</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621679534750"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	      ><span class="hs-identifier hs-type"
+		>Bool</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span id="blackholed"
+      ><span class="annot"
+	><span class="annottext"
+	  >blackholed :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *).
+MonadReader (CompileContext uni fun) m =&gt;
+Name -&gt; m Bool
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#blackholed"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >blackholed</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535091"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679535091"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#CompileContext"
+	><span class="hs-identifier hs-type"
+	  >CompileContext</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ccBlackholed :: forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Set Name
+</span
+	><a href="PlutusTx.Compiler.Types.html#ccBlackholed"
+	><span class="hs-identifier hs-var"
+	  >ccBlackholed</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="local-6989586621679535092"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set Name
+</span
+	  ><a href="#local-6989586621679535092"
+	  ><span class="hs-identifier hs-var"
+	    >bh</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (CompileContext uni fun)
+forall r (m :: * -&gt; *). MonadReader r m =&gt; m r
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#ask"
+	><span class="hs-identifier hs-var"
+	  >ask</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; m Bool
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; m Bool) -&gt; Bool -&gt; m Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name -&gt; Set Name -&gt; Bool
+forall a. Ord a =&gt; a -&gt; Set a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#member"
+	><span class="hs-identifier hs-var"
+	  >Set.member</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679535091"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set Name
+</span
+	><a href="#local-6989586621679535092"
+	><span class="hs-identifier hs-var"
+	  >bh</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Scopes]
+We need a notion of scope, because we have to make sure that if we convert a GHC
+Var into a variable, then we always convert it into the same variable, while also making
+sure that if we encounter multiple things with the same name we produce fresh variables
+appropriately.
+
+We keep the scope in a `Reader` monad, so any modifications are only local.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="Scope"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Scope"
+	  ><span class="hs-identifier hs-var"
+	    >Scope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679534766"
+      ><span class="annot"
+	><a href="#local-6989586621679534766"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679534767"
+      ><span class="annot"
+	><a href="#local-6989586621679534767"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="Scope"
+      ><span class="annot"
+	><a href="PlutusTx.Compiler.Types.html#Scope"
+	  ><span class="hs-identifier hs-var"
+	    >Scope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	><span class="hs-identifier hs-type"
+	  >GHC.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.PLCTypes.html#PLCVar"
+	><span class="hs-identifier hs-type"
+	  >PLCVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534766"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusTx.PIRTypes.html#PIRTerm"
+	><span class="hs-identifier hs-type"
+	  >PIRTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534766"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679534767"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-9.6.7/docs/src/GHC.Types.Name.html#Name"
+	><span class="hs-identifier hs-type"
+	  >GHC.Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.PLCTypes.html#PLCTyVar"
+	><span class="hs-identifier hs-type"
+	  >PLCTyVar</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span id="local-6989586621679534758"
+      ><span id="local-6989586621679534759"
+	><span class="annot"
+	  ><a href="PlutusTx.Compiler.Types.html#initialScope"
+	    ><span class="hs-identifier hs-type"
+	      >initialScope</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusTx.Compiler.Types.html#Scope"
+	    ><span class="hs-identifier hs-type"
+	      >Scope</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679534758"
+	    ><span class="hs-identifier hs-type"
+	      >uni</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621679534759"
+	    ><span class="hs-identifier hs-type"
+	      >fun</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span id="initialScope"
+      ><span class="annot"
+	><span class="annottext"
+	  >initialScope :: forall (uni :: * -&gt; *) fun. Scope uni fun
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#initialScope"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >initialScope</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Name (PLCVar uni, Maybe (PIRTerm uni fun))
+-&gt; Map Name PLCTyVar -&gt; Scope uni fun
+forall (uni :: * -&gt; *) fun.
+Map Name (PLCVar uni, Maybe (PIRTerm uni fun))
+-&gt; Map Name PLCTyVar -&gt; Scope uni fun
+</span
+	><a href="PlutusTx.Compiler.Types.html#Scope"
+	><span class="hs-identifier hs-var"
+	  >Scope</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Name (PLCVar uni, Maybe (PIRTerm uni fun))
+forall k a. Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >Map.empty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Name PLCTyVar
+forall k a. Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#empty"
+	><span class="hs-identifier hs-var"
+	  >Map.empty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span id="local-6989586621679534770"
+      ><span id="local-6989586621679534771"
+	><span id="local-6989586621679534772"
+	  ><span id="local-6989586621679534773"
+	    ><span id="local-6989586621679534775"
+	      ><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#withCurDef"
+		  ><span class="hs-identifier hs-type"
+		    >withCurDef</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>::</span
+		><span
+		> </span
+		><span class="hs-special"
+		>(</span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#Compiling"
+		  ><span class="hs-identifier hs-type"
+		    >Compiling</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534770"
+		  ><span class="hs-identifier hs-type"
+		    >uni</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534771"
+		  ><span class="hs-identifier hs-type"
+		    >fun</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534772"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534773"
+		  ><span class="hs-identifier hs-type"
+		    >ann</span
+		    ></a
+		  ></span
+		><span class="hs-special"
+		>)</span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>=&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="PlutusTx.Compiler.Types.html#LexName"
+		  ><span class="hs-identifier hs-type"
+		    >LexName</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534772"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534775"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="hs-glyph"
+		>-&gt;</span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534772"
+		  ><span class="hs-identifier hs-type"
+		    >m</span
+		    ></a
+		  ></span
+		><span
+		> </span
+		><span class="annot"
+		><a href="#local-6989586621679534775"
+		  ><span class="hs-identifier hs-type"
+		    >a</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span id="withCurDef"
+      ><span class="annot"
+	><span class="annottext"
+	  >withCurDef :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann a.
+Compiling uni fun m ann =&gt;
+LexName -&gt; m a -&gt; m a
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#withCurDef"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withCurDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535102"
+      ><span class="annot"
+	><span class="annottext"
+	  >LexName
+</span
+	  ><a href="#local-6989586621679535102"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall a.
+(CompileContext uni fun -&gt; CompileContext uni fun) -&gt; m a -&gt; m a
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; r) -&gt; m a -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#local"
+	><span class="hs-identifier hs-var"
+	  >local</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679535103"
+      ><span class="annot"
+	><span class="annottext"
+	  >CompileContext uni fun
+</span
+	  ><a href="#local-6989586621679535103"
+	  ><span class="hs-identifier hs-var"
+	    >cc</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni fun
+</span
+	><a href="#local-6989586621679535103"
+	><span class="hs-identifier hs-var"
+	  >cc</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span class="annot"
+      ><a href="PlutusTx.Compiler.Types.html#ccCurDef"
+	><span class="hs-identifier hs-var"
+	  >ccCurDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679535102"
+	><span class="hs-identifier hs-type"
+	  >name</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span id="local-6989586621679534787"
+      ><span id="local-6989586621679534788"
+	><span id="local-6989586621679534789"
+	  ><span id="local-6989586621679534790"
+	    ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#modifyCurDeps"
+		><span class="hs-identifier hs-type"
+		  >modifyCurDeps</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534787"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534788"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534789"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534790"
+		><span class="hs-identifier hs-type"
+		  >ann</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+		><span class="hs-identifier hs-type"
+		  >Set.Set</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#LexName"
+		><span class="hs-identifier hs-type"
+		  >LexName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#Set"
+		><span class="hs-identifier hs-type"
+		  >Set.Set</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusTx.Compiler.Types.html#LexName"
+		><span class="hs-identifier hs-type"
+		  >LexName</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679534789"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span id="modifyCurDeps"
+      ><span class="annot"
+	><span class="annottext"
+	  >modifyCurDeps :: forall (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+Compiling uni fun m ann =&gt;
+(Set LexName -&gt; Set LexName) -&gt; m ()
+</span
+	  ><a href="PlutusTx.Compiler.Types.html#modifyCurDeps"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >modifyCurDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535116"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set LexName -&gt; Set LexName
+</span
+	  ><a href="#local-6989586621679535116"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679535117"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe LexName
+</span
+	  ><a href="#local-6989586621679535117"
+	  ><span class="hs-identifier hs-var"
+	    >cur</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompileContext uni fun -&gt; Maybe LexName) -&gt; m (Maybe LexName)
+forall r (m :: * -&gt; *) a. MonadReader r m =&gt; (r -&gt; a) -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Reader.Class.html#asks"
+	><span class="hs-identifier hs-var"
+	  >asks</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CompileContext uni fun -&gt; Maybe LexName
+forall (uni :: * -&gt; *) fun. CompileContext uni fun -&gt; Maybe LexName
+</span
+	><a href="PlutusTx.Compiler.Types.html#ccCurDef"
+	><span class="hs-identifier hs-var"
+	  >ccCurDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe LexName
+</span
+	><a href="#local-6989586621679535117"
+	><span class="hs-identifier hs-var"
+	  >cur</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe LexName
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>() -&gt; m ()
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679535119"
+      ><span class="annot"
+	><span class="annottext"
+	  >LexName
+</span
+	  ><a href="#local-6989586621679535119"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LexName -&gt; (Set LexName -&gt; Set LexName) -&gt; m ()
+forall key (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadDefs key uni fun ann m =&gt;
+key -&gt; (Set key -&gt; Set key) -&gt; m ()
+</span
+	><a href="../../plutus-core/src/PlutusIR.Compiler.Definitions.html#modifyDeps"
+	><span class="hs-identifier hs-var"
+	  >modifyDeps</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>LexName
+</span
+	><a href="#local-6989586621679535119"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set LexName -&gt; Set LexName
+</span
+	><a href="#local-6989586621679535116"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

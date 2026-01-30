@@ -1,0 +1,5857 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span id="local-6989586621682037402"
+      ><span id="local-6989586621682037403"
+	><span id="local-6989586621682037404"
+	  ><span id="local-6989586621682037405"
+	    ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass     #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveDataTypeable #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RecordWildCards    #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.Machine.CostModelInterface</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	><span class="hs-identifier"
+	  >CostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#extractCostModelParams"
+	><span class="hs-identifier"
+	  >extractCostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyCostModelParams"
+	><span class="hs-identifier"
+	  >applyCostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	><span class="hs-identifier"
+	  >CostModelApplyError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyWarn"
+	><span class="hs-identifier"
+	  >CostModelApplyWarn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Evaluation.Machine.MachineParameters</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	><span class="hs-identifier"
+	  >CostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#CekMachineCosts"
+	><span class="hs-identifier"
+	  >CekMachineCosts</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >                                                                 </span
+      ><span class="annot"
+      ><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekMachineCostsPrefix"
+	><span class="hs-identifier"
+	  >cekMachineCostsPrefix</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html"
+	><span class="hs-identifier"
+	  >Control.DeepSeq</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	><span class="hs-identifier"
+	  >NFData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Exception.html"
+	><span class="hs-identifier"
+	  >Control.Exception</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Data.Aeson</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Data.Aeson.Flatten.html"
+	><span class="hs-identifier"
+	  >Data.Aeson.Flatten</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html"
+	><span class="hs-identifier"
+	  >Data.Data</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+	><span class="hs-identifier"
+	  >Data</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Strict.html"
+	><span class="hs-identifier"
+	  >Data.HashMap.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>HM</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Int.html"
+	><span class="hs-identifier"
+	  >Data.Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier"
+	  >Int64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.html"
+	><span class="hs-identifier"
+	  >Data.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Merge.Lazy.html"
+	><span class="hs-identifier"
+	  >Data.Map.Merge.Lazy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Text</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html"
+	><span class="hs-identifier"
+	  >GHC.Generics</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	><span class="hs-identifier"
+	  >Generic</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html"
+	><span class="hs-identifier"
+	  >NoThunks.Class</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Cost model parameters]
+We want to expose to the ledger some notion of the &quot;cost model
+parameters&quot;. Intuitively, these should be all the numbers that appear in the
+cost model.
+
+However, there are quite a few quirks to deal with.
+
+1. BuiltinCostModel is stuctured.
+
+That is, it's a complex data structure and the numbers in question are often
+nested inside it.  To deal with this quickly, we take the ugly approach of
+operating on the JSON representation of the model.  We flatten this down into a
+simple key-value mapping (see 'flattenObject' and 'unflattenObject'), and then
+look only at the numbers.
+
+2. We use CostingIntegers, Aeson uses Data.Scientific.
+
+The numbers in CostModel objects are CostingIntegers, which are usually the
+64-bit SatInt type (but Integer on 32-bit machines).  Numerical values in
+Aeson-encoded JSON objects are represented as Data.Scientific (Integer mantissa,
+Int exponent). We should be able to convert between these types without loss of
+precision, except that Scientific numbers of large magnitude will overflow to
+SatInt::MaxBound or underflow to SatInt::MinBound.  This is OK because
+CostModelParams objects should never contain such large numbers. Any Plutus Core
+programs whose cost reaches MaxBound will fail due to excessive resource usage.
+
+3. BuiltinCostModel includes the *type* of the model, which isn't a parameter
+
+We can just strip the type out, but in particular this means that the parameters are
+not enough to *construct* a model.  So we punt and say that you can *update* a
+model by giving the parameters. So you can take the default model and then
+overwrite the parameters, which seems okay.
+
+This is also implemented in a horrible JSON-y way.
+
+4. The implementation is not nice.
+
+Ugly JSON stuff and failure possibilities where there probably shouldn't be any.
+
+5. The overall cost model now includes two components: a model for the internal
+costs of the evaluator and a model for built-in evaluation costs.  We just
+re-use the technique mentioned above to extract parameters for the evaluator
+costs, merging these with the parameters for the builtin cost model to obtain
+parameters for the overall model.  To recover cost model components we assume
+that every field in the cost model for the evaluator begins with a prefix (eg
+&quot;cek&quot;) which is does not occur as a prefix of any built-in function, and use
+that to split the map of parameters into two maps.
+
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Cost model parameters from the ledger's point of view]
+
+A newly-voted protocol update may have some of the following effects:
+
+a) Introduce a new plutus-language version accompanied by a whole new set of cost model parameters for that new version.
+b) Update any values of existing cost model parameters for an existing plutus version.
+c) Bring new builtins to an existing plutus version, thus also extending
+the set of current cost model parameters of that version with new parameters for the new builtins.
+
+Note that, removing existing builtins is only possible by issuing a brand-new plutus language version
+that would exclude them (and their cost model parameters).
+An alternative without issuing a new protocol update and affecting a current version,
+would be to set via (b) the builtins' cost model parameters prohibitively high,
+so as to make those builtins impossible to execute given the current maximum transaction budget,
+thus effectively disabling their execution.
+
+The ledger-state stores a *mapping* of each plutus-language version to its current set of cost model parameters.
+Each set of parameters is represented as an *array of plain integer values*,
+without the  cost model parameter names. Overall this ledger-state can be conceptualized as `Map PlutusVersion [Integer]`.
+
+The implementation of (a) and (b) effects by the node software is straightforward:
+for (a) introduce a whole new entry to the Map; for (b) update the affected array in-place with the new values.
+As a consequence for implementing (c), we arrive to four restrictions that hold for ALL protocol updates:
+
+1) In case of (b), the values of the existing parameters may change, but their *meaning*,
+i.e. which parameter name and thus which builtin parameter they correspond to,  ABSOLUTELY CANNOT change. In other words,
+the existing parameters cannot be re-ordered.
+
+2) In case of (c) the new parameters (for the new builtins) must be appended **to the end** of the existing array for the affected version.
+
+3) The node software is responsible to re-create the plutus runtimes when a new protocol is voted in ---
+one plutus runtime a.k.a. `plutus-ledger-api.EvaluationContext` per plutus-version.
+
+4) The node software will always pass the array in its entirety to each plutus-runtime,
+and not partially just the updated-parameter values (in case of (b)) or just the new-parameter values (in case of (c)).
+
+To make (c) work, we must allow a node to continue operating when receiving either more or
+fewer cost model parameters than it expects. As an example, suppose at the beginning of
+major protocol version 9 (PV9), PlutusV3 has 100 cost model parameters. During PV9, we add
+some more builtins to Plutus V3 (to be enabled after the hard fork, at PV10), requiring 20
+additional cost model parameters. Then, one submits a proposal updating the number of PlutusV3
+cost model parameters to 120.
+
+During PV9, both node-9.x and node-10.x must operate normally and agree on everything. This means
+node-9.x must allow receiving more cost model parameters than it expects (since it may receive
+120), and node-10.x must allow receiving fewer than it expects (since it may receive 100).
+Node-10.x should fill in the missing parameters with a large enough number to prevent the new
+builtins from being used, in case the hard fork to PV10 happens without first updating the number
+of PlutusV3 cost model parameters to 120 (which is unlikely to happen, but just in case).
+
+During PV10, node-9.x stops working.
+
+The overall logic for the expected number of cost model paremeters is as follows:
+
+(expected number in node software == received number by ledger) =&gt; NOWARNING &amp; NOERROR
+(expected number in node software &lt; received number by ledger)  =&gt; WARNING
+(expected number in node software &gt; received number by ledger)  =&gt; WARNING
+
+If the received number is EQ or GT the expected (WARNING), we
+will take the first n from the received cost model parameters (n==expected number),
+and create the internal (nameful) representation of cost model parameters, by assigning a parameter name
+to its value: see `PlutusLedgerApi.Common.ParamName.tagWithParamNames` and the `ParamName` datatypes in
+plutus-ledger-api.
+
+If the received number is LT the expected (WARNING), we will fill in the missing parameters
+with maxBound :: Int64.
+
+See https://github.com/IntersectMBO/cardano-ledger/issues/2902 for a discussion
+of these issues and the rationale for adopting the system described above.
+
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-158"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-159"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Table of all possible ledger's states w.r.t. cost model parameters update]
+What Note [Cost model parameters from the ledger's point of view] says can be summarized in a table.
+We'll need to enumerate all possible combinations of
+
+    old_node / new_node
+    before_HF / after_HF
+    shorter_list / exact_list / longer_list
+
+where the last ones are about the list of cost model parameters supplied by the ledger, e.g.
+@shorter_list@ means that the ledger supplied a list of cost model parameters that is shorter than
+expected by the appropriate Plutus ledger language at the specific protocol version.
+
+Note that the exact same list may be @exact_list@ for @old_node@ and @shorter_list@ for @new_node@.
+And the exact same list may be @longer_list@ for @old_node@ and @exact_list@ for @new_node@.
+
+We'll also need to consider changing the cost model parameters of old builtins and adding cost model
+parameters for new builtins separately, because there are non-trivial differences. For old builtins
+we'll only consider the case of adding new cost model parameters, because the case of reducing the
+number of cost model parameters is trivial: the only thing we can do about it is simply keeping the
+redundant arguments and asking the ledger to continue providing them, as there's no way for us to
+remove them form the middle of the cost model parameter list. And if the number of parameters
+doesn't change, then there's nothing to worry about.
+
+We'll also only consider the case when the Plutus ledger language stays the same, because if it
+changes, then everything becomes trivial: we don't need to worry about any backward compatibility
+and can simply &quot;start over&quot; for a new ledger language.
+
+&quot;OK&quot; in the table below means &quot;we handle this situation correctly as implied by
+Note [Cost model parameters from the ledger's point of view]&quot;.
+
+The table then looks like this:
+
+                                         old_builtin new_builtin
+    old_node / before_HF / shorter_list    OK [1]      OK [1]
+    old_node / before_HF / exact_list      OK [2]      OK [3]
+    old_node / before_HF / longer_list     OK [4]      OK [3]
+
+    old_node / after_HF / shorter_list     OK [5]      OK [5]
+    old_node / after_HF / exact_list       OK [5]      OK [5]
+    old_node / after_HF / longer_list      OK [5]      OK [5]
+
+    new_node / before_HF / shorter_list    OK [6]      OK [3]
+    new_node / before_HF / exact_list      OK [2]      OK [3]
+    new_node / before_HF / longer_list     OK [7]      OK [7]
+
+    new_node / after_HF / shorter_list     OK [8]      OK [9]
+    new_node / after_HF / exact_list       OK [2]      OK [2]
+    new_node / after_HF / longer_list      OK [10]     OK [10]
+
+[1] this is the same case as `new_node / after_HF / shorter_list`, just in the context of a different hardfork
+[2] the most straightforward case, nothing to consider
+[3] a new builtin cannot be used before the hardfork as `scriptCBORDecoder` will fail with &quot;built-in function X is not available&quot;
+[4] an old builtin does not touch its new cost model parameters (if any) before the hardfork, hence it's safe to ignore those extra parameters
+[5] the old node is not alive after the hardfork, hence anything is OK
+[6] an old builtin does not touch its new cost model parameters (if any) before the hardfork, hence it's safe to make those extra parameters all `maxBound`
+[7] this is a bit weird, but theoretically possible (one can propose protocol parameter updates, including updating the number of PlutusV3 cost model parameters to 100000, or updating the max block size to 0. Those will be rejected, especially if there's a guardrail in place). But even it happens in practice, `longer_list` should never be a problem, since the extra numbers are simply ignored
+[8] this is a tricky one: since it's a shorter list, the missing cost model parameters all become 'maxBound' meaning for an old builtin we end up in a situation where some of its cost model parameters are 'maxBound' and some are not, which is not enough to prevent the builtin from running. Which is however not a problem, because it _is_ fine to run the builtin after the hardfork, all we care about is that it's not undercosted and making some of the cost model parameters 'maxBound' ensures that it's not as it's literally the highest value that they can have
+[9] same as [8] except this does ensure that the builtin never runs, because all of its cost model parameters are 'maxBound', which makes the cost of the builtin higher than any reasonable budget
+[10] this is the same case as `old_node / before_HF / longer_list`, just in the context of a different hardfork
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-219"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-220"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>{-| A raw representation of the ledger's cost model parameters.
+
+The associated keys/names to the parameter values are arbitrarily set by the plutus team; the ledger does not hold any such names.
+
+See Note [Cost model parameters]
+-}</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-226"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="CostModelParams"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	  ><span class="hs-identifier hs-var"
+	    >CostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#Map"
+	><span class="hs-identifier hs-type"
+	  >Map.Map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Int.html#Int64"
+	><span class="hs-identifier hs-type"
+	  >Int64</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-227"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-228"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Cost model parameters]</span
+      ><span
+      >
+</span
+      ><span id="line-229"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Extract the model parameters from a model.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-230"
+      ></span
+      ><span id="local-6989586621682037155"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#extractParams"
+	  ><span class="hs-identifier hs-type"
+	    >extractParams</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >ToJSON</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682037155"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>=&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682037155"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	  ><span class="hs-identifier hs-type"
+	    >Maybe</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	  ><span class="hs-identifier hs-type"
+	    >CostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-231"
+      ></span
+      ><span id="extractParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >extractParams :: forall a. ToJSON a =&gt; a -&gt; Maybe CostModelParams
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#extractParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >extractParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037413"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682037413"
+	  ><span class="hs-identifier hs-var"
+	    >cm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>toJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682037413"
+	><span class="hs-identifier hs-var"
+	  >cm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-232"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037416"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621682037416"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-233"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      >
+</span
+      ><span id="line-234"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621682037419"
+      ><span class="annot"
+	><span class="annottext"
+	  >flattened :: HashMap Text Value
+</span
+	  ><a href="#local-6989586621682037419"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flattened</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+</span
+	><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-var"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; HashMap Text Value) -&gt; Object -&gt; HashMap Text Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#flattenObject"
+	><span class="hs-identifier hs-var"
+	  >flattenObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621682037416"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-235"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621682037436"
+      ><span class="annot"
+	><span class="annottext"
+	  >usingCostingIntegers :: HashMap Text Int64
+</span
+	  ><a href="#local-6989586621682037436"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >usingCostingIntegers</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; Maybe Int64) -&gt; HashMap Text Value -&gt; HashMap Text Int64
+forall v1 v2 k. (v1 -&gt; Maybe v2) -&gt; HashMap k v1 -&gt; HashMap k v2
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.Strict.html#mapMaybe"
+	><span class="hs-identifier hs-var"
+	  >HM.mapMaybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Number</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037439"
+      ><span class="annot"
+	><span class="annottext"
+	  >Scientific
+</span
+	  ><a href="#local-6989586621682037439"
+	  ><span class="hs-identifier hs-var"
+	    >n</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int64 -&gt; Maybe Int64
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int64 -&gt; Maybe Int64) -&gt; Int64 -&gt; Maybe Int64
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Scientific -&gt; Int64
+forall b. Integral b =&gt; Scientific -&gt; b
+forall a b. (RealFrac a, Integral b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#ceiling"
+	><span class="hs-identifier hs-var"
+	  >ceiling</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Scientific
+</span
+	><a href="#local-6989586621682037439"
+	><span class="hs-identifier hs-var"
+	  >n</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe Int64
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value
+</span
+	><a href="#local-6989586621682037419"
+	><span class="hs-identifier hs-var"
+	  >flattened</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-236"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- ^ Only (the contents of) the &quot;Just&quot; values are retained in the output map.</span
+      ><span
+      >
+</span
+      ><span id="line-237"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621682037443"
+      ><span class="annot"
+	><span class="annottext"
+	  >mapified :: CostModelParams
+</span
+	  ><a href="#local-6989586621682037443"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mapified</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Text, Int64)] -&gt; CostModelParams
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(Text, Int64)] -&gt; CostModelParams)
+-&gt; [(Text, Int64)] -&gt; CostModelParams
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Int64 -&gt; [(Text, Int64)]
+forall k v. HashMap k v -&gt; [(k, v)]
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >HM.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Int64
+</span
+	><a href="#local-6989586621682037436"
+	><span class="hs-identifier hs-var"
+	  >usingCostingIntegers</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-238"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams -&gt; Maybe CostModelParams
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037443"
+	><span class="hs-identifier hs-var"
+	  >mapified</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-239"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe CostModelParams
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-240"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-241"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-242"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A fatal error when trying to create a cost given some plain costmodel parameters.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-243"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CostModelApplyError"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	  ><span class="hs-identifier hs-var"
+	    >CostModelApplyError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-244"
+      ></span
+      ><span
+      >      </span
+      ><span id="CMUnknownParamError"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMUnknownParamError"
+	  ><span class="hs-identifier hs-var"
+	    >CMUnknownParamError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-245"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ a costmodel parameter with the give name does not exist in the costmodel to be applied upon</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-246"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CMInternalReadError"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMInternalReadError"
+	  ><span class="hs-identifier hs-var"
+	    >CMInternalReadError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-247"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ internal error when we are transforming the applyParams' input to json (should not happen)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-248"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CMInternalWriteError"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMInternalWriteError"
+	  ><span class="hs-identifier hs-var"
+	    >CMInternalWriteError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#String"
+	><span class="hs-identifier hs-type"
+	  >String</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-249"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-250"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682037450"
+      ><span id="local-6989586621682037457"
+	><span class="annot"
+	  ><span class="annottext"
+	    >CostModelApplyError -&gt; CostModelApplyError -&gt; Bool
+(CostModelApplyError -&gt; CostModelApplyError -&gt; Bool)
+-&gt; (CostModelApplyError -&gt; CostModelApplyError -&gt; Bool)
+-&gt; Eq CostModelApplyError
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+$c== :: CostModelApplyError -&gt; CostModelApplyError -&gt; Bool
+== :: CostModelApplyError -&gt; CostModelApplyError -&gt; Bool
+$c/= :: CostModelApplyError -&gt; CostModelApplyError -&gt; Bool
+/= :: CostModelApplyError -&gt; CostModelApplyError -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037463"
+      ><span id="local-6989586621682037473"
+	><span id="local-6989586621682037477"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Int -&gt; CostModelApplyError -&gt; ShowS
+[CostModelApplyError] -&gt; ShowS
+CostModelApplyError -&gt; String
+(Int -&gt; CostModelApplyError -&gt; ShowS)
+-&gt; (CostModelApplyError -&gt; String)
+-&gt; ([CostModelApplyError] -&gt; ShowS)
+-&gt; Show CostModelApplyError
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; CostModelApplyError -&gt; ShowS
+showsPrec :: Int -&gt; CostModelApplyError -&gt; ShowS
+$cshow :: CostModelApplyError -&gt; String
+show :: CostModelApplyError -&gt; String
+$cshowList :: [CostModelApplyError] -&gt; ShowS
+showList :: [CostModelApplyError] -&gt; ShowS
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Show</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037482"
+      ><span id="local-6989586621682037484"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x. CostModelApplyError -&gt; Rep CostModelApplyError x)
+-&gt; (forall x. Rep CostModelApplyError x -&gt; CostModelApplyError)
+-&gt; Generic CostModelApplyError
+forall x. Rep CostModelApplyError x -&gt; CostModelApplyError
+forall x. CostModelApplyError -&gt; Rep CostModelApplyError x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+$cfrom :: forall x. CostModelApplyError -&gt; Rep CostModelApplyError x
+from :: forall x. CostModelApplyError -&gt; Rep CostModelApplyError x
+$cto :: forall x. Rep CostModelApplyError x -&gt; CostModelApplyError
+to :: forall x. Rep CostModelApplyError x -&gt; CostModelApplyError
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037490"
+      ><span id="local-6989586621682037497"
+	><span id="local-6989586621682037502"
+	  ><span id="local-6989586621682037504"
+	    ><span id="local-6989586621682037506"
+	      ><span id="local-6989586621682037512"
+		><span id="local-6989586621682037517"
+		  ><span id="local-6989586621682037520"
+		    ><span id="local-6989586621682037523"
+		      ><span id="local-6989586621682037526"
+			><span id="local-6989586621682037529"
+			  ><span id="local-6989586621682037532"
+			    ><span id="local-6989586621682037537"
+			      ><span id="local-6989586621682037542"
+				><span class="annot"
+				  ><span class="annottext"
+				    >Typeable CostModelApplyError
+Typeable CostModelApplyError =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g)
+ -&gt; CostModelApplyError
+ -&gt; c CostModelApplyError)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CostModelApplyError)
+-&gt; (CostModelApplyError -&gt; Constr)
+-&gt; (CostModelApplyError -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CostModelApplyError))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e))
+    -&gt; Maybe (c CostModelApplyError))
+-&gt; ((forall b. Data b =&gt; b -&gt; b)
+    -&gt; CostModelApplyError -&gt; CostModelApplyError)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r)
+    -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r)
+-&gt; (forall u.
+    (forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; [u])
+-&gt; (forall u.
+    Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d)
+    -&gt; CostModelApplyError -&gt; m CostModelApplyError)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d)
+    -&gt; CostModelApplyError -&gt; m CostModelApplyError)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d)
+    -&gt; CostModelApplyError -&gt; m CostModelApplyError)
+-&gt; Data CostModelApplyError
+CostModelApplyError -&gt; Constr
+CostModelApplyError -&gt; DataType
+(forall b. Data b =&gt; b -&gt; b)
+-&gt; CostModelApplyError -&gt; CostModelApplyError
+forall a.
+Typeable a =&gt;
+(forall (c :: * -&gt; *).
+ (forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+ -&gt; (forall g. g -&gt; c g) -&gt; a -&gt; c a)
+-&gt; (forall (c :: * -&gt; *).
+    (forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+    -&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c a)
+-&gt; (a -&gt; Constr)
+-&gt; (a -&gt; DataType)
+-&gt; (forall (t :: * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d. Data d =&gt; c (t d)) -&gt; Maybe (c a))
+-&gt; (forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+    Typeable t =&gt;
+    (forall d e. (Data d, Data e) =&gt; c (t d e)) -&gt; Maybe (c a))
+-&gt; ((forall b. Data b =&gt; b -&gt; b) -&gt; a -&gt; a)
+-&gt; (forall r r'.
+    (r -&gt; r' -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall r r'.
+    (r' -&gt; r -&gt; r) -&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; a -&gt; r)
+-&gt; (forall u. (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; [u])
+-&gt; (forall u. Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; a -&gt; u)
+-&gt; (forall (m :: * -&gt; *).
+    Monad m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; (forall (m :: * -&gt; *).
+    MonadPlus m =&gt;
+    (forall d. Data d =&gt; d -&gt; m d) -&gt; a -&gt; m a)
+-&gt; Data a
+forall u.
+Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; u
+forall u.
+(forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; [u]
+forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r
+forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r
+forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CostModelApplyError
+forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g)
+-&gt; CostModelApplyError
+-&gt; c CostModelApplyError
+forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CostModelApplyError)
+forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c CostModelApplyError)
+$cgfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g)
+-&gt; CostModelApplyError
+-&gt; c CostModelApplyError
+gfoldl :: forall (c :: * -&gt; *).
+(forall d b. Data d =&gt; c (d -&gt; b) -&gt; d -&gt; c b)
+-&gt; (forall g. g -&gt; c g)
+-&gt; CostModelApplyError
+-&gt; c CostModelApplyError
+$cgunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CostModelApplyError
+gunfold :: forall (c :: * -&gt; *).
+(forall b r. Data b =&gt; c (b -&gt; r) -&gt; c r)
+-&gt; (forall r. r -&gt; c r) -&gt; Constr -&gt; c CostModelApplyError
+$ctoConstr :: CostModelApplyError -&gt; Constr
+toConstr :: CostModelApplyError -&gt; Constr
+$cdataTypeOf :: CostModelApplyError -&gt; DataType
+dataTypeOf :: CostModelApplyError -&gt; DataType
+$cdataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CostModelApplyError)
+dataCast1 :: forall (t :: * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d. Data d =&gt; c (t d)) -&gt; Maybe (c CostModelApplyError)
+$cdataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c CostModelApplyError)
+dataCast2 :: forall (t :: * -&gt; * -&gt; *) (c :: * -&gt; *).
+Typeable t =&gt;
+(forall d e. (Data d, Data e) =&gt; c (t d e))
+-&gt; Maybe (c CostModelApplyError)
+$cgmapT :: (forall b. Data b =&gt; b -&gt; b)
+-&gt; CostModelApplyError -&gt; CostModelApplyError
+gmapT :: (forall b. Data b =&gt; b -&gt; b)
+-&gt; CostModelApplyError -&gt; CostModelApplyError
+$cgmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r
+gmapQl :: forall r r'.
+(r -&gt; r' -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r
+$cgmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r
+gmapQr :: forall r r'.
+(r' -&gt; r -&gt; r)
+-&gt; r -&gt; (forall d. Data d =&gt; d -&gt; r') -&gt; CostModelApplyError -&gt; r
+$cgmapQ :: forall u.
+(forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; [u]
+gmapQ :: forall u.
+(forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; [u]
+$cgmapQi :: forall u.
+Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; u
+gmapQi :: forall u.
+Int -&gt; (forall d. Data d =&gt; d -&gt; u) -&gt; CostModelApplyError -&gt; u
+$cgmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+gmapM :: forall (m :: * -&gt; *).
+Monad m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+$cgmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+gmapMp :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+$cgmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+gmapMo :: forall (m :: * -&gt; *).
+MonadPlus m =&gt;
+(forall d. Data d =&gt; d -&gt; m d)
+-&gt; CostModelApplyError -&gt; m CostModelApplyError
+</span
+				    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Data.html#Data"
+				    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+				      >Data</span
+				      ></a
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-251"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682037553"
+      ><span id="local-6989586621682037557"
+	><span id="local-6989586621682037560"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Show CostModelApplyError
+Typeable CostModelApplyError
+(Typeable CostModelApplyError, Show CostModelApplyError) =&gt;
+(CostModelApplyError -&gt; SomeException)
+-&gt; (SomeException -&gt; Maybe CostModelApplyError)
+-&gt; (CostModelApplyError -&gt; String)
+-&gt; Exception CostModelApplyError
+SomeException -&gt; Maybe CostModelApplyError
+CostModelApplyError -&gt; String
+CostModelApplyError -&gt; SomeException
+forall e.
+(Typeable e, Show e) =&gt;
+(e -&gt; SomeException)
+-&gt; (SomeException -&gt; Maybe e) -&gt; (e -&gt; String) -&gt; Exception e
+$ctoException :: CostModelApplyError -&gt; SomeException
+toException :: CostModelApplyError -&gt; SomeException
+$cfromException :: SomeException -&gt; Maybe CostModelApplyError
+fromException :: SomeException -&gt; Maybe CostModelApplyError
+$cdisplayException :: CostModelApplyError -&gt; String
+displayException :: CostModelApplyError -&gt; String
+</span
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.Type.html#Exception"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>Exception</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037564"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelApplyError -&gt; ()
+(CostModelApplyError -&gt; ()) -&gt; NFData CostModelApplyError
+forall a. (a -&gt; ()) -&gt; NFData a
+$crnf :: CostModelApplyError -&gt; ()
+rnf :: CostModelApplyError -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037592"
+      ><span id="local-6989586621682037596"
+	><span id="local-6989586621682037602"
+	  ><span class="annot"
+	    ><span class="annottext"
+	      >Context -&gt; CostModelApplyError -&gt; IO (Maybe ThunkInfo)
+Proxy CostModelApplyError -&gt; String
+(Context -&gt; CostModelApplyError -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; CostModelApplyError -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy CostModelApplyError -&gt; String)
+-&gt; NoThunks CostModelApplyError
+forall a.
+(Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Context -&gt; a -&gt; IO (Maybe ThunkInfo))
+-&gt; (Proxy a -&gt; String)
+-&gt; NoThunks a
+$cnoThunks :: Context -&gt; CostModelApplyError -&gt; IO (Maybe ThunkInfo)
+noThunks :: Context -&gt; CostModelApplyError -&gt; IO (Maybe ThunkInfo)
+$cwNoThunks :: Context -&gt; CostModelApplyError -&gt; IO (Maybe ThunkInfo)
+wNoThunks :: Context -&gt; CostModelApplyError -&gt; IO (Maybe ThunkInfo)
+$cshowTypeOf :: Proxy CostModelApplyError -&gt; String
+showTypeOf :: Proxy CostModelApplyError -&gt; String
+</span
+	      ><a href="https://hackage.haskell.org/package/nothunks-0.2.1.1/docs/src/NoThunks.Class.html#NoThunks"
+	      ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		>NoThunks</span
+		></a
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-252"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-253"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-254"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="CostModelApplyWarn"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyWarn"
+	  ><span class="hs-identifier hs-var"
+	    >CostModelApplyWarn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-255"
+      ></span
+      ><span
+      >      </span
+      ><span id="CMTooManyParamsWarn"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMTooManyParamsWarn"
+	  ><span class="hs-identifier hs-var"
+	    >CMTooManyParamsWarn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="cmExpected"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelApplyWarn -&gt; Int
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#cmExpected"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cmExpected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cmActual"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelApplyWarn -&gt; Int
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#cmActual"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >cmActual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-256"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ See Note [Cost model parameters from the ledger's point of view]</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-257"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >|</span
+      ><span
+      > </span
+      ><span id="CMTooFewParamsWarn"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMTooFewParamsWarn"
+	  ><span class="hs-identifier hs-var"
+	    >CMTooFewParamsWarn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="cmExpected"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#cmExpected"
+	  ><span class="hs-identifier hs-var"
+	    >cmExpected</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="cmActual"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#cmActual"
+	  ><span class="hs-identifier hs-var"
+	    >cmActual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-258"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ See Note [Cost model parameters from the ledger's point of view]</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-259"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-260"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037644"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	  ><span class="hs-identifier hs-type"
+	    >CostModelApplyError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-261"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682037658"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. CostModelApplyError -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621682037658"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><a href="#local-6989586621682037660"
+	><span class="hs-identifier hs-var"
+	  >preamble</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc ann -&gt; Doc ann)
+-&gt; (CostModelApplyError -&gt; Doc ann)
+-&gt; CostModelApplyError
+-&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-262"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMUnknownParamError"
+	><span class="hs-identifier hs-type"
+	  >CMUnknownParamError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037663"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621682037663"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >    </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;No such parameter in target cost model:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Doc ann
+forall ann. Text -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621682037663"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-263"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelApplyError
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMInternalReadError"
+	><span class="hs-identifier hs-var"
+	  >CMInternalReadError</span
+	  ></a
+	></span
+      ><span
+      >      </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Internal problem occurred upon reading the given cost model parameters&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-264"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMInternalWriteError"
+	><span class="hs-identifier hs-type"
+	  >CMInternalWriteError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037664"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621682037664"
+	  ><span class="hs-identifier hs-var"
+	    >str</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Internal problem occurred upon generating the applied cost model parameters with JSON error:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621682037664"
+	><span class="hs-identifier hs-var"
+	  >str</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-265"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-266"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621682037660"
+      ><span class="annot"
+	><span class="annottext"
+	  >preamble :: Doc ann
+</span
+	  ><a href="#local-6989586621682037660"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preamble</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;applyParams error:&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-267"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-268"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037668"
+      ><span class="annot"
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	  ><span class="hs-identifier hs-type"
+	    >Pretty</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyWarn"
+	  ><span class="hs-identifier hs-type"
+	    >CostModelApplyWarn</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-269"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682037680"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. CostModelApplyWarn -&gt; Doc ann
+</span
+	  ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><a href="#local-6989586621682037681"
+	><span class="hs-identifier hs-var"
+	  >preamble</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc ann -&gt; Doc ann)
+-&gt; (CostModelApplyWarn -&gt; Doc ann) -&gt; CostModelApplyWarn -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-270"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMTooManyParamsWarn"
+	><span class="hs-identifier hs-type"
+	  >CMTooManyParamsWarn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span id="local-6989586621682037682"
+      ><span id="local-6989586621682037683"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Int
+cmExpected :: CostModelApplyWarn -&gt; Int
+cmActual :: CostModelApplyWarn -&gt; Int
+cmExpected :: Int
+cmActual :: Int
+</span
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#cmExpected"
+	    ><span class="hs-glyph hs-var hs-var hs-var hs-var"
+	      >..</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Too many cost model parameters passed, expected&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Doc ann
+forall ann. Int -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621682037682"
+	><span class="hs-identifier hs-var"
+	  >cmExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;but got&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Doc ann
+forall ann. Int -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621682037683"
+	><span class="hs-identifier hs-var"
+	  >cmActual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-271"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMTooFewParamsWarn"
+	><span class="hs-identifier hs-type"
+	  >CMTooFewParamsWarn</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >{</span
+      ><span id="local-6989586621682037684"
+      ><span id="local-6989586621682037685"
+	><span class="annot"
+	  ><span class="annottext"
+	    >Int
+cmExpected :: CostModelApplyWarn -&gt; Int
+cmActual :: CostModelApplyWarn -&gt; Int
+cmExpected :: Int
+cmActual :: Int
+</span
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#cmExpected"
+	    ><span class="hs-glyph hs-var hs-var hs-var hs-var"
+	      >..</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Too few cost model parameters passed, expected&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Doc ann
+forall ann. Int -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621682037684"
+	><span class="hs-identifier hs-var"
+	  >cmExpected</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;but got&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Doc ann
+forall ann. Int -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><a href="#local-6989586621682037685"
+	><span class="hs-identifier hs-var"
+	  >cmActual</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-272"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-273"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621682037681"
+      ><span class="annot"
+	><span class="annottext"
+	  >preamble :: Doc ann
+</span
+	  ><a href="#local-6989586621682037681"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >preamble</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;applyParams warn:&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-274"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-275"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Cost model parameters]</span
+      ><span
+      >
+</span
+      ><span id="line-276"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Update a model by overwriting the parameters with the given ones.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-277"
+      ></span
+      ><span id="local-6989586621682037296"
+      ><span id="local-6989586621682037298"
+	><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyParams"
+	    ><span class="hs-identifier hs-type"
+	      >applyParams</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >FromJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037296"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >ToJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037296"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	    ><span class="hs-identifier hs-type"
+	      >MonadError</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	    ><span class="hs-identifier hs-type"
+	      >CostModelApplyError</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037298"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-278"
+	  ></span
+	  ><span
+	  >            </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037296"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-279"
+	  ></span
+	  ><span
+	  >            </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	    ><span class="hs-identifier hs-type"
+	      >CostModelParams</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-280"
+	  ></span
+	  ><span
+	  >            </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037298"
+	    ><span class="hs-identifier hs-type"
+	      >m</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037296"
+	    ><span class="hs-identifier hs-type"
+	      >a</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-281"
+      ></span
+      ><span id="applyParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >applyParams :: forall a (m :: * -&gt; *).
+(FromJSON a, ToJSON a, MonadError CostModelApplyError m) =&gt;
+a -&gt; CostModelParams -&gt; m a
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >applyParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037707"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682037707"
+	  ><span class="hs-identifier hs-var"
+	    >cm</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037708"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621682037708"
+	  ><span class="hs-identifier hs-var"
+	    >params</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Value
+forall a. ToJSON a =&gt; a -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>toJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682037707"
+	><span class="hs-identifier hs-var"
+	  >cm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-282"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037709"
+      ><span class="annot"
+	><span class="annottext"
+	  >Object
+</span
+	  ><a href="#local-6989586621682037709"
+	  ><span class="hs-identifier hs-var"
+	    >o</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-283"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      >
+</span
+      ><span id="line-284"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621682037715"
+      ><span class="annot"
+	><span class="annottext"
+	  >usingScientific :: Map Text Value
+</span
+	  ><a href="#local-6989586621682037715"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >usingScientific</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int64 -&gt; Value) -&gt; CostModelParams -&gt; Map Text Value
+forall a b. (a -&gt; b) -&gt; Map Text a -&gt; Map Text b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Scientific -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Number</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Scientific -&gt; Value) -&gt; (Int64 -&gt; Scientific) -&gt; Int64 -&gt; Value
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int64 -&gt; Scientific
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037708"
+	><span class="hs-identifier hs-var"
+	  >params</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-285"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621682037717"
+      ><span class="annot"
+	><span class="annottext"
+	  >flattened :: Map Text Value
+</span
+	  ><a href="#local-6989586621682037717"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >flattened</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value -&gt; Map Text Value
+forall {a}. HashMap Text a -&gt; Map Text a
+</span
+	><a href="#local-6989586621682037718"
+	><span class="hs-identifier hs-var"
+	  >fromHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HashMap Text Value -&gt; Map Text Value)
+-&gt; HashMap Text Value -&gt; Map Text Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; HashMap Text Value
+</span
+	><a href="Data.Aeson.Flatten.html#objToHm"
+	><span class="hs-identifier hs-var"
+	  >objToHm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; HashMap Text Value) -&gt; Object -&gt; HashMap Text Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#flattenObject"
+	><span class="hs-identifier hs-var"
+	  >flattenObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621682037709"
+	><span class="hs-identifier hs-var"
+	  >o</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-286"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-287"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- this is where the overwriting happens</span
+      ><span
+      >
+</span
+      ><span id="line-288"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- fail when key is in params (left) but not in the model (right)</span
+      ><span
+      >
+</span
+      ><span id="line-289"
+      ></span
+      ><span
+      >            </span
+      ><span id="local-6989586621682037719"
+      ><span class="annot"
+	><span class="annottext"
+	  >Map Text Value
+</span
+	  ><a href="#local-6989586621682037719"
+	  ><span class="hs-identifier hs-var"
+	    >merged</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WhenMissing m Text Value Value
+-&gt; WhenMissing m Text Value Value
+-&gt; WhenMatched m Text Value Value Value
+-&gt; Map Text Value
+-&gt; Map Text Value
+-&gt; m (Map Text Value)
+forall (f :: * -&gt; *) k a c b.
+(Applicative f, Ord k) =&gt;
+WhenMissing f k a c
+-&gt; WhenMissing f k b c
+-&gt; WhenMatched f k a b c
+-&gt; Map k a
+-&gt; Map k b
+-&gt; f (Map k c)
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#mergeA"
+	><span class="hs-identifier hs-var"
+	  >Map.mergeA</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WhenMissing m Text Value Value
+forall {x} {y}. WhenMissing m Text x y
+</span
+	><a href="#local-6989586621682037721"
+	><span class="hs-identifier hs-var"
+	  >failMissing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>WhenMissing m Text Value Value
+forall (f :: * -&gt; *) k x. Applicative f =&gt; WhenMissing f k x x
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#preserveMissing"
+	><span class="hs-identifier hs-var"
+	  >Map.preserveMissing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Value -&gt; Value -&gt; Value)
+-&gt; WhenMatched m Text Value Value Value
+forall (f :: * -&gt; *) k x y z.
+Applicative f =&gt;
+(k -&gt; x -&gt; y -&gt; z) -&gt; WhenMatched f k x y z
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#zipWithMatched"
+	><span class="hs-identifier hs-var"
+	  >Map.zipWithMatched</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Value -&gt; Value -&gt; Value
+forall {p} {p} {p}. p -&gt; p -&gt; p -&gt; p
+</span
+	><a href="#local-6989586621682037724"
+	><span class="hs-identifier hs-var"
+	  >leftBiased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Text Value
+</span
+	><a href="#local-6989586621682037715"
+	><span class="hs-identifier hs-var"
+	  >usingScientific</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Text Value
+</span
+	><a href="#local-6989586621682037717"
+	><span class="hs-identifier hs-var"
+	  >flattened</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-290"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037726"
+      ><span class="annot"
+	><span class="annottext"
+	  >unflattened :: Object
+</span
+	  ><a href="#local-6989586621682037726"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unflattened</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Object -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#unflattenObject"
+	><span class="hs-identifier hs-var"
+	  >unflattenObject</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;-&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Object -&gt; Object) -&gt; Object -&gt; Object
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text Value -&gt; Object
+</span
+	><a href="Data.Aeson.Flatten.html#hmToObj"
+	><span class="hs-identifier hs-var"
+	  >hmToObj</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(HashMap Text Value -&gt; Object) -&gt; HashMap Text Value -&gt; Object
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Text Value -&gt; HashMap Text Value
+forall {v}. Map Text v -&gt; HashMap Text v
+</span
+	><a href="#local-6989586621682037729"
+	><span class="hs-identifier hs-var"
+	  >toHash</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Text Value
+</span
+	><a href="#local-6989586621682037719"
+	><span class="hs-identifier hs-var"
+	  >merged</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-291"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Result a
+forall a. FromJSON a =&gt; Value -&gt; Result a
+</span
+	><span class="hs-identifier hs-var"
+	>fromJSON</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object -&gt; Value
+</span
+	><span class="hs-identifier hs-var"
+	>Object</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Object
+</span
+	><a href="#local-6989586621682037726"
+	><span class="hs-identifier hs-var"
+	  >unflattened</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-292"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Success</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037732"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621682037732"
+	  ><span class="hs-identifier hs-var"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; m a
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621682037732"
+	><span class="hs-identifier hs-var"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-293"
+      ></span
+      ><span
+      >                </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Error</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037734"
+      ><span class="annot"
+	><span class="annottext"
+	  >String
+</span
+	  ><a href="#local-6989586621682037734"
+	  ><span class="hs-identifier hs-var"
+	    >str</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelApplyError -&gt; m a
+forall a. CostModelApplyError -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostModelApplyError -&gt; m a) -&gt; CostModelApplyError -&gt; m a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String -&gt; CostModelApplyError
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMInternalWriteError"
+	><span class="hs-identifier hs-var"
+	  >CMInternalWriteError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>String
+</span
+	><a href="#local-6989586621682037734"
+	><span class="hs-identifier hs-var"
+	  >str</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-294"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelApplyError -&gt; m a
+forall a. CostModelApplyError -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelApplyError
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMInternalReadError"
+	><span class="hs-identifier hs-var"
+	  >CMInternalReadError</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-295"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-296"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682037729"
+      ><span class="annot"
+	><span class="annottext"
+	  >toHash :: Map Text v -&gt; HashMap Text v
+</span
+	  ><a href="#local-6989586621682037729"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Text, v)] -&gt; HashMap Text v
+forall k v. (Eq k, Hashable k) =&gt; [(k, v)] -&gt; HashMap k v
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.Strict.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >HM.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(Text, v)] -&gt; HashMap Text v)
+-&gt; (Map Text v -&gt; [(Text, v)]) -&gt; Map Text v -&gt; HashMap Text v
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Text v -&gt; [(Text, v)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-297"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682037718"
+      ><span class="annot"
+	><span class="annottext"
+	  >fromHash :: HashMap Text a -&gt; Map Text a
+</span
+	  ><a href="#local-6989586621682037718"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fromHash</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Text, a)] -&gt; Map Text a
+forall k a. Ord k =&gt; [(k, a)] -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#fromList"
+	><span class="hs-identifier hs-var"
+	  >Map.fromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(Text, a)] -&gt; Map Text a)
+-&gt; (HashMap Text a -&gt; [(Text, a)]) -&gt; HashMap Text a -&gt; Map Text a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>HashMap Text a -&gt; [(Text, a)]
+forall k v. HashMap k v -&gt; [(k, v)]
+</span
+	><a href="https://hackage.haskell.org/package/unordered-containers-0.2.20/docs/src/Data.HashMap.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >HM.toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-298"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- fail when field missing</span
+      ><span
+      >
+</span
+      ><span id="line-299"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682037721"
+      ><span class="annot"
+	><span class="annottext"
+	  >failMissing :: WhenMissing m Text x y
+</span
+	  ><a href="#local-6989586621682037721"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >failMissing</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; x -&gt; m y) -&gt; WhenMissing m Text x y
+forall (f :: * -&gt; *) k x y.
+Applicative f =&gt;
+(k -&gt; x -&gt; f y) -&gt; WhenMissing f k x y
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#traverseMissing"
+	><span class="hs-identifier hs-var"
+	  >Map.traverseMissing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Text -&gt; x -&gt; m y) -&gt; WhenMissing m Text x y)
+-&gt; (Text -&gt; x -&gt; m y) -&gt; WhenMissing m Text x y
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037751"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621682037751"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037752"
+      ><span class="annot"
+	><span class="annottext"
+	  >x
+</span
+	  ><a href="#local-6989586621682037752"
+	  ><span class="hs-identifier hs-var"
+	    >_v</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelApplyError -&gt; m y
+forall a. CostModelApplyError -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostModelApplyError -&gt; m y) -&gt; CostModelApplyError -&gt; m y
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; CostModelApplyError
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CMUnknownParamError"
+	><span class="hs-identifier hs-var"
+	  >CMUnknownParamError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621682037751"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-300"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- left-biased merging when key found in both maps</span
+      ><span
+      >
+</span
+      ><span id="line-301"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682037724"
+      ><span class="annot"
+	><span class="annottext"
+	  >leftBiased :: p -&gt; p -&gt; p -&gt; p
+</span
+	  ><a href="#local-6989586621682037724"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >leftBiased</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037753"
+      ><span class="annot"
+	><span class="annottext"
+	  >p
+</span
+	  ><a href="#local-6989586621682037753"
+	  ><span class="hs-identifier hs-var"
+	    >_k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037754"
+      ><span class="annot"
+	><span class="annottext"
+	  >p
+</span
+	  ><a href="#local-6989586621682037754"
+	  ><span class="hs-identifier hs-var"
+	    >l</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037755"
+      ><span class="annot"
+	><span class="annottext"
+	  >p
+</span
+	  ><a href="#local-6989586621682037755"
+	  ><span class="hs-identifier hs-var"
+	    >_r</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>p
+</span
+	><a href="#local-6989586621682037754"
+	><span class="hs-identifier hs-var"
+	  >l</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-302"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-303"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-304"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Parameters for a machine step model and a builtin evaluation model bundled together.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-305"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="SplitCostModelParams"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#SplitCostModelParams"
+	  ><span class="hs-identifier hs-var"
+	    >SplitCostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-306"
+      ></span
+      ><span
+      >    </span
+      ><span id="SplitCostModelParams"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#SplitCostModelParams"
+	  ><span class="hs-identifier hs-var"
+	    >SplitCostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      >
+</span
+      ><span id="line-307"
+      ></span
+      ><span
+      >      </span
+      ><span id="_machineParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >SplitCostModelParams -&gt; CostModelParams
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#_machineParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_machineParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	><span class="hs-identifier hs-type"
+	  >CostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-308"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_builtinParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >SplitCostModelParams -&gt; CostModelParams
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#_builtinParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_builtinParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	><span class="hs-identifier hs-type"
+	  >CostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-309"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-310"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-311"
+      ></span
+      ><span class="hs-comment"
+      >-- | Split a CostModelParams object into two subobjects according to some prefix:</span
+      ><span
+      >
+</span
+      ><span id="line-312"
+      ></span
+      ><span class="hs-comment"
+      >-- see item 5 of Note [Cost model parameters].</span
+      ><span
+      >
+</span
+      ><span id="line-313"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#splitParams"
+	><span class="hs-identifier hs-type"
+	  >splitParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	><span class="hs-identifier hs-type"
+	  >Text.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	><span class="hs-identifier hs-type"
+	  >CostModelParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#SplitCostModelParams"
+	><span class="hs-identifier hs-type"
+	  >SplitCostModelParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-314"
+      ></span
+      ><span id="splitParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >splitParams :: Text -&gt; CostModelParams -&gt; SplitCostModelParams
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#splitParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >splitParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037760"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621682037760"
+	  ><span class="hs-identifier hs-var"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037761"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621682037761"
+	  ><span class="hs-identifier hs-var"
+	    >params</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-315"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682037762"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621682037762"
+	  ><span class="hs-identifier hs-var"
+	    >machineparams</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682037763"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621682037763"
+	  ><span class="hs-identifier hs-var"
+	    >builtinparams</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Text -&gt; Int64 -&gt; Bool)
+-&gt; CostModelParams -&gt; (CostModelParams, CostModelParams)
+forall k a. (k -&gt; a -&gt; Bool) -&gt; Map k a -&gt; (Map k a, Map k a)
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#partitionWithKey"
+	><span class="hs-identifier hs-var"
+	  >Map.partitionWithKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621682037765"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621682037765"
+	  ><span class="hs-identifier hs-var"
+	    >k</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int64
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; Text -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html#isPrefixOf"
+	><span class="hs-identifier hs-var"
+	  >Text.isPrefixOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621682037760"
+	><span class="hs-identifier hs-var"
+	  >prefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621682037765"
+	><span class="hs-identifier hs-var"
+	  >k</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037761"
+	><span class="hs-identifier hs-var"
+	  >params</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-316"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams -&gt; CostModelParams -&gt; SplitCostModelParams
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#SplitCostModelParams"
+	><span class="hs-identifier hs-var"
+	  >SplitCostModelParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037762"
+	><span class="hs-identifier hs-var"
+	  >machineparams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037763"
+	><span class="hs-identifier hs-var"
+	  >builtinparams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-317"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-318"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Given a CostModel, produce a single map containing the parameters from both components</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-319"
+      ></span
+      ><span id="local-6989586621682037350"
+      ><span id="local-6989586621682037351"
+	><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#extractCostModelParams"
+	    ><span class="hs-identifier hs-type"
+	      >extractCostModelParams</span
+	      ></a
+	    ></span
+	  ><span
+	  >
+</span
+	  ><span id="line-320"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >::</span
+	  ><span
+	  > </span
+	  ><span class="hs-special"
+	  >(</span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >ToJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037350"
+	    ><span class="hs-identifier hs-type"
+	      >machinecosts</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >,</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><span class="hs-identifier hs-type"
+	    >ToJSON</span
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037351"
+	    ><span class="hs-identifier hs-type"
+	      >builtincosts</span
+	      ></a
+	    ></span
+	  ><span class="hs-special"
+	  >)</span
+	  ><span
+	  >
+</span
+	  ><span id="line-321"
+	  ></span
+	  ><span
+	  >    </span
+	  ><span class="hs-glyph"
+	  >=&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	    ><span class="hs-identifier hs-type"
+	      >CostModel</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037350"
+	    ><span class="hs-identifier hs-type"
+	      >machinecosts</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="#local-6989586621682037351"
+	    ><span class="hs-identifier hs-type"
+	      >builtincosts</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="hs-glyph"
+	  >-&gt;</span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	    ><span class="hs-identifier hs-type"
+	      >Maybe</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	    ><span class="hs-identifier hs-type"
+	      >CostModelParams</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-322"
+      ></span
+      ><span id="extractCostModelParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >extractCostModelParams :: forall machinecosts builtincosts.
+(ToJSON machinecosts, ToJSON builtincosts) =&gt;
+CostModel machinecosts builtincosts -&gt; Maybe CostModelParams
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#extractCostModelParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >extractCostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037776"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModel machinecosts builtincosts
+</span
+	  ><a href="#local-6989586621682037776"
+	  ><span class="hs-identifier hs-var"
+	    >model</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- this is using the applicative instance of Maybe</span
+      ><span
+      >
+</span
+      ><span id="line-323"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams -&gt; CostModelParams -&gt; CostModelParams
+forall k a. Ord k =&gt; Map k a -&gt; Map k a -&gt; Map k a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#union"
+	><span class="hs-identifier hs-var"
+	  >Map.union</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CostModelParams -&gt; CostModelParams -&gt; CostModelParams)
+-&gt; Maybe CostModelParams
+-&gt; Maybe (CostModelParams -&gt; CostModelParams)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>machinecosts -&gt; Maybe CostModelParams
+forall a. ToJSON a =&gt; a -&gt; Maybe CostModelParams
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#extractParams"
+	><span class="hs-identifier hs-var"
+	  >extractParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel machinecosts builtincosts -&gt; machinecosts
+forall machinecosts builtincosts.
+CostModel machinecosts builtincosts -&gt; machinecosts
+</span
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#_machineCostModel"
+	><span class="hs-identifier hs-var"
+	  >_machineCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel machinecosts builtincosts
+</span
+	><a href="#local-6989586621682037776"
+	><span class="hs-identifier hs-var"
+	  >model</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe (CostModelParams -&gt; CostModelParams)
+-&gt; Maybe CostModelParams -&gt; Maybe CostModelParams
+forall a b. Maybe (a -&gt; b) -&gt; Maybe a -&gt; Maybe b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>builtincosts -&gt; Maybe CostModelParams
+forall a. ToJSON a =&gt; a -&gt; Maybe CostModelParams
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#extractParams"
+	><span class="hs-identifier hs-var"
+	  >extractParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel machinecosts builtincosts -&gt; builtincosts
+forall machinecosts builtincosts.
+CostModel machinecosts builtincosts -&gt; builtincosts
+</span
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#_builtinCostModel"
+	><span class="hs-identifier hs-var"
+	  >_builtinCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel machinecosts builtincosts
+</span
+	><a href="#local-6989586621682037776"
+	><span class="hs-identifier hs-var"
+	  >model</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-324"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-325"
+      ></span
+      ><span class="hs-comment"
+      >-- | Given a set of cost model parameters, split it into two parts according to</span
+      ><span
+      >
+</span
+      ><span id="line-326"
+      ></span
+      ><span class="hs-comment"
+      >-- some prefix and use those parts to update the components of a cost model.</span
+      ><span
+      >
+</span
+      ><span id="line-327"
+      ></span
+      ><span class="hs-comment"
+      >{- Strictly we don't need to do the splitting: when we call fromJSON in
+   applyParams any superfluous objects in the map being decoded will be
+   discarded, so we could update both components of the cost model with the
+   entire set of parameters without having to worry about splitting the
+   parameters on a prefix of the key.  This relies on what appears to be an
+   undocumented implementation choice in Aeson though (other JSON decoders (for
+   other languages) seem to vary in how unknown fields are handled), so let's be
+   explicit. -}</span
+      ><span
+      >
+</span
+      ><span id="line-335"
+      ></span
+      ><span id="local-6989586621682037366"
+      ><span id="local-6989586621682037367"
+	><span id="local-6989586621682037368"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applySplitCostModelParams"
+	      ><span class="hs-identifier hs-type"
+		>applySplitCostModelParams</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-336"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037366"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037367"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >ToJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037366"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >ToJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037367"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	      ><span class="hs-identifier hs-type"
+		>MonadError</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	      ><span class="hs-identifier hs-type"
+		>CostModelApplyError</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037368"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-337"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.Internal.html#Text"
+	      ><span class="hs-identifier hs-type"
+		>Text.Text</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-338"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	      ><span class="hs-identifier hs-type"
+		>CostModel</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037366"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037367"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-339"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	      ><span class="hs-identifier hs-type"
+		>CostModelParams</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-340"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037368"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	      ><span class="hs-identifier hs-type"
+		>CostModel</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037366"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037367"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-341"
+      ></span
+      ><span id="applySplitCostModelParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >applySplitCostModelParams :: forall evaluatorcosts builtincosts (m :: * -&gt; *).
+(FromJSON evaluatorcosts, FromJSON builtincosts,
+ ToJSON evaluatorcosts, ToJSON builtincosts,
+ MonadError CostModelApplyError m) =&gt;
+Text
+-&gt; CostModel evaluatorcosts builtincosts
+-&gt; CostModelParams
+-&gt; m (CostModel evaluatorcosts builtincosts)
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applySplitCostModelParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >applySplitCostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037798"
+      ><span class="annot"
+	><span class="annottext"
+	  >Text
+</span
+	  ><a href="#local-6989586621682037798"
+	  ><span class="hs-identifier hs-var"
+	    >prefix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037799"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModel evaluatorcosts builtincosts
+</span
+	  ><a href="#local-6989586621682037799"
+	  ><span class="hs-identifier hs-var"
+	    >model</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037800"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621682037800"
+	  ><span class="hs-identifier hs-var"
+	    >params</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-342"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#SplitCostModelParams"
+	><span class="hs-identifier hs-type"
+	  >SplitCostModelParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037801"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621682037801"
+	  ><span class="hs-identifier hs-var"
+	    >machineparams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682037802"
+      ><span class="annot"
+	><span class="annottext"
+	  >CostModelParams
+</span
+	  ><a href="#local-6989586621682037802"
+	  ><span class="hs-identifier hs-var"
+	    >builtinparams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text -&gt; CostModelParams -&gt; SplitCostModelParams
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#splitParams"
+	><span class="hs-identifier hs-var"
+	  >splitParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="#local-6989586621682037798"
+	><span class="hs-identifier hs-var"
+	  >prefix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037800"
+	><span class="hs-identifier hs-var"
+	  >params</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-343"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >in</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>evaluatorcosts
+-&gt; builtincosts -&gt; CostModel evaluatorcosts builtincosts
+forall machinecosts builtincosts.
+machinecosts -&gt; builtincosts -&gt; CostModel machinecosts builtincosts
+</span
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	><span class="hs-identifier hs-var"
+	  >CostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(evaluatorcosts
+ -&gt; builtincosts -&gt; CostModel evaluatorcosts builtincosts)
+-&gt; m evaluatorcosts
+-&gt; m (builtincosts -&gt; CostModel evaluatorcosts builtincosts)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>evaluatorcosts -&gt; CostModelParams -&gt; m evaluatorcosts
+forall a (m :: * -&gt; *).
+(FromJSON a, ToJSON a, MonadError CostModelApplyError m) =&gt;
+a -&gt; CostModelParams -&gt; m a
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyParams"
+	><span class="hs-identifier hs-var"
+	  >applyParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel evaluatorcosts builtincosts -&gt; evaluatorcosts
+forall machinecosts builtincosts.
+CostModel machinecosts builtincosts -&gt; machinecosts
+</span
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#_machineCostModel"
+	><span class="hs-identifier hs-var"
+	  >_machineCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel evaluatorcosts builtincosts
+</span
+	><a href="#local-6989586621682037799"
+	><span class="hs-identifier hs-var"
+	  >model</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037801"
+	><span class="hs-identifier hs-var"
+	  >machineparams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-344"
+      ></span
+      ><span
+      >                 </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (builtincosts -&gt; CostModel evaluatorcosts builtincosts)
+-&gt; m builtincosts -&gt; m (CostModel evaluatorcosts builtincosts)
+forall a b. m (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%2A%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;*&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>builtincosts -&gt; CostModelParams -&gt; m builtincosts
+forall a (m :: * -&gt; *).
+(FromJSON a, ToJSON a, MonadError CostModelApplyError m) =&gt;
+a -&gt; CostModelParams -&gt; m a
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyParams"
+	><span class="hs-identifier hs-var"
+	  >applyParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel evaluatorcosts builtincosts -&gt; builtincosts
+forall machinecosts builtincosts.
+CostModel machinecosts builtincosts -&gt; builtincosts
+</span
+	><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#_builtinCostModel"
+	><span class="hs-identifier hs-var"
+	  >_builtinCostModel</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModel evaluatorcosts builtincosts
+</span
+	><a href="#local-6989586621682037799"
+	><span class="hs-identifier hs-var"
+	  >model</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>CostModelParams
+</span
+	><a href="#local-6989586621682037802"
+	><span class="hs-identifier hs-var"
+	  >builtinparams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-345"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-346"
+      ></span
+      ><span class="hs-comment"
+      >-- | Update a CostModel for the CEK machine with a given set of parameters.</span
+      ><span
+      >
+</span
+      ><span id="line-347"
+      ></span
+      ><span class="hs-comment"
+      >-- Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).</span
+      ><span
+      >
+</span
+      ><span id="line-348"
+      ></span
+      ><span class="hs-comment"
+      >-- Callers are recommended to call this once and cache the results.</span
+      ><span
+      >
+</span
+      ><span id="line-349"
+      ></span
+      ><span id="local-6989586621682037374"
+      ><span id="local-6989586621682037375"
+	><span id="local-6989586621682037376"
+	  ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyCostModelParams"
+	      ><span class="hs-identifier hs-type"
+		>applyCostModelParams</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-350"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >::</span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037374"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >FromJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037375"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >ToJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037374"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><span class="hs-identifier hs-type"
+	      >ToJSON</span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037375"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+	      ><span class="hs-identifier hs-type"
+		>MonadError</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelApplyError"
+	      ><span class="hs-identifier hs-type"
+		>CostModelApplyError</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037376"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-351"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	      ><span class="hs-identifier hs-type"
+		>CostModel</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037374"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037375"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-352"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#CostModelParams"
+	      ><span class="hs-identifier hs-type"
+		>CostModelParams</span
+		></a
+	      ></span
+	    ><span
+	    >
+</span
+	    ><span id="line-353"
+	    ></span
+	    ><span
+	    >    </span
+	    ><span class="hs-glyph"
+	    >-&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037376"
+	      ><span class="hs-identifier hs-type"
+		>m</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.Machine.MachineParameters.html#CostModel"
+	      ><span class="hs-identifier hs-type"
+		>CostModel</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037374"
+	      ><span class="hs-identifier hs-type"
+		>evaluatorcosts</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621682037375"
+	      ><span class="hs-identifier hs-type"
+		>builtincosts</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-354"
+      ></span
+      ><span id="applyCostModelParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >applyCostModelParams :: forall evaluatorcosts builtincosts (m :: * -&gt; *).
+(FromJSON evaluatorcosts, FromJSON builtincosts,
+ ToJSON evaluatorcosts, ToJSON builtincosts,
+ MonadError CostModelApplyError m) =&gt;
+CostModel evaluatorcosts builtincosts
+-&gt; CostModelParams -&gt; m (CostModel evaluatorcosts builtincosts)
+</span
+	  ><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applyCostModelParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >applyCostModelParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+-&gt; CostModel evaluatorcosts builtincosts
+-&gt; CostModelParams
+-&gt; m (CostModel evaluatorcosts builtincosts)
+forall evaluatorcosts builtincosts (m :: * -&gt; *).
+(FromJSON evaluatorcosts, FromJSON builtincosts,
+ ToJSON evaluatorcosts, ToJSON builtincosts,
+ MonadError CostModelApplyError m) =&gt;
+Text
+-&gt; CostModel evaluatorcosts builtincosts
+-&gt; CostModelParams
+-&gt; m (CostModel evaluatorcosts builtincosts)
+</span
+	><a href="PlutusCore.Evaluation.Machine.CostModelInterface.html#applySplitCostModelParams"
+	><span class="hs-identifier hs-var"
+	  >applySplitCostModelParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><a href="UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts.html#cekMachineCostsPrefix"
+	><span class="hs-identifier hs-var"
+	  >cekMachineCostsPrefix</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-355"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

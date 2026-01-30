@@ -1,0 +1,925 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.FsTree</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.FsTree.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.FsTree</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Machinery defined in this module allows to export mulptiple Plutus Core definitions
+(types and terms) as a single value which enables convenient testing of various procedures
+(pretty-printing, type checking, etc): each time a function / data type is added to that value,
+none of the tests is required to be adapted, instead all the tests see the new definition
+automatically. </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:FsTree"
+	      >FsTree</a
+	      > a<ul class="subs"
+	      ><li
+		>= <a href="#v:FsFolder"
+		  >FsFolder</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > (<a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+		  >FolderContents</a
+		  > a)</li
+		><li
+		>| <a href="#v:FsFile"
+		  >FsFile</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:FolderContents"
+	      >FolderContents</a
+	      > a = <a href="#v:FolderContents"
+	      >FolderContents</a
+	      > {<ul class="subs"
+	      ><li
+		><a href="#v:unFolderContents"
+		  >unFolderContents</a
+		  > &#8759; [<a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+		  >FsTree</a
+		  > a]</li
+		></ul
+	      >}</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >data</span
+	      > <a href="#t:PlcEntity"
+	      >PlcEntity</a
+	      > uni fun<ul class="subs"
+	      ><li
+		>= <a href="#v:PlcType"
+		  >PlcType</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ())</li
+		><li
+		>| <a href="#v:PlcTerm"
+		  >PlcTerm</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcFsTree"
+	      >PlcFsTree</a
+	      > uni fun = <a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+	      >FsTree</a
+	      > (<a href="PlutusCore-FsTree.html#t:PlcEntity" title="PlutusCore.FsTree"
+	      >PlcEntity</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:PlcFolderContents"
+	      >PlcFolderContents</a
+	      > uni fun = <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+	      >FolderContents</a
+	      > (<a href="PlutusCore-FsTree.html#t:PlcEntity" title="PlutusCore.FsTree"
+	      >PlcEntity</a
+	      > uni fun)</li
+	    ><li class="src short"
+	    ><a href="#v:treeFolderContents"
+	      >treeFolderContents</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; [<a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+	      >FsTree</a
+	      > a] &#8594; <a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+	      >FsTree</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:plcTypeFile"
+	      >plcTypeFile</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni () &#8594; <a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+	      >PlcFsTree</a
+	      > uni fun</li
+	    ><li class="src short"
+	    ><a href="#v:plcTermFile"
+	      >plcTermFile</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; <a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+	      >PlcFsTree</a
+	      > uni fun</li
+	    ><li class="src short"
+	    ><a href="#v:foldFsTree"
+	      >foldFsTree</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; [b] &#8594; b) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; a &#8594; b) &#8594; <a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+	      >FsTree</a
+	      > a &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:foldPlcFsTree"
+	      >foldPlcFsTree</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; [b] &#8594; b) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni () &#8594; b) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; b) &#8594; <a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+	      >PlcFsTree</a
+	      > uni fun &#8594; b</li
+	    ><li class="src short"
+	    ><a href="#v:foldPlcFolderContents"
+	      >foldPlcFolderContents</a
+	      > &#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; [b] &#8594; b) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	      >Type</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > uni () &#8594; b) &#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	      >String</a
+	      > &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	      >Term</a
+	      > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	      >TyName</a
+	      > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	      >Name</a
+	      > uni fun () &#8594; b) &#8594; <a href="PlutusCore-FsTree.html#t:PlcFolderContents" title="PlutusCore.FsTree"
+	      >PlcFolderContents</a
+	      > uni fun &#8594; [b]</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:FsTree" class="def"
+	    >FsTree</a
+	    > a <a href="src/PlutusCore.FsTree.html#FsTree" class="link"
+	    >Source</a
+	    > <a href="#t:FsTree" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >An <code
+	      ><a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+		>FsTree</a
+		></code
+	      > is either a file or a folder with a list of <code
+	      ><a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+		>FsTree</a
+		></code
+	      >s inside.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FsFolder" class="def"
+		  >FsFolder</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > (<a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+		  >FolderContents</a
+		  > a)</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:FsFile" class="def"
+		  >FsFile</a
+		  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:FolderContents" class="def"
+	    >FolderContents</a
+	    > a <a href="src/PlutusCore.FsTree.html#FolderContents" class="link"
+	    >Source</a
+	    > <a href="#t:FolderContents" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The contents of a folder. A wrapper around <code
+	      >[FsTree a]</code
+	      >.
+Exists because of its <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		>Semigroup</a
+		></code
+	      > instance which allows to concatenate two <code
+	      ><a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+		>FolderContents</a
+		></code
+	      >s
+without placing them into the same folder immediately, so we can have various PLC &quot;modules&quot;
+(<code
+	      >stdlib</code
+	      >, <code
+	      >examples</code
+	      >, etc), define compound modules (e.g. <code
+	      >stdlib &lt;&gt; examples</code
+	      >) and run various
+tests (pretty-printing, type synthesis, etc) against simple and compound modules uniformly. </p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:FolderContents" class="def"
+		  >FolderContents</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td colspan="2"
+		><div class="subs fields"
+		  ><p class="caption"
+		    >Fields</p
+		    ><ul
+		    ><li
+		      ><dfn class="src"
+			><a id="v:unFolderContents" class="def"
+			  >unFolderContents</a
+			  > &#8759; [<a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+			  >FsTree</a
+			  > a]</dfn
+			><div class="doc empty"
+			>&nbsp;</div
+			></li
+		      ></ul
+		    ></div
+		  ></td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:FolderContents"
+	    >Instances</h4
+	    ><details id="i:FolderContents" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:FolderContents:Monoid:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Monoid" title="Data.Monoid"
+		      >Monoid</a
+		      > (<a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+		      >FolderContents</a
+		      > a)</span
+		    > <a href="src/PlutusCore.FsTree.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:FolderContents" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:FolderContents:Monoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-FsTree.html"
+			>PlutusCore.FsTree</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:mempty"
+			  >mempty</a
+			  > &#8759; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mempty" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mappend"
+			  >mappend</a
+			  > &#8759; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mappend" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:mconcat"
+			  >mconcat</a
+			  > &#8759; [<a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a] &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:mconcat" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:FolderContents:Semigroup:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Semigroup" title="Prelude"
+		      >Semigroup</a
+		      > (<a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+		      >FolderContents</a
+		      > a)</span
+		    > <a href="src/PlutusCore.FsTree.html#line-37" class="link"
+		    >Source</a
+		    > <a href="#t:FolderContents" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:FolderContents:Semigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-FsTree.html"
+			>PlutusCore.FsTree</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-60--62-"
+			  >(&lt;&gt;)</a
+			  > &#8759; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:sconcat"
+			  >sconcat</a
+			  > &#8759; <a href="PlutusPrelude.html#t:NonEmpty" title="PlutusPrelude"
+			  >NonEmpty</a
+			  > (<a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a) &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:sconcat" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:stimes"
+			  >stimes</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#t:Integral" title="Prelude"
+			  >Integral</a
+			  > b &#8658; b &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a &#8594; <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+			  >FolderContents</a
+			  > a <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:stimes" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >data</span
+	    > <a id="t:PlcEntity" class="def"
+	    >PlcEntity</a
+	    > uni fun <a href="src/PlutusCore.FsTree.html#PlcEntity" class="link"
+	    >Source</a
+	    > <a href="#t:PlcEntity" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusCore-FsTree.html#t:PlcEntity" title="PlutusCore.FsTree"
+		>PlcEntity</a
+		></code
+	      > is either a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Kind" title="PlutusCore.Core.Type"
+		>Kind</a
+		></code
+	      > or a <code
+	      ><a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		>Term</a
+		></code
+	      >.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:PlcType" class="def"
+		  >PlcType</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		><a id="v:PlcTerm" class="def"
+		  >PlcTerm</a
+		  > (<a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun ())</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcFsTree" class="def"
+	    >PlcFsTree</a
+	    > uni fun = <a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+	    >FsTree</a
+	    > (<a href="PlutusCore-FsTree.html#t:PlcEntity" title="PlutusCore.FsTree"
+	    >PlcEntity</a
+	    > uni fun) <a href="src/PlutusCore.FsTree.html#PlcFsTree" class="link"
+	    >Source</a
+	    > <a href="#t:PlcFsTree" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:PlcFolderContents" class="def"
+	    >PlcFolderContents</a
+	    > uni fun = <a href="PlutusCore-FsTree.html#t:FolderContents" title="PlutusCore.FsTree"
+	    >FolderContents</a
+	    > (<a href="PlutusCore-FsTree.html#t:PlcEntity" title="PlutusCore.FsTree"
+	    >PlcEntity</a
+	    > uni fun) <a href="src/PlutusCore.FsTree.html#PlcFolderContents" class="link"
+	    >Source</a
+	    > <a href="#t:PlcFolderContents" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:treeFolderContents" class="def"
+	    >treeFolderContents</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; [<a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+	    >FsTree</a
+	    > a] &#8594; <a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+	    >FsTree</a
+	    > a <a href="src/PlutusCore.FsTree.html#treeFolderContents" class="link"
+	    >Source</a
+	    > <a href="#v:treeFolderContents" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Construct an <code
+	      ><a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+		>FsTree</a
+		></code
+	      > out of the name of a folder and a list of <code
+	      ><a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+		>FsTree</a
+		></code
+	      >s.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plcTypeFile" class="def"
+	    >plcTypeFile</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+	    >Type</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > uni () &#8594; <a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+	    >PlcFsTree</a
+	    > uni fun <a href="src/PlutusCore.FsTree.html#plcTypeFile" class="link"
+	    >Source</a
+	    > <a href="#v:plcTypeFile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Construct a single-file <code
+	      ><a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+		>PlcFsTree</a
+		></code
+	      > out of a type.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:plcTermFile" class="def"
+	    >plcTermFile</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+	    >String</a
+	    > &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+	    >Term</a
+	    > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+	    >TyName</a
+	    > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+	    >Name</a
+	    > uni fun () &#8594; <a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+	    >PlcFsTree</a
+	    > uni fun <a href="src/PlutusCore.FsTree.html#plcTermFile" class="link"
+	    >Source</a
+	    > <a href="#v:plcTermFile" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Construct a single-file <code
+	      ><a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+		>PlcFsTree</a
+		></code
+	      > out of a term.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldFsTree" class="def"
+	    >foldFsTree</a
+	    > <a href="src/PlutusCore.FsTree.html#foldFsTree" class="link"
+	    >Source</a
+	    > <a href="#v:foldFsTree" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; [b] &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a folder.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; a &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a single file in a folder.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+		  >FsTree</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Fold a <code
+	      ><a href="PlutusCore-FsTree.html#t:FsTree" title="PlutusCore.FsTree"
+		>FsTree</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldPlcFsTree" class="def"
+	    >foldPlcFsTree</a
+	    > <a href="src/PlutusCore.FsTree.html#foldPlcFsTree" class="link"
+	    >Source</a
+	    > <a href="#v:foldPlcFsTree" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; [b] &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a folder.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni () &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a type.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun () &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a term.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+		  >PlcFsTree</a
+		  > uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; b</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Fold a <code
+	      ><a href="PlutusCore-FsTree.html#t:PlcFsTree" title="PlutusCore.FsTree"
+		>PlcFsTree</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:foldPlcFolderContents" class="def"
+	    >foldPlcFolderContents</a
+	    > <a href="src/PlutusCore.FsTree.html#foldPlcFolderContents" class="link"
+	    >Source</a
+	    > <a href="#v:foldPlcFolderContents" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="subs arguments"
+	  ><p class="caption"
+	    >Arguments</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		>&#8759; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; [b] &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a folder.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; <a href="PlutusCore-Core-Type.html#t:Type" title="PlutusCore.Core.Type"
+		  >Type</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > uni () &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a type.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+		  >String</a
+		  > &#8594; <a href="PlutusCore-Core-Type.html#t:Term" title="PlutusCore.Core.Type"
+		  >Term</a
+		  > <a href="PlutusCore-Name-Unique.html#t:TyName" title="PlutusCore.Name.Unique"
+		  >TyName</a
+		  > <a href="PlutusCore-Name-Unique.html#t:Name" title="PlutusCore.Name.Unique"
+		  >Name</a
+		  > uni fun () &#8594; b)</td
+		><td class="doc"
+		><p
+		  >What to do on a term.</p
+		  ></td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; <a href="PlutusCore-FsTree.html#t:PlcFolderContents" title="PlutusCore.FsTree"
+		  >PlcFolderContents</a
+		  > uni fun</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ><tr
+	      ><td class="src"
+		>&#8594; [b]</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="doc"
+	  ><p
+	    >Fold the contents of a PLC folder.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

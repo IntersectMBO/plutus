@@ -1,0 +1,3996 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleContexts #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Functions for compiling PIR recursive let-bound functions into PLC.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusIR.Compiler.Recursion</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.html"
+	><span class="hs-identifier"
+	  >PlutusIR</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Definitions.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Compiler.Definitions</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Compiler.Provenance</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Types.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Compiler.Types</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Error.html"
+	><span class="hs-identifier"
+	  >PlutusIR.Error</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.MkPir.html"
+	><span class="hs-identifier"
+	  >PlutusIR.MkPir</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PIR</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Control.Lens</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>view</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Control.Monad.html"
+	><span class="hs-identifier"
+	  >Control.Monad</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Trans.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Trans</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html"
+	><span class="hs-identifier"
+	  >Data.List.NonEmpty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >hiding</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html#length"
+	><span class="hs-identifier"
+	  >length</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.html"
+	><span class="hs-identifier"
+	  >Data.Set</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Set</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.html"
+	><span class="hs-identifier"
+	  >PlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Annotation.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Annotation</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html"
+	><span class="hs-identifier"
+	  >PlutusCore.MkPlc</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Quote.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Quote</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Function.html"
+	><span class="hs-identifier"
+	  >PlutusCore.StdLib.Data.Function</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Function</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.StdLib.Meta.Data.Tuple.html"
+	><span class="hs-identifier"
+	  >PlutusCore.StdLib.Meta.Data.Tuple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tuple</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >{- Note [Recursive lets]
+We need to define these with a fixpoint. We can derive a fixpoint operator for values
+already.
+
+However, we also need to work out how to encode recursion over multiple values simultaneously.
+The answer is simple - we pass them through as a tuple.
+
+Overall, the translation looks like this. We convert this:
+
+let rec
+  f_1 : t_1 = b_1
+  ..
+  f_i : t_i = b_i
+in
+  result
+
+into this:
+
+(\tuple : forall r . (t_1 -&gt; .. -&gt; t_i -&gt; r) -&gt; r .
+  let
+    f_1 = _1 tuple
+    ..
+    f_i = _i tuple
+  in
+    result
+)
+($fixN i$ (\choose f_1 ... f_i . choose b_1 ... b_i))
+
+where _i is the accessor for the ith component of a tuple.
+
+This scheme is a little complicated - why don't we just pass a function directly to the
+fixed tuple that consumes the values? Why do the second round of let-binding?
+
+The answer is that in order to use the tuple we have to provide a result type. If we used
+it directly, we would have to provide the type of the *result* term, which we may not know.
+Here we merely have to provide it with the types of the f_is, which we *do* know.
+-}</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span class="hs-comment"
+      >-- See Note [Recursive lets]</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Compile a mutually recursive list of var decls bound in a body.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span id="local-6989586621679480529"
+      ><span id="local-6989586621679480530"
+	><span id="local-6989586621679480531"
+	  ><span id="local-6989586621679480532"
+	    ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Recursion.html#compileRecTerms"
+		><span class="hs-identifier hs-type"
+		  >compileRecTerms</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-72"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#Compiling"
+		><span class="hs-identifier hs-type"
+		  >Compiling</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480529"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480530"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480531"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480532"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-73"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480530"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480531"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480532"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-74"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#NonEmpty"
+		><span class="hs-identifier hs-type"
+		  >NonEmpty</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#TermDef"
+		><span class="hs-identifier hs-type"
+		  >TermDef</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+		><span class="hs-identifier hs-type"
+		  >TyName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+		><span class="hs-identifier hs-type"
+		  >Name</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480530"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480531"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+		><span class="hs-identifier hs-type"
+		  >Provenance</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480532"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-75"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Definitions.html#DefT"
+		><span class="hs-identifier hs-type"
+		  >DefT</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#SharedName"
+		><span class="hs-identifier hs-type"
+		  >SharedName</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480530"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480531"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+		><span class="hs-identifier hs-type"
+		  >Provenance</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480532"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480529"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusIR.Compiler.Types.html#PIRTerm"
+		><span class="hs-identifier hs-type"
+		  >PIRTerm</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480530"
+		><span class="hs-identifier hs-type"
+		  >uni</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480531"
+		><span class="hs-identifier hs-type"
+		  >fun</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621679480532"
+		><span class="hs-identifier hs-type"
+		  >a</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span id="compileRecTerms"
+      ><span class="annot"
+	><span class="annottext"
+	  >compileRecTerms :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun a.
+Compiling m uni fun a =&gt;
+PIRTerm uni fun a
+-&gt; NonEmpty (TermDef TyName Name uni fun (Provenance a))
+-&gt; DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
+</span
+	  ><a href="PlutusIR.Compiler.Recursion.html#compileRecTerms"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >compileRecTerms</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480777"
+      ><span class="annot"
+	><span class="annottext"
+	  >PIRTerm uni fun a
+</span
+	  ><a href="#local-6989586621679480777"
+	  ><span class="hs-identifier hs-var"
+	    >body</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480778"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty (TermDef TyName Name uni fun (Provenance a))
+</span
+	  ><a href="#local-6989586621679480778"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679480779"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679480779"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Provenance a)
+-&gt; DefT SharedName uni fun (Provenance a) m (Provenance a)
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+m a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#lift"
+	><span class="hs-identifier hs-var"
+	  >lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Provenance a)
+forall (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+MonadReader (CompilationCtx uni fun a) m =&gt;
+m (Provenance a)
+</span
+	><a href="PlutusIR.Compiler.Types.html#getEnclosing"
+	><span class="hs-identifier hs-var"
+	  >getEnclosing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679480782"
+      ><span class="annot"
+	><span class="annottext"
+	  >Tuple (Term TyName Name uni fun) uni (Provenance a)
+</span
+	  ><a href="#local-6989586621679480782"
+	  ><span class="hs-identifier hs-var"
+	    >fixpoint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (TermDef TyName Name uni fun (Provenance a))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Tuple (Term TyName Name uni fun) uni (Provenance a))
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun a.
+Compiling m uni fun a =&gt;
+NonEmpty (TermDef TyName Name uni fun (Provenance a))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Tuple (Term TyName Name uni fun) uni (Provenance a))
+</span
+	><a href="PlutusIR.Compiler.Recursion.html#mkFixpoint"
+	><span class="hs-identifier hs-var"
+	  >mkFixpoint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (TermDef TyName Name uni fun (Provenance a))
+</span
+	><a href="#local-6989586621679480778"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; [Name]
+-&gt; Tuple (Term TyName Name uni fun) uni (Provenance a)
+-&gt; PIRTerm uni fun a
+-&gt; DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
+forall (term :: * -&gt; *) (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+(TermLike term TyName Name uni fun, MonadQuote m) =&gt;
+ann -&gt; [Name] -&gt; Tuple term uni ann -&gt; term ann -&gt; m (term ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Meta.Data.Tuple.html#bindTuple"
+	><span class="hs-identifier hs-var"
+	  >Tuple.bindTuple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679480779"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni (Provenance a) -&gt; Name
+forall tyname name (uni :: * -&gt; *) ann.
+VarDecl tyname name uni ann -&gt; name
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#_varDeclName"
+	><span class="hs-identifier hs-var"
+	  >PIR._varDeclName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(VarDecl TyName Name uni (Provenance a) -&gt; Name)
+-&gt; (TermDef TyName Name uni fun (Provenance a)
+    -&gt; VarDecl TyName Name uni (Provenance a))
+-&gt; TermDef TyName Name uni fun (Provenance a)
+-&gt; Name
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>TermDef TyName Name uni fun (Provenance a)
+-&gt; VarDecl TyName Name uni (Provenance a)
+forall var val. Def var val -&gt; var
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#defVar"
+	><span class="hs-identifier hs-var"
+	  >PIR.defVar</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(TermDef TyName Name uni fun (Provenance a) -&gt; Name)
+-&gt; [TermDef TyName Name uni fun (Provenance a)] -&gt; [Name]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (TermDef TyName Name uni fun (Provenance a))
+-&gt; [TermDef TyName Name uni fun (Provenance a)]
+forall a. NonEmpty a -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.List.NonEmpty.html#toList"
+	><span class="hs-identifier hs-var"
+	  >toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (TermDef TyName Name uni fun (Provenance a))
+</span
+	><a href="#local-6989586621679480778"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Tuple (Term TyName Name uni fun) uni (Provenance a)
+</span
+	><a href="#local-6989586621679480782"
+	><span class="hs-identifier hs-var"
+	  >fixpoint</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PIRTerm uni fun a
+</span
+	><a href="#local-6989586621679480777"
+	><span class="hs-identifier hs-var"
+	  >body</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Given a list of var decls, create a tuples of values that computes their mutually recursive fixpoint.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Recursion.html#mkFixpoint"
+	><span class="hs-identifier hs-type"
+	  >mkFixpoint</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480590"
+      ><span class="annot"
+	><a href="#local-6989586621679480590"
+	  ><span class="hs-identifier hs-type"
+	    >m</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480591"
+      ><span class="annot"
+	><a href="#local-6989586621679480591"
+	  ><span class="hs-identifier hs-type"
+	    >uni</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480592"
+      ><span class="annot"
+	><a href="#local-6989586621679480592"
+	  ><span class="hs-identifier hs-type"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480593"
+      ><span class="annot"
+	><a href="#local-6989586621679480593"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >   </span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Types.html#Compiling"
+	><span class="hs-identifier hs-type"
+	  >Compiling</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480590"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480591"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480592"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480593"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#NonEmpty"
+	><span class="hs-identifier hs-type"
+	  >NonEmpty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Types.html#TermDef"
+	><span class="hs-identifier hs-type"
+	  >TermDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480591"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480592"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480593"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Definitions.html#DefT"
+	><span class="hs-identifier hs-type"
+	  >DefT</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Types.html#SharedName"
+	><span class="hs-identifier hs-type"
+	  >SharedName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480591"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480592"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480593"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480590"
+	><span class="hs-identifier hs-type"
+	  >m</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.StdLib.Meta.Data.Tuple.html#Tuple"
+	><span class="hs-identifier hs-type"
+	  >Tuple.Tuple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Core.Type.html#Term"
+	><span class="hs-identifier hs-type"
+	  >Term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#TyName"
+	><span class="hs-identifier hs-type"
+	  >TyName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	><span class="hs-identifier hs-type"
+	  >Name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480591"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480592"
+	><span class="hs-identifier hs-type"
+	  >fun</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480591"
+	><span class="hs-identifier hs-type"
+	  >uni</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusIR.Compiler.Provenance.html#Provenance"
+	><span class="hs-identifier hs-type"
+	  >Provenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679480593"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span id="mkFixpoint"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkFixpoint :: forall (m :: * -&gt; *) (uni :: * -&gt; *) fun a.
+Compiling m uni fun a =&gt;
+NonEmpty (TermDef TyName Name uni fun (Provenance a))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Tuple (Term TyName Name uni fun) uni (Provenance a))
+</span
+	  ><a href="PlutusIR.Compiler.Recursion.html#mkFixpoint"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkFixpoint</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480835"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty (TermDef TyName Name uni fun (Provenance a))
+</span
+	  ><a href="#local-6989586621679480835"
+	  ><span class="hs-identifier hs-var"
+	    >bs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679480836"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679480836"
+	  ><span class="hs-identifier hs-var"
+	    >p0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Provenance a)
+-&gt; DefT SharedName uni fun (Provenance a) m (Provenance a)
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+m a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#lift"
+	><span class="hs-identifier hs-var"
+	  >lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (Provenance a)
+forall (uni :: * -&gt; *) fun a (m :: * -&gt; *).
+MonadReader (CompilationCtx uni fun a) m =&gt;
+m (Provenance a)
+</span
+	><a href="PlutusIR.Compiler.Types.html#getEnclosing"
+	><span class="hs-identifier hs-var"
+	  >getEnclosing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679480837"
+      ><span class="annot"
+	><span class="annottext"
+	  >NonEmpty
+  (FunctionDef
+     (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+</span
+	  ><a href="#local-6989586621679480837"
+	  ><span class="hs-identifier hs-var"
+	    >funs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (TermDef TyName Name uni fun (Provenance a))
+-&gt; (TermDef TyName Name uni fun (Provenance a)
+    -&gt; DefT
+         SharedName
+         uni
+         fun
+         (Provenance a)
+         m
+         (FunctionDef
+            (Term TyName Name uni fun) TyName Name uni fun (Provenance a)))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (NonEmpty
+        (FunctionDef
+           (Term TyName Name uni fun) TyName Name uni fun (Provenance a)))
+forall (t :: * -&gt; *) (m :: * -&gt; *) a b.
+(Traversable t, Monad m) =&gt;
+t a -&gt; (a -&gt; m b) -&gt; m (t b)
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#forM"
+	><span class="hs-identifier hs-var"
+	  >forM</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty (TermDef TyName Name uni fun (Provenance a))
+</span
+	><a href="#local-6989586621679480835"
+	><span class="hs-identifier hs-var"
+	  >bs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((TermDef TyName Name uni fun (Provenance a)
+  -&gt; DefT
+       SharedName
+       uni
+       fun
+       (Provenance a)
+       m
+       (FunctionDef
+          (Term TyName Name uni fun) TyName Name uni fun (Provenance a)))
+ -&gt; DefT
+      SharedName
+      uni
+      fun
+      (Provenance a)
+      m
+      (NonEmpty
+         (FunctionDef
+            (Term TyName Name uni fun) TyName Name uni fun (Provenance a))))
+-&gt; (TermDef TyName Name uni fun (Provenance a)
+    -&gt; DefT
+         SharedName
+         uni
+         fun
+         (Provenance a)
+         m
+         (FunctionDef
+            (Term TyName Name uni fun) TyName Name uni fun (Provenance a)))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (NonEmpty
+        (FunctionDef
+           (Term TyName Name uni fun) TyName Name uni fun (Provenance a)))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.MkPlc.html#Def"
+	><span class="hs-identifier hs-type"
+	  >PIR.Def</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-type"
+	  >PIR.VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480841"
+      ><span class="annot"
+	><span class="annottext"
+	  >Provenance a
+</span
+	  ><a href="#local-6989586621679480841"
+	  ><span class="hs-identifier hs-var"
+	    >p</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480842"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679480842"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480843"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni (Provenance a)
+</span
+	  ><a href="#local-6989586621679480843"
+	  ><span class="hs-identifier hs-var"
+	    >ty</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480844"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun (Provenance a)
+</span
+	  ><a href="#local-6989586621679480844"
+	  ><span class="hs-identifier hs-var"
+	    >term</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Name
+-&gt; Type TyName uni (Provenance a)
+-&gt; Term TyName Name uni fun (Provenance a)
+-&gt; Maybe
+     (FunctionDef
+        (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+forall {k} ann name tyname (uni :: * -&gt; *) (term :: * -&gt; *)
+       (fun :: k).
+ann
+-&gt; name
+-&gt; Type tyname uni ann
+-&gt; term ann
+-&gt; Maybe (FunctionDef term tyname name uni fun ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#mkFunctionDef"
+	><span class="hs-identifier hs-var"
+	  >PIR.mkFunctionDef</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679480841"
+	><span class="hs-identifier hs-var"
+	  >p</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679480842"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni (Provenance a)
+</span
+	><a href="#local-6989586621679480843"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480844"
+	><span class="hs-identifier hs-var"
+	  >term</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480846"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+</span
+	  ><a href="#local-6989586621679480846"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (FunctionDef
+        (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+forall a. a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480846"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe
+  (FunctionDef
+     (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>m (FunctionDef
+     (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (FunctionDef
+        (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+m a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (t :: (* -&gt; *) -&gt; * -&gt; *) (m :: * -&gt; *) a.
+(MonadTrans t, Monad m) =&gt;
+m a -&gt; t m a
+</span
+	><a href="https://hackage.haskell.org/package/transformers-0.6.1.0/docs/src/Control.Monad.Trans.Class.html#lift"
+	><span class="hs-identifier hs-var"
+	  >lift</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(m (FunctionDef
+      (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+ -&gt; DefT
+      SharedName
+      uni
+      fun
+      (Provenance a)
+      m
+      (FunctionDef
+         (Term TyName Name uni fun) TyName Name uni fun (Provenance a)))
+-&gt; m (FunctionDef
+        (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (FunctionDef
+        (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Error uni fun (Provenance a)
+-&gt; m (FunctionDef
+        (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+forall a. Error uni fun (Provenance a) -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Error uni fun (Provenance a)
+ -&gt; m (FunctionDef
+         (Term TyName Name uni fun) TyName Name uni fun (Provenance a)))
+-&gt; Error uni fun (Provenance a)
+-&gt; m (FunctionDef
+        (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a -&gt; Text -&gt; Error uni fun (Provenance a)
+forall (uni :: * -&gt; *) fun a. a -&gt; Text -&gt; Error uni fun a
+</span
+	><a href="PlutusIR.Error.html#CompilationError"
+	><span class="hs-identifier hs-var"
+	  >CompilationError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni (Provenance a) -&gt; Provenance a
+forall tyname (uni :: * -&gt; *) ann. Type tyname uni ann -&gt; ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#typeAnn"
+	><span class="hs-identifier hs-var"
+	  >PLC.typeAnn</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni (Provenance a)
+</span
+	><a href="#local-6989586621679480843"
+	><span class="hs-identifier hs-var"
+	  >ty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Text
+</span
+	><span class="hs-string"
+	>&quot;Recursive values must be of function type&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679480850"
+      ><span class="annot"
+	><span class="annottext"
+	  >Bool
+</span
+	  ><a href="#local-6989586621679480850"
+	  ><span class="hs-identifier hs-var"
+	    >inlineFix</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Getting Bool (CompilationCtx uni fun a) Bool
+-&gt; DefT SharedName uni fun (Provenance a) m Bool
+forall s (m :: * -&gt; *) a. MonadReader s m =&gt; Getting a s a -&gt; m a
+</span
+	><span class="hs-identifier hs-var"
+	>view</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(CompilationOpts a -&gt; Const Bool (CompilationOpts a))
+-&gt; CompilationCtx uni fun a
+-&gt; Const Bool (CompilationCtx uni fun a)
+forall (uni :: * -&gt; *) fun a (f :: * -&gt; *).
+Functor f =&gt;
+(CompilationOpts a -&gt; f (CompilationOpts a))
+-&gt; CompilationCtx uni fun a -&gt; f (CompilationCtx uni fun a)
+</span
+	><a href="PlutusIR.Compiler.Types.html#ccOpts"
+	><span class="hs-identifier hs-var"
+	  >ccOpts</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CompilationOpts a -&gt; Const Bool (CompilationOpts a))
+ -&gt; CompilationCtx uni fun a
+ -&gt; Const Bool (CompilationCtx uni fun a))
+-&gt; ((Bool -&gt; Const Bool Bool)
+    -&gt; CompilationOpts a -&gt; Const Bool (CompilationOpts a))
+-&gt; Getting Bool (CompilationCtx uni fun a) Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Const Bool Bool)
+-&gt; CompilationOpts a -&gt; Const Bool (CompilationOpts a)
+forall a (f :: * -&gt; *).
+Functor f =&gt;
+(Bool -&gt; f Bool) -&gt; CompilationOpts a -&gt; f (CompilationOpts a)
+</span
+	><a href="PlutusIR.Compiler.Types.html#coInlineConstants"
+	><span class="hs-identifier hs-var"
+	  >coInlineConstants</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-comment"
+      >-- See Note [Extra definitions while compiling let-bindings]</span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480859"
+      ><span class="annot"
+	><span class="annottext"
+	  >arity :: Integer
+</span
+	  ><a href="#local-6989586621679480859"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >arity</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Integer
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; Integer) -&gt; Int -&gt; Integer
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty
+  (FunctionDef
+     (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+-&gt; Int
+forall a. NonEmpty a -&gt; Int
+forall (t :: * -&gt; *) a. Foldable t =&gt; t a -&gt; Int
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#length"
+	><span class="hs-identifier hs-var"
+	  >length</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty
+  (FunctionDef
+     (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+</span
+	><a href="#local-6989586621679480837"
+	><span class="hs-identifier hs-var"
+	  >funs</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480861"
+      ><span class="annot"
+	><span class="annottext"
+	  >fixByKey :: SharedName
+</span
+	  ><a href="#local-6989586621679480861"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fixByKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+</span
+	><a href="PlutusIR.Compiler.Types.html#FixBy"
+	><span class="hs-identifier hs-var"
+	  >FixBy</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480863"
+      ><span class="annot"
+	><span class="annottext"
+	  >fixNKey :: SharedName
+</span
+	  ><a href="#local-6989586621679480863"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >fixNKey</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; SharedName
+</span
+	><a href="PlutusIR.Compiler.Types.html#FixpointCombinator"
+	><span class="hs-identifier hs-var"
+	  >FixpointCombinator</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679480859"
+	><span class="hs-identifier hs-var"
+	  >arity</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480868"
+      ><span class="annot"
+	><span class="annottext"
+	  >ann :: Provenance a
+</span
+	  ><a href="#local-6989586621679480868"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >ann</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="#local-6989586621679480850"
+	><span class="hs-identifier hs-var"
+	  >inlineFix</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+forall a. AnnInline a =&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annAlwaysInline"
+	><span class="hs-identifier hs-var"
+	  >annAlwaysInline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+forall a. AnnInline a =&gt; a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Annotation.html#annMayInline"
+	><span class="hs-identifier hs-var"
+	  >annMayInline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480889"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkFixByDef :: DefT
+  SharedName
+  uni
+  fun
+  (Provenance a)
+  m
+  (Def
+     (VarDecl TyName Name uni (Provenance a))
+     (Term TyName Name uni fun (Provenance a), Strictness),
+   Set SharedName)
+</span
+	  ><a href="#local-6989586621679480889"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkFixByDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679480890"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679480890"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote Name -&gt; DefT SharedName uni fun (Provenance a) m Name
+forall a. Quote a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (m :: * -&gt; *) a. MonadQuote m =&gt; Quote a -&gt; m a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#liftQuote"
+	><span class="hs-identifier hs-var"
+	  >liftQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote Name -&gt; DefT SharedName uni fun (Provenance a) m Name)
+-&gt; Quote Name -&gt; DefT SharedName uni fun (Provenance a) m Name
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName -&gt; Quote Name
+</span
+	><a href="PlutusIR.Compiler.Types.html#toProgramName"
+	><span class="hs-identifier hs-var"
+	  >toProgramName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+</span
+	><a href="#local-6989586621679480861"
+	><span class="hs-identifier hs-var"
+	  >fixByKey</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679480894"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ()
+</span
+	  ><a href="#local-6989586621679480894"
+	  ><span class="hs-identifier hs-var"
+	    >fixByTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480895"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni ()
+</span
+	  ><a href="#local-6989586621679480895"
+	  ><span class="hs-identifier hs-var"
+	    >fixByType</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun (), Type TyName uni ())
+forall (term :: * -&gt; *) (uni :: * -&gt; *) fun.
+TermLike term TyName Name uni fun =&gt;
+(term (), Type TyName uni ())
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Function.html#fixByAndType"
+	><span class="hs-identifier hs-var"
+	  >Function.fixByAndType</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Def
+   (VarDecl TyName Name uni (Provenance a))
+   (Term TyName Name uni fun (Provenance a), Strictness),
+ Set SharedName)
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Def
+        (VarDecl TyName Name uni (Provenance a))
+        (Term TyName Name uni fun (Provenance a), Strictness),
+      Set SharedName)
+forall a. a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni (Provenance a)
+-&gt; (Term TyName Name uni fun (Provenance a), Strictness)
+-&gt; Def
+     (VarDecl TyName Name uni (Provenance a))
+     (Term TyName Name uni fun (Provenance a), Strictness)
+forall var val. var -&gt; val -&gt; Def var val
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#Def"
+	><span class="hs-identifier hs-var"
+	  >PLC.Def</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Name
+-&gt; Type TyName uni (Provenance a)
+-&gt; VarDecl TyName Name uni (Provenance a)
+forall tyname name (uni :: * -&gt; *) ann.
+ann -&gt; name -&gt; Type tyname uni ann -&gt; VarDecl tyname name uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-var"
+	  >PLC.VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679480868"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679480890"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+forall a. Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#noProvenance"
+	><span class="hs-identifier hs-var"
+	  >noProvenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Type TyName uni () -&gt; Type TyName uni (Provenance a)
+forall a b. a -&gt; Type TyName uni b -&gt; Type TyName uni a
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ()
+</span
+	><a href="#local-6989586621679480895"
+	><span class="hs-identifier hs-var"
+	  >fixByType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+forall a. Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#noProvenance"
+	><span class="hs-identifier hs-var"
+	  >noProvenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Term TyName Name uni fun ()
+-&gt; Term TyName Name uni fun (Provenance a)
+forall a b.
+a -&gt; Term TyName Name uni fun b -&gt; Term TyName Name uni fun a
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621679480894"
+	><span class="hs-identifier hs-var"
+	  >fixByTerm</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="PlutusIR.Core.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >Strict</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set SharedName
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >let</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480928"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkFixNDef :: DefT
+  SharedName
+  uni
+  fun
+  (Provenance a)
+  m
+  (Def
+     (VarDecl TyName Name uni (Provenance a))
+     (Term TyName Name uni fun (Provenance a), Strictness),
+   Set SharedName)
+</span
+	  ><a href="#local-6989586621679480928"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkFixNDef</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679480929"
+      ><span class="annot"
+	><span class="annottext"
+	  >Name
+</span
+	  ><a href="#local-6989586621679480929"
+	  ><span class="hs-identifier hs-var"
+	    >name</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote Name -&gt; DefT SharedName uni fun (Provenance a) m Name
+forall a. Quote a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (m :: * -&gt; *) a. MonadQuote m =&gt; Quote a -&gt; m a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#liftQuote"
+	><span class="hs-identifier hs-var"
+	  >liftQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote Name -&gt; DefT SharedName uni fun (Provenance a) m Name)
+-&gt; Quote Name -&gt; DefT SharedName uni fun (Provenance a) m Name
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName -&gt; Quote Name
+</span
+	><a href="PlutusIR.Compiler.Types.html#toProgramName"
+	><span class="hs-identifier hs-var"
+	  >toProgramName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+</span
+	><a href="#local-6989586621679480863"
+	><span class="hs-identifier hs-var"
+	  >fixNKey</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679480930"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun ()
+</span
+	  ><a href="#local-6989586621679480930"
+	  ><span class="hs-identifier hs-var"
+	    >fixNTerm</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480931"
+      ><span class="annot"
+	><span class="annottext"
+	  >Type TyName uni ()
+</span
+	  ><a href="#local-6989586621679480931"
+	  ><span class="hs-identifier hs-var"
+	    >fixNType</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679480932"
+      ><span class="annot"
+	><span class="annottext"
+	  >Set SharedName
+</span
+	  ><a href="#local-6989586621679480932"
+	  ><span class="hs-identifier hs-var"
+	    >fixNDeps</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679480859"
+	><span class="hs-identifier hs-var"
+	  >arity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; Integer -&gt; Bool
+forall a. Eq a =&gt; a -&gt; a -&gt; Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#%3D%3D"
+	><span class="hs-operator hs-var"
+	  >==</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term TyName Name uni fun (), Type TyName uni ()), Set SharedName)
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     ((Term TyName Name uni fun (), Type TyName uni ()), Set SharedName)
+forall a. a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Term TyName Name uni fun (), Type TyName uni ())
+forall (term :: * -&gt; *) (uni :: * -&gt; *) fun.
+TermLike term TyName Name uni fun =&gt;
+(term (), Type TyName uni ())
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Function.html#fixAndType"
+	><span class="hs-identifier hs-var"
+	  >Function.fixAndType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set SharedName
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-comment"
+      >-- fixN depends on fixBy</span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >              </span
+      ><span id="local-6989586621679480934"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun (Provenance a)
+</span
+	  ><a href="#local-6989586621679480934"
+	  ><span class="hs-identifier hs-var"
+	    >fixBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (TermDefWithStrictness uni fun (Provenance a), Set SharedName)
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Term TyName Name uni fun (Provenance a))
+forall key (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadDefs key uni fun ann m =&gt;
+key
+-&gt; m (TermDefWithStrictness uni fun ann, Set key)
+-&gt; m (Term TyName Name uni fun ann)
+</span
+	><a href="PlutusIR.Compiler.Definitions.html#lookupOrDefineTerm"
+	><span class="hs-identifier hs-var"
+	  >lookupOrDefineTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+</span
+	><a href="#local-6989586621679480861"
+	><span class="hs-identifier hs-var"
+	  >fixByKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefT
+  SharedName
+  uni
+  fun
+  (Provenance a)
+  m
+  (TermDefWithStrictness uni fun (Provenance a), Set SharedName)
+forall {a}.
+DefT
+  SharedName
+  uni
+  fun
+  (Provenance a)
+  m
+  (Def
+     (VarDecl TyName Name uni (Provenance a))
+     (Term TyName Name uni fun (Provenance a), Strictness),
+   Set SharedName)
+</span
+	><a href="#local-6989586621679480889"
+	><span class="hs-identifier hs-var"
+	  >mkFixByDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Term TyName Name uni fun (), Type TyName uni ()), Set SharedName)
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     ((Term TyName Name uni fun (), Type TyName uni ()), Set SharedName)
+forall a. a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+-&gt; Term TyName Name uni fun ()
+-&gt; (Term TyName Name uni fun (), Type TyName uni ())
+forall (term :: * -&gt; *) (uni :: * -&gt; *) fun.
+TermLike term TyName Name uni fun =&gt;
+Integer -&gt; term () -&gt; (term (), Type TyName uni ())
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Function.html#fixNAndType"
+	><span class="hs-identifier hs-var"
+	  >Function.fixNAndType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><a href="#local-6989586621679480859"
+	><span class="hs-identifier hs-var"
+	  >arity</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun (Provenance a)
+-&gt; Term TyName Name uni fun ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier hs-var"
+	  >void</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480934"
+	><span class="hs-identifier hs-var"
+	  >fixBy</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName -&gt; Set SharedName
+forall a. a -&gt; Set a
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Set.Internal.html#singleton"
+	><span class="hs-identifier hs-var"
+	  >Set.singleton</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+</span
+	><a href="#local-6989586621679480861"
+	><span class="hs-identifier hs-var"
+	  >fixByKey</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Def
+   (VarDecl TyName Name uni (Provenance a))
+   (Term TyName Name uni fun (Provenance a), Strictness),
+ Set SharedName)
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Def
+        (VarDecl TyName Name uni (Provenance a))
+        (Term TyName Name uni fun (Provenance a), Strictness),
+      Set SharedName)
+forall a. a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>VarDecl TyName Name uni (Provenance a)
+-&gt; (Term TyName Name uni fun (Provenance a), Strictness)
+-&gt; Def
+     (VarDecl TyName Name uni (Provenance a))
+     (Term TyName Name uni fun (Provenance a), Strictness)
+forall var val. var -&gt; val -&gt; Def var val
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#Def"
+	><span class="hs-identifier hs-var"
+	  >PLC.Def</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Name
+-&gt; Type TyName uni (Provenance a)
+-&gt; VarDecl TyName Name uni (Provenance a)
+forall tyname name (uni :: * -&gt; *) ann.
+ann -&gt; name -&gt; Type tyname uni ann -&gt; VarDecl tyname name uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.Core.Type.html#VarDecl"
+	><span class="hs-identifier hs-var"
+	  >PLC.VarDecl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679480868"
+	><span class="hs-identifier hs-var"
+	  >ann</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Name
+</span
+	><a href="#local-6989586621679480929"
+	><span class="hs-identifier hs-var"
+	  >name</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+forall a. Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#noProvenance"
+	><span class="hs-identifier hs-var"
+	  >noProvenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Type TyName uni () -&gt; Type TyName uni (Provenance a)
+forall a b. a -&gt; Type TyName uni b -&gt; Type TyName uni a
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Type TyName uni ()
+</span
+	><a href="#local-6989586621679480931"
+	><span class="hs-identifier hs-var"
+	  >fixNType</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+forall a. Provenance a
+</span
+	><a href="PlutusIR.Compiler.Provenance.html#noProvenance"
+	><span class="hs-identifier hs-var"
+	  >noProvenance</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Term TyName Name uni fun ()
+-&gt; Term TyName Name uni fun (Provenance a)
+forall a b.
+a -&gt; Term TyName Name uni fun b -&gt; Term TyName Name uni fun a
+forall (f :: * -&gt; *) a b. Functor f =&gt; a -&gt; f b -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%24"
+	><span class="hs-operator hs-var"
+	  >&lt;$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun ()
+</span
+	><a href="#local-6989586621679480930"
+	><span class="hs-identifier hs-var"
+	  >fixNTerm</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Strictness
+</span
+	><a href="PlutusIR.Core.Type.html#Strict"
+	><span class="hs-identifier hs-var"
+	  >Strict</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Set SharedName
+</span
+	><a href="#local-6989586621679480932"
+	><span class="hs-identifier hs-var"
+	  >fixNDeps</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679480939"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term TyName Name uni fun (Provenance a)
+</span
+	  ><a href="#local-6989586621679480939"
+	  ><span class="hs-identifier hs-var"
+	    >fixN</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (TermDefWithStrictness uni fun (Provenance a), Set SharedName)
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Term TyName Name uni fun (Provenance a))
+forall key (uni :: * -&gt; *) fun ann (m :: * -&gt; *).
+MonadDefs key uni fun ann m =&gt;
+key
+-&gt; m (TermDefWithStrictness uni fun ann, Set key)
+-&gt; m (Term TyName Name uni fun ann)
+</span
+	><a href="PlutusIR.Compiler.Definitions.html#lookupOrDefineTerm"
+	><span class="hs-identifier hs-var"
+	  >lookupOrDefineTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>SharedName
+</span
+	><a href="#local-6989586621679480863"
+	><span class="hs-identifier hs-var"
+	  >fixNKey</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>DefT
+  SharedName
+  uni
+  fun
+  (Provenance a)
+  m
+  (TermDefWithStrictness uni fun (Provenance a), Set SharedName)
+forall {a}.
+DefT
+  SharedName
+  uni
+  fun
+  (Provenance a)
+  m
+  (Def
+     (VarDecl TyName Name uni (Provenance a))
+     (Term TyName Name uni fun (Provenance a), Strictness),
+   Set SharedName)
+</span
+	><a href="#local-6989586621679480928"
+	><span class="hs-identifier hs-var"
+	  >mkFixNDef</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quote (Tuple (Term TyName Name uni fun) uni (Provenance a))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Tuple (Term TyName Name uni fun) uni (Provenance a))
+forall a. Quote a -&gt; DefT SharedName uni fun (Provenance a) m a
+forall (m :: * -&gt; *) a. MonadQuote m =&gt; Quote a -&gt; m a
+</span
+	><a href="../../plutus-core/src/PlutusCore.Quote.html#liftQuote"
+	><span class="hs-identifier hs-var"
+	  >liftQuote</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Quote (Tuple (Term TyName Name uni fun) uni (Provenance a))
+ -&gt; DefT
+      SharedName
+      uni
+      fun
+      (Provenance a)
+      m
+      (Tuple (Term TyName Name uni fun) uni (Provenance a)))
+-&gt; Quote (Tuple (Term TyName Name uni fun) uni (Provenance a))
+-&gt; DefT
+     SharedName
+     uni
+     fun
+     (Provenance a)
+     m
+     (Tuple (Term TyName Name uni fun) uni (Provenance a))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonEmpty
+  (FunctionDef
+     (Term TyName Name uni fun) TyName Name uni fun (Provenance a))
+</span
+	><a href="#local-6989586621679480837"
+	><span class="hs-identifier hs-var"
+	  >funs</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- Takes a list of function defs and function bodies and turns them into a Scott-encoded tuple, which</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- happens to be exactly what we want</span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480940"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+</span
+	  ><a href="#local-6989586621679480940"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3A%7C"
+	><span class="hs-operator hs-type"
+	  >:|</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; [(Type TyName uni (Provenance a),
+     Term TyName Name uni fun (Provenance a))]
+-&gt; Quote (Tuple (Term TyName Name uni fun) uni (Provenance a))
+forall (term :: * -&gt; *) (uni :: * -&gt; *) fun (m :: * -&gt; *) ann.
+(TermLike term TyName Name uni fun, MonadQuote m) =&gt;
+ann -&gt; [(Type TyName uni ann, term ann)] -&gt; m (Tuple term uni ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Meta.Data.Tuple.html#getSpineToTuple"
+	><span class="hs-identifier hs-var"
+	  >Tuple.getSpineToTuple</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679480836"
+	><span class="hs-identifier hs-var"
+	  >p0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+-&gt; Type TyName uni (Provenance a)
+forall {k} (term :: * -&gt; *) tyname name (uni :: * -&gt; *) (fun :: k)
+       ann.
+FunctionDef term tyname name uni fun ann -&gt; Type tyname uni ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.MkPlc.html#functionDefToType"
+	><span class="hs-identifier hs-var"
+	  >PLC.functionDefToType</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480940"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Term TyName Name uni fun (Provenance a)
+-&gt; FunctionDef
+     (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+-&gt; Term TyName Name uni fun (Provenance a)
+forall (term :: * -&gt; *) (uni :: * -&gt; *) fun ann.
+TermLike term TyName Name uni fun =&gt;
+ann
+-&gt; term ann -&gt; FunctionDef term TyName Name uni fun ann -&gt; term ann
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Function.html#getSingleFixOf"
+	><span class="hs-identifier hs-var"
+	  >Function.getSingleFixOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679480836"
+	><span class="hs-identifier hs-var"
+	  >p0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480939"
+	><span class="hs-identifier hs-var"
+	  >fixN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480940"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679480945"
+      ><span class="annot"
+	><span class="annottext"
+	  >FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+</span
+	  ><a href="#local-6989586621679480945"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3A%7C"
+	><span class="hs-operator hs-type"
+	  >:|</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679480946"
+      ><span class="annot"
+	><span class="annottext"
+	  >[FunctionDef
+   (Term TyName Name uni fun) TyName Name uni fun (Provenance a)]
+</span
+	  ><a href="#local-6989586621679480946"
+	  ><span class="hs-identifier hs-var"
+	    >fs</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+-&gt; Term TyName Name uni fun (Provenance a)
+-&gt; [FunctionDef
+      (Term TyName Name uni fun) TyName Name uni fun (Provenance a)]
+-&gt; Quote (Tuple (Term TyName Name uni fun) uni (Provenance a))
+forall (term :: * -&gt; *) (uni :: * -&gt; *) fun ann.
+TermLike term TyName Name uni fun =&gt;
+ann
+-&gt; term ann
+-&gt; [FunctionDef term TyName Name uni fun ann]
+-&gt; Quote (Tuple term uni ann)
+</span
+	><a href="../../plutus-core/src/PlutusCore.StdLib.Data.Function.html#getMutualFixOf"
+	><span class="hs-identifier hs-var"
+	  >Function.getMutualFixOf</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Provenance a
+</span
+	><a href="#local-6989586621679480836"
+	><span class="hs-identifier hs-var"
+	  >p0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480939"
+	><span class="hs-identifier hs-var"
+	  >fixN</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+</span
+	><a href="#local-6989586621679480945"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FunctionDef
+  (Term TyName Name uni fun) TyName Name uni fun (Provenance a)
+-&gt; [FunctionDef
+      (Term TyName Name uni fun) TyName Name uni fun (Provenance a)]
+-&gt; [FunctionDef
+      (Term TyName Name uni fun) TyName Name uni fun (Provenance a)]
+forall a. a -&gt; [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-var"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[FunctionDef
+   (Term TyName Name uni fun) TyName Name uni fun (Provenance a)]
+</span
+	><a href="#local-6989586621679480946"
+	><span class="hs-identifier hs-var"
+	  >fs</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

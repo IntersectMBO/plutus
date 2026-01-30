@@ -1,0 +1,564 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >Evaluation.Builtins.Bitwise.CIP0123</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/Evaluation.Builtins.Bitwise.CIP0123.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>Evaluation.Builtins.Bitwise.CIP0123</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Tests for <a href="https://cips.cardano.org/cip/CIP-0123"
+	    >CIP-0123</a
+	    >(the second
+batch of bitwise builtins). </p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><a href="#v:shiftHomomorphism"
+	      >shiftHomomorphism</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:rotateHomomorphism"
+	      >rotateHomomorphism</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:csbHomomorphism"
+	      >csbHomomorphism</a
+	      > &#8759; [<a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	      >TestTree</a
+	      >]</li
+	    ><li class="src short"
+	    ><a href="#v:shiftClear"
+	      >shiftClear</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:rotateRollover"
+	      >rotateRollover</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:csbRotate"
+	      >csbRotate</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:shiftPosClearLow"
+	      >shiftPosClearLow</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:shiftNegClearHigh"
+	      >shiftNegClearHigh</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:rotateMoveBits"
+	      >rotateMoveBits</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:csbComplement"
+	      >csbComplement</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:csbInclusionExclusion"
+	      >csbInclusionExclusion</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:csbXor"
+	      >csbXor</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ffsReplicate"
+	      >ffsReplicate</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ffsXor"
+	      >ffsXor</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ffsIndex"
+	      >ffsIndex</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ffsZero"
+	      >ffsZero</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:shiftMinBound"
+	      >shiftMinBound</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:rotateMinBound"
+	      >rotateMinBound</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ><li class="src short"
+	    ><a href="#v:ffs6453"
+	      >ffs6453</a
+	      > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	      >Property</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shiftHomomorphism" class="def"
+	    >shiftHomomorphism</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    >] <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#shiftHomomorphism" class="link"
+	    >Source</a
+	    > <a href="#v:shiftHomomorphism" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >There should exist a monoid homomorphism between natural number addition
+and function composition for shifts over a fixed bytestring argument. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rotateHomomorphism" class="def"
+	    >rotateHomomorphism</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    >] <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#rotateHomomorphism" class="link"
+	    >Source</a
+	    > <a href="#v:rotateHomomorphism" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >There should exist a monoid homomorphism between integer addition and function composition for
+rotations over a fixed bytestring argument. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:csbHomomorphism" class="def"
+	    >csbHomomorphism</a
+	    > &#8759; [<a href="https://hackage.haskell.org/package/tasty-1.5.3/docs/Test-Tasty-Providers.html#t:TestTree" title="Test.Tasty.Providers"
+	    >TestTree</a
+	    >] <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#csbHomomorphism" class="link"
+	    >Source</a
+	    > <a href="#v:csbHomomorphism" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >There should exist a monoid homomorphism between bytestring concatenation and natural number
+addition. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shiftClear" class="def"
+	    >shiftClear</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#shiftClear" class="link"
+	    >Source</a
+	    > <a href="#v:shiftClear" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Shifting by more than the bit length (either positive or negative) clears the result.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rotateRollover" class="def"
+	    >rotateRollover</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#rotateRollover" class="link"
+	    >Source</a
+	    > <a href="#v:rotateRollover" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rotations by more than the bit length 'roll over' bits.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:csbRotate" class="def"
+	    >csbRotate</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#csbRotate" class="link"
+	    >Source</a
+	    > <a href="#v:csbRotate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rotations do not change how many set (and clear) bits there are.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shiftPosClearLow" class="def"
+	    >shiftPosClearLow</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#shiftPosClearLow" class="link"
+	    >Source</a
+	    > <a href="#v:shiftPosClearLow" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Positive shifts clear low-index bits.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shiftNegClearHigh" class="def"
+	    >shiftNegClearHigh</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#shiftNegClearHigh" class="link"
+	    >Source</a
+	    > <a href="#v:shiftNegClearHigh" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Negative shifts clear high-index bits.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rotateMoveBits" class="def"
+	    >rotateMoveBits</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#rotateMoveBits" class="link"
+	    >Source</a
+	    > <a href="#v:rotateMoveBits" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Rotations move bits, but don't change them.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:csbComplement" class="def"
+	    >csbComplement</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#csbComplement" class="link"
+	    >Source</a
+	    > <a href="#v:csbComplement" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For any bytestring whose bit length is <code
+	      >n</code
+	      > and has <code
+	      >k</code
+	      > set bits, its complement should have
+<code
+	      >n - k</code
+	      > set bits. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:csbInclusionExclusion" class="def"
+	    >csbInclusionExclusion</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#csbInclusionExclusion" class="link"
+	    >Source</a
+	    > <a href="#v:csbInclusionExclusion" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >The inclusion-exclusion principle: specifically, for any <code
+	      >x</code
+	      > and <code
+	      >y</code
+	      >, the number of set bits in
+<code
+	      >x XOR y</code
+	      > should be the number of set bits in <code
+	      >x OR y</code
+	      > minus the number of set bits in <code
+	      >x AND y</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:csbXor" class="def"
+	    >csbXor</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#csbXor" class="link"
+	    >Source</a
+	    > <a href="#v:csbXor" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For any bytestring <code
+	      >x</code
+	      >, the number of set bits in <code
+	      >x XOR x</code
+	      > should be 0.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ffsReplicate" class="def"
+	    >ffsReplicate</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#ffsReplicate" class="link"
+	    >Source</a
+	    > <a href="#v:ffsReplicate" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If we replicate any byte any (positive) number of times, the first set bit
+should be the same as in the case where we replicated it exactly once. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ffsXor" class="def"
+	    >ffsXor</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#ffsXor" class="link"
+	    >Source</a
+	    > <a href="#v:ffsXor" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >For any choice of bytestring, if we XOR it with itself, there should be no set bits; that is,
+finding the first set bit should give <code
+	      >-1</code
+	      >. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ffsIndex" class="def"
+	    >ffsIndex</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#ffsIndex" class="link"
+	    >Source</a
+	    > <a href="#v:ffsIndex" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If we find a valid index for the first set bit, then:</p
+	    ><ol
+	    ><li value="1"
+	      >The specified index should have a set bit; and</li
+	      ><li value="2"
+	      >Any valid smaller index should have a clear bit.</li
+	      ></ol
+	    ><p
+	    >We <code
+	      >hack</code
+	      > the generator slightly here to ensure we don't end up with all-zeroes (or the empty
+bytestring), as otherwise, the test wouldn't be meaningful. </p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ffsZero" class="def"
+	    >ffsZero</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#ffsZero" class="link"
+	    >Source</a
+	    > <a href="#v:ffsZero" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Finding the first set bit in a bytestring with only zero bytes should always give -1.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:shiftMinBound" class="def"
+	    >shiftMinBound</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#shiftMinBound" class="link"
+	    >Source</a
+	    > <a href="#v:shiftMinBound" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If given <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		>Int</a
+		></code
+	      > <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#v:minBound" title="Prelude"
+		>minBound</a
+		></code
+	      > as an argument, shifts behave sensibly.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:rotateMinBound" class="def"
+	    >rotateMinBound</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#rotateMinBound" class="link"
+	    >Source</a
+	    > <a href="#v:rotateMinBound" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >If given <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+		>Int</a
+		></code
+	      > <code
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Prelude.html#v:minBound" title="Prelude"
+		>minBound</a
+		></code
+	      > as an argument, rotations behave sensibly.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:ffs6453" class="def"
+	    >ffs6453</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/hedgehog-1.5/docs/Hedgehog.html#t:Property" title="Hedgehog"
+	    >Property</a
+	    > <a href="src/Evaluation.Builtins.Bitwise.CIP0123.html#ffs6453" class="link"
+	    >Source</a
+	    > <a href="#v:ffs6453" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Test for a regression found <a href="https://github.com/IntersectMBO/plutus/pull/6453"
+	      >here</a
+	      >.</p
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

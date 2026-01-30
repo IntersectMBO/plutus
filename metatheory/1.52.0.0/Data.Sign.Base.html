@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<html><head><meta charset="utf-8"><title>Data.Sign.Base</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Comment">------------------------------------------------------------------------</a>
+<a id="74" class="Comment">-- The Agda standard library</a>
+<a id="103" class="Comment">--</a>
+<a id="106" class="Comment">-- Signs</a>
+<a id="115" class="Comment">------------------------------------------------------------------------</a>
+
+<a id="189" class="Symbol">{-#</a> <a id="193" class="Keyword">OPTIONS</a> <a id="201" class="Pragma">--cubical-compatible</a> <a id="222" class="Pragma">--safe</a> <a id="229" class="Symbol">#-}</a>
+
+<a id="234" class="Keyword">module</a> <a id="241" href="Data.Sign.Base.html" class="Module">Data.Sign.Base</a> <a id="256" class="Keyword">where</a>
+
+<a id="263" class="Keyword">open</a> <a id="268" class="Keyword">import</a> <a id="275" href="Algebra.Bundles.Raw.html" class="Module">Algebra.Bundles.Raw</a> <a id="295" class="Keyword">using</a> <a id="301" class="Symbol">(</a><a id="302" href="Algebra.Bundles.Raw.html#1073" class="Record">RawMagma</a><a id="310" class="Symbol">;</a> <a id="312" href="Algebra.Bundles.Raw.html#1534" class="Record">RawMonoid</a><a id="321" class="Symbol">;</a> <a id="323" href="Algebra.Bundles.Raw.html#2067" class="Record">RawGroup</a><a id="331" class="Symbol">)</a>
+<a id="333" class="Keyword">open</a> <a id="338" class="Keyword">import</a> <a id="345" href="Level.html" class="Module">Level</a> <a id="351" class="Keyword">using</a> <a id="357" class="Symbol">(</a><a id="358" href="Level.html#521" class="Function">0ℓ</a><a id="360" class="Symbol">)</a>
+<a id="362" class="Keyword">open</a> <a id="367" class="Keyword">import</a> <a id="374" href="Relation.Binary.PropositionalEquality.Core.html" class="Module">Relation.Binary.PropositionalEquality.Core</a> <a id="417" class="Keyword">using</a> <a id="423" class="Symbol">(</a><a id="424" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a><a id="427" class="Symbol">)</a>
+
+<a id="430" class="Comment">------------------------------------------------------------------------</a>
+<a id="503" class="Comment">-- Definition</a>
+
+<a id="518" class="Keyword">data</a> <a id="Sign"></a><a id="523" href="Data.Sign.Base.html#523" class="Datatype">Sign</a> <a id="528" class="Symbol">:</a> <a id="530" href="Agda.Primitive.html#388" class="Primitive">Set</a> <a id="534" class="Keyword">where</a>
+  <a id="Sign.-"></a><a id="542" href="Data.Sign.Base.html#542" class="InductiveConstructor">-</a> <a id="544" class="Symbol">:</a> <a id="546" href="Data.Sign.Base.html#523" class="Datatype">Sign</a>
+  <a id="Sign.+"></a><a id="553" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a> <a id="555" class="Symbol">:</a> <a id="557" href="Data.Sign.Base.html#523" class="Datatype">Sign</a>
+
+<a id="563" class="Comment">------------------------------------------------------------------------</a>
+<a id="636" class="Comment">-- Operations</a>
+
+<a id="651" class="Comment">-- The opposite sign.</a>
+
+<a id="opposite"></a><a id="674" href="Data.Sign.Base.html#674" class="Function">opposite</a> <a id="683" class="Symbol">:</a> <a id="685" href="Data.Sign.Base.html#523" class="Datatype">Sign</a> <a id="690" class="Symbol">→</a> <a id="692" href="Data.Sign.Base.html#523" class="Datatype">Sign</a>
+<a id="697" href="Data.Sign.Base.html#674" class="Function">opposite</a> <a id="706" href="Data.Sign.Base.html#542" class="InductiveConstructor">-</a> <a id="708" class="Symbol">=</a> <a id="710" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a>
+<a id="712" href="Data.Sign.Base.html#674" class="Function">opposite</a> <a id="721" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a> <a id="723" class="Symbol">=</a> <a id="725" href="Data.Sign.Base.html#542" class="InductiveConstructor">-</a>
+
+<a id="728" class="Comment">-- &quot;Multiplication&quot;.</a>
+
+<a id="750" class="Keyword">infixl</a> <a id="757" class="Number">7</a> <a id="759" href="Data.Sign.Base.html#764" class="Function Operator">_*_</a>
+
+<a id="_*_"></a><a id="764" href="Data.Sign.Base.html#764" class="Function Operator">_*_</a> <a id="768" class="Symbol">:</a> <a id="770" href="Data.Sign.Base.html#523" class="Datatype">Sign</a> <a id="775" class="Symbol">→</a> <a id="777" href="Data.Sign.Base.html#523" class="Datatype">Sign</a> <a id="782" class="Symbol">→</a> <a id="784" href="Data.Sign.Base.html#523" class="Datatype">Sign</a>
+<a id="789" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a> <a id="791" href="Data.Sign.Base.html#764" class="Function Operator">*</a> <a id="793" href="Data.Sign.Base.html#793" class="Bound">s₂</a> <a id="796" class="Symbol">=</a> <a id="798" href="Data.Sign.Base.html#793" class="Bound">s₂</a>
+<a id="801" href="Data.Sign.Base.html#542" class="InductiveConstructor">-</a> <a id="803" href="Data.Sign.Base.html#764" class="Function Operator">*</a> <a id="805" href="Data.Sign.Base.html#805" class="Bound">s₂</a> <a id="808" class="Symbol">=</a> <a id="810" href="Data.Sign.Base.html#674" class="Function">opposite</a> <a id="819" href="Data.Sign.Base.html#805" class="Bound">s₂</a>
+
+<a id="823" class="Comment">------------------------------------------------------------------------</a>
+<a id="896" class="Comment">-- Raw Bundles</a>
+
+<a id="*-rawMagma"></a><a id="912" href="Data.Sign.Base.html#912" class="Function">*-rawMagma</a> <a id="923" class="Symbol">:</a> <a id="925" href="Algebra.Bundles.Raw.html#1073" class="Record">RawMagma</a> <a id="934" href="Level.html#521" class="Function">0ℓ</a> <a id="937" href="Level.html#521" class="Function">0ℓ</a>
+<a id="940" href="Data.Sign.Base.html#912" class="Function">*-rawMagma</a> <a id="951" class="Symbol">=</a> <a id="953" class="Keyword">record</a>
+  <a id="962" class="Symbol">{</a> <a id="964" href="Algebra.Bundles.Raw.html#1174" class="Field Operator">_≈_</a> <a id="968" class="Symbol">=</a> <a id="970" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="976" class="Symbol">;</a> <a id="978" href="Algebra.Bundles.Raw.html#1202" class="Field Operator">_∙_</a> <a id="982" class="Symbol">=</a> <a id="984" href="Data.Sign.Base.html#764" class="Function Operator">_*_</a>
+  <a id="990" class="Symbol">}</a>
+
+<a id="*-1-rawMonoid"></a><a id="993" href="Data.Sign.Base.html#993" class="Function">*-1-rawMonoid</a> <a id="1007" class="Symbol">:</a> <a id="1009" href="Algebra.Bundles.Raw.html#1534" class="Record">RawMonoid</a> <a id="1019" href="Level.html#521" class="Function">0ℓ</a> <a id="1022" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1025" href="Data.Sign.Base.html#993" class="Function">*-1-rawMonoid</a> <a id="1039" class="Symbol">=</a> <a id="1041" class="Keyword">record</a>
+  <a id="1050" class="Symbol">{</a> <a id="1052" href="Algebra.Bundles.Raw.html#1636" class="Field Operator">_≈_</a> <a id="1056" class="Symbol">=</a> <a id="1058" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1064" class="Symbol">;</a> <a id="1066" href="Algebra.Bundles.Raw.html#1664" class="Field Operator">_∙_</a> <a id="1070" class="Symbol">=</a> <a id="1072" href="Data.Sign.Base.html#764" class="Function Operator">_*_</a>
+  <a id="1078" class="Symbol">;</a> <a id="1080" href="Algebra.Bundles.Raw.html#1690" class="Field">ε</a> <a id="1082" class="Symbol">=</a> <a id="1084" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a>
+  <a id="1088" class="Symbol">}</a>
+
+<a id="*-1-rawGroup"></a><a id="1091" href="Data.Sign.Base.html#1091" class="Function">*-1-rawGroup</a> <a id="1104" class="Symbol">:</a> <a id="1106" href="Algebra.Bundles.Raw.html#2067" class="Record">RawGroup</a> <a id="1115" href="Level.html#521" class="Function">0ℓ</a> <a id="1118" href="Level.html#521" class="Function">0ℓ</a>
+<a id="1121" href="Data.Sign.Base.html#1091" class="Function">*-1-rawGroup</a> <a id="1134" class="Symbol">=</a> <a id="1136" class="Keyword">record</a>
+  <a id="1145" class="Symbol">{</a> <a id="1147" href="Algebra.Bundles.Raw.html#2183" class="Field Operator">_≈_</a> <a id="1151" class="Symbol">=</a> <a id="1153" href="Agda.Builtin.Equality.html#150" class="Datatype Operator">_≡_</a>
+  <a id="1159" class="Symbol">;</a> <a id="1161" href="Algebra.Bundles.Raw.html#2211" class="Field Operator">_∙_</a> <a id="1165" class="Symbol">=</a> <a id="1167" href="Data.Sign.Base.html#764" class="Function Operator">_*_</a>
+  <a id="1173" class="Symbol">;</a> <a id="1175" href="Algebra.Bundles.Raw.html#2259" class="Field Operator">_⁻¹</a> <a id="1179" class="Symbol">=</a> <a id="1181" href="Data.Sign.Base.html#674" class="Function">opposite</a>
+  <a id="1192" class="Symbol">;</a> <a id="1194" href="Algebra.Bundles.Raw.html#2237" class="Field">ε</a> <a id="1196" class="Symbol">=</a> <a id="1198" href="Data.Sign.Base.html#553" class="InductiveConstructor">+</a>
+  <a id="1202" class="Symbol">}</a>
+
+</pre></body></html>

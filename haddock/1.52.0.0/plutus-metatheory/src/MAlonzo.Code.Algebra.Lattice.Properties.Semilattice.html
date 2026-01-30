@@ -1,0 +1,3100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE BangPatterns              #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyCase                 #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE EmptyDataDecls            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ExistentialQuantification #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoMonomorphismRestriction #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings         #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE PatternSynonyms           #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE RankNTypes                #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ScopedTypeVariables       #-}</span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -Wno-overlapping-patterns #-}</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >MAlonzo.Code.Algebra.Lattice.Properties.Semilattice</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/text-2.0.2/docs/src/Data.Text.html"
+	><span class="hs-identifier"
+	  >Data.Text</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Agda.Primitive</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Bundles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Bundles.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Bundles</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Structures.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Structures</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Properties.Poset.html"
+	><span class="hs-identifier"
+	  >MAlonzo.Code.Relation.Binary.Properties.Poset</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#add64"
+	><span class="hs-identifier"
+	  >add64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#addInt"
+	><span class="hs-identifier"
+	  >addInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier"
+	  >coe</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eq64"
+	><span class="hs-identifier"
+	  >eq64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#eqInt"
+	><span class="hs-identifier"
+	  >eqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier"
+	  >erased</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#geqInt"
+	><span class="hs-identifier"
+	  >geqInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#lt64"
+	><span class="hs-identifier"
+	  >lt64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#ltInt"
+	><span class="hs-identifier"
+	  >ltInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mul64"
+	><span class="hs-identifier"
+	  >mul64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#mulInt"
+	><span class="hs-identifier"
+	  >mulInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quot64"
+	><span class="hs-identifier"
+	  >quot64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#quotInt"
+	><span class="hs-identifier"
+	  >quotInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#rem64"
+	><span class="hs-identifier"
+	  >rem64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#remInt"
+	><span class="hs-identifier"
+	  >remInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#sub64"
+	><span class="hs-identifier"
+	  >sub64</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#subInt"
+	><span class="hs-identifier"
+	  >subInt</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64FromNat"
+	><span class="hs-identifier"
+	  >word64FromNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >                    </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#word64ToNat"
+	><span class="hs-identifier"
+	  >word64ToNat</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html"
+	><span class="hs-identifier"
+	  >MAlonzo.RTE</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-comment"
+      >-- Algebra.Lattice.Properties.Semilattice.poset</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_poset_162"
+	><span class="hs-identifier hs-type"
+	  >d_poset_162</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Poset_314"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Poset_314</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span id="d_poset_162"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_poset_162 :: T_Level_18 -&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; T_Poset_314
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_poset_162"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_poset_162</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538571"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538571"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538572"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538572"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538573"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538573"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_Poset_314
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_poset_162"
+	><span class="hs-identifier hs-var"
+	  >du_poset_162</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538573"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_poset_162"
+	><span class="hs-identifier hs-type"
+	  >du_poset_162</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Bundles.html#T_Poset_314"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Bundles.T_Poset_314</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span id="du_poset_162"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_poset_162 :: T_Semilattice_10 -&gt; T_Poset_314
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_poset_162"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_poset_162</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538575"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538575"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any) -&gt; T_IsCommutativeBand_590 -&gt; T_Poset_314)
+-&gt; Any -&gt; Any -&gt; T_Poset_314
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any) -&gt; T_IsCommutativeBand_590 -&gt; T_Poset_314
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.html#du_poset_3784"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.du_poset_3784</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d__%278729%27__28"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d__'8729'__28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538575"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; T_IsCommutativeBand_590) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_IsCommutativeBand_590
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d_isSemilattice_30"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d_isSemilattice_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538575"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span class="hs-comment"
+      >-- Algebra.Lattice.Properties.Semilattice._._&#8804;_</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d__%278804%27__166"
+	><span class="hs-identifier hs-type"
+	  >d__'8804'__166</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span id="d__%278804%27__166"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'8804'__166 :: T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; Any -&gt; Any -&gt; T_Level_18
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d__%278804%27__166"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'8804'__166</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; Any -&gt; Any -&gt; T_Level_18
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span class="hs-comment"
+      >-- Algebra.Lattice.Properties.Semilattice._._&#8819;_</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d__%278819%27__168"
+	><span class="hs-identifier hs-type"
+	  >d__'8819'__168</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="MAlonzo.RTE.html#AgdaAny"
+	><span class="hs-identifier hs-type"
+	  >AgdaAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span id="d__%278819%27__168"
+      ><span class="annot"
+	><span class="annottext"
+	  >d__'8819'__168 :: T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; Any -&gt; Any -&gt; T_Level_18
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d__%278819%27__168"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d__'8819'__168</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; Any -&gt; Any -&gt; T_Level_18
+forall a. a
+</span
+	><a href="MAlonzo.RTE.html#erased"
+	><span class="hs-identifier hs-var"
+	  >erased</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span class="hs-comment"
+      >-- Algebra.Lattice.Properties.Semilattice.&#8743;-isOrderTheoreticMeetSemilattice</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+	><span class="hs-identifier hs-type"
+	  >d_'8743''45'isOrderTheoreticMeetSemilattice_176</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Structures.html#T_IsMeetSemilattice_180"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsMeetSemilattice_180</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span id="d_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8743''45'isOrderTheoreticMeetSemilattice_176 :: T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; T_IsMeetSemilattice_180
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8743''45'isOrderTheoreticMeetSemilattice_176</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538582"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538582"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538583"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538583"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538584"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538584"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_IsMeetSemilattice_180
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+	><span class="hs-identifier hs-var"
+	  >du_'8743''45'isOrderTheoreticMeetSemilattice_176</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538584"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+	><span class="hs-identifier hs-type"
+	  >du_'8743''45'isOrderTheoreticMeetSemilattice_176</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Structures.html#T_IsMeetSemilattice_180"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsMeetSemilattice_180</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span id="du_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'8743''45'isOrderTheoreticMeetSemilattice_176 :: T_Semilattice_10 -&gt; T_IsMeetSemilattice_180
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'8743''45'isOrderTheoreticMeetSemilattice_176</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538586"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538586"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsPartialOrder_174
+ -&gt; (Any -&gt; Any -&gt; T_&#931;_14) -&gt; T_IsMeetSemilattice_180)
+-&gt; Any -&gt; Any -&gt; T_IsMeetSemilattice_180
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsPartialOrder_174
+-&gt; (Any -&gt; Any -&gt; T_&#931;_14) -&gt; T_IsMeetSemilattice_180
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Lattice.Structures.html#C_IsMeetSemilattice%2746%27constructor_7577"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Structures.C_IsMeetSemilattice'46'constructor_7577</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Poset_314 -&gt; T_IsPartialOrder_174) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Poset_314 -&gt; T_IsPartialOrder_174
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Bundles.html#d_isPartialOrder_336"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Bundles.d_isPartialOrder_336</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; T_Poset_314) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_Poset_314
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_poset_162"
+	><span class="hs-identifier hs-var"
+	  >du_poset_162</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538586"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any)
+ -&gt; T_IsCommutativeBand_590 -&gt; Any -&gt; Any -&gt; T_&#931;_14)
+-&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any)
+-&gt; T_IsCommutativeBand_590 -&gt; Any -&gt; Any -&gt; T_&#931;_14
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.html#du_infimum_3640"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.du_infimum_3640</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d__%278729%27__28"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d__'8729'__28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538586"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; T_IsCommutativeBand_590) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_IsCommutativeBand_590
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d_isSemilattice_30"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d_isSemilattice_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538586"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span class="hs-comment"
+      >-- Algebra.Lattice.Properties.Semilattice.&#8743;-isOrderTheoreticJoinSemilattice</span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+	><span class="hs-identifier hs-type"
+	  >d_'8743''45'isOrderTheoreticJoinSemilattice_178</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Structures.html#T_IsJoinSemilattice_22"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsJoinSemilattice_22</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span id="d_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8743''45'isOrderTheoreticJoinSemilattice_178 :: T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; T_IsJoinSemilattice_22
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8743''45'isOrderTheoreticJoinSemilattice_178</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538591"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538591"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538592"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538592"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538593"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538593"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_IsJoinSemilattice_22
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+	><span class="hs-identifier hs-var"
+	  >du_'8743''45'isOrderTheoreticJoinSemilattice_178</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538593"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+	><span class="hs-identifier hs-type"
+	  >du_'8743''45'isOrderTheoreticJoinSemilattice_178</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Structures.html#T_IsJoinSemilattice_22"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Structures.T_IsJoinSemilattice_22</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span id="du_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'8743''45'isOrderTheoreticJoinSemilattice_178 :: T_Semilattice_10 -&gt; T_IsJoinSemilattice_22
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'8743''45'isOrderTheoreticJoinSemilattice_178</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538595"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538595"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_IsPartialOrder_174
+ -&gt; (Any -&gt; Any -&gt; T_&#931;_14) -&gt; T_IsJoinSemilattice_22)
+-&gt; Any -&gt; Any -&gt; T_IsJoinSemilattice_22
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_IsPartialOrder_174
+-&gt; (Any -&gt; Any -&gt; T_&#931;_14) -&gt; T_IsJoinSemilattice_22
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Lattice.Structures.html#C_IsJoinSemilattice%2746%27constructor_527"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Structures.C_IsJoinSemilattice'46'constructor_527</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-94"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Poset_314 -&gt; T_IsPartialOrder_174) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-95"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Poset_314 -&gt; T_IsPartialOrder_174
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Properties.Poset.html#du_%278805%27%2745%27isPartialOrder_142"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Properties.Poset.du_'8805''45'isPartialOrder_142</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-96"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; T_Poset_314) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_Poset_314
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_poset_162"
+	><span class="hs-identifier hs-var"
+	  >du_poset_162</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538595"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-97"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any)
+ -&gt; T_IsCommutativeBand_590 -&gt; Any -&gt; Any -&gt; T_&#931;_14)
+-&gt; Any -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-98"
+      ></span
+      ><span
+      >         </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any)
+-&gt; T_IsCommutativeBand_590 -&gt; Any -&gt; Any -&gt; T_&#931;_14
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.html#du_infimum_3640"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Construct.NaturalOrder.Left.du_infimum_3640</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-99"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d__%278729%27__28"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d__'8729'__28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538595"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-100"
+      ></span
+      ><span
+      >         </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; T_IsCommutativeBand_590) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-101"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_IsCommutativeBand_590
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d_isSemilattice_30"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d_isSemilattice_30</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538595"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-102"
+      ></span
+      ><span class="hs-comment"
+      >-- Algebra.Lattice.Properties.Semilattice.&#8743;-orderTheoreticMeetSemilattice</span
+      ><span
+      >
+</span
+      ><span id="line-103"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27orderTheoreticMeetSemilattice_180"
+	><span class="hs-identifier hs-type"
+	  >d_'8743''45'orderTheoreticMeetSemilattice_180</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-104"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-105"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-106"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-107"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Bundles.html#T_MeetSemilattice_200"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_MeetSemilattice_200</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-108"
+      ></span
+      ><span id="d_%278743%27%2745%27orderTheoreticMeetSemilattice_180"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8743''45'orderTheoreticMeetSemilattice_180 :: T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; T_MeetSemilattice_200
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27orderTheoreticMeetSemilattice_180"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8743''45'orderTheoreticMeetSemilattice_180</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538599"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538599"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538600"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538600"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538601"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538601"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-109"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_MeetSemilattice_200
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27orderTheoreticMeetSemilattice_180"
+	><span class="hs-identifier hs-var"
+	  >du_'8743''45'orderTheoreticMeetSemilattice_180</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538601"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-110"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27orderTheoreticMeetSemilattice_180"
+	><span class="hs-identifier hs-type"
+	  >du_'8743''45'orderTheoreticMeetSemilattice_180</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-111"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-112"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Bundles.html#T_MeetSemilattice_200"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_MeetSemilattice_200</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-113"
+      ></span
+      ><span id="du_%278743%27%2745%27orderTheoreticMeetSemilattice_180"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'8743''45'orderTheoreticMeetSemilattice_180 :: T_Semilattice_10 -&gt; T_MeetSemilattice_200
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27orderTheoreticMeetSemilattice_180"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'8743''45'orderTheoreticMeetSemilattice_180</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538603"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538603"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-114"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any)
+ -&gt; T_IsMeetSemilattice_180 -&gt; T_MeetSemilattice_200)
+-&gt; (Any -&gt; Any -&gt; Any) -&gt; Any -&gt; T_MeetSemilattice_200
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-115"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any)
+-&gt; T_IsMeetSemilattice_180 -&gt; T_MeetSemilattice_200
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Lattice.Bundles.html#C_MeetSemilattice%2746%27constructor_4629"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Bundles.C_MeetSemilattice'46'constructor_4629</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-116"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d__%278729%27__28"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d__'8729'__28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_Semilattice_10
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538603"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-117"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; T_IsMeetSemilattice_180) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_IsMeetSemilattice_180
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticMeetSemilattice_176"
+	><span class="hs-identifier hs-var"
+	  >du_'8743''45'isOrderTheoreticMeetSemilattice_176</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538603"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-118"
+      ></span
+      ><span class="hs-comment"
+      >-- Algebra.Lattice.Properties.Semilattice.&#8743;-orderTheoreticJoinSemilattice</span
+      ><span
+      >
+</span
+      ><span id="line-119"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27orderTheoreticJoinSemilattice_182"
+	><span class="hs-identifier hs-type"
+	  >d_'8743''45'orderTheoreticJoinSemilattice_182</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-120"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-121"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Agda.Primitive.html#T_Level_18"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Agda.Primitive.T_Level_18</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-122"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-123"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Bundles.html#T_JoinSemilattice_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_JoinSemilattice_14</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-124"
+      ></span
+      ><span id="d_%278743%27%2745%27orderTheoreticJoinSemilattice_182"
+      ><span class="annot"
+	><span class="annottext"
+	  >d_'8743''45'orderTheoreticJoinSemilattice_182 :: T_Level_18
+-&gt; T_Level_18 -&gt; T_Semilattice_10 -&gt; T_JoinSemilattice_14
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#d_%278743%27%2745%27orderTheoreticJoinSemilattice_182"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >d_'8743''45'orderTheoreticJoinSemilattice_182</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538606"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538606"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >~</span
+      ><span id="local-6989586621682538607"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Level_18
+</span
+	  ><a href="#local-6989586621682538607"
+	  ><span class="hs-identifier hs-var"
+	    >v1</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538608"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538608"
+	  ><span class="hs-identifier hs-var"
+	    >v2</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-125"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_JoinSemilattice_14
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27orderTheoreticJoinSemilattice_182"
+	><span class="hs-identifier hs-var"
+	  >du_'8743''45'orderTheoreticJoinSemilattice_182</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538608"
+	><span class="hs-identifier hs-var"
+	  >v2</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-126"
+      ></span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27orderTheoreticJoinSemilattice_182"
+	><span class="hs-identifier hs-type"
+	  >du_'8743''45'orderTheoreticJoinSemilattice_182</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      >
+</span
+      ><span id="line-127"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#T_Semilattice_10"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.T_Semilattice_10</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-128"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><a href="MAlonzo.Code.Relation.Binary.Lattice.Bundles.html#T_JoinSemilattice_14"
+	><span class="hs-identifier hs-type"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Bundles.T_JoinSemilattice_14</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-129"
+      ></span
+      ><span id="du_%278743%27%2745%27orderTheoreticJoinSemilattice_182"
+      ><span class="annot"
+	><span class="annottext"
+	  >du_'8743''45'orderTheoreticJoinSemilattice_182 :: T_Semilattice_10 -&gt; T_JoinSemilattice_14
+</span
+	  ><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27orderTheoreticJoinSemilattice_182"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >du_'8743''45'orderTheoreticJoinSemilattice_182</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682538610"
+      ><span class="annot"
+	><span class="annottext"
+	  >T_Semilattice_10
+</span
+	  ><a href="#local-6989586621682538610"
+	  ><span class="hs-identifier hs-var"
+	    >v0</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-130"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((Any -&gt; Any -&gt; Any)
+ -&gt; T_IsJoinSemilattice_22 -&gt; T_JoinSemilattice_14)
+-&gt; (Any -&gt; Any -&gt; Any) -&gt; Any -&gt; T_JoinSemilattice_14
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-131"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Any -&gt; Any -&gt; Any)
+-&gt; T_IsJoinSemilattice_22 -&gt; T_JoinSemilattice_14
+</span
+	><a href="MAlonzo.Code.Relation.Binary.Lattice.Bundles.html#C_JoinSemilattice%2746%27constructor_371"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Relation.Binary.Lattice.Bundles.C_JoinSemilattice'46'constructor_371</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-132"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any -&gt; Any -&gt; Any
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Bundles.html#d__%278729%27__28"
+	><span class="hs-identifier hs-var"
+	  >MAlonzo.Code.Algebra.Lattice.Bundles.d__'8729'__28</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_Semilattice_10
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538610"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-133"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(T_Semilattice_10 -&gt; T_IsJoinSemilattice_22) -&gt; Any -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; T_IsJoinSemilattice_22
+</span
+	><a href="MAlonzo.Code.Algebra.Lattice.Properties.Semilattice.html#du_%278743%27%2745%27isOrderTheoreticJoinSemilattice_178"
+	><span class="hs-identifier hs-var"
+	  >du_'8743''45'isOrderTheoreticJoinSemilattice_178</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10 -&gt; Any
+forall a b. a -&gt; b
+</span
+	><a href="MAlonzo.RTE.html#coe"
+	><span class="hs-identifier hs-var"
+	  >coe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>T_Semilattice_10
+</span
+	><a href="#local-6989586621682538610"
+	><span class="hs-identifier hs-var"
+	  >v0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-134"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

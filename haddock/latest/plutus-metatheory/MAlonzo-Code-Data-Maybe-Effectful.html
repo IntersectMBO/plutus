@@ -1,0 +1,629 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >MAlonzo.Code.Data.Maybe.Effectful</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-metatheory-1.56.0.0: Command line tool for running plutus core programs</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/MAlonzo.Code.Data.Maybe.Effectful.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>MAlonzo.Code.Data.Maybe.Effectful</p
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_functor_22" class="def"
+	    >d_functor_22</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Functor.html#t:T_RawFunctor_24" title="MAlonzo.Code.Effect.Functor"
+	    >T_RawFunctor_24</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_functor_22" class="link"
+	    >Source</a
+	    > <a href="#v:d_functor_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_functor_22" class="def"
+	    >du_functor_22</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Functor.html#t:T_RawFunctor_24" title="MAlonzo.Code.Effect.Functor"
+	    >T_RawFunctor_24</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_functor_22" class="link"
+	    >Source</a
+	    > <a href="#v:du_functor_22" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_applicative_24" class="def"
+	    >d_applicative_24</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_applicative_24" class="link"
+	    >Source</a
+	    > <a href="#v:d_applicative_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_applicative_24" class="def"
+	    >du_applicative_24</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_applicative_24" class="link"
+	    >Source</a
+	    > <a href="#v:du_applicative_24" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_empty_26" class="def"
+	    >d_empty_26</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Empty.html#t:T_RawEmpty_16" title="MAlonzo.Code.Effect.Empty"
+	    >T_RawEmpty_16</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_empty_26" class="link"
+	    >Source</a
+	    > <a href="#v:d_empty_26" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_empty_26" class="def"
+	    >du_empty_26</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Empty.html#t:T_RawEmpty_16" title="MAlonzo.Code.Effect.Empty"
+	    >T_RawEmpty_16</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_empty_26" class="link"
+	    >Source</a
+	    > <a href="#v:du_empty_26" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_choice_28" class="def"
+	    >d_choice_28</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Choice.html#t:T_RawChoice_16" title="MAlonzo.Code.Effect.Choice"
+	    >T_RawChoice_16</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_choice_28" class="link"
+	    >Source</a
+	    > <a href="#v:d_choice_28" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_choice_28" class="def"
+	    >du_choice_28</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Choice.html#t:T_RawChoice_16" title="MAlonzo.Code.Effect.Choice"
+	    >T_RawChoice_16</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_choice_28" class="link"
+	    >Source</a
+	    > <a href="#v:du_choice_28" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_applicativeZero_30" class="def"
+	    >d_applicativeZero_30</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicativeZero_120" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicativeZero_120</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_applicativeZero_30" class="link"
+	    >Source</a
+	    > <a href="#v:d_applicativeZero_30" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_applicativeZero_30" class="def"
+	    >du_applicativeZero_30</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicativeZero_120" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicativeZero_120</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_applicativeZero_30" class="link"
+	    >Source</a
+	    > <a href="#v:du_applicativeZero_30" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_alternative_32" class="def"
+	    >d_alternative_32</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawAlternative_180" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawAlternative_180</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_alternative_32" class="link"
+	    >Source</a
+	    > <a href="#v:d_alternative_32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_alternative_32" class="def"
+	    >du_alternative_32</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawAlternative_180" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawAlternative_180</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_alternative_32" class="link"
+	    >Source</a
+	    > <a href="#v:du_alternative_32" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_monad_34" class="def"
+	    >d_monad_34</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_monad_34" class="link"
+	    >Source</a
+	    > <a href="#v:d_monad_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_monad_34" class="def"
+	    >du_monad_34</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_monad_34" class="link"
+	    >Source</a
+	    > <a href="#v:du_monad_34" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_join_36" class="def"
+	    >d_join_36</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_join_36" class="link"
+	    >Source</a
+	    > <a href="#v:d_join_36" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_join_36" class="def"
+	    >du_join_36</a
+	    > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_join_36" class="link"
+	    >Source</a
+	    > <a href="#v:du_join_36" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_monadZero_38" class="def"
+	    >d_monadZero_38</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadZero_206" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadZero_206</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_monadZero_38" class="link"
+	    >Source</a
+	    > <a href="#v:d_monadZero_38" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_monadZero_38" class="def"
+	    >du_monadZero_38</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadZero_206" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadZero_206</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_monadZero_38" class="link"
+	    >Source</a
+	    > <a href="#v:du_monadZero_38" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_monadPlus_40" class="def"
+	    >d_monadPlus_40</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadPlus_284" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadPlus_284</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_monadPlus_40" class="link"
+	    >Source</a
+	    > <a href="#v:d_monadPlus_40" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_monadPlus_40" class="def"
+	    >du_monadPlus_40</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonadPlus_284" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonadPlus_284</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_monadPlus_40" class="link"
+	    >Source</a
+	    > <a href="#v:du_monadPlus_40" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sequenceA_88" class="def"
+	    >d_sequenceA_88</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_sequenceA_88" class="link"
+	    >Source</a
+	    > <a href="#v:d_sequenceA_88" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_sequenceA_88" class="def"
+	    >du_sequenceA_88</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_sequenceA_88" class="link"
+	    >Source</a
+	    > <a href="#v:du_sequenceA_88" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_mapA_92" class="def"
+	    >d_mapA_92</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_mapA_92" class="link"
+	    >Source</a
+	    > <a href="#v:d_mapA_92" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_mapA_92" class="def"
+	    >du_mapA_92</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_mapA_92" class="link"
+	    >Source</a
+	    > <a href="#v:du_mapA_92" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_forA_96" class="def"
+	    >d_forA_96</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_forA_96" class="link"
+	    >Source</a
+	    > <a href="#v:d_forA_96" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_forA_96" class="def"
+	    >du_forA_96</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Applicative.html#t:T_RawApplicative_20" title="MAlonzo.Code.Effect.Applicative"
+	    >T_RawApplicative_20</a
+	    > &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_forA_96" class="link"
+	    >Source</a
+	    > <a href="#v:du_forA_96" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_forA_162" class="def"
+	    >d_forA_162</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_forA_162" class="link"
+	    >Source</a
+	    > <a href="#v:d_forA_162" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_forA_162" class="def"
+	    >du_forA_162</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_forA_162" class="link"
+	    >Source</a
+	    > <a href="#v:du_forA_162" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_mapA_164" class="def"
+	    >d_mapA_164</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_mapA_164" class="link"
+	    >Source</a
+	    > <a href="#v:d_mapA_164" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_mapA_164" class="def"
+	    >du_mapA_164</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; () &#8594; () &#8594; (<a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    >) &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_mapA_164" class="link"
+	    >Source</a
+	    > <a href="#v:du_mapA_164" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:d_sequenceA_166" class="def"
+	    >d_sequenceA_166</a
+	    > &#8759; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; <a href="MAlonzo-Code-Agda-Primitive.html#t:T_Level_18" title="MAlonzo.Code.Agda.Primitive"
+	    >T_Level_18</a
+	    > &#8594; (() &#8594; ()) &#8594; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#d_sequenceA_166" class="link"
+	    >Source</a
+	    > <a href="#v:d_sequenceA_166" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:du_sequenceA_166" class="def"
+	    >du_sequenceA_166</a
+	    > &#8759; <a href="MAlonzo-Code-Effect-Monad.html#t:T_RawMonad_24" title="MAlonzo.Code.Effect.Monad"
+	    >T_RawMonad_24</a
+	    > &#8594; () &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Maybe.html#t:Maybe" title="Data.Maybe"
+	    >Maybe</a
+	    > <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > &#8594; <a href="MAlonzo-RTE.html#t:AgdaAny" title="MAlonzo.RTE"
+	    >AgdaAny</a
+	    > <a href="src/MAlonzo.Code.Data.Maybe.Effectful.html#du_sequenceA_166" class="link"
+	    >Source</a
+	    > <a href="#v:du_sequenceA_166" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

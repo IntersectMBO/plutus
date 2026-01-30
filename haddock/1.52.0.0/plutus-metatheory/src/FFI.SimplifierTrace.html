@@ -1,0 +1,943 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >FFI.SimplifierTrace</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="FFI.SimplifierTrace.html#mkFfiSimplifierTrace"
+	><span class="hs-identifier"
+	  >mkFfiSimplifierTrace</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="FFI.Untyped.html"
+	><span class="hs-identifier"
+	  >FFI.Untyped</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>FFI</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>UPLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html"
+	><span class="hs-identifier"
+	  >UntypedPlutusCore.Transform.Simplifier</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span id="local-6989586621682459642"
+      ><span class="annot"
+	><a href="FFI.SimplifierTrace.html#mkFfiSimplifierTrace"
+	  ><span class="hs-identifier hs-type"
+	    >mkFfiSimplifierTrace</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-13"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>::</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierTrace"
+	  ><span class="hs-identifier hs-type"
+	    >SimplifierTrace</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Name.Unique.html#Name"
+	  ><span class="hs-identifier hs-type"
+	    >UPLC.Name</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Universe.html#DefaultUni"
+	  ><span class="hs-identifier hs-type"
+	    >UPLC.DefaultUni</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="../../plutus-core/src/PlutusCore.Default.Builtins.html#DefaultFun"
+	  ><span class="hs-identifier hs-type"
+	    >UPLC.DefaultFun</span
+	    ></a
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="#local-6989586621682459642"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	><span
+	>
+</span
+	><span id="line-14"
+	></span
+	><span
+	>  </span
+	><span class="hs-glyph"
+	>-&gt;</span
+	><span
+	> </span
+	><span class="hs-special"
+	>[</span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierStage"
+	  ><span class="hs-identifier hs-type"
+	    >SimplifierStage</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="hs-special"
+	>(</span
+	><span class="annot"
+	><a href="FFI.Untyped.html#UTerm"
+	  ><span class="hs-identifier hs-type"
+	    >FFI.UTerm</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>,</span
+	><span
+	> </span
+	><span class="annot"
+	><a href="FFI.Untyped.html#UTerm"
+	  ><span class="hs-identifier hs-type"
+	    >FFI.UTerm</span
+	    ></a
+	  ></span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>)</span
+	><span class="hs-special"
+	>]</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span id="mkFfiSimplifierTrace"
+      ><span class="annot"
+	><span class="annottext"
+	  >mkFfiSimplifierTrace :: forall a.
+SimplifierTrace Name DefaultUni DefaultFun a
+-&gt; [(SimplifierStage, (UTerm, UTerm))]
+</span
+	  ><a href="FFI.SimplifierTrace.html#mkFfiSimplifierTrace"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >mkFfiSimplifierTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#SimplifierTrace"
+	><span class="hs-identifier hs-type"
+	  >SimplifierTrace</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682459687"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Simplification Name DefaultUni DefaultFun a]
+</span
+	  ><a href="#local-6989586621682459687"
+	  ><span class="hs-identifier hs-var"
+	    >simplTrace</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(SimplifierStage, (UTerm, UTerm))]
+-&gt; [(SimplifierStage, (UTerm, UTerm))]
+forall a. [a] -&gt; [a]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.List.html#reverse"
+	><span class="hs-identifier hs-var"
+	  >reverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(SimplifierStage, (UTerm, UTerm))]
+ -&gt; [(SimplifierStage, (UTerm, UTerm))])
+-&gt; [(SimplifierStage, (UTerm, UTerm))]
+-&gt; [(SimplifierStage, (UTerm, UTerm))]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Simplification Name DefaultUni DefaultFun a
+-&gt; (SimplifierStage, (UTerm, UTerm))
+forall {a}.
+Simplification Name DefaultUni DefaultFun a
+-&gt; (SimplifierStage, (UTerm, UTerm))
+</span
+	><a href="#local-6989586621682459689"
+	><span class="hs-identifier hs-var"
+	  >toFfiAst</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Simplification Name DefaultUni DefaultFun a
+ -&gt; (SimplifierStage, (UTerm, UTerm)))
+-&gt; [Simplification Name DefaultUni DefaultFun a]
+-&gt; [(SimplifierStage, (UTerm, UTerm))]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Simplification Name DefaultUni DefaultFun a]
+</span
+	><a href="#local-6989586621682459687"
+	><span class="hs-identifier hs-var"
+	  >simplTrace</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621682459689"
+      ><span class="annot"
+	><span class="annottext"
+	  >toFfiAst :: Simplification Name DefaultUni DefaultFun a
+-&gt; (SimplifierStage, (UTerm, UTerm))
+</span
+	  ><a href="#local-6989586621682459689"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >toFfiAst</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/UntypedPlutusCore.Transform.Simplifier.html#Simplification"
+	><span class="hs-identifier hs-type"
+	  >Simplification</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >{</span
+      ><span id="local-6989586621682459705"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term Name DefaultUni DefaultFun a
+beforeAST :: Term Name DefaultUni DefaultFun a
+beforeAST :: forall name (uni :: * -&gt; *) fun a.
+Simplification name uni fun a -&gt; Term name uni fun a
+</span
+	  ><a href="#local-6989586621682459705"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >beforeAST</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682459707"
+      ><span class="annot"
+	><span class="annottext"
+	  >SimplifierStage
+stage :: SimplifierStage
+stage :: forall name (uni :: * -&gt; *) fun a.
+Simplification name uni fun a -&gt; SimplifierStage
+</span
+	  ><a href="#local-6989586621682459707"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >stage</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621682459709"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term Name DefaultUni DefaultFun a
+afterAST :: Term Name DefaultUni DefaultFun a
+afterAST :: forall name (uni :: * -&gt; *) fun a.
+Simplification name uni fun a -&gt; Term name uni fun a
+</span
+	  ><a href="#local-6989586621682459709"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >afterAST</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun a
+-&gt; Either
+     FreeVariableError (Term NamedDeBruijn DefaultUni DefaultFun a)
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann.
+MonadError FreeVariableError m =&gt;
+Term Name uni fun ann -&gt; m (Term NamedDeBruijn uni fun ann)
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.DeBruijn.html#deBruijnTerm"
+	><span class="hs-identifier hs-var"
+	  >UPLC.deBruijnTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621682459705"
+	><span class="hs-identifier hs-var"
+	  >beforeAST</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun a
+-&gt; Either
+     FreeVariableError (Term NamedDeBruijn DefaultUni DefaultFun a)
+forall (m :: * -&gt; *) (uni :: * -&gt; *) fun ann.
+MonadError FreeVariableError m =&gt;
+Term Name uni fun ann -&gt; m (Term NamedDeBruijn uni fun ann)
+</span
+	><a href="../../plutus-core/src/UntypedPlutusCore.DeBruijn.html#deBruijnTerm"
+	><span class="hs-identifier hs-var"
+	  >UPLC.deBruijnTerm</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term Name DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621682459709"
+	><span class="hs-identifier hs-var"
+	  >afterAST</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682459712"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term NamedDeBruijn DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621682459712"
+	  ><span class="hs-identifier hs-var"
+	    >before'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Right"
+	><span class="hs-identifier hs-type"
+	  >Right</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621682459713"
+      ><span class="annot"
+	><span class="annottext"
+	  >Term NamedDeBruijn DefaultUni DefaultFun a
+</span
+	  ><a href="#local-6989586621682459713"
+	  ><span class="hs-identifier hs-var"
+	    >after'</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >             </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>SimplifierStage
+</span
+	><a href="#local-6989586621682459707"
+	><span class="hs-identifier hs-var"
+	  >stage</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun () -&gt; UTerm
+forall a. Term NamedDeBruijn DefaultUni DefaultFun a -&gt; UTerm
+</span
+	><a href="FFI.Untyped.html#conv"
+	><span class="hs-identifier hs-var"
+	  >FFI.conv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun a
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier hs-var"
+	  >void</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621682459712"
+	><span class="hs-identifier hs-var"
+	  >before'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun () -&gt; UTerm
+forall a. Term NamedDeBruijn DefaultUni DefaultFun a -&gt; UTerm
+</span
+	><a href="FFI.Untyped.html#conv"
+	><span class="hs-identifier hs-var"
+	  >FFI.conv</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun a
+-&gt; Term NamedDeBruijn DefaultUni DefaultFun ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#void"
+	><span class="hs-identifier hs-var"
+	  >void</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Term NamedDeBruijn DefaultUni DefaultFun a
+</span
+	><a href="#local-6989586621682459713"
+	><span class="hs-identifier hs-var"
+	  >after'</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682459716"
+      ><span class="annot"
+	><span class="annottext"
+	  >FreeVariableError
+</span
+	  ><a href="#local-6989586621682459716"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#FreeVariableError"
+	><span class="hs-identifier hs-type"
+	  >UPLC.FreeVariableError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  FreeVariableError (Term NamedDeBruijn DefaultUni DefaultFun a)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; (SimplifierStage, (UTerm, UTerm))
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Char] -&gt; (SimplifierStage, (UTerm, UTerm)))
+-&gt; [Char] -&gt; (SimplifierStage, (UTerm, UTerm))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FreeVariableError -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FreeVariableError
+</span
+	><a href="#local-6989586621682459716"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Either
+  FreeVariableError (Term NamedDeBruijn DefaultUni DefaultFun a)
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Either.html#Left"
+	><span class="hs-identifier hs-type"
+	  >Left</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621682459719"
+      ><span class="annot"
+	><span class="annottext"
+	  >FreeVariableError
+</span
+	  ><a href="#local-6989586621682459719"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.DeBruijn.Internal.html#FreeVariableError"
+	><span class="hs-identifier hs-type"
+	  >UPLC.FreeVariableError</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Char] -&gt; (SimplifierStage, (UTerm, UTerm))
+forall a. HasCallStack =&gt; [Char] -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Err.html#error"
+	><span class="hs-identifier hs-var"
+	  >error</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Char] -&gt; (SimplifierStage, (UTerm, UTerm)))
+-&gt; [Char] -&gt; (SimplifierStage, (UTerm, UTerm))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FreeVariableError -&gt; [Char]
+forall a. Show a =&gt; a -&gt; [Char]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#show"
+	><span class="hs-identifier hs-var"
+	  >show</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FreeVariableError
+</span
+	><a href="#local-6989586621682459719"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

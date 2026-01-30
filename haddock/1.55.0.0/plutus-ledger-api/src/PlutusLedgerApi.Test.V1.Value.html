@@ -1,0 +1,2151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# OPTIONS_GHC -fno-warn-orphans #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusLedgerApi.Test.V1.Value</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.V1</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.AssocMap.html"
+	><span class="hs-identifier"
+	  >PlutusTx.AssocMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>AssocMap</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.List.html"
+	><span class="hs-identifier"
+	  >PlutusTx.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>ListTx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Builtin.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.QuickCheck.Builtin</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Utils.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Generators.QuickCheck.Utils</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Split.html#multiSplit0"
+	><span class="hs-identifier"
+	  >multiSplit0</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Value.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>PLC</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html"
+	><span class="hs-identifier"
+	  >Data.Bifunctor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Coerce.html"
+	><span class="hs-identifier"
+	  >Data.Coerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Strict.html"
+	><span class="hs-identifier"
+	  >Data.Map.Strict</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Map</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Test.QuickCheck</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a list representation of a 'Value' to the 'Value'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V1.Value.html#listsToValue"
+	><span class="hs-identifier hs-type"
+	  >listsToValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#CurrencySymbol"
+	><span class="hs-identifier hs-type"
+	  >CurrencySymbol</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#TokenName"
+	><span class="hs-identifier hs-type"
+	  >TokenName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#Value"
+	><span class="hs-identifier hs-type"
+	  >Value</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span id="listsToValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -&gt; Value
+</span
+	  ><a href="PlutusLedgerApi.Test.V1.Value.html#listsToValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >listsToValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer) -&gt; Value
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#Value"
+	><span class="hs-identifier hs-var"
+	  >Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer) -&gt; Value)
+-&gt; ([(CurrencySymbol, [(TokenName, Integer)])]
+    -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+-&gt; Value
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, Map TokenName Integer)]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall k v. [(k, v)] -&gt; Map k v
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#unsafeFromList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.unsafeFromList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; ([(CurrencySymbol, [(TokenName, Integer)])]
+    -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+-&gt; Map CurrencySymbol (Map TokenName Integer)
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CurrencySymbol, [(TokenName, Integer)])
+ -&gt; (CurrencySymbol, Map TokenName Integer))
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.List.html#map"
+	><span class="hs-identifier hs-var"
+	  >ListTx.map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(TokenName, Integer)] -&gt; Map TokenName Integer)
+-&gt; (CurrencySymbol, [(TokenName, Integer)])
+-&gt; (CurrencySymbol, Map TokenName Integer)
+forall a b. (a -&gt; b) -&gt; (CurrencySymbol, a) -&gt; (CurrencySymbol, b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(TokenName, Integer)] -&gt; Map TokenName Integer
+forall k v. [(k, v)] -&gt; Map k v
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#unsafeFromList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.unsafeFromList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | Convert a 'Value' to its list representation.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V1.Value.html#valueToLists"
+	><span class="hs-identifier hs-type"
+	  >valueToLists</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#Value"
+	><span class="hs-identifier hs-type"
+	  >Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#CurrencySymbol"
+	><span class="hs-identifier hs-type"
+	  >CurrencySymbol</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#TokenName"
+	><span class="hs-identifier hs-type"
+	  >TokenName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span id="valueToLists"
+      ><span class="annot"
+	><span class="annottext"
+	  >valueToLists :: Value -&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+</span
+	  ><a href="PlutusLedgerApi.Test.V1.Value.html#valueToLists"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >valueToLists</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((CurrencySymbol, Map TokenName Integer)
+ -&gt; (CurrencySymbol, [(TokenName, Integer)]))
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.List.html#map"
+	><span class="hs-identifier hs-var"
+	  >ListTx.map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map TokenName Integer -&gt; [(TokenName, Integer)])
+-&gt; (CurrencySymbol, Map TokenName Integer)
+-&gt; (CurrencySymbol, [(TokenName, Integer)])
+forall a b. (a -&gt; b) -&gt; (CurrencySymbol, a) -&gt; (CurrencySymbol, b)
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map TokenName Integer -&gt; [(TokenName, Integer)]
+forall k v. Map k v -&gt; [(k, v)]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#toList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.toList</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, Map TokenName Integer)]
+ -&gt; [(CurrencySymbol, [(TokenName, Integer)])])
+-&gt; (Value -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; Value
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map CurrencySymbol (Map TokenName Integer)
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall k v. Map k v -&gt; [(k, v)]
+</span
+	><a href="../../plutus-tx/src/PlutusTx.AssocMap.html#toList"
+	><span class="hs-identifier hs-var"
+	  >AssocMap.toList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map CurrencySymbol (Map TokenName Integer)
+ -&gt; [(CurrencySymbol, Map TokenName Integer)])
+-&gt; (Value -&gt; Map CurrencySymbol (Map TokenName Integer))
+-&gt; Value
+-&gt; [(CurrencySymbol, Map TokenName Integer)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Map CurrencySymbol (Map TokenName Integer)
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#getValue"
+	><span class="hs-identifier hs-var"
+	  >getValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | The value of a 'TokenName' in a 'Value'.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span class="hs-keyword"
+      >newtype</span
+      ><span
+      > </span
+      ><span id="FaceValue"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.V1.Value.html#FaceValue"
+	  ><span class="hs-identifier hs-var"
+	    >FaceValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="FaceValue"
+      ><span class="annot"
+	><a href="PlutusLedgerApi.Test.V1.Value.html#FaceValue"
+	  ><span class="hs-identifier hs-var"
+	    >FaceValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="unFaceValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >FaceValue -&gt; Integer
+</span
+	  ><a href="PlutusLedgerApi.Test.V1.Value.html#unFaceValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >unFaceValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621679228143"
+      ><span class="annot"
+	><span class="hs-identifier hs-type"
+	  >Arbitrary</span
+	  ></span
+	><span
+	> </span
+	><span class="annot"
+	><a href="PlutusLedgerApi.Test.V1.Value.html#FaceValue"
+	  ><span class="hs-identifier hs-type"
+	    >FaceValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- We want to generate zeroes often, because there's a lot of corner cases associated with them</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- and all non-zero numbers are handled pretty much the same anyway, so there isn't much point</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- in diversifying them as much as possible.</span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679228159"
+      ><span class="annot"
+	><span class="annottext"
+	  >arbitrary :: Gen FaceValue
+</span
+	  ><a href="#local-6989586621679228159"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >arbitrary</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(Int, Gen FaceValue)] -&gt; Gen FaceValue
+forall a. HasCallStack =&gt; [(Int, Gen a)] -&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>frequency</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>2</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FaceValue -&gt; Gen FaceValue
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FaceValue -&gt; Gen FaceValue) -&gt; FaceValue -&gt; Gen FaceValue
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; FaceValue
+</span
+	><a href="PlutusLedgerApi.Test.V1.Value.html#FaceValue"
+	><span class="hs-identifier hs-var"
+	  >FaceValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-number"
+	>0</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int
+</span
+	><span class="hs-number"
+	>1</span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer -&gt; FaceValue
+</span
+	><a href="PlutusLedgerApi.Test.V1.Value.html#FaceValue"
+	><span class="hs-identifier hs-var"
+	  >FaceValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; FaceValue) -&gt; (Int -&gt; Integer) -&gt; Int -&gt; FaceValue
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Int -&gt; Integer
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Real.html#fromIntegral"
+	><span class="hs-identifier hs-var"
+	  >fromIntegral</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Int -&gt; FaceValue) -&gt; Gen Int -&gt; Gen FaceValue
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Int"
+	><span class="hs-identifier hs-type"
+	  >Int</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier hs-type"
+	>Arbitrary</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#Value"
+	><span class="hs-identifier hs-type"
+	  >Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679228184"
+      ><span class="annot"
+	><span class="annottext"
+	  >arbitrary :: Gen Value
+</span
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	  >arbitrary</span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >do</span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- Generate values for all of the 'TokenName's in the final 'Value' and split them into a</span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- list of lists.</span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679228185"
+      ><span class="annot"
+	><span class="annottext"
+	  >[[Integer]]
+</span
+	  ><a href="#local-6989586621679228185"
+	  ><span class="hs-identifier hs-var"
+	    >faceValues</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Double -&gt; [Integer] -&gt; Gen [[Integer]]
+forall a. Double -&gt; [a] -&gt; Gen [[a]]
+</span
+	><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Split.html#multiSplit0"
+	><span class="hs-identifier hs-var"
+	  >multiSplit0</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Double
+</span
+	><span class="hs-number"
+	>0.2</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Integer] -&gt; Gen [[Integer]])
+-&gt; ([FaceValue] -&gt; [Integer]) -&gt; [FaceValue] -&gt; Gen [[Integer]]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(FaceValue -&gt; Integer) -&gt; [FaceValue] -&gt; [Integer]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>FaceValue -&gt; Integer
+</span
+	><a href="PlutusLedgerApi.Test.V1.Value.html#unFaceValue"
+	><span class="hs-identifier hs-var"
+	  >unFaceValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([FaceValue] -&gt; Gen [[Integer]])
+-&gt; Gen [FaceValue] -&gt; Gen [[Integer]]
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3D%3C%3C"
+	><span class="hs-operator hs-var"
+	  >=&lt;&lt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Gen [FaceValue]
+forall a. Arbitrary a =&gt; Gen a
+</span
+	><span class="hs-identifier hs-var"
+	>arbitrary</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-comment"
+      >-- Generate 'TokenName's and 'CurrencySymbol's.</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >        </span
+      ><span id="local-6989586621679228187"
+      ><span class="annot"
+	><span class="annottext"
+	  >[(CurrencySymbol, [(TokenName, Integer)])]
+</span
+	  ><a href="#local-6989586621679228187"
+	  ><span class="hs-identifier hs-var"
+	    >currencies</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >&lt;-</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(K -&gt; CurrencySymbol)
+-&gt; [[(TokenName, Integer)]]
+-&gt; Gen [(CurrencySymbol, [(TokenName, Integer)])]
+forall name b. Eq name =&gt; (K -&gt; name) -&gt; [b] -&gt; Gen [(name, b)]
+</span
+	><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Builtin.html#uniqueNames"
+	><span class="hs-identifier hs-var"
+	  >uniqueNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; CurrencySymbol
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#CurrencySymbol"
+	><span class="hs-identifier hs-var"
+	  >CurrencySymbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinByteString -&gt; CurrencySymbol)
+-&gt; (K -&gt; BuiltinByteString) -&gt; K -&gt; CurrencySymbol
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; BuiltinByteString
+ByteString -&gt; ToBuiltin ByteString
+forall a. HasToBuiltin a =&gt; a -&gt; ToBuiltin a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.HasBuiltin.html#toBuiltin"
+	><span class="hs-identifier hs-var"
+	  >toBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; BuiltinByteString)
+-&gt; (K -&gt; ByteString) -&gt; K -&gt; BuiltinByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>K -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Value.html#unK"
+	><span class="hs-identifier hs-var"
+	  >PLC.unK</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([[(TokenName, Integer)]]
+ -&gt; Gen [(CurrencySymbol, [(TokenName, Integer)])])
+-&gt; Gen [[(TokenName, Integer)]]
+-&gt; Gen [(CurrencySymbol, [(TokenName, Integer)])]
+forall (m :: * -&gt; *) a b. Monad m =&gt; (a -&gt; m b) -&gt; m a -&gt; m b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3D%3C%3C"
+	><span class="hs-operator hs-var"
+	  >=&lt;&lt;</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([Integer] -&gt; Gen [(TokenName, Integer)])
+-&gt; [[Integer]] -&gt; Gen [[(TokenName, Integer)]]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#traverse"
+	><span class="hs-identifier hs-var"
+	  >traverse</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(K -&gt; TokenName) -&gt; [Integer] -&gt; Gen [(TokenName, Integer)]
+forall name b. Eq name =&gt; (K -&gt; name) -&gt; [b] -&gt; Gen [(name, b)]
+</span
+	><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Builtin.html#uniqueNames"
+	><span class="hs-identifier hs-var"
+	  >uniqueNames</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; TokenName
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#TokenName"
+	><span class="hs-identifier hs-var"
+	  >TokenName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinByteString -&gt; TokenName)
+-&gt; (K -&gt; BuiltinByteString) -&gt; K -&gt; TokenName
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; BuiltinByteString
+ByteString -&gt; ToBuiltin ByteString
+forall a. HasToBuiltin a =&gt; a -&gt; ToBuiltin a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.HasBuiltin.html#toBuiltin"
+	><span class="hs-identifier hs-var"
+	  >toBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; BuiltinByteString)
+-&gt; (K -&gt; ByteString) -&gt; K -&gt; BuiltinByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>K -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Value.html#unK"
+	><span class="hs-identifier hs-var"
+	  >PLC.unK</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[[Integer]]
+</span
+	><a href="#local-6989586621679228185"
+	><span class="hs-identifier hs-var"
+	  >faceValues</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Gen Value
+forall a. a -&gt; Gen a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#pure"
+	><span class="hs-identifier hs-var"
+	  >pure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Value -&gt; Gen Value) -&gt; Value -&gt; Gen Value
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, [(TokenName, Integer)])] -&gt; Value
+</span
+	><a href="PlutusLedgerApi.Test.V1.Value.html#listsToValue"
+	><span class="hs-identifier hs-var"
+	  >listsToValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, [(TokenName, Integer)])]
+</span
+	><a href="#local-6989586621679228187"
+	><span class="hs-identifier hs-var"
+	  >currencies</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679228204"
+      ><span class="annot"
+	><span class="annottext"
+	  >shrink :: Value -&gt; [Value]
+</span
+	  ><a href="#local-6989586621679228204"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >shrink</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, [(TokenName, Integer)])] -&gt; Value)
+-&gt; [[(CurrencySymbol, [(TokenName, Integer)])]] -&gt; [Value]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#map"
+	><span class="hs-identifier hs-var"
+	  >map</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, [(TokenName, Integer)])] -&gt; Value
+</span
+	><a href="PlutusLedgerApi.Test.V1.Value.html#listsToValue"
+	><span class="hs-identifier hs-var"
+	  >listsToValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([[(CurrencySymbol, [(TokenName, Integer)])]] -&gt; [Value])
+-&gt; (Value -&gt; [[(CurrencySymbol, [(TokenName, Integer)])]])
+-&gt; Value
+-&gt; [Value]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(NoArbitrary CurrencySymbol, [(NoArbitrary TokenName, Integer)])]
+ -&gt; [[(NoArbitrary CurrencySymbol,
+       [(NoArbitrary TokenName, Integer)])]])
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+-&gt; [[(CurrencySymbol, [(TokenName, Integer)])]]
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. Arbitrary a =&gt; a -&gt; [a]
+</span
+	><span class="hs-identifier hs-var"
+	>shrink</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Builtin.html#NoArbitrary"
+	><span class="hs-identifier hs-type"
+	  >NoArbitrary</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#CurrencySymbol"
+	><span class="hs-identifier hs-type"
+	  >CurrencySymbol</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Generators.QuickCheck.Builtin.html#NoArbitrary"
+	><span class="hs-identifier hs-type"
+	  >NoArbitrary</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#TokenName"
+	><span class="hs-identifier hs-type"
+	  >TokenName</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-bignum-1.3/docs/src/GHC.Num.Integer.html#Integer"
+	><span class="hs-identifier hs-type"
+	  >Integer</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, [(TokenName, Integer)])]
+ -&gt; [[(CurrencySymbol, [(TokenName, Integer)])]])
+-&gt; (Value -&gt; [(CurrencySymbol, [(TokenName, Integer)])])
+-&gt; Value
+-&gt; [[(CurrencySymbol, [(TokenName, Integer)])]]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+</span
+	><a href="PlutusLedgerApi.Test.V1.Value.html#valueToLists"
+	><span class="hs-identifier hs-var"
+	  >valueToLists</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span class="annot"
+      ><a href="PlutusLedgerApi.Test.V1.Value.html#valueFromBuiltin"
+	><span class="hs-identifier hs-type"
+	  >valueFromBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-core/src/PlutusCore.Value.html#Value"
+	><span class="hs-identifier hs-type"
+	  >PLC.Value</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#Value"
+	><span class="hs-identifier hs-type"
+	  >Value</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="valueFromBuiltin"
+      ><span class="annot"
+	><span class="annottext"
+	  >valueFromBuiltin :: Value -&gt; Value
+</span
+	  ><a href="PlutusLedgerApi.Test.V1.Value.html#valueFromBuiltin"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >valueFromBuiltin</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >  </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[(CurrencySymbol, [(TokenName, Integer)])] -&gt; Value
+</span
+	><a href="PlutusLedgerApi.Test.V1.Value.html#listsToValue"
+	><span class="hs-identifier hs-var"
+	  >listsToValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(CurrencySymbol, [(TokenName, Integer)])] -&gt; Value)
+-&gt; (Value -&gt; [(CurrencySymbol, [(TokenName, Integer)])])
+-&gt; Value
+-&gt; Value
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((K, Map K Quantity) -&gt; (CurrencySymbol, [(TokenName, Integer)]))
+-&gt; [(K, Map K Quantity)]
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(K -&gt; CurrencySymbol)
+-&gt; (Map K Quantity -&gt; [(TokenName, Integer)])
+-&gt; (K, Map K Quantity)
+-&gt; (CurrencySymbol, [(TokenName, Integer)])
+forall a b c d. (a -&gt; b) -&gt; (c -&gt; d) -&gt; (a, c) -&gt; (b, d)
+forall (p :: * -&gt; * -&gt; *) a b c d.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; (c -&gt; d) -&gt; p a c -&gt; p b d
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#bimap"
+	><span class="hs-identifier hs-var"
+	  >bimap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; CurrencySymbol
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#CurrencySymbol"
+	><span class="hs-identifier hs-var"
+	  >CurrencySymbol</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinByteString -&gt; CurrencySymbol)
+-&gt; (K -&gt; BuiltinByteString) -&gt; K -&gt; CurrencySymbol
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; BuiltinByteString
+ByteString -&gt; ToBuiltin ByteString
+forall a. HasToBuiltin a =&gt; a -&gt; ToBuiltin a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.HasBuiltin.html#toBuiltin"
+	><span class="hs-identifier hs-var"
+	  >toBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; BuiltinByteString)
+-&gt; (K -&gt; ByteString) -&gt; K -&gt; BuiltinByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>K -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Value.html#unK"
+	><span class="hs-identifier hs-var"
+	  >PLC.unK</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map K Quantity -&gt; [(TokenName, Integer)]
+</span
+	><a href="#local-6989586621679228208"
+	><span class="hs-identifier hs-var"
+	  >inner</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(K, Map K Quantity)]
+ -&gt; [(CurrencySymbol, [(TokenName, Integer)])])
+-&gt; (Value -&gt; [(K, Map K Quantity)])
+-&gt; Value
+-&gt; [(CurrencySymbol, [(TokenName, Integer)])]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map K (Map K Quantity) -&gt; [(K, Map K Quantity)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Map K (Map K Quantity) -&gt; [(K, Map K Quantity)])
+-&gt; (Value -&gt; Map K (Map K Quantity))
+-&gt; Value
+-&gt; [(K, Map K Quantity)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Value -&gt; Map K (Map K Quantity)
+</span
+	><a href="../../plutus-core/src/PlutusCore.Value.html#unpack"
+	><span class="hs-identifier hs-var"
+	  >PLC.unpack</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621679228208"
+      ><span class="annot"
+	><span class="annottext"
+	  >inner :: Map K Quantity -&gt; [(TokenName, Integer)]
+</span
+	  ><a href="#local-6989586621679228208"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >inner</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>((K, Quantity) -&gt; (TokenName, Integer))
+-&gt; [(K, Quantity)] -&gt; [(TokenName, Integer)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#fmap"
+	><span class="hs-identifier hs-var"
+	  >fmap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>(K -&gt; TokenName)
+-&gt; (Quantity -&gt; Integer) -&gt; (K, Quantity) -&gt; (TokenName, Integer)
+forall a b c d. (a -&gt; b) -&gt; (c -&gt; d) -&gt; (a, c) -&gt; (b, d)
+forall (p :: * -&gt; * -&gt; *) a b c d.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; (c -&gt; d) -&gt; p a c -&gt; p b d
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#bimap"
+	><span class="hs-identifier hs-var"
+	  >bimap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinByteString -&gt; TokenName
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V1.Value.html#TokenName"
+	><span class="hs-identifier hs-var"
+	  >TokenName</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinByteString -&gt; TokenName)
+-&gt; (K -&gt; BuiltinByteString) -&gt; K -&gt; TokenName
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ByteString -&gt; BuiltinByteString
+ByteString -&gt; ToBuiltin ByteString
+forall a. HasToBuiltin a =&gt; a -&gt; ToBuiltin a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.HasBuiltin.html#toBuiltin"
+	><span class="hs-identifier hs-var"
+	  >toBuiltin</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ByteString -&gt; BuiltinByteString)
+-&gt; (K -&gt; ByteString) -&gt; K -&gt; BuiltinByteString
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>K -&gt; ByteString
+</span
+	><a href="../../plutus-core/src/PlutusCore.Value.html#unK"
+	><span class="hs-identifier hs-var"
+	  >PLC.unK</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Quantity -&gt; Integer
+</span
+	><a href="../../plutus-core/src/PlutusCore.Value.html#unQuantity"
+	><span class="hs-identifier hs-var"
+	  >PLC.unQuantity</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>([(K, Quantity)] -&gt; [(TokenName, Integer)])
+-&gt; (Map K Quantity -&gt; [(K, Quantity)])
+-&gt; Map K Quantity
+-&gt; [(TokenName, Integer)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map K Quantity -&gt; [(K, Quantity)]
+forall k a. Map k a -&gt; [(k, a)]
+</span
+	><a href="https://hackage.haskell.org/package/containers-0.6.7/docs/src/Data.Map.Internal.html#toList"
+	><span class="hs-identifier hs-var"
+	  >Map.toList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

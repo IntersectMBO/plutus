@@ -1,0 +1,2139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusTx.Numeric</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-tx-1.55.0.0: Libraries for Plutus Tx and its prelude</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusTx.Numeric.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusTx.Numeric</p
+	></div
+      ><div id="table-of-contents"
+      ><div id="contents-list"
+	><p class="caption" onclick="window.scrollTo(0,0)"
+	  >Contents</p
+	  ><ul
+	  ><li
+	    ><a href="#g:1"
+	      >Type classes</a
+	      ></li
+	    ><li
+	    ><a href="#g:2"
+	      >Helper newtypes</a
+	      ></li
+	    ><li
+	    ><a href="#g:3"
+	      >Helper functions</a
+	      ></li
+	    ><li
+	    ><a href="#section.orphans"
+	      >Orphan instances</a
+	      ></li
+	    ></ul
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:AdditiveSemigroup"
+	      >AdditiveSemigroup</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:-43-"
+		  >(+)</a
+		  > &#8759; a &#8594; a &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+	      >AdditiveSemigroup</a
+	      > a &#8658; <a href="#t:AdditiveMonoid"
+	      >AdditiveMonoid</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:zero"
+		  >zero</a
+		  > &#8759; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+	      >AdditiveMonoid</a
+	      > a &#8658; <a href="#t:AdditiveGroup"
+	      >AdditiveGroup</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:-45-"
+		  >(-)</a
+		  > &#8759; a &#8594; a &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="#t:MultiplicativeSemigroup"
+	      >MultiplicativeSemigroup</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:-42-"
+		  >(*)</a
+		  > &#8759; a &#8594; a &#8594; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+	      >MultiplicativeSemigroup</a
+	      > a &#8658; <a href="#t:MultiplicativeMonoid"
+	      >MultiplicativeMonoid</a
+	      > a <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:one"
+		  >one</a
+		  > &#8759; a</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Semiring"
+	      >Semiring</a
+	      > a = (<a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+	      >AdditiveMonoid</a
+	      > a, <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+	      >MultiplicativeMonoid</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >type</span
+	      > <a href="#t:Ring"
+	      >Ring</a
+	      > a = (<a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	      >AdditiveGroup</a
+	      > a, <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+	      >MultiplicativeMonoid</a
+	      > a)</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >class</span
+	      > (<a href="PlutusTx-Numeric.html#t:Ring" title="PlutusTx.Numeric"
+	      >Ring</a
+	      > s, <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	      >AdditiveGroup</a
+	      > v) &#8658; <a href="#t:Module"
+	      >Module</a
+	      > s v | v &#8594; s <span class="keyword"
+	      >where</span
+	      ><ul class="subs"
+	      ><li
+		><a href="#v:scale"
+		  >scale</a
+		  > &#8759; s &#8594; v &#8594; v</li
+		></ul
+	      ></li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Additive"
+	      >Additive</a
+	      > a = <a href="#v:Additive"
+	      >Additive</a
+	      > a</li
+	    ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:Multiplicative"
+	      >Multiplicative</a
+	      > a = <a href="#v:Multiplicative"
+	      >Multiplicative</a
+	      > a</li
+	    ><li class="src short"
+	    ><a href="#v:negate"
+	      >negate</a
+	      > &#8759; <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	      >AdditiveGroup</a
+	      > a &#8658; a &#8594; a</li
+	    ><li class="src short"
+	    ><a href="#v:divMod"
+	      >divMod</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; (<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      >, <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:quotRem"
+	      >quotRem</a
+	      > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      > &#8594; (<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      >, <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	      >Integer</a
+	      >)</li
+	    ><li class="src short"
+	    ><a href="#v:abs"
+	      >abs</a
+	      > &#8759; (<a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+	      >Ord</a
+	      > n, <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	      >AdditiveGroup</a
+	      > n) &#8658; n &#8594; n</li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><a href="#g:1" id="g:1"
+	><h1
+	  >Type classes</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:AdditiveSemigroup" class="def"
+	    >AdditiveSemigroup</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Numeric.html#AdditiveSemigroup" class="link"
+	    >Source</a
+	    > <a href="#t:AdditiveSemigroup" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		>Semigroup</a
+		></code
+	      > that it is sensible to describe using addition.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:-43-" class="def"
+	      >(+)</a
+	      > &#8759; a &#8594; a &#8594; a <span class="fixity"
+	      >infixl 6</span
+	      ><span class="rightedge"
+	      ></span
+	      > <a href="src/PlutusTx.Numeric.html#%2B" class="link"
+	      >Source</a
+	      > <a href="#v:-43-" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AdditiveSemigroup"
+	    >Instances</h4
+	    ><details id="i:AdditiveSemigroup" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveSemigroup:AdditiveSemigroup:1"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-101" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveSemigroup:AdditiveSemigroup:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#%2B" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveSemigroup:AdditiveSemigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-100" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveSemigroup:AdditiveSemigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > <a href="src/PlutusTx.Numeric.html#%2B" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveSemigroup:AdditiveSemigroup:3"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-120" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveSemigroup:AdditiveSemigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Numeric.html#%2B" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveSemigroup:AdditiveSemigroup:4"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > (<a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+		      >Additive</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-60" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveSemigroup:AdditiveSemigroup:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a <a href="src/PlutusTx.Numeric.html#%2B" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+	    >AdditiveSemigroup</a
+	    > a &#8658; <a id="t:AdditiveMonoid" class="def"
+	    >AdditiveMonoid</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Numeric.html#AdditiveMonoid" class="link"
+	    >Source</a
+	    > <a href="#t:AdditiveMonoid" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		>Monoid</a
+		></code
+	      > that it is sensible to describe using addition and zero.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:zero" class="def"
+	      >zero</a
+	      > &#8759; a <a href="src/PlutusTx.Numeric.html#zero" class="link"
+	      >Source</a
+	      > <a href="#v:zero" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AdditiveMonoid"
+	    >Instances</h4
+	    ><details id="i:AdditiveMonoid" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveMonoid:AdditiveMonoid:1"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-111" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveMonoid:AdditiveMonoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveMonoid:AdditiveMonoid:2"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-104" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveMonoid:AdditiveMonoid:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > <a href="src/PlutusTx.Numeric.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveMonoid:AdditiveMonoid:3"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-124" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveMonoid:AdditiveMonoid:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Numeric.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveMonoid:AdditiveMonoid:4"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > (<a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+		      >Additive</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveMonoid:AdditiveMonoid:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a <a href="src/PlutusTx.Numeric.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+	    >AdditiveMonoid</a
+	    > a &#8658; <a id="t:AdditiveGroup" class="def"
+	    >AdditiveGroup</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Numeric.html#AdditiveGroup" class="link"
+	    >Source</a
+	    > <a href="#t:AdditiveGroup" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusTx-Monoid.html#t:Group" title="PlutusTx.Monoid"
+		>Group</a
+		></code
+	      > that it is sensible to describe using addition, zero, and subtraction.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:-45-" class="def"
+	      >(-)</a
+	      > &#8759; a &#8594; a &#8594; a <span class="fixity"
+	      >infixl 6</span
+	      ><span class="rightedge"
+	      ></span
+	      > <a href="src/PlutusTx.Numeric.html#-" class="link"
+	      >Source</a
+	      > <a href="#v:-45-" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AdditiveGroup"
+	    >Instances</h4
+	    ><details id="i:AdditiveGroup" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveGroup:AdditiveGroup:1"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		      >AdditiveGroup</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-115" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveGroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveGroup:AdditiveGroup:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#-" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveGroup:AdditiveGroup:2"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		      >AdditiveGroup</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-108" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveGroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveGroup:AdditiveGroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > <a href="src/PlutusTx.Numeric.html#-" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:AdditiveGroup:AdditiveGroup:3"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Group" title="PlutusTx.Monoid"
+		      >Group</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		      >AdditiveGroup</a
+		      > (<a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+		      >Additive</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:AdditiveGroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:AdditiveGroup:AdditiveGroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a <a href="src/PlutusTx.Numeric.html#-" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a id="t:MultiplicativeSemigroup" class="def"
+	    >MultiplicativeSemigroup</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Numeric.html#MultiplicativeSemigroup" class="link"
+	    >Source</a
+	    > <a href="#t:MultiplicativeSemigroup" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		>Semigroup</a
+		></code
+	      > that it is sensible to describe using multiplication.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:-42-" class="def"
+	      >(*)</a
+	      > &#8759; a &#8594; a &#8594; a <span class="fixity"
+	      >infixl 7</span
+	      ><span class="rightedge"
+	      ></span
+	      > <a href="src/PlutusTx.Numeric.html#%2A" class="link"
+	      >Source</a
+	      > <a href="#v:-42-" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MultiplicativeSemigroup"
+	    >Instances</h4
+	    ><details id="i:MultiplicativeSemigroup" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:1"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		      >MultiplicativeSemigroup</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-125" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#%2A" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		      >MultiplicativeSemigroup</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-112" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > <a href="src/PlutusTx.Numeric.html#%2A" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:3"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		      >MultiplicativeSemigroup</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-128" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > &#8594; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Numeric.html#%2A" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:4"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		      >MultiplicativeSemigroup</a
+		      > (<a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+		      >Multiplicative</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeSemigroup" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeSemigroup:MultiplicativeSemigroup:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a <a href="src/PlutusTx.Numeric.html#%2A" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+	    >MultiplicativeSemigroup</a
+	    > a &#8658; <a id="t:MultiplicativeMonoid" class="def"
+	    >MultiplicativeMonoid</a
+	    > a <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Numeric.html#MultiplicativeMonoid" class="link"
+	    >Source</a
+	    > <a href="#t:MultiplicativeMonoid" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A <code
+	      ><a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		>Semigroup</a
+		></code
+	      > that it is sensible to describe using multiplication and one.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:one" class="def"
+	      >one</a
+	      > &#8759; a <a href="src/PlutusTx.Numeric.html#one" class="link"
+	      >Source</a
+	      > <a href="#v:one" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:MultiplicativeMonoid"
+	    >Instances</h4
+	    ><details id="i:MultiplicativeMonoid" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:1"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+		      >MultiplicativeMonoid</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-135" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:one"
+			  >one</a
+			  > &#8759; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#one" class="link"
+			  >Source</a
+			  > <a href="#v:one" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:2"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+		      >MultiplicativeMonoid</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-116" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:one"
+			  >one</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > <a href="src/PlutusTx.Numeric.html#one" class="link"
+			  >Source</a
+			  > <a href="#v:one" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:3"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+		      >MultiplicativeMonoid</a
+		      > <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+		      >Bool</a
+		      ></span
+		    > <a href="src/PlutusTx.Numeric.html#line-132" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:one"
+			  >one</a
+			  > &#8759; <a href="PlutusTx-Bool.html#t:Bool" title="PlutusTx.Bool"
+			  >Bool</a
+			  > <a href="src/PlutusTx.Numeric.html#one" class="link"
+			  >Source</a
+			  > <a href="#v:one" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:4"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+		      >MultiplicativeMonoid</a
+		      > (<a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+		      >Multiplicative</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-90" class="link"
+		    >Source</a
+		    > <a href="#t:MultiplicativeMonoid" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:MultiplicativeMonoid:MultiplicativeMonoid:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:one"
+			  >one</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a <a href="src/PlutusTx.Numeric.html#one" class="link"
+			  >Source</a
+			  > <a href="#v:one" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Semiring" class="def"
+	    >Semiring</a
+	    > a = (<a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+	    >AdditiveMonoid</a
+	    > a, <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+	    >MultiplicativeMonoid</a
+	    > a) <a href="src/PlutusTx.Numeric.html#Semiring" class="link"
+	    >Source</a
+	    > <a href="#t:Semiring" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A semiring.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >type</span
+	    > <a id="t:Ring" class="def"
+	    >Ring</a
+	    > a = (<a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	    >AdditiveGroup</a
+	    > a, <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+	    >MultiplicativeMonoid</a
+	    > a) <a href="src/PlutusTx.Numeric.html#Ring" class="link"
+	    >Source</a
+	    > <a href="#t:Ring" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A ring.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >class</span
+	    > (<a href="PlutusTx-Numeric.html#t:Ring" title="PlutusTx.Numeric"
+	    >Ring</a
+	    > s, <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	    >AdditiveGroup</a
+	    > v) &#8658; <a id="t:Module" class="def"
+	    >Module</a
+	    > s v | v &#8594; s <span class="keyword"
+	    >where</span
+	    > <a href="src/PlutusTx.Numeric.html#Module" class="link"
+	    >Source</a
+	    > <a href="#t:Module" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A module, with a type of scalars which can be used to scale the values.</p
+	    ></div
+	  ><div class="subs methods"
+	  ><p class="caption"
+	    >Methods</p
+	    ><p class="src"
+	    ><a id="v:scale" class="def"
+	      >scale</a
+	      > &#8759; s &#8594; v &#8594; v <a href="src/PlutusTx.Numeric.html#scale" class="link"
+	      >Source</a
+	      > <a href="#v:scale" class="selflink"
+	      >#</a
+	      ></p
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Module"
+	    >Instances</h4
+	    ><details id="i:Module" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:ic:Module:Module:1"
+		      ></span
+		      > <a href="PlutusTx-Numeric.html#t:Module" title="PlutusTx.Numeric"
+		      >Module</a
+		      > <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+		      >Integer</a
+		      > <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+		      >Rational</a
+		      ></span
+		    > <a href="src/PlutusTx.Ratio.html#line-139" class="link"
+		    >Source</a
+		    > <a href="#t:Module" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:ic:Module:Module:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Ratio.html"
+			>PlutusTx.Ratio</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:scale"
+			  >scale</a
+			  > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+			  >Integer</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > &#8594; <a href="PlutusTx-Ratio.html#t:Rational" title="PlutusTx.Ratio"
+			  >Rational</a
+			  > <a href="src/PlutusTx.Numeric.html#scale" class="link"
+			  >Source</a
+			  > <a href="#v:scale" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><a href="#g:2" id="g:2"
+	><h1
+	  >Helper newtypes</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Additive" class="def"
+	    >Additive</a
+	    > a <a href="src/PlutusTx.Numeric.html#Additive" class="link"
+	    >Source</a
+	    > <a href="#t:Additive" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A newtype wrapper to derive <code
+	      ><a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+		>Additive</a
+		></code
+	      > classes via.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Additive" class="def"
+		  >Additive</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Additive"
+	    >Instances</h4
+	    ><details id="i:Additive" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Additive:AdditiveGroup:1"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Group" title="PlutusTx.Monoid"
+		      >Group</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		      >AdditiveGroup</a
+		      > (<a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+		      >Additive</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-68" class="link"
+		    >Source</a
+		    > <a href="#t:Additive" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Additive:AdditiveGroup:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-45-"
+			  >(-)</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a <a href="src/PlutusTx.Numeric.html#-" class="link"
+			  >Source</a
+			  > <a href="#v:-45-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Additive:AdditiveMonoid:2"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		      >AdditiveMonoid</a
+		      > (<a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+		      >Additive</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-64" class="link"
+		    >Source</a
+		    > <a href="#t:Additive" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Additive:AdditiveMonoid:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:zero"
+			  >zero</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a <a href="src/PlutusTx.Numeric.html#zero" class="link"
+			  >Source</a
+			  > <a href="#v:zero" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Additive:AdditiveSemigroup:3"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		      >AdditiveSemigroup</a
+		      > (<a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+		      >Additive</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-60" class="link"
+		    >Source</a
+		    > <a href="#t:Additive" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Additive:AdditiveSemigroup:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-43-"
+			  >(+)</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Additive" title="PlutusTx.Numeric"
+			  >Additive</a
+			  > a <a href="src/PlutusTx.Numeric.html#%2B" class="link"
+			  >Source</a
+			  > <a href="#v:-43-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:Multiplicative" class="def"
+	    >Multiplicative</a
+	    > a <a href="src/PlutusTx.Numeric.html#Multiplicative" class="link"
+	    >Source</a
+	    > <a href="#t:Multiplicative" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >A newtype wrapper to derive <code
+	      ><a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+		>Multiplicative</a
+		></code
+	      > classes via.</p
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:Multiplicative" class="def"
+		  >Multiplicative</a
+		  > a</td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:Multiplicative"
+	    >Instances</h4
+	    ><details id="i:Multiplicative" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Multiplicative:MultiplicativeMonoid:1"
+		      ></span
+		      > <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		      >Monoid</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+		      >MultiplicativeMonoid</a
+		      > (<a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+		      >Multiplicative</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-90" class="link"
+		    >Source</a
+		    > <a href="#t:Multiplicative" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Multiplicative:MultiplicativeMonoid:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:one"
+			  >one</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a <a href="src/PlutusTx.Numeric.html#one" class="link"
+			  >Source</a
+			  > <a href="#v:one" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:Multiplicative:MultiplicativeSemigroup:2"
+		      ></span
+		      > <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		      >Semigroup</a
+		      > a &#8658; <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		      >MultiplicativeSemigroup</a
+		      > (<a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+		      >Multiplicative</a
+		      > a)</span
+		    > <a href="src/PlutusTx.Numeric.html#line-86" class="link"
+		    >Source</a
+		    > <a href="#t:Multiplicative" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:Multiplicative:MultiplicativeSemigroup:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusTx-Numeric.html"
+			>PlutusTx.Numeric</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-42-"
+			  >(*)</a
+			  > &#8759; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a &#8594; <a href="PlutusTx-Numeric.html#t:Multiplicative" title="PlutusTx.Numeric"
+			  >Multiplicative</a
+			  > a <a href="src/PlutusTx.Numeric.html#%2A" class="link"
+			  >Source</a
+			  > <a href="#v:-42-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	><a href="#g:3" id="g:3"
+	><h1
+	  >Helper functions</h1
+	  ></a
+	><div class="top"
+	><p class="src"
+	  ><a id="v:negate" class="def"
+	    >negate</a
+	    > &#8759; <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	    >AdditiveGroup</a
+	    > a &#8658; a &#8594; a <a href="src/PlutusTx.Numeric.html#negate" class="link"
+	    >Source</a
+	    > <a href="#v:negate" class="selflink"
+	    >#</a
+	    ></p
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:divMod" class="def"
+	    >divMod</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; (<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    >, <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    >) <a href="src/PlutusTx.Numeric.html#divMod" class="link"
+	    >Source</a
+	    > <a href="#v:divMod" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Simultaneous div and mod.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:quotRem" class="def"
+	    >quotRem</a
+	    > &#8759; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    > &#8594; (<a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    >, <a href="PlutusTx-Integer.html#t:Integer" title="PlutusTx.Integer"
+	    >Integer</a
+	    >) <a href="src/PlutusTx.Numeric.html#quotRem" class="link"
+	    >Source</a
+	    > <a href="#v:quotRem" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Simultaneous quot and rem.</p
+	    ></div
+	  ></div
+	><div class="top"
+	><p class="src"
+	  ><a id="v:abs" class="def"
+	    >abs</a
+	    > &#8759; (<a href="PlutusTx-Ord.html#t:Ord" title="PlutusTx.Ord"
+	    >Ord</a
+	    > n, <a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+	    >AdditiveGroup</a
+	    > n) &#8658; n &#8594; n <a href="src/PlutusTx.Numeric.html#abs" class="link"
+	    >Source</a
+	    > <a href="#v:abs" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Absolute value for any <code
+	      ><a href="PlutusTx-Numeric.html#t:AdditiveGroup" title="PlutusTx.Numeric"
+		>AdditiveGroup</a
+		></code
+	      >.</p
+	    ></div
+	  ></div
+	><h1
+	>Orphan instances</h1
+	><div id="section.orphans"
+	><table
+	  ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Monoid:Monoid:1"
+		  ></span
+		  > <a href="PlutusTx-Numeric.html#t:MultiplicativeMonoid" title="PlutusTx.Numeric"
+		  >MultiplicativeMonoid</a
+		  > a &#8658; <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		  >Monoid</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+		  >Product</a
+		  > a)</span
+		> <a href="src/PlutusTx.Numeric.html#line-152" class="link"
+		>Source</a
+		> <a href="#v:-36-fMonoidProduct" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Monoid:Monoid:1"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:mempty"
+		      >mempty</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+		      >Product</a
+		      > a <a href="src/PlutusTx.Monoid.html#mempty" class="link"
+		      >Source</a
+		      > <a href="#v:mempty" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Monoid:Monoid:2"
+		  ></span
+		  > <a href="PlutusTx-Numeric.html#t:AdditiveMonoid" title="PlutusTx.Numeric"
+		  >AdditiveMonoid</a
+		  > a &#8658; <a href="PlutusTx-Monoid.html#t:Monoid" title="PlutusTx.Monoid"
+		  >Monoid</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+		  >Sum</a
+		  > a)</span
+		> <a href="src/PlutusTx.Numeric.html#line-144" class="link"
+		>Source</a
+		> <a href="#v:-36-fMonoidSum" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Monoid:Monoid:2"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:mempty"
+		      >mempty</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+		      >Sum</a
+		      > a <a href="src/PlutusTx.Monoid.html#mempty" class="link"
+		      >Source</a
+		      > <a href="#v:mempty" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Semigroup:Semigroup:3"
+		  ></span
+		  > <a href="PlutusTx-Numeric.html#t:MultiplicativeSemigroup" title="PlutusTx.Numeric"
+		  >MultiplicativeSemigroup</a
+		  > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		  >Semigroup</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+		  >Product</a
+		  > a)</span
+		> <a href="src/PlutusTx.Numeric.html#line-148" class="link"
+		>Source</a
+		> <a href="#v:-36-fSemigroupProduct" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Semigroup:Semigroup:3"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:-60--62-"
+		      >(&lt;&gt;)</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+		      >Product</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+		      >Product</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Product" title="Data.Monoid"
+		      >Product</a
+		      > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+		      >Source</a
+		      > <a href="#v:-60--62-" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ><tr
+	    ><td class="src clearfix"
+	      ><span class="inst-left"
+		><span class="instance details-toggle-control details-toggle" data-details-id="i:o:ic:Semigroup:Semigroup:4"
+		  ></span
+		  > <a href="PlutusTx-Numeric.html#t:AdditiveSemigroup" title="PlutusTx.Numeric"
+		  >AdditiveSemigroup</a
+		  > a &#8658; <a href="PlutusTx-Semigroup.html#t:Semigroup" title="PlutusTx.Semigroup"
+		  >Semigroup</a
+		  > (<a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+		  >Sum</a
+		  > a)</span
+		> <a href="src/PlutusTx.Numeric.html#line-140" class="link"
+		>Source</a
+		> <a href="#v:-36-fSemigroupSum" class="selflink"
+		>#</a
+		></td
+	      ><td class="doc empty"
+	      >&nbsp;</td
+	      ></tr
+	    ><tr
+	    ><td colspan="2"
+	      ><details id="i:o:ic:Semigroup:Semigroup:4"
+		><summary class="hide-when-js-enabled"
+		  >Instance details</summary
+		  ><p
+		  ></p
+		  > <div class="subs methods"
+		  ><p class="caption"
+		    >Methods</p
+		    ><p class="src"
+		    ><a href="#v:-60--62-"
+		      >(&lt;&gt;)</a
+		      > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+		      >Sum</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+		      >Sum</a
+		      > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Monoid.html#t:Sum" title="Data.Monoid"
+		      >Sum</a
+		      > a <a href="src/PlutusTx.Semigroup.html#%3C%3E" class="link"
+		      >Source</a
+		      > <a href="#v:-60--62-" class="selflink"
+		      >#</a
+		      ></p
+		    ></div
+		  ></details
+		></td
+	      ></tr
+	    ></table
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>

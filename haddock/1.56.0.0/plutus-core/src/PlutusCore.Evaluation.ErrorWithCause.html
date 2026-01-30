@@ -1,0 +1,2345 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-pragma"
+      >{-# LANGUAGE DeriveAnyClass #-}</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE FlexibleInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE MultiParamTypeClasses #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeFamilies #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeOperators #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE UndecidableInstances #-}</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >PlutusCore.Evaluation.ErrorWithCause</span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	><span class="hs-identifier"
+	  >ErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="hs-glyph"
+      >..</span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#throwErrorWithCause"
+	><span class="hs-identifier"
+	  >throwErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusPrelude.html"
+	><span class="hs-identifier"
+	  >PlutusPrelude</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Pretty.html"
+	><span class="hs-identifier"
+	  >PlutusCore.Pretty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Except.html"
+	><span class="hs-identifier"
+	  >Control.Monad.Except</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html"
+	><span class="hs-identifier"
+	  >Data.Bifunctor</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.html"
+	><span class="hs-identifier"
+	  >Prettyprinter</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- | An error and (optionally) what caused it.</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >data</span
+      ><span
+      > </span
+      ><span id="ErrorWithCause"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	  ><span class="hs-identifier hs-var"
+	    >ErrorWithCause</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960001"
+      ><span class="annot"
+	><a href="#local-6989586621681960001"
+	  ><span class="hs-identifier hs-type"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960002"
+      ><span class="annot"
+	><a href="#local-6989586621681960002"
+	  ><span class="hs-identifier hs-type"
+	    >cause</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span id="ErrorWithCause"
+      ><span class="annot"
+	><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	  ><span class="hs-identifier hs-var"
+	    >ErrorWithCause</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >{</span
+      ><span
+      > </span
+      ><span id="_ewcError"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall err cause. ErrorWithCause err cause -&gt; err
+</span
+	  ><a href="PlutusCore.Evaluation.ErrorWithCause.html#_ewcError"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_ewcError</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="annot"
+      ><a href="#local-6989586621681960001"
+	><span class="hs-identifier hs-type"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="_ewcCause"
+      ><span class="annot"
+	><span class="annottext"
+	  >forall err cause. ErrorWithCause err cause -&gt; Maybe cause
+</span
+	  ><a href="PlutusCore.Evaluation.ErrorWithCause.html#_ewcCause"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >_ewcCause</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >!</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621681960002"
+	><span class="hs-identifier hs-type"
+	  >cause</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-special"
+      >}</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>stock</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681960187"
+      ><span id="local-6989586621681960192"
+	><span class="annot"
+	  ><span class="annottext"
+	    >ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool
+(ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool)
+-&gt; (ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool)
+-&gt; Eq (ErrorWithCause err cause)
+forall a. (a -&gt; a -&gt; Bool) -&gt; (a -&gt; a -&gt; Bool) -&gt; Eq a
+forall err cause.
+(Eq err, Eq cause) =&gt;
+ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool
+$c== :: forall err cause.
+(Eq err, Eq cause) =&gt;
+ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool
+== :: ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool
+$c/= :: forall err cause.
+(Eq err, Eq cause) =&gt;
+ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool
+/= :: ErrorWithCause err cause -&gt; ErrorWithCause err cause -&gt; Bool
+</span
+	    ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Classes.html#Eq"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Eq</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960197"
+      ><span id="local-6989586621681960201"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall a b.
+ (a -&gt; b) -&gt; ErrorWithCause err a -&gt; ErrorWithCause err b)
+-&gt; (forall a b. a -&gt; ErrorWithCause err b -&gt; ErrorWithCause err a)
+-&gt; Functor (ErrorWithCause err)
+forall a b. a -&gt; ErrorWithCause err b -&gt; ErrorWithCause err a
+forall a b.
+(a -&gt; b) -&gt; ErrorWithCause err a -&gt; ErrorWithCause err b
+forall err a b. a -&gt; ErrorWithCause err b -&gt; ErrorWithCause err a
+forall err a b.
+(a -&gt; b) -&gt; ErrorWithCause err a -&gt; ErrorWithCause err b
+forall (f :: * -&gt; *).
+(forall a b. (a -&gt; b) -&gt; f a -&gt; f b)
+-&gt; (forall a b. a -&gt; f b -&gt; f a) -&gt; Functor f
+$cfmap :: forall err a b.
+(a -&gt; b) -&gt; ErrorWithCause err a -&gt; ErrorWithCause err b
+fmap :: forall a b.
+(a -&gt; b) -&gt; ErrorWithCause err a -&gt; ErrorWithCause err b
+$c&lt;$ :: forall err a b. a -&gt; ErrorWithCause err b -&gt; ErrorWithCause err a
+&lt;$ :: forall a b. a -&gt; ErrorWithCause err b -&gt; ErrorWithCause err a
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#Functor"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Functor</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960206"
+      ><span id="local-6989586621681960212"
+	><span id="local-6989586621681960218"
+	  ><span id="local-6989586621681960223"
+	    ><span id="local-6989586621681960226"
+	      ><span id="local-6989586621681960229"
+		><span id="local-6989586621681960232"
+		  ><span id="local-6989586621681960235"
+		    ><span id="local-6989586621681960238"
+		      ><span id="local-6989586621681960241"
+			><span id="local-6989586621681960244"
+			  ><span id="local-6989586621681960247"
+			    ><span id="local-6989586621681960250"
+			      ><span id="local-6989586621681960255"
+				><span id="local-6989586621681960260"
+				  ><span id="local-6989586621681960265"
+				    ><span id="local-6989586621681960270"
+				      ><span class="annot"
+					><span class="annottext"
+					  >(forall m. Monoid m =&gt; ErrorWithCause err m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a)
+-&gt; (forall a. ErrorWithCause err a -&gt; [a])
+-&gt; (forall a. ErrorWithCause err a -&gt; Bool)
+-&gt; (forall a. ErrorWithCause err a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; ErrorWithCause err a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; ErrorWithCause err a -&gt; a)
+-&gt; (forall a. Ord a =&gt; ErrorWithCause err a -&gt; a)
+-&gt; (forall a. Num a =&gt; ErrorWithCause err a -&gt; a)
+-&gt; (forall a. Num a =&gt; ErrorWithCause err a -&gt; a)
+-&gt; Foldable (ErrorWithCause err)
+forall a. Eq a =&gt; a -&gt; ErrorWithCause err a -&gt; Bool
+forall a. Num a =&gt; ErrorWithCause err a -&gt; a
+forall a. Ord a =&gt; ErrorWithCause err a -&gt; a
+forall m. Monoid m =&gt; ErrorWithCause err m -&gt; m
+forall a. ErrorWithCause err a -&gt; Bool
+forall a. ErrorWithCause err a -&gt; Int
+forall a. ErrorWithCause err a -&gt; [a]
+forall a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a
+forall err a. Eq a =&gt; a -&gt; ErrorWithCause err a -&gt; Bool
+forall err a. Num a =&gt; ErrorWithCause err a -&gt; a
+forall err a. Ord a =&gt; ErrorWithCause err a -&gt; a
+forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m
+forall err m. Monoid m =&gt; ErrorWithCause err m -&gt; m
+forall err a. ErrorWithCause err a -&gt; Bool
+forall err a. ErrorWithCause err a -&gt; Int
+forall err a. ErrorWithCause err a -&gt; [a]
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+forall err a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a
+forall err m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m
+forall err b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+forall err a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+forall (t :: * -&gt; *).
+(forall m. Monoid m =&gt; t m -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall m a. Monoid m =&gt; (a -&gt; m) -&gt; t a -&gt; m)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. (a -&gt; a -&gt; a) -&gt; t a -&gt; a)
+-&gt; (forall a. t a -&gt; [a])
+-&gt; (forall a. t a -&gt; Bool)
+-&gt; (forall a. t a -&gt; Int)
+-&gt; (forall a. Eq a =&gt; a -&gt; t a -&gt; Bool)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Ord a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; (forall a. Num a =&gt; t a -&gt; a)
+-&gt; Foldable t
+$cfold :: forall err m. Monoid m =&gt; ErrorWithCause err m -&gt; m
+fold :: forall m. Monoid m =&gt; ErrorWithCause err m -&gt; m
+$cfoldMap :: forall err m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m
+foldMap :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m
+$cfoldMap' :: forall err m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m
+foldMap' :: forall m a. Monoid m =&gt; (a -&gt; m) -&gt; ErrorWithCause err a -&gt; m
+$cfoldr :: forall err a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+foldr :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+$cfoldr' :: forall err a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+foldr' :: forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+$cfoldl :: forall err b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+foldl :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+$cfoldl' :: forall err b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+foldl' :: forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; ErrorWithCause err a -&gt; b
+$cfoldr1 :: forall err a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a
+foldr1 :: forall a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a
+$cfoldl1 :: forall err a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a
+foldl1 :: forall a. (a -&gt; a -&gt; a) -&gt; ErrorWithCause err a -&gt; a
+$ctoList :: forall err a. ErrorWithCause err a -&gt; [a]
+toList :: forall a. ErrorWithCause err a -&gt; [a]
+$cnull :: forall err a. ErrorWithCause err a -&gt; Bool
+null :: forall a. ErrorWithCause err a -&gt; Bool
+$clength :: forall err a. ErrorWithCause err a -&gt; Int
+length :: forall a. ErrorWithCause err a -&gt; Int
+$celem :: forall err a. Eq a =&gt; a -&gt; ErrorWithCause err a -&gt; Bool
+elem :: forall a. Eq a =&gt; a -&gt; ErrorWithCause err a -&gt; Bool
+$cmaximum :: forall err a. Ord a =&gt; ErrorWithCause err a -&gt; a
+maximum :: forall a. Ord a =&gt; ErrorWithCause err a -&gt; a
+$cminimum :: forall err a. Ord a =&gt; ErrorWithCause err a -&gt; a
+minimum :: forall a. Ord a =&gt; ErrorWithCause err a -&gt; a
+$csum :: forall err a. Num a =&gt; ErrorWithCause err a -&gt; a
+sum :: forall a. Num a =&gt; ErrorWithCause err a -&gt; a
+$cproduct :: forall err a. Num a =&gt; ErrorWithCause err a -&gt; a
+product :: forall a. Num a =&gt; ErrorWithCause err a -&gt; a
+</span
+					  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#Foldable"
+					  ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+					    >Foldable</span
+					    ></a
+					  ></span
+					></span
+				      ></span
+				    ></span
+				  ></span
+				></span
+			      ></span
+			    ></span
+			  ></span
+			></span
+		      ></span
+		    ></span
+		  ></span
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960280"
+      ><span id="local-6989586621681960288"
+	><span id="local-6989586621681960294"
+	  ><span id="local-6989586621681960299"
+	    ><span class="annot"
+	      ><span class="annottext"
+		>Functor (ErrorWithCause err)
+Foldable (ErrorWithCause err)
+(Functor (ErrorWithCause err), Foldable (ErrorWithCause err)) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; ErrorWithCause err a -&gt; f (ErrorWithCause err b))
+-&gt; (forall (f :: * -&gt; *) a.
+    Applicative f =&gt;
+    ErrorWithCause err (f a) -&gt; f (ErrorWithCause err a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; ErrorWithCause err a -&gt; m (ErrorWithCause err b))
+-&gt; (forall (m :: * -&gt; *) a.
+    Monad m =&gt;
+    ErrorWithCause err (m a) -&gt; m (ErrorWithCause err a))
+-&gt; Traversable (ErrorWithCause err)
+forall err. Functor (ErrorWithCause err)
+forall err. Foldable (ErrorWithCause err)
+forall err (m :: * -&gt; *) a.
+Monad m =&gt;
+ErrorWithCause err (m a) -&gt; m (ErrorWithCause err a)
+forall err (f :: * -&gt; *) a.
+Applicative f =&gt;
+ErrorWithCause err (f a) -&gt; f (ErrorWithCause err a)
+forall err (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; ErrorWithCause err a -&gt; m (ErrorWithCause err b)
+forall err (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; ErrorWithCause err a -&gt; f (ErrorWithCause err b)
+forall (t :: * -&gt; *).
+(Functor t, Foldable t) =&gt;
+(forall (f :: * -&gt; *) a b.
+ Applicative f =&gt;
+ (a -&gt; f b) -&gt; t a -&gt; f (t b))
+-&gt; (forall (f :: * -&gt; *) a. Applicative f =&gt; t (f a) -&gt; f (t a))
+-&gt; (forall (m :: * -&gt; *) a b.
+    Monad m =&gt;
+    (a -&gt; m b) -&gt; t a -&gt; m (t b))
+-&gt; (forall (m :: * -&gt; *) a. Monad m =&gt; t (m a) -&gt; m (t a))
+-&gt; Traversable t
+forall (m :: * -&gt; *) a.
+Monad m =&gt;
+ErrorWithCause err (m a) -&gt; m (ErrorWithCause err a)
+forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+ErrorWithCause err (f a) -&gt; f (ErrorWithCause err a)
+forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; ErrorWithCause err a -&gt; m (ErrorWithCause err b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; ErrorWithCause err a -&gt; f (ErrorWithCause err b)
+$ctraverse :: forall err (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; ErrorWithCause err a -&gt; f (ErrorWithCause err b)
+traverse :: forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; ErrorWithCause err a -&gt; f (ErrorWithCause err b)
+$csequenceA :: forall err (f :: * -&gt; *) a.
+Applicative f =&gt;
+ErrorWithCause err (f a) -&gt; f (ErrorWithCause err a)
+sequenceA :: forall (f :: * -&gt; *) a.
+Applicative f =&gt;
+ErrorWithCause err (f a) -&gt; f (ErrorWithCause err a)
+$cmapM :: forall err (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; ErrorWithCause err a -&gt; m (ErrorWithCause err b)
+mapM :: forall (m :: * -&gt; *) a b.
+Monad m =&gt;
+(a -&gt; m b) -&gt; ErrorWithCause err a -&gt; m (ErrorWithCause err b)
+$csequence :: forall err (m :: * -&gt; *) a.
+Monad m =&gt;
+ErrorWithCause err (m a) -&gt; m (ErrorWithCause err a)
+sequence :: forall (m :: * -&gt; *) a.
+Monad m =&gt;
+ErrorWithCause err (m a) -&gt; m (ErrorWithCause err a)
+</span
+		><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Traversable.html#Traversable"
+		><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var"
+		  >Traversable</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960306"
+      ><span id="local-6989586621681960308"
+	><span class="annot"
+	  ><span class="annottext"
+	    >(forall x.
+ ErrorWithCause err cause -&gt; Rep (ErrorWithCause err cause) x)
+-&gt; (forall x.
+    Rep (ErrorWithCause err cause) x -&gt; ErrorWithCause err cause)
+-&gt; Generic (ErrorWithCause err cause)
+forall x.
+Rep (ErrorWithCause err cause) x -&gt; ErrorWithCause err cause
+forall x.
+ErrorWithCause err cause -&gt; Rep (ErrorWithCause err cause) x
+forall a.
+(forall x. a -&gt; Rep a x) -&gt; (forall x. Rep a x -&gt; a) -&gt; Generic a
+forall err cause x.
+Rep (ErrorWithCause err cause) x -&gt; ErrorWithCause err cause
+forall err cause x.
+ErrorWithCause err cause -&gt; Rep (ErrorWithCause err cause) x
+$cfrom :: forall err cause x.
+ErrorWithCause err cause -&gt; Rep (ErrorWithCause err cause) x
+from :: forall x.
+ErrorWithCause err cause -&gt; Rep (ErrorWithCause err cause) x
+$cto :: forall err cause x.
+Rep (ErrorWithCause err cause) x -&gt; ErrorWithCause err cause
+to :: forall x.
+Rep (ErrorWithCause err cause) x -&gt; ErrorWithCause err cause
+</span
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Generics.html#Generic"
+	    ><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var"
+	      >Generic</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >deriving</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-keyword"
+	>anyclass</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621681960314"
+      ><span class="annot"
+	><span class="annottext"
+	  >ErrorWithCause err cause -&gt; ()
+(ErrorWithCause err cause -&gt; ())
+-&gt; NFData (ErrorWithCause err cause)
+forall a. (a -&gt; ()) -&gt; NFData a
+forall err cause.
+(NFData err, NFData cause) =&gt;
+ErrorWithCause err cause -&gt; ()
+$crnf :: forall err cause.
+(NFData err, NFData cause) =&gt;
+ErrorWithCause err cause -&gt; ()
+rnf :: ErrorWithCause err cause -&gt; ()
+</span
+	  ><a href="https://hackage.haskell.org/package/deepseq-1.4.8.1/docs/src/Control.DeepSeq.html#NFData"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >NFData</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960336"
+      ><span id="local-6989586621681960340"
+	><span class="annot"
+	  ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#Bifunctor"
+	    ><span class="hs-identifier hs-type"
+	      >Bifunctor</span
+	      ></a
+	    ></span
+	  ><span
+	  > </span
+	  ><span class="annot"
+	  ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	    ><span class="hs-identifier hs-type"
+	      >ErrorWithCause</span
+	      ></a
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960344"
+      ><span class="annot"
+	><span class="annottext"
+	  >bimap :: forall a b c d.
+(a -&gt; b) -&gt; (c -&gt; d) -&gt; ErrorWithCause a c -&gt; ErrorWithCause b d
+</span
+	  ><a href="#local-6989586621681960344"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >bimap</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960346"
+      ><span class="annot"
+	><span class="annottext"
+	  >a -&gt; b
+</span
+	  ><a href="#local-6989586621681960346"
+	  ><span class="hs-identifier hs-var"
+	    >f</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960347"
+      ><span class="annot"
+	><span class="annottext"
+	  >c -&gt; d
+</span
+	  ><a href="#local-6989586621681960347"
+	  ><span class="hs-identifier hs-var"
+	    >g</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	><span class="hs-identifier hs-type"
+	  >ErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960348"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621681960348"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960349"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe c
+</span
+	  ><a href="#local-6989586621681960349"
+	  ><span class="hs-identifier hs-var"
+	    >cause</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>b -&gt; Maybe d -&gt; ErrorWithCause b d
+forall err cause. err -&gt; Maybe cause -&gt; ErrorWithCause err cause
+</span
+	><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	><span class="hs-identifier hs-var"
+	  >ErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; b
+</span
+	><a href="#local-6989586621681960346"
+	><span class="hs-identifier hs-var"
+	  >f</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621681960348"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>c -&gt; d
+</span
+	><a href="#local-6989586621681960347"
+	><span class="hs-identifier hs-var"
+	  >g</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(c -&gt; d) -&gt; Maybe c -&gt; Maybe d
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Functor.html#%3C%24%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;$&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe c
+</span
+	><a href="#local-6989586621681960349"
+	><span class="hs-identifier hs-var"
+	  >cause</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Bifunctor.html#bimap"
+	><span class="hs-pragma hs-type"
+	  >bimap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      > </span
+      ><span id="local-6989586621681960118"
+      ><span id="local-6989586621681960119"
+	><span id="local-6989586621681960355"
+	  ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960118"
+	      ><span class="hs-identifier hs-type"
+		>err</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960119"
+	      ><span class="hs-identifier hs-type"
+		>cause</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    > </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#Pretty"
+	      ><span class="hs-identifier hs-type"
+		>Pretty</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	      ><span class="hs-identifier hs-type"
+		>ErrorWithCause</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960118"
+	      ><span class="hs-identifier hs-type"
+		>err</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960119"
+	      ><span class="hs-identifier hs-type"
+		>cause</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960364"
+      ><span class="annot"
+	><span class="annottext"
+	  >pretty :: forall ann. ErrorWithCause err cause -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681960364"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >pretty</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	><span class="hs-identifier hs-type"
+	  >ErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960366"
+      ><span class="annot"
+	><span class="annottext"
+	  >err
+</span
+	  ><a href="#local-6989586621681960366"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960367"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe cause
+</span
+	  ><a href="#local-6989586621681960367"
+	  ><span class="hs-identifier hs-var"
+	    >c</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>err -&gt; Doc ann
+forall ann. err -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>err
+</span
+	><a href="#local-6989586621681960366"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;caused by:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe cause -&gt; Doc ann
+forall ann. Maybe cause -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#pretty"
+	><span class="hs-identifier hs-var"
+	  >pretty</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe cause
+</span
+	><a href="#local-6989586621681960367"
+	><span class="hs-identifier hs-var"
+	  >c</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960132"
+      ><span id="local-6989586621681960133"
+	><span id="local-6989586621681960134"
+	  ><span id="local-6989586621681960373"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960132"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960133"
+		><span class="hs-identifier hs-type"
+		  >cause</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960132"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960134"
+		><span class="hs-identifier hs-type"
+		  >err</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-40"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#PrettyBy"
+		><span class="hs-identifier hs-type"
+		  >PrettyBy</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960132"
+		><span class="hs-identifier hs-type"
+		  >config</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+		><span class="hs-identifier hs-type"
+		  >ErrorWithCause</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960134"
+		><span class="hs-identifier hs-type"
+		  >err</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960133"
+		><span class="hs-identifier hs-type"
+		  >cause</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960388"
+      ><span class="annot"
+	><span class="annottext"
+	  >prettyBy :: forall ann. config -&gt; ErrorWithCause err cause -&gt; Doc ann
+</span
+	  ><a href="#local-6989586621681960388"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >prettyBy</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960390"
+      ><span class="annot"
+	><span class="annottext"
+	  >config
+</span
+	  ><a href="#local-6989586621681960390"
+	  ><span class="hs-identifier hs-var"
+	    >config</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	><span class="hs-identifier hs-type"
+	  >ErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960391"
+      ><span class="annot"
+	><span class="annottext"
+	  >err
+</span
+	  ><a href="#local-6989586621681960391"
+	  ><span class="hs-identifier hs-var"
+	    >err</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960392"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe cause
+</span
+	  ><a href="#local-6989586621681960392"
+	  ><span class="hs-identifier hs-var"
+	    >mayCause</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Doc ann] -&gt; Doc ann
+forall m. Monoid m =&gt; [m] -&gt; m
+forall (t :: * -&gt; *) m. (Foldable t, Monoid m) =&gt; t m -&gt; m
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Foldable.html#fold"
+	><span class="hs-identifier hs-var"
+	  >fold</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >[</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;An error has occurred:&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall ann. Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#hardline"
+	><span class="hs-identifier hs-var"
+	  >hardline</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; err -&gt; Doc ann
+forall ann. config -&gt; err -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621681960390"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>err
+</span
+	><a href="#local-6989586621681960391"
+	><span class="hs-identifier hs-var"
+	  >err</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe cause
+</span
+	><a href="#local-6989586621681960392"
+	><span class="hs-identifier hs-var"
+	  >mayCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe cause
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall a. Monoid a =&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#mempty"
+	><span class="hs-identifier hs-var"
+	  >mempty</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960395"
+      ><span class="annot"
+	><span class="annottext"
+	  >cause
+</span
+	  ><a href="#local-6989586621681960395"
+	  ><span class="hs-identifier hs-var"
+	    >cause</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+forall ann. Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#hardline"
+	><span class="hs-identifier hs-var"
+	  >hardline</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#%3C%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann
+</span
+	><span class="hs-string"
+	>&quot;Caused by:&quot;</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-1.7.1/docs/src/Prettyprinter.Internal.html#%3C%2B%3E"
+	><span class="hs-operator hs-var"
+	  >&lt;+&gt;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config -&gt; cause -&gt; Doc ann
+forall ann. config -&gt; cause -&gt; Doc ann
+forall config a ann. PrettyBy config a =&gt; config -&gt; a -&gt; Doc ann
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Internal.html#prettyBy"
+	><span class="hs-identifier hs-var"
+	  >prettyBy</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>config
+</span
+	><a href="#local-6989586621681960390"
+	><span class="hs-identifier hs-var"
+	  >config</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cause
+</span
+	><a href="#local-6989586621681960395"
+	><span class="hs-identifier hs-var"
+	  >cause</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >      </span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span class="hs-keyword"
+      >instance</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960146"
+      ><span id="local-6989586621681960147"
+	><span id="local-6989586621681960399"
+	  ><span id="local-6989586621681960404"
+	    ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+		><span class="hs-identifier hs-type"
+		  >PrettyPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960146"
+		><span class="hs-identifier hs-type"
+		  >cause</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >,</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+		><span class="hs-identifier hs-type"
+		  >PrettyPlc</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960147"
+		><span class="hs-identifier hs-type"
+		  >err</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      >
+</span
+	      ><span id="line-54"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Show.html#Show"
+		><span class="hs-identifier hs-type"
+		  >Show</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+		><span class="hs-identifier hs-type"
+		  >ErrorWithCause</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960147"
+		><span class="hs-identifier hs-type"
+		  >err</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960146"
+		><span class="hs-identifier hs-type"
+		  >cause</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >  </span
+      ><span id="local-6989586621681960411"
+      ><span class="annot"
+	><span class="annottext"
+	  >show :: ErrorWithCause err cause -&gt; String
+</span
+	  ><a href="#local-6989586621681960411"
+	  ><span class="hs-identifier hs-var hs-var hs-var hs-var"
+	    >show</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Doc Any -&gt; String
+forall ann. Doc ann -&gt; String
+forall str ann. Render str =&gt; Doc ann -&gt; str
+</span
+	><a href="https://hackage.haskell.org/package/prettyprinter-configurable-1.36.0.0/docs/src/Text.PrettyBy.Default.html#render"
+	><span class="hs-identifier hs-var"
+	  >render</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Doc Any -&gt; String)
+-&gt; (ErrorWithCause err cause -&gt; Doc Any)
+-&gt; ErrorWithCause err cause
+-&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ErrorWithCause err cause -&gt; Doc Any
+forall a ann. PrettyPlc a =&gt; a -&gt; Doc ann
+</span
+	><a href="PlutusCore.Pretty.Plc.html#prettyPlcReadable"
+	><span class="hs-identifier hs-var"
+	  >prettyPlcReadable</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span id="local-6989586621681960426"
+      ><span id="local-6989586621681960430"
+	><span id="local-6989586621681960433"
+	  ><span class="hs-keyword"
+	    >deriving</span
+	    ><span
+	    > </span
+	    ><span id="local-6989586621681960166"
+	    ><span id="local-6989586621681960167"
+	      ><span class="annot"
+		><a href="#local-6989586621681960166"
+		  ><span class="hs-keyword hs-type hs-type"
+		    >anyclass</span
+		    ></a
+		  ></span
+		></span
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-keyword"
+	    >instance</span
+	    ><span
+	    >
+</span
+	    ><span id="line-59"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+	      ><span class="hs-identifier hs-type"
+		>PrettyPlc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960166"
+	      ><span class="hs-identifier hs-type"
+		>cause</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Pretty.Plc.html#PrettyPlc"
+	      ><span class="hs-identifier hs-type"
+		>PrettyPlc</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960167"
+	      ><span class="hs-identifier hs-type"
+		>err</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	      ><span class="hs-identifier hs-type"
+		>Typeable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960166"
+	      ><span class="hs-identifier hs-type"
+		>cause</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >,</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Typeable.Internal.html#Typeable"
+	      ><span class="hs-identifier hs-type"
+		>Typeable</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960167"
+	      ><span class="hs-identifier hs-type"
+		>err</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ><span
+	    >
+</span
+	    ><span id="line-60"
+	    ></span
+	    ><span
+	    >  </span
+	    ><span class="hs-glyph"
+	    >=&gt;</span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Exception.Type.html#Exception"
+	      ><span class="hs-identifier hs-type"
+		>Exception</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="hs-special"
+	    >(</span
+	    ><span class="annot"
+	    ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	      ><span class="hs-identifier hs-type"
+		>ErrorWithCause</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960167"
+	      ><span class="hs-identifier hs-type"
+		>err</span
+		></a
+	      ></span
+	    ><span
+	    > </span
+	    ><span class="annot"
+	    ><a href="#local-6989586621681960166"
+	      ><span class="hs-identifier hs-type"
+		>cause</span
+		></a
+	      ></span
+	    ><span class="hs-special"
+	    >)</span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span id="local-6989586621681960168"
+      ><span id="local-6989586621681960169"
+	><span id="local-6989586621681960170"
+	  ><span id="local-6989586621681960172"
+	    ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#throwErrorWithCause"
+		><span class="hs-identifier hs-type"
+		  >throwErrorWithCause</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-63"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >::</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#MonadError"
+		><span class="hs-identifier hs-type"
+		  >MonadError</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="hs-special"
+	      >(</span
+	      ><span class="annot"
+	      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+		><span class="hs-identifier hs-type"
+		  >ErrorWithCause</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960168"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960169"
+		><span class="hs-identifier hs-type"
+		  >cause</span
+		  ></a
+		></span
+	      ><span class="hs-special"
+	      >)</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960170"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-64"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >=&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960168"
+		><span class="hs-identifier hs-type"
+		  >e</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-65"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960169"
+		><span class="hs-identifier hs-type"
+		  >cause</span
+		  ></a
+		></span
+	      ><span
+	      >
+</span
+	      ><span id="line-66"
+	      ></span
+	      ><span
+	      >  </span
+	      ><span class="hs-glyph"
+	      >-&gt;</span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960170"
+		><span class="hs-identifier hs-type"
+		  >m</span
+		  ></a
+		></span
+	      ><span
+	      > </span
+	      ><span class="annot"
+	      ><a href="#local-6989586621681960172"
+		><span class="hs-identifier hs-type"
+		  >x</span
+		  ></a
+		></span
+	      ></span
+	    ></span
+	  ></span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span id="throwErrorWithCause"
+      ><span class="annot"
+	><span class="annottext"
+	  >throwErrorWithCause :: forall e cause (m :: * -&gt; *) x.
+MonadError (ErrorWithCause e cause) m =&gt;
+e -&gt; cause -&gt; m x
+</span
+	  ><a href="PlutusCore.Evaluation.ErrorWithCause.html#throwErrorWithCause"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >throwErrorWithCause</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621681960439"
+      ><span class="annot"
+	><span class="annottext"
+	  >e
+</span
+	  ><a href="#local-6989586621681960439"
+	  ><span class="hs-identifier hs-var"
+	    >e</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ErrorWithCause e cause -&gt; m x
+forall a. ErrorWithCause e cause -&gt; m a
+forall e (m :: * -&gt; *) a. MonadError e m =&gt; e -&gt; m a
+</span
+	><a href="https://hackage.haskell.org/package/mtl-2.3.1/docs/src/Control.Monad.Error.Class.html#throwError"
+	><span class="hs-identifier hs-var"
+	  >throwError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ErrorWithCause e cause -&gt; m x)
+-&gt; (cause -&gt; ErrorWithCause e cause) -&gt; cause -&gt; m x
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>e -&gt; Maybe cause -&gt; ErrorWithCause e cause
+forall err cause. err -&gt; Maybe cause -&gt; ErrorWithCause err cause
+</span
+	><a href="PlutusCore.Evaluation.ErrorWithCause.html#ErrorWithCause"
+	><span class="hs-identifier hs-var"
+	  >ErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>e
+</span
+	><a href="#local-6989586621681960439"
+	><span class="hs-identifier hs-var"
+	  >e</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Maybe cause -&gt; ErrorWithCause e cause)
+-&gt; (cause -&gt; Maybe cause) -&gt; cause -&gt; ErrorWithCause e cause
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>cause -&gt; Maybe cause
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusCore.Evaluation.ErrorWithCause.html#throwErrorWithCause"
+	><span class="hs-pragma hs-type"
+	  >throwErrorWithCause</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

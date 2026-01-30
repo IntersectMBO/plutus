@@ -1,0 +1,2833 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><link rel="stylesheet" type="text/css" href="style.css"
+     /><script type="text/javascript" src="highlight.js"
+    ></script
+    ></head
+  ><body
+  ><pre
+    ><span class="hs-comment"
+      >-- editorconfig-checker-disable-file</span
+      ><span
+      >
+</span
+      ><span id="line-2"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE LambdaCase        #-}</span
+      ><span
+      >
+</span
+      ><span id="line-3"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE NoImplicitPrelude #-}</span
+      ><span
+      >
+</span
+      ><span id="line-4"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE OverloadedStrings #-}</span
+      ><span
+      >
+</span
+      ><span id="line-5"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE Strict            #-}</span
+      ><span
+      >
+</span
+      ><span id="line-6"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE TypeApplications  #-}</span
+      ><span
+      >
+</span
+      ><span id="line-7"
+      ></span
+      ><span class="hs-pragma"
+      >{-# LANGUAGE ViewPatterns      #-}</span
+      ><span
+      >
+</span
+      ><span id="line-8"
+      ></span
+      ><span class="hs-keyword"
+      >module</span
+      ><span
+      > </span
+      ><span class="hs-identifier"
+      >Cardano.Constitution.Validator.Data.Common</span
+      ><span
+      >
+</span
+      ><span id="line-9"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >(</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#withChangedParams"
+	><span class="hs-identifier"
+	  >withChangedParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-10"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#ChangedParams"
+	><span class="hs-identifier"
+	  >ChangedParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-11"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#ConstitutionValidator"
+	><span class="hs-identifier"
+	  >ConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-12"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#validateParamValue"
+	><span class="hs-identifier"
+	  >validateParamValue</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-13"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-14"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-15"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.html"
+	><span class="hs-identifier"
+	  >Cardano.Constitution.Config</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-16"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/Data.Coerce.html"
+	><span class="hs-identifier"
+	  >Data.Coerce</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-17"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.Data.V3.html"
+	><span class="hs-identifier"
+	  >PlutusLedgerApi.Data.V3</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-18"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>B</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-19"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Builtins.Internal</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >qualified</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>BI</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-20"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.List.html"
+	><span class="hs-identifier"
+	  >PlutusTx.List</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>List</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-21"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="PlutusTx.NonCanonicalRational.html"
+	><span class="hs-identifier"
+	  >PlutusTx.NonCanonicalRational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>NCRatio</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-22"
+      ></span
+      ><span class="hs-keyword"
+      >import</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Prelude.html"
+	><span class="hs-identifier"
+	  >PlutusTx.Prelude</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >as</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-identifier"
+	>Tx</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-23"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-24"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="ConstitutionValidator"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Validator.Data.Common.html#ConstitutionValidator"
+	  ><span class="hs-identifier hs-var"
+	    >ConstitutionValidator</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#ScriptContext"
+	><span class="hs-identifier hs-type"
+	  >ScriptContext</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ Deep inside is the changed-parameters proposal</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-25"
+      ></span
+      ><span
+      >                           </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinUnit"
+	><span class="hs-identifier hs-type"
+	  >BuiltinUnit</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="hs-comment"
+	>-- ^ No-error means the proposal conforms to the constitution</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-26"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-27"
+      ></span
+      ><span class="hs-comment"
+      >-- OPTIMIZE: operate on BuiltinList&lt;BuiltinPair&gt; directly, needs major refactoring of sorted&amp;unsorted Validators</span
+      ><span
+      >
+</span
+      ><span id="line-28"
+      ></span
+      ><span class="hs-keyword"
+      >type</span
+      ><span
+      > </span
+      ><span id="ChangedParams"
+      ><span class="annot"
+	><a href="Cardano.Constitution.Validator.Data.Common.html#ChangedParams"
+	  ><span class="hs-identifier hs-var"
+	    >ChangedParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      >
+</span
+      ><span id="line-29"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-30"
+      ></span
+      ><span class="hs-comment"
+      >{- HLINT ignore &quot;Redundant lambda&quot; -}</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- I like to see until where it supposed to be first applied.</span
+      ><span
+      >
+</span
+      ><span id="line-31"
+      ></span
+      ><span class="hs-comment"
+      >{- HLINT ignore &quot;Collapse lambdas&quot; -}</span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- I like to see and comment on each arg</span
+      ><span
+      >
+</span
+      ><span id="line-32"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#withChangedParams"
+	><span class="hs-identifier hs-type"
+	  >withChangedParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#ChangedParams"
+	><span class="hs-identifier hs-type"
+	  >ChangedParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#ConstitutionValidator"
+	><span class="hs-identifier hs-type"
+	  >ConstitutionValidator</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-33"
+      ></span
+      ><span id="withChangedParams"
+      ><span class="annot"
+	><span class="annottext"
+	  >withChangedParams :: (ChangedParams -&gt; Bool) -&gt; ConstitutionValidator
+</span
+	  ><a href="Cardano.Constitution.Validator.Data.Common.html#withChangedParams"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >withChangedParams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344675"
+      ><span class="annot"
+	><span class="annottext"
+	  >ChangedParams -&gt; Bool
+</span
+	  ><a href="#local-6989586621679344675"
+	  ><span class="hs-identifier hs-var"
+	    >fun</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptContext -&gt; Maybe ChangedParams
+</span
+	><a href="Cardano.Constitution.Validator.Data.Common.html#scriptContextToValidGovAction"
+	><span class="hs-identifier hs-var"
+	  >scriptContextToValidGovAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679344677"
+      ><span class="annot"
+	><span class="annottext"
+	  >Maybe ChangedParams
+</span
+	  ><a href="#local-6989586621679344677"
+	  ><span class="hs-identifier hs-var"
+	    >validGovAction</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-34"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ChangedParams
+</span
+	><a href="#local-6989586621679344677"
+	><span class="hs-identifier hs-var"
+	  >validGovAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-35"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-type"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344678"
+      ><span class="annot"
+	><span class="annottext"
+	  >ChangedParams
+</span
+	  ><a href="#local-6989586621679344678"
+	  ><span class="hs-identifier hs-var"
+	    >cparams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >if</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParams -&gt; Bool
+</span
+	><a href="#local-6989586621679344675"
+	><span class="hs-identifier hs-var"
+	  >fun</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParams
+</span
+	><a href="#local-6989586621679344678"
+	><span class="hs-identifier hs-var"
+	  >cparams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-36"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >then</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinUnit
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#unitval"
+	><span class="hs-identifier hs-var"
+	  >BI.unitval</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-37"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-keyword"
+      >else</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; BuiltinUnit
+forall a. BuiltinString -&gt; a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Trace.html#traceError"
+	><span class="hs-identifier hs-var"
+	  >traceError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;ChangedParams failed to validate&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-38"
+      ></span
+      ><span
+      >        </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ChangedParams
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinUnit
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#unitval"
+	><span class="hs-identifier hs-var"
+	  >BI.unitval</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-comment"
+      >-- this is a treasury withdrawal, we just accept it</span
+      ><span
+      >
+</span
+      ><span id="line-39"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#withChangedParams"
+	><span class="hs-pragma hs-type"
+	  >withChangedParams</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-40"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-41"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#validateParamValue"
+	><span class="hs-identifier hs-type"
+	  >validateParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamValue"
+	><span class="hs-identifier hs-type"
+	  >ParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-42"
+      ></span
+      ><span id="validateParamValue"
+      ><span class="annot"
+	><span class="annottext"
+	  >validateParamValue :: ParamValue -&gt; BuiltinData -&gt; Bool
+</span
+	  ><a href="Cardano.Constitution.Validator.Data.Common.html#validateParamValue"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validateParamValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-43"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamInteger"
+	><span class="hs-identifier hs-type"
+	  >ParamInteger</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344682"
+      ><span class="annot"
+	><span class="annottext"
+	  >Predicates Integer
+</span
+	  ><a href="#local-6989586621679344682"
+	  ><span class="hs-identifier hs-var"
+	    >preds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Integer -&gt; Integer -&gt; Bool
+forall a. Ord a =&gt; Predicates a -&gt; a -&gt; Bool
+</span
+	><a href="#local-6989586621679344683"
+	><span class="hs-identifier hs-var"
+	  >validatePreds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Integer
+</span
+	><a href="#local-6989586621679344682"
+	><span class="hs-identifier hs-var"
+	  >preds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Integer -&gt; Bool)
+-&gt; (BuiltinData -&gt; Integer) -&gt; BuiltinData -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; Integer
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.html#unsafeDataAsI"
+	><span class="hs-identifier hs-var"
+	  >B.unsafeDataAsI</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-44"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamRational"
+	><span class="hs-identifier hs-type"
+	  >ParamRational</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344687"
+      ><span class="annot"
+	><span class="annottext"
+	  >Predicates Rational
+</span
+	  ><a href="#local-6989586621679344687"
+	  ><span class="hs-identifier hs-var"
+	    >preds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Rational -&gt; Rational -&gt; Bool
+forall a. Ord a =&gt; Predicates a -&gt; a -&gt; Bool
+</span
+	><a href="#local-6989586621679344683"
+	><span class="hs-identifier hs-var"
+	  >validatePreds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicates Rational
+</span
+	><a href="#local-6989586621679344687"
+	><span class="hs-identifier hs-var"
+	  >preds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Rational -&gt; Bool)
+-&gt; (BuiltinData -&gt; Rational) -&gt; BuiltinData -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>NonCanonicalRational -&gt; Rational
+forall a b. Coercible a b =&gt; a -&gt; b
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Prim.html#coerce"
+	><span class="hs-identifier hs-var"
+	  >coerce</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(NonCanonicalRational -&gt; Rational)
+-&gt; (BuiltinData -&gt; NonCanonicalRational) -&gt; BuiltinData -&gt; Rational
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>forall a. UnsafeFromData a =&gt; BuiltinData -&gt; a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#unsafeFromBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >unsafeFromBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >@</span
+      ><span class="annot"
+      ><a href="PlutusTx.NonCanonicalRational.html#NonCanonicalRational"
+	><span class="hs-identifier hs-type"
+	  >NonCanonicalRational</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-45"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamList"
+	><span class="hs-identifier hs-type"
+	  >ParamList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344690"
+      ><span class="annot"
+	><span class="annottext"
+	  >[ParamValue]
+</span
+	  ><a href="#local-6989586621679344690"
+	  ><span class="hs-identifier hs-var"
+	    >paramValues</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ParamValue] -&gt; BuiltinList BuiltinData -&gt; Bool
+</span
+	><a href="#local-6989586621679344691"
+	><span class="hs-identifier hs-var"
+	  >validateParamValues</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ParamValue]
+</span
+	><a href="#local-6989586621679344690"
+	><span class="hs-identifier hs-var"
+	  >paramValues</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinList BuiltinData -&gt; Bool)
+-&gt; (BuiltinData -&gt; BuiltinList BuiltinData) -&gt; BuiltinData -&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; BuiltinList BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#unsafeDataAsList"
+	><span class="hs-identifier hs-var"
+	  >BI.unsafeDataAsList</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-46"
+      ></span
+      ><span
+      >    </span
+      ><span class="hs-comment"
+      >-- accept the actual proposed value without examining it</span
+      ><span
+      >
+</span
+      ><span id="line-47"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue
+</span
+	><a href="Cardano.Constitution.Config.Types.html#ParamAny"
+	><span class="hs-identifier hs-var"
+	  >ParamAny</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; BuiltinData -&gt; Bool
+forall a b. a -&gt; b -&gt; a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#const"
+	><span class="hs-identifier hs-var"
+	  >const</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool
+</span
+	><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#True"
+	><span class="hs-identifier hs-var"
+	  >True</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-48"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-49"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344691"
+	><span class="hs-identifier hs-type"
+	  >validateParamValues</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#ParamValue"
+	><span class="hs-identifier hs-type"
+	  >ParamValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinList"
+	><span class="hs-identifier hs-type"
+	  >BI.BuiltinList</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#BuiltinData"
+	><span class="hs-identifier hs-type"
+	  >BuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-50"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679344691"
+      ><span class="annot"
+	><span class="annottext"
+	  >validateParamValues :: [ParamValue] -&gt; BuiltinList BuiltinData -&gt; Bool
+</span
+	  ><a href="#local-6989586621679344691"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validateParamValues</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span class="hs-glyph"
+      >case</span
+      ><span
+      >
+</span
+      ><span id="line-51"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679344695"
+      ><span class="annot"
+	><span class="annottext"
+	  >ParamValue
+</span
+	  ><a href="#local-6989586621679344695"
+	  ><span class="hs-identifier hs-var"
+	    >paramValueHd</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#%3A"
+	><span class="hs-glyph hs-type"
+	  >:</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344696"
+      ><span class="annot"
+	><span class="annottext"
+	  >[ParamValue]
+</span
+	  ><a href="#local-6989586621679344696"
+	  ><span class="hs-identifier hs-var"
+	    >paramValueTl</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >\</span
+      ><span id="local-6989586621679344697"
+      ><span class="annot"
+	><span class="annottext"
+	  >BuiltinList BuiltinData
+</span
+	  ><a href="#local-6989586621679344697"
+	  ><span class="hs-identifier hs-var"
+	    >actualValueData</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      >
+</span
+      ><span id="line-52"
+      ></span
+      ><span
+      >              </span
+      ><span class="hs-comment"
+      >-- if actualValueData is not a cons, it will error</span
+      ><span
+      >
+</span
+      ><span id="line-53"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue -&gt; BuiltinData -&gt; Bool
+</span
+	><a href="Cardano.Constitution.Validator.Data.Common.html#validateParamValue"
+	><span class="hs-identifier hs-var"
+	  >validateParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ParamValue
+</span
+	><a href="#local-6989586621679344695"
+	><span class="hs-identifier hs-var"
+	  >paramValueHd</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; BuiltinData
+forall a. BuiltinList a -&gt; a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#head"
+	><span class="hs-identifier hs-var"
+	  >BI.head</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679344697"
+	><span class="hs-identifier hs-var"
+	  >actualValueData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-54"
+      ></span
+      ><span
+      >              </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Bool.html#%26%26"
+	><span class="hs-operator hs-var"
+	  >&amp;&amp;</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ParamValue] -&gt; BuiltinList BuiltinData -&gt; Bool
+</span
+	><a href="#local-6989586621679344691"
+	><span class="hs-identifier hs-var"
+	  >validateParamValues</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[ParamValue]
+</span
+	><a href="#local-6989586621679344696"
+	><span class="hs-identifier hs-var"
+	  >paramValueTl</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; BuiltinList BuiltinData
+forall a. BuiltinList a -&gt; BuiltinList a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#tail"
+	><span class="hs-identifier hs-var"
+	  >BI.tail</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData
+</span
+	><a href="#local-6989586621679344697"
+	><span class="hs-identifier hs-var"
+	  >actualValueData</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-55"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- if reached the end of list of param-values to check, ensure no more proposed data are left</span
+      ><span
+      >
+</span
+      ><span id="line-56"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-special"
+      >[</span
+      ><span class="hs-special"
+      >]</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Bool -&gt; Bool
+forall arep a. HasFromOpaque arep a =&gt; arep -&gt; a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.HasOpaque.html#fromOpaque"
+	><span class="hs-identifier hs-var"
+	  >B.fromOpaque</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Bool -&gt; Bool)
+-&gt; (BuiltinList BuiltinData -&gt; Bool)
+-&gt; BuiltinList BuiltinData
+-&gt; Bool
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinList BuiltinData -&gt; Bool
+forall a. BuiltinList a -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.Internal.html#null"
+	><span class="hs-identifier hs-var"
+	  >BI.null</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-57"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-58"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344683"
+	><span class="hs-identifier hs-type"
+	  >validatePreds</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679344624"
+      ><span class="annot"
+	><a href="#local-6989586621679344624"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+	><span class="hs-identifier hs-type"
+	  >Tx.Ord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344624"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier hs-type"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344624"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344624"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-59"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679344683"
+      ><span class="annot"
+	><span class="annottext"
+	  >validatePreds :: forall a. Ord a =&gt; Predicates a -&gt; a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679344683"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatePreds</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicates"
+	><span class="hs-identifier hs-type"
+	  >Predicates</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344706"
+      ><span class="annot"
+	><span class="annottext"
+	  >[Predicate a]
+</span
+	  ><a href="#local-6989586621679344706"
+	  ><span class="hs-identifier hs-var"
+	    >preds</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Predicate a -&gt; Bool
+forall a. Ord a =&gt; a -&gt; Predicate a -&gt; Bool
+</span
+	><a href="#local-6989586621679344707"
+	><span class="hs-identifier hs-var"
+	  >validatePred</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span id="local-6989586621679344708"
+      ><span class="annot"
+	><span class="annottext"
+	  >Predicate a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679344708"
+	  ><span class="hs-identifier hs-var"
+	    >validatePredAppliedToActual</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-60"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(Predicate a -&gt; Bool) -&gt; [Predicate a] -&gt; Bool
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.List.html#all"
+	><span class="hs-identifier hs-var"
+	  >List.all</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Predicate a -&gt; Bool
+</span
+	><a href="#local-6989586621679344708"
+	><span class="hs-identifier hs-var"
+	  >validatePredAppliedToActual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[Predicate a]
+</span
+	><a href="#local-6989586621679344706"
+	><span class="hs-identifier hs-var"
+	  >preds</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-61"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-62"
+      ></span
+      ><span
+      >      </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344707"
+	><span class="hs-identifier hs-type"
+	  >validatePred</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >forall</span
+      ><span
+      > </span
+      ><span id="local-6989586621679344639"
+      ><span class="annot"
+	><a href="#local-6989586621679344639"
+	  ><span class="hs-identifier hs-type"
+	    >a</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-operator"
+      >.</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-tx/src/PlutusTx.Ord.html#Ord"
+	><span class="hs-identifier hs-type"
+	  >Tx.Ord</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344639"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344639"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Config.Types.html#Predicate"
+	><span class="hs-identifier hs-type"
+	  >Predicate</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344639"
+	><span class="hs-identifier hs-type"
+	  >a</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src/GHC.Types.html#Bool"
+	><span class="hs-identifier hs-type"
+	  >Bool</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-63"
+      ></span
+      ><span
+      >      </span
+      ><span id="local-6989586621679344707"
+      ><span class="annot"
+	><span class="annottext"
+	  >validatePred :: forall a. Ord a =&gt; a -&gt; Predicate a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679344707"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >validatePred</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344713"
+      ><span class="annot"
+	><span class="annottext"
+	  >a
+</span
+	  ><a href="#local-6989586621679344713"
+	  ><span class="hs-identifier hs-var"
+	    >actualValue</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span id="local-6989586621679344714"
+      ><span class="annot"
+	><span class="annottext"
+	  >PredKey
+</span
+	  ><a href="#local-6989586621679344714"
+	  ><span class="hs-identifier hs-var"
+	    >predKey</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >,</span
+      ><span
+      > </span
+      ><span id="local-6989586621679344715"
+      ><span class="annot"
+	><span class="annottext"
+	  >[a]
+</span
+	  ><a href="#local-6989586621679344715"
+	  ><span class="hs-identifier hs-var"
+	    >expectedPredValues</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-64"
+      ></span
+      ><span
+      >          </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(a -&gt; Bool) -&gt; [a] -&gt; Bool
+forall a. (a -&gt; Bool) -&gt; [a] -&gt; Bool
+</span
+	><a href="../../plutus-tx/src/PlutusTx.List.html#all"
+	><span class="hs-identifier hs-var"
+	  >List.all</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; Bool
+</span
+	><a href="#local-6989586621679344716"
+	><span class="hs-identifier hs-var"
+	  >meaningWithActual</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>[a]
+</span
+	><a href="#local-6989586621679344715"
+	><span class="hs-identifier hs-var"
+	  >expectedPredValues</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-65"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-66"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- we find the meaning (function) from the PredKey</span
+      ><span
+      >
+</span
+      ><span id="line-67"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679344719"
+      ><span class="annot"
+	><span class="annottext"
+	  >meaning :: a -&gt; a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679344719"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >meaning</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey -&gt; PredMeaning a
+forall a. PredKey -&gt; PredMeaning a
+</span
+	><a href="Cardano.Constitution.Config.html#defaultPredMeanings"
+	><span class="hs-identifier hs-var"
+	  >defaultPredMeanings</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>PredKey
+</span
+	><a href="#local-6989586621679344714"
+	><span class="hs-identifier hs-var"
+	  >predKey</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-68"
+      ></span
+      ><span
+      >          </span
+      ><span class="hs-comment"
+      >-- apply the meaning to actual value: expectedValue is 1st argument, actualValue is 2nd argument</span
+      ><span
+      >
+</span
+      ><span id="line-69"
+      ></span
+      ><span
+      >          </span
+      ><span id="local-6989586621679344716"
+      ><span class="annot"
+	><span class="annottext"
+	  >meaningWithActual :: a -&gt; Bool
+</span
+	  ><a href="#local-6989586621679344716"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >meaningWithActual</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      > </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><span class="annottext"
+	>a -&gt; a -&gt; Bool
+</span
+	><a href="#local-6989586621679344719"
+	><span class="hs-operator hs-var"
+	  >`meaning`</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>a
+</span
+	><a href="#local-6989586621679344713"
+	><span class="hs-identifier hs-var"
+	  >actualValue</span
+	  ></a
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      >
+</span
+      ><span id="line-70"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#validateParamValue"
+	><span class="hs-pragma hs-type"
+	  >validateParamValue</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-71"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-72"
+      ></span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#scriptContextToValidGovAction"
+	><span class="hs-identifier hs-type"
+	  >scriptContextToValidGovAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#ScriptContext"
+	><span class="hs-identifier hs-type"
+	  >ScriptContext</span
+	  ></a
+	></span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#ChangedParams"
+	><span class="hs-identifier hs-type"
+	  >ChangedParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-73"
+      ></span
+      ><span id="scriptContextToValidGovAction"
+      ><span class="annot"
+	><span class="annottext"
+	  >scriptContextToValidGovAction :: ScriptContext -&gt; Maybe ChangedParams
+</span
+	  ><a href="Cardano.Constitution.Validator.Data.Common.html#scriptContextToValidGovAction"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >scriptContextToValidGovAction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-74"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GovernanceAction -&gt; Maybe ChangedParams
+</span
+	><a href="#local-6989586621679344721"
+	><span class="hs-identifier hs-var"
+	  >governanceActionToValidGovAction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-75"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(GovernanceAction -&gt; Maybe ChangedParams)
+-&gt; (ScriptContext -&gt; GovernanceAction)
+-&gt; ScriptContext
+-&gt; Maybe ChangedParams
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ProposalProcedure -&gt; GovernanceAction
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#ppGovernanceAction"
+	><span class="hs-identifier hs-var"
+	  >ppGovernanceAction</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-76"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ProposalProcedure -&gt; GovernanceAction)
+-&gt; (ScriptContext -&gt; ProposalProcedure)
+-&gt; ScriptContext
+-&gt; GovernanceAction
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptInfo -&gt; ProposalProcedure
+</span
+	><a href="#local-6989586621679344723"
+	><span class="hs-identifier hs-var"
+	  >scriptInfoToProposalProcedure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-77"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ScriptInfo -&gt; ProposalProcedure)
+-&gt; (ScriptContext -&gt; ScriptInfo)
+-&gt; ScriptContext
+-&gt; ProposalProcedure
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptContext -&gt; ScriptInfo
+</span
+	><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#scriptContextScriptInfo"
+	><span class="hs-identifier hs-var"
+	  >scriptContextScriptInfo</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-78"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-79"
+      ></span
+      ><span
+      >  </span
+      ><span class="hs-keyword"
+      >where</span
+      ><span
+      >
+</span
+      ><span id="line-80"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344723"
+	><span class="hs-identifier hs-type"
+	  >scriptInfoToProposalProcedure</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#ScriptInfo"
+	><span class="hs-identifier hs-type"
+	  >ScriptInfo</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#ProposalProcedure"
+	><span class="hs-identifier hs-type"
+	  >ProposalProcedure</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-81"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679344723"
+      ><span class="annot"
+	><span class="annottext"
+	  >scriptInfoToProposalProcedure :: ScriptInfo -&gt; ProposalProcedure
+</span
+	  ><a href="#local-6989586621679344723"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >scriptInfoToProposalProcedure</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344725"
+      ><span class="annot"
+	><span class="annottext"
+	  >ScriptInfo
+</span
+	  ><a href="#local-6989586621679344725"
+	  ><span class="hs-identifier hs-var"
+	    >si</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-82"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptInfo
+</span
+	><a href="#local-6989586621679344725"
+	><span class="hs-identifier hs-var"
+	  >si</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-83"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#ProposingScript"
+	><span class="hs-identifier hs-type"
+	  >ProposingScript</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Integer
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344727"
+      ><span class="annot"
+	><span class="annottext"
+	  >ProposalProcedure
+</span
+	  ><a href="#local-6989586621679344727"
+	  ><span class="hs-identifier hs-var"
+	    >pp</span
+	    ></a
+	  ></span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ProposalProcedure
+</span
+	><a href="#local-6989586621679344727"
+	><span class="hs-identifier hs-var"
+	  >pp</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-84"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ScriptInfo
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; ProposalProcedure
+forall a. BuiltinString -&gt; a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Trace.html#traceError"
+	><span class="hs-identifier hs-var"
+	  >traceError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;Not a ProposalProcedure. This should not ever happen, because ledger should guard before, against it.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-85"
+      ></span
+      ><span
+      >
+</span
+      ><span id="line-86"
+      ></span
+      ><span
+      >    </span
+      ><span class="annot"
+      ><a href="#local-6989586621679344721"
+	><span class="hs-identifier hs-type"
+	  >governanceActionToValidGovAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >::</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#GovernanceAction"
+	><span class="hs-identifier hs-type"
+	  >GovernanceAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Maybe"
+	><span class="hs-identifier hs-type"
+	  >Maybe</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#ChangedParams"
+	><span class="hs-identifier hs-type"
+	  >ChangedParams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-87"
+      ></span
+      ><span
+      >    </span
+      ><span id="local-6989586621679344721"
+      ><span class="annot"
+	><span class="annottext"
+	  >governanceActionToValidGovAction :: GovernanceAction -&gt; Maybe ChangedParams
+</span
+	  ><a href="#local-6989586621679344721"
+	  ><span class="hs-identifier hs-var hs-var"
+	    >governanceActionToValidGovAction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344728"
+      ><span class="annot"
+	><span class="annottext"
+	  >GovernanceAction
+</span
+	  ><a href="#local-6989586621679344728"
+	  ><span class="hs-identifier hs-var"
+	    >govAction</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >=</span
+      ><span
+      >
+</span
+      ><span id="line-88"
+      ></span
+      ><span
+      >        </span
+      ><span class="hs-keyword"
+      >case</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GovernanceAction
+</span
+	><a href="#local-6989586621679344728"
+	><span class="hs-identifier hs-var"
+	  >govAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-keyword"
+      >of</span
+      ><span
+      >
+</span
+      ><span id="line-89"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#ParameterChange"
+	><span class="hs-identifier hs-type"
+	  >ParameterChange</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe GovernanceActionId
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span id="local-6989586621679344730"
+      ><span class="annot"
+	><span class="annottext"
+	  >ChangedParameters
+</span
+	  ><a href="#local-6989586621679344730"
+	  ><span class="hs-identifier hs-var"
+	    >cparams</span
+	    ></a
+	  ></span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ScriptHash
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParams -&gt; Maybe ChangedParams
+forall a. a -&gt; Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Just"
+	><span class="hs-identifier hs-var"
+	  >Just</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ChangedParams -&gt; Maybe ChangedParams)
+-&gt; (ChangedParameters -&gt; ChangedParams)
+-&gt; ChangedParameters
+-&gt; Maybe ChangedParams
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinData -&gt; ChangedParams
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Builtins.html#unsafeDataAsMap"
+	><span class="hs-identifier hs-var"
+	  >B.unsafeDataAsMap</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(BuiltinData -&gt; ChangedParams)
+-&gt; (ChangedParameters -&gt; BuiltinData)
+-&gt; ChangedParameters
+-&gt; ChangedParams
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#."
+	><span class="hs-operator hs-var"
+	  >.</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParameters -&gt; BuiltinData
+forall a. ToData a =&gt; a -&gt; BuiltinData
+</span
+	><a href="../../plutus-tx/src/PlutusTx.IsData.Class.html#toBuiltinData"
+	><span class="hs-identifier hs-var"
+	  >toBuiltinData</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>(ChangedParameters -&gt; Maybe ChangedParams)
+-&gt; ChangedParameters -&gt; Maybe ChangedParams
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Base.html#%24"
+	><span class="hs-operator hs-var"
+	  >$</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>ChangedParameters
+</span
+	><a href="#local-6989586621679344730"
+	><span class="hs-identifier hs-var"
+	  >cparams</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-90"
+      ></span
+      ><span
+      >            </span
+      ><span class="hs-special"
+      >(</span
+      ><span class="annot"
+      ><a href="../../plutus-ledger-api/src/PlutusLedgerApi.V3.Data.Contexts.html#TreasuryWithdrawals"
+	><span class="hs-identifier hs-type"
+	  >TreasuryWithdrawals</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Map Credential Lovelace
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ScriptHash
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span class="hs-special"
+      >)</span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>Maybe ChangedParams
+forall a. Maybe a
+</span
+	><a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src/GHC.Maybe.html#Nothing"
+	><span class="hs-identifier hs-var"
+	  >Nothing</span
+	  ></a
+	></span
+      ><span
+      >
+</span
+      ><span id="line-91"
+      ></span
+      ><span
+      >            </span
+      ><span class="annot"
+      ><span class="annottext"
+	>GovernanceAction
+</span
+	><span class="hs-identifier"
+	>_</span
+	></span
+      ><span
+      > </span
+      ><span class="hs-glyph"
+      >-&gt;</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString -&gt; Maybe ChangedParams
+forall a. BuiltinString -&gt; a
+</span
+	><a href="../../plutus-tx/src/PlutusTx.Trace.html#traceError"
+	><span class="hs-identifier hs-var"
+	  >traceError</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="annot"
+      ><span class="annottext"
+	>BuiltinString
+</span
+	><span class="hs-string"
+	>&quot;Not a ChangedParams. This should not ever happen, because ledger should guard before, against it.&quot;</span
+	></span
+      ><span
+      >
+</span
+      ><span id="line-92"
+      ></span
+      ><span class="hs-pragma"
+      >{-# INLINABLE</span
+      ><span
+      > </span
+      ><span class="annot"
+      ><a href="Cardano.Constitution.Validator.Data.Common.html#scriptContextToValidGovAction"
+	><span class="hs-pragma hs-type"
+	  >scriptContextToValidGovAction</span
+	  ></a
+	></span
+      ><span
+      > </span
+      ><span class="hs-pragma"
+      >#-}</span
+      ><span
+      >
+</span
+      ><span id="line-93"
+      ></span
+      ></pre
+    ></body
+  ></html
+>

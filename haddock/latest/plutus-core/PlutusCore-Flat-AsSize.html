@@ -1,0 +1,539 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head id="head" data-base-url=".."
+  ><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"
+     /><meta name="viewport" content="width=device-width, initial-scale=1"
+     /><title
+    >PlutusCore.Flat.AsSize</title
+    ><link href="../linuwial.css" rel="stylesheet" type="text/css" title="Linuwial"
+     /><link rel="stylesheet" type="text/css" href="../quick-jump.css"
+     /><link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700"
+     /><script src="../haddock-bundle.min.js" async="async" type="text/javascript"
+    ></script
+    ><script type="text/x-mathjax-config"
+    >MathJax.Hub.Config({ tex2jax: { processClass: "mathjax", ignoreClass: ".*" } });</script
+    ><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"
+    ></script
+    ></head
+  ><body
+  ><div id="package-header"
+    ><span class="caption"
+      >plutus-core-1.56.0.0: Language library for Plutus Core</span
+      ><ul class="links" id="page-menu"
+      ><li
+	><a href="src/PlutusCore.Flat.AsSize.html"
+	  >Source</a
+	  ></li
+	><li
+	><a href="../doc-index.html"
+	  >Contents</a
+	  ></li
+	><li
+	><a href="../index.html"
+	  >Index</a
+	  ></li
+	></ul
+      ></div
+    ><div id="content"
+    ><div id="module-header"
+      ><table class="info"
+	><tr
+	  ><th
+	    >Safe Haskell</th
+	    ><td
+	    >Safe-Inferred</td
+	    ></tr
+	  ><tr
+	  ><th
+	    >Language</th
+	    ><td
+	    >Haskell2010</td
+	    ></tr
+	  ></table
+	><p class="caption"
+	>PlutusCore.Flat.AsSize</p
+	></div
+      ><div id="description"
+      ><p class="caption"
+	>Description</p
+	><div class="doc"
+	><p
+	  >Wrapper type to decode a value to its size in bits.</p
+	  ><p
+	  >See also <a href="Flat-AsBin.html"
+	    >Flat.AsBin</a
+	    >.</p
+	  ><p
+	  >In 0.5.X this type was called <code
+	    >SizeOf</code
+	    >.</p
+	  ><p
+	  ><em
+	    >Since: 0.6</em
+	    ></p
+	  ></div
+	></div
+      ><div id="synopsis"
+      ><details id="syn"
+	><summary
+	  >Synopsis</summary
+	  ><ul class="details-toggle" data-details-id="syn"
+	  ><li class="src short"
+	    ><span class="keyword"
+	      >newtype</span
+	      > <a href="#t:AsSize"
+	      >AsSize</a
+	      > a = <a href="#v:AsSize"
+	      >AsSize</a
+	      > <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+	      >NumBits</a
+	      ></li
+	    ></ul
+	  ></details
+	></div
+      ><div id="interface"
+      ><h1
+	>Documentation</h1
+	><div class="top"
+	><p class="src"
+	  ><span class="keyword"
+	    >newtype</span
+	    > <a id="t:AsSize" class="def"
+	    >AsSize</a
+	    > a <a href="src/PlutusCore.Flat.AsSize.html#AsSize" class="link"
+	    >Source</a
+	    > <a href="#t:AsSize" class="selflink"
+	    >#</a
+	    ></p
+	  ><div class="doc"
+	  ><p
+	    >Useful to skip unnecessary values and to check encoding sizes.</p
+	    ><p
+	    >Examples:</p
+	    ><p
+	    >Ignore the second and fourth component of a tuple:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>let v = flat ('a',&quot;abc&quot;,'z',True) in unflat v :: Decoded (Char,AsSize String,Char,AsSize Bool)
+</code
+		></strong
+	      >Right ('a',AsSize 28,'z',AsSize 1)
+</pre
+	    ><p
+	    >Notice the variable size encoding of Words:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>unflat (flat (1::Word16,1::Word64)) :: Decoded (AsSize Word16,AsSize Word64)
+</code
+		></strong
+	      >Right (AsSize 8,AsSize 8)
+</pre
+	    ><p
+	    >Text:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>unflat (flat (T.pack &quot;&quot;,T.pack &quot;a&quot;,T.pack &quot;&#20027;&quot;,UTF8Text $ T.pack &quot;&#20027;&quot;,UTF16Text $ T.pack &quot;&#20027;&quot;,UTF16Text $ T.pack &quot;a&quot;)) :: Decoded (AsSize T.Text,AsSize T.Text,AsSize T.Text,AsSize UTF8Text,AsSize UTF16Text,AsSize UTF16Text)
+</code
+		></strong
+	      >Right (AsSize 16,AsSize 32,AsSize 48,AsSize 48,AsSize 40,AsSize 40)
+</pre
+	    ><p
+	    >Various encodings:</p
+	    ><pre class="screen"
+	    ><code class="prompt"
+	      >&gt;&gt;&gt; </code
+	      ><strong class="userinput"
+	      ><code
+		>unflat (flat (False,[T.pack &quot;&quot;,T.pack &quot;a&quot;,T.pack &quot;&#20027;&quot;],'a')) :: Decoded (AsSize Bool,AsSize [T.Text],AsSize Char)
+</code
+		></strong
+	      >Right (AsSize 1,AsSize 96,AsSize 8) 
+</pre
+	    ></div
+	  ><div class="subs constructors"
+	  ><p class="caption"
+	    >Constructors</p
+	    ><table
+	    ><tr
+	      ><td class="src"
+		><a id="v:AsSize" class="def"
+		  >AsSize</a
+		  > <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+		  >NumBits</a
+		  ></td
+		><td class="doc empty"
+		>&nbsp;</td
+		></tr
+	      ></table
+	    ></div
+	  ><div class="subs instances"
+	  ><h4 class="instances details-toggle-control details-toggle" data-details-id="i:AsSize"
+	    >Instances</h4
+	    ><details id="i:AsSize" open="open"
+	    ><summary class="hide-when-js-enabled"
+	      >Instances details</summary
+	      ><table
+	      ><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSize:Show:1"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:Show" title="Text.Show"
+		      >Show</a
+		      > (<a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+		      >AsSize</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.AsSize.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:AsSize" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSize:Show:1"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-AsSize.html"
+			>PlutusCore.Flat.AsSize</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:showsPrec"
+			  >showsPrec</a
+			  > &#8759; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Int.html#t:Int" title="Data.Int"
+			  >Int</a
+			  > &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showsPrec" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:show"
+			  >show</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-String.html#t:String" title="Data.String"
+			  >String</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:show" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:showList"
+			  >showList</a
+			  > &#8759; [<a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a] &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Text-Show.html#t:ShowS" title="Text.Show"
+			  >ShowS</a
+			  > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:showList" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSize:Eq:2"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Eq.html#t:Eq" title="Data.Eq"
+		      >Eq</a
+		      > (<a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+		      >AsSize</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.AsSize.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:AsSize" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSize:Eq:2"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-AsSize.html"
+			>PlutusCore.Flat.AsSize</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:-61--61-"
+			  >(==)</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-61--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-47--61-"
+			  >(/=)</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-47--61-" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSize:Ord:3"
+		      ></span
+		      > <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ord" title="Data.Ord"
+		      >Ord</a
+		      > (<a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+		      >AsSize</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.AsSize.html#line-54" class="link"
+		    >Source</a
+		    > <a href="#t:AsSize" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSize:Ord:3"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-AsSize.html"
+			>PlutusCore.Flat.AsSize</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:compare"
+			  >compare</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Ord.html#t:Ordering" title="Data.Ord"
+			  >Ordering</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:compare" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60-"
+			  >(&lt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-60--61-"
+			  >(&lt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-60--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62-"
+			  >(&gt;)</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:-62--61-"
+			  >(&gt;=)</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="https://hackage.haskell.org/package/base-4.18.3.0/docs/Data-Bool.html#t:Bool" title="Data.Bool"
+			  >Bool</a
+			  > <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:-62--61-" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:max"
+			  >max</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:max" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:min"
+			  >min</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a <a href="https://hackage.haskell.org/package/ghc-prim-0.10.0/docs/src" class="link"
+			  >Source</a
+			  > <a href="#v:min" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		><tr
+		><td class="src clearfix"
+		  ><span class="inst-left"
+		    ><span class="instance details-toggle-control details-toggle" data-details-id="i:id:AsSize:Flat:4"
+		      ></span
+		      > <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > a &#8658; <a href="PlutusCore-Flat-Class.html#t:Flat" title="PlutusCore.Flat.Class"
+		      >Flat</a
+		      > (<a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+		      >AsSize</a
+		      > a)</span
+		    > <a href="src/PlutusCore.Flat.AsSize.html#line-56" class="link"
+		    >Source</a
+		    > <a href="#t:AsSize" class="selflink"
+		    >#</a
+		    ></td
+		  ><td class="doc empty"
+		  >&nbsp;</td
+		  ></tr
+		><tr
+		><td colspan="2"
+		  ><details id="i:id:AsSize:Flat:4"
+		    ><summary class="hide-when-js-enabled"
+		      >Instance details</summary
+		      ><p
+		      >Defined in <a href="PlutusCore-Flat-AsSize.html"
+			>PlutusCore.Flat.AsSize</a
+			></p
+		      > <div class="subs methods"
+		      ><p class="caption"
+			>Methods</p
+			><p class="src"
+			><a href="#v:encode"
+			  >encode</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-Encoder-Strict.html#t:Encoding" title="PlutusCore.Flat.Encoder.Strict"
+			  >Encoding</a
+			  > <a href="src/PlutusCore.Flat.Class.html#encode" class="link"
+			  >Source</a
+			  > <a href="#v:encode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:decode"
+			  >decode</a
+			  > &#8759; <a href="PlutusCore-Flat-Decoder-Types.html#t:Get" title="PlutusCore.Flat.Decoder.Types"
+			  >Get</a
+			  > (<a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a) <a href="src/PlutusCore.Flat.Class.html#decode" class="link"
+			  >Source</a
+			  > <a href="#v:decode" class="selflink"
+			  >#</a
+			  ></p
+			><p class="src"
+			><a href="#v:size"
+			  >size</a
+			  > &#8759; <a href="PlutusCore-Flat-AsSize.html#t:AsSize" title="PlutusCore.Flat.AsSize"
+			  >AsSize</a
+			  > a &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > &#8594; <a href="PlutusCore-Flat-Types.html#t:NumBits" title="PlutusCore.Flat.Types"
+			  >NumBits</a
+			  > <a href="src/PlutusCore.Flat.Class.html#size" class="link"
+			  >Source</a
+			  > <a href="#v:size" class="selflink"
+			  >#</a
+			  ></p
+			></div
+		      ></details
+		    ></td
+		  ></tr
+		></table
+	      ></details
+	    ></div
+	  ></div
+	></div
+      ></div
+    ><div id="footer"
+    ><p
+      >Produced by <a href="http://www.haskell.org/haddock/"
+	>Haddock</a
+	> version 2.29.2</p
+      ></div
+    ></body
+  ></html
+>
