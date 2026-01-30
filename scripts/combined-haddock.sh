@@ -241,13 +241,10 @@ echo "Injecting additional prologue html"
 list-valid-plutus-versions() {
   git fetch --tags --force
   local versions="$(git tag | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort -rV | uniq | tr ' ' '\n')"
-  local min_ver="1.40.0.0"
   echo master 
   echo latest
-  for ver in $versions; do
-    if [[ "$(echo -ne "$ver\n$min_ver" | sort -V | head -n 1 | tr -d '\n')" == "$min_ver" ]]; then
-      echo "$ver"  
-    fi
+  for ver in $(echo "$versions" | head -n 6); do
+    echo "$ver"  
   done
 }
 
