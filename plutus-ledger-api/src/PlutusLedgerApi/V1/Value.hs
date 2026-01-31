@@ -307,26 +307,26 @@ instance HasBlueprintSchema Value referencedTypes where
         , maxItems = Nothing
         }
 
-instance Haskell.Eq Value where
-  (==) = eq
-
-instance Eq Value where
+instance PlutusTx.Eq Value where
   {-# INLINEABLE (==) #-}
   (==) = eq
 
-instance Haskell.Semigroup Value where
-  (<>) = unionWith (+)
+instance Haskell.Eq Value where
+  (==) = (PlutusTx.==)
 
-instance Semigroup Value where
+instance PlutusTx.Semigroup Value where
   {-# INLINEABLE (<>) #-}
   (<>) = unionWith (+)
 
-instance Haskell.Monoid Value where
-  mempty = Value Map.empty
+instance Haskell.Semigroup Value where
+  (<>) = (PlutusTx.<>)
 
-instance Monoid Value where
+instance PlutusTx.Monoid Value where
   {-# INLINEABLE mempty #-}
   mempty = Value Map.empty
+
+instance Haskell.Monoid Value where
+  mempty = PlutusTx.mempty
 
 instance Group Value where
   {-# INLINEABLE inv #-}

@@ -75,17 +75,12 @@ data Rational = Rational Integer Integer
   deriving stock (Haskell.Eq, Haskell.Show, Generic)
 
 makeLift ''Rational
+P.deriveEq ''Rational
 
 instance Pretty Rational where
   pretty (Rational a b) = "Rational:" <+> pretty a <+> pretty b
 
-instance P.Eq Rational where
-  {-# INLINEABLE (==) #-}
-  Rational n d == Rational n' d' = n P.== n' P.&& d P.== d'
-
 instance P.Ord Rational where
-  {-# INLINEABLE compare #-}
-  compare (Rational n d) (Rational n' d') = P.compare (n P.* d') (n' P.* d)
   {-# INLINEABLE (<=) #-}
   Rational n d <= Rational n' d' = (n P.* d') P.<= (n' P.* d)
   {-# INLINEABLE (>=) #-}

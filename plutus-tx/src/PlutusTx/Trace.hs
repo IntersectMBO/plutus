@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-
 module PlutusTx.Trace
   ( trace
   , traceError

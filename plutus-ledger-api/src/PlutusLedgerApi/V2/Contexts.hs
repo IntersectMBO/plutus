@@ -70,8 +70,7 @@ data TxInInfo = TxInInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
-instance Eq TxInInfo where
-  TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
+deriveEq ''TxInInfo
 
 instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
@@ -109,6 +108,10 @@ data TxInfo = TxInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
+-- TODO: to support this we need to have  Eq AssocMap or
+-- move to another Map implementation.
+-- deriveEq ''TxInfo
+
 instance Pretty TxInfo where
   pretty TxInfo {txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
     vsep
@@ -134,6 +137,10 @@ data ScriptContext = ScriptContext
   -- ^ the purpose of the currently-executing script
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
+
+-- TODO: to support this we need to have  Eq AssocMap or
+-- move to another Map implementation.
+-- deriveEq ''ScriptContext
 
 instance Pretty ScriptContext where
   pretty ScriptContext {scriptContextTxInfo, scriptContextPurpose} =
