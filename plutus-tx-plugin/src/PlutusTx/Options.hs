@@ -70,6 +70,7 @@ data PluginOptions = PluginOptions
   , _posInlineCallsiteGrowth :: Int
   , _posInlineConstants :: Bool
   , _posInlineFix :: Bool
+  , _posCseWhichSubterms :: UPLC.CseWhichSubterms
   , _posPreserveLogging :: Bool
   -- ^ Whether to try and retain the logging behaviour of the program.
   , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
@@ -256,6 +257,9 @@ pluginOptions =
     , let k = "max-cse-iterations"
           desc = "Set the max iterations for CSE"
        in (k, PluginOption typeRep (readOption k) posMaxCseIterations desc [])
+    , let k = "cse-which-subterms"
+          desc = "Which subterms CSE should consider (after uniquely renaming the program)"
+       in (k, PluginOption typeRep (readOption k) posCseWhichSubterms desc [])
     , let k = "simplifier-unwrap-cancel"
           desc = "Run a simplification pass that cancels unwrap/wrap pairs"
        in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc [])
@@ -359,6 +363,7 @@ defaultPluginOptions =
     , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
     , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
     , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
+    , _posCseWhichSubterms = view UPLC.soCseWhichSubterms UPLC.defaultSimplifyOpts
     , _posDoSimplifierUnwrapCancel = True
     , _posDoSimplifierBeta = True
     , _posDoSimplifierInline = True

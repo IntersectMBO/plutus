@@ -1,6 +1,6 @@
-CPU:                 8_974_094
-Memory:                 50_318
-AST Size:                   82
-Flat Size:                  93
+CPU:                 7_838_094
+Memory:                 43_218
+AST Size:                   58
+Flat Size:                  74
 
 (constr 0 (con bool True) (con bool False))

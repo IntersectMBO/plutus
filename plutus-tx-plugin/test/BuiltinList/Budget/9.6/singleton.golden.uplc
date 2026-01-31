@@ -1,1 +1,1 @@
-(program 1.1.0 (\ds -> force mkCons 42 []))
+(program 1.1.0 (\ds -> [42]))
