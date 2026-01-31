@@ -15,6 +15,7 @@ import Data.ByteString qualified as BS
 import Data.Either (isLeft)
 import Data.Word (Word64)
 import Enum.Spec (enumTests)
+import Eq.Spec (eqTests)
 import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -45,6 +46,7 @@ tests =
     , enumTests
     , listTests
     , boolTests
+    , eqTests
     , lawsTests
     , Show.Spec.propertyTests
     , Show.Spec.goldenTests
