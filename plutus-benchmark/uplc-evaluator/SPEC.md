@@ -668,7 +668,6 @@ Result files are JSON objects containing evaluation metrics from UPLC program ex
   "status": "success",
   "cpu_budget": <number>,
   "memory_budget": <number>,
-  "memory_bytes": <number>,
   "timing_samples": [
     {
       "cpu_time_ns": <integer>
@@ -720,18 +719,6 @@ Total memory budget consumed during evaluation, measured in ExMemory units as de
 
 **Note**: Budget consumption is deterministic for a given program and cost model. It does not vary between runs.
 
-#### `memory_bytes` (required)
-
-Memory usage during evaluation in bytes. Derived from ExMemory budget × 8 (word size) as a proxy for actual memory consumption.
-
-**Type**: Number (integer)
-
-**Unit**: Bytes
-
-**Example**: `400000`
-
-**Note**: This is deterministic (derived from memory_budget).
-
 #### `timing_samples` (required)
 
 An array of timing samples collected during program evaluation. Each program is evaluated multiple times (typically 10-20 iterations) to capture execution variability.
@@ -766,7 +753,6 @@ Wall-clock execution time in nanoseconds. This measures the actual elapsed time 
   "status": "success",
   "cpu_budget": 100000,
   "memory_budget": 50000,
-  "memory_bytes": 400000,
   "timing_samples": [
     {"cpu_time_ns": 421000},
     {"cpu_time_ns": 398000},
@@ -785,7 +771,7 @@ Wall-clock execution time in nanoseconds. This measures the actual elapsed time 
 **Observations from this example**:
 - 10 timing samples collected
 - `cpu_time_ns` shows variation between runs (398000 to 425000 ns)
-- Budget values (`cpu_budget`, `memory_budget`, `memory_bytes`) are deterministic and at top level
+- Budget values (`cpu_budget`, `memory_budget`) are deterministic and at top level
 - Clients should compute statistics: mean CPU time ≈ 412000 ns (0.412 ms), std dev ≈ 9000 ns
 
 ### Example Result: Complex Program
@@ -796,7 +782,6 @@ Wall-clock execution time in nanoseconds. This measures the actual elapsed time 
   "status": "success",
   "cpu_budget": 50000000,
   "memory_budget": 10000000,
-  "memory_bytes": 80000000,
   "timing_samples": [
     {"cpu_time_ns": 125842000},
     {"cpu_time_ns": 123156000},
@@ -849,7 +834,7 @@ Std deviation:    0.009 ms
 
 - Results are written to `/benchmarking/output/{job_id}.result.json` when evaluation completes successfully
 - Result files remain available until cleanup (see retention policy)
-- Budget values (`cpu_budget`, `memory_budget`, `memory_bytes`) are deterministic for a given program and cost model
+- Budget values (`cpu_budget`, `memory_budget`) are deterministic for a given program and cost model
 - Wall-clock times (`cpu_time_ns`) may vary between runs due to system load
 - Multiple timing samples enable statistical confidence in measurements
 - Budget consumption is independent of hardware performance (cost model is abstract)
