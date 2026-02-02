@@ -83,8 +83,10 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openBinaryTempFile)
+import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
+
+import Certifier
 
 data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
@@ -634,7 +636,17 @@ runCompiler moduleName opts expr = do
       modifyError PLC.TypeErrorE $
         PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-  (uplcP, _) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+  let optCertify = opts ^. posCertify
+  (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+  liftIO $ case optCertify of
+    Just certName -> do
+      result <- runCertifier $ mkCertifier simplTrace certName
+      case result of
+        Right certSuccess ->
+          hPutStrLn stderr $ prettyCertifierSuccess certSuccess
+        Left err ->
+          hPutStrLn stderr $ prettyCertifierError err
+    Nothing -> pure ()
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat
