@@ -34,9 +34,20 @@ data SimplifierTag : Set where
 variable
   𝓁 𝓂 : Level
 
+data CertResult (P : Set 𝓁) : Set (suc 𝓁) where
+  proof : (p : P) → CertResult P
+  ce : (¬p : ¬ P) → {X X' : Set} → SimplifierTag → X → X' → CertResult P
+  abort : {X X' : Set} → SimplifierTag → X → X' → CertResult P
+
+-- | Result of a decision procedure: either a proof or a counterexample
 data ProofOrCE (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → ProofOrCE P
   ce : (¬p : ¬ P) → {X X' : Set} → SimplifierTag → X → X' → ProofOrCE P
+
+-- | Result of a checking procedure: either a proof or a failure
+data Proof? (P : Set 𝓁) : Set (suc 𝓁) where
+  proof : (p : P) → Proof? P
+  abort : {X X' : Set} → SimplifierTag → X → X' → Proof? P
 
 decToPCE : {X : Set} {P : Set} → SimplifierTag → Dec P → {before after : X} → ProofOrCE P
 decToPCE _ (yes p) = proof p

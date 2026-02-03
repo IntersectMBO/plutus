@@ -55,7 +55,7 @@ open import VerifiedCompilation.UntypedTranslation using (Relation)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; SimplifierTag)
+open import VerifiedCompilation.Certificate using (CertResult; ce; proof; abort; pcePointwise; MatchOrCE; SimplifierTag)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 ```
 
@@ -97,7 +97,7 @@ data Trace : { X : ℕ }  → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set
     → Trace xs
     → Trace ((tag , x , x') ∷ xs)
 
-isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → MatchOrCE {X = X ⊢} (Transformation tag)
+isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → (a : X ⊢) → (b : X ⊢) → CertResult (Transformation tag a b)
 isTransformation? tag ast ast' with tag
 isTransformation? tag ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
 ... | ce ¬p t b a = ce (λ { (isFlD x) → ¬p x}) t b a
@@ -117,12 +117,14 @@ isTransformation? tag ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast 
 ... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
 ... | proof p = proof (isCSE p)
 
-isTrace? : {X : ℕ}  → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → ProofOrCE (Trace {X} t)
+isTrace? : {X : ℕ}  → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → CertResult (Trace {X} t)
 isTrace? [] = proof empty
 isTrace? {X} ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
 ... | ce ¬p t b a = ce (λ { (cons x xx) → ¬p xx}) t b a
+... | abort t b a = abort t b a
 ... | proof pₜ with isTransformation? {X} tag x₁ x₂
 ...                 | ce ¬p t b a = ce (λ { (cons x xx) → ¬p x}) t b a
+...                 | abort t b a = abort t b a
 ...                 | proof pₑ = proof (cons pₑ pₜ)
 
 
@@ -171,8 +173,8 @@ traverseEitherList f ((tag , before , after) ∷ xs) with f before
 
 data Cert : Set₂ where
   cert
-    : {X : ℕ} {result : List (SimplifierTag × (X ⊢) × (X ⊢))} 
-    → ProofOrCE (Trace {X} result)
+    : {X : ℕ} {result : List (SimplifierTag × (X ⊢) × (X ⊢))}
+    → CertResult (Trace {X} result)
     → Cert
 
 runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Cert
@@ -183,6 +185,7 @@ runCertifier rawInput with traverseEitherList scopeCheckU0 rawInput
 getCE : {A B : Set} → Maybe Cert → Maybe (Σ _ \A → (Σ _ \B → (SimplifierTag × A × B)))
 getCE nothing = nothing
 getCE (just (cert (proof _))) = nothing
+getCE (just (cert (abort _ _ _))) = nothing
 getCE (just (cert (ce _ {X} {X'} t b a))) = just (X , X' , t , b , a)
 
 open import Data.Bool.Base using (Bool; false; true)
@@ -190,6 +193,7 @@ open import Agda.Builtin.Equality using (_≡_; refl)
 
 passed? : Maybe Cert → Bool
 passed? (just (cert (ce _ _ _ _))) = false
+passed? (just (cert (abort _ _ _))) = false
 passed? (just (cert (proof _))) = true
 passed? nothing = false
 
@@ -197,5 +201,6 @@ runCertifierMain : List (SimplifierTag × Untyped × Untyped) → Maybe Bool
 runCertifierMain asts with runCertifier asts
 ... | just (cert (proof a)) = just true
 ... | just (cert (ce ¬p t b a)) = just false
+... | just (cert (abort _ _ _)) = just false
 ... | nothing = nothing
 {-# COMPILE GHC runCertifierMain as runCertifierMain #-}
