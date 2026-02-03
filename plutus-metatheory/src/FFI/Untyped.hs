@@ -43,22 +43,22 @@ conv (Force _ t) = UForce (conv t)
 conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))
 conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
 
-tmnames :: String
-tmnames = ['a' .. 'z']
+tmname :: Int -> String
+tmname i = 'x' : show i
 
 uconv :: Int -> UTerm -> Term NamedDeBruijn DefaultUni DefaultFun ()
 uconv i (UVar x) =
   Var
     ()
     ( NamedDeBruijn
-        (T.pack [tmnames !! (i - 1 - fromInteger x)])
+        (T.pack (tmname (i - 1 - fromInteger x)))
         -- PLC's debruijn starts counting from 1, while in the metatheory it starts from 0.
         (Index (fromInteger x + 1))
     )
 uconv i (ULambda t) =
   LamAbs
     ()
-    (NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex)
+    (NamedDeBruijn (T.pack (tmname i)) deBruijnInitIndex)
     (uconv (i + 1) t)
 uconv i (UApp t u) = Apply () (uconv i t) (uconv i u)
 uconv _ (UCon c) = Constant () c
