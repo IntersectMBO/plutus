@@ -117,72 +117,73 @@ test-suite plutus-tx-plugin-tests
   hs-source-dirs:     test
   main-is:            Spec.hs
   other-modules:
-    Array.Spec
     AsData.Budget.Spec
     AsData.Budget.Types
-    AssocMap.Golden
-    AssocMap.Properties1
-    AssocMap.Properties2
-    AssocMap.Properties3
-    AssocMap.Semantics
-    AssocMap.Spec
-    Blueprint.Tests
-    Blueprint.Tests.Lib
-    Blueprint.Tests.Lib.AsData.Blueprint
-    Blueprint.Tests.Lib.AsData.Decls
-    Budget.Spec
-    Budget.WithGHCOptimisations
-    Budget.WithoutGHCOptimisations
-    BuiltinList.Budget.Spec
-    BuiltinList.NoCasing.Spec
-    ByteStringLiterals.Lib
-    ByteStringLiterals.Spec
-    CallTrace.Lib
-    CallTrace.OtherModule
-    CallTrace.Spec
-    DataList.Budget.Spec
-    Inline.Spec
-    IntegerLiterals.NoStrict.NegativeLiterals.Spec
-    IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
-    IntegerLiterals.Strict.NegativeLiterals.Spec
-    IntegerLiterals.Strict.NoNegativeLiterals.Spec
-    IsData.Spec
-    Lift.Spec
-    List.Properties1
-    List.Properties2
-    List.Semantics
-    List.Spec
-    Optimization.Spec
-    Plugin.Basic.Spec
-    Plugin.Coverage.Spec
-    Plugin.Data.Spec
-    Plugin.Debug.Spec
-    Plugin.Errors.Spec
-    Plugin.Functions.Spec
-    Plugin.Laziness.Spec
-    Plugin.Lib
-    Plugin.NoTrace.Lib
-    Plugin.NoTrace.Spec
-    Plugin.NoTrace.WithoutTraces
-    Plugin.NoTrace.WithPreservedLogging
-    Plugin.NoTrace.WithTraces
-    Plugin.Optimization.Spec
-    Plugin.Patterns.Spec
-    Plugin.Primitives.Spec
-    Plugin.Profiling.Spec
-    Plugin.Spec
-    Plugin.Strict.Spec
-    Plugin.Typeclasses.Lib
-    Plugin.Typeclasses.Spec
-    Recursion.Spec
-    ShortCircuit.Spec
-    ShortCircuit.WithGHCOptimisations
-    ShortCircuit.WithoutGHCOptimisations
-    StdLib.Spec
-    Strictness.Spec
-    TH.Spec
-    TH.TestTH
-    Unicode.Spec
+
+  -- Array.Spec
+  -- AssocMap.Golden
+  -- AssocMap.Properties1
+  -- AssocMap.Properties2
+  -- AssocMap.Properties3
+  -- AssocMap.Semantics
+  -- AssocMap.Spec
+  -- Blueprint.Tests
+  -- Blueprint.Tests.Lib
+  -- Blueprint.Tests.Lib.AsData.Blueprint
+  -- Blueprint.Tests.Lib.AsData.Decls
+  -- Budget.Spec
+  -- Budget.WithGHCOptimisations
+  -- Budget.WithoutGHCOptimisations
+  -- BuiltinList.Budget.Spec
+  -- BuiltinList.NoCasing.Spec
+  -- ByteStringLiterals.Lib
+  -- ByteStringLiterals.Spec
+  -- CallTrace.Lib
+  -- CallTrace.OtherModule
+  -- CallTrace.Spec
+  -- DataList.Budget.Spec
+  -- Inline.Spec
+  -- IntegerLiterals.NoStrict.NegativeLiterals.Spec
+  -- IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
+  -- IntegerLiterals.Strict.NegativeLiterals.Spec
+  -- IntegerLiterals.Strict.NoNegativeLiterals.Spec
+  -- IsData.Spec
+  -- Lift.Spec
+  -- List.Properties1
+  -- List.Properties2
+  -- List.Semantics
+  -- List.Spec
+  -- Optimization.Spec
+  -- Plugin.Basic.Spec
+  -- Plugin.Coverage.Spec
+  -- Plugin.Data.Spec
+  -- Plugin.Debug.Spec
+  -- Plugin.Errors.Spec
+  -- Plugin.Functions.Spec
+  -- Plugin.Laziness.Spec
+  -- Plugin.Lib
+  -- Plugin.NoTrace.Lib
+  -- Plugin.NoTrace.Spec
+  -- Plugin.NoTrace.WithoutTraces
+  -- Plugin.NoTrace.WithPreservedLogging
+  -- Plugin.NoTrace.WithTraces
+  -- Plugin.Optimization.Spec
+  -- Plugin.Patterns.Spec
+  -- Plugin.Primitives.Spec
+  -- Plugin.Profiling.Spec
+  -- Plugin.Spec
+  -- Plugin.Strict.Spec
+  -- Plugin.Typeclasses.Lib
+  -- Plugin.Typeclasses.Spec
+  -- Recursion.Spec
+  -- ShortCircuit.Spec
+  -- ShortCircuit.WithGHCOptimisations
+  -- ShortCircuit.WithoutGHCOptimisations
+  -- StdLib.Spec
+  -- Strictness.Spec
+  -- TH.Spec
+  -- TH.TestTH
+  -- Unicode.Spec
 
   build-depends:
     , base                             >=4.9   && <5

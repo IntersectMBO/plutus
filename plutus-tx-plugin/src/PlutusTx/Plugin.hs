@@ -640,13 +640,16 @@ runCompiler moduleName opts expr = do
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
   liftIO $ case optCertify of
     Just certName -> do
+      putStrLn $ "CERTIFYING ========= " <> certName
       result <- runCertifier $ mkCertifier simplTrace certName
       case result of
         Right certSuccess ->
           hPutStrLn stderr $ prettyCertifierSuccess certSuccess
         Left err ->
           hPutStrLn stderr $ prettyCertifierError err
-    Nothing -> pure ()
+    Nothing -> do
+      putStrLn $ "NOT CERTIFYING !!!! "
+      pure ()
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat
