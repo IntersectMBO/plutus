@@ -1017,11 +1017,11 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- We can safely commit to this match as soon as we've seen fromString -
     -- we won't accept any applications of fromString that aren't creating literals of
     -- the types we support.
-    (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls True))
+    (strip -> GHC.Var cls)
       `GHC.App` GHC.Type ty
       `GHC.App` _dict
       `GHC.App` (strip -> content)
-        | GHC.getName cls == GHC.isStringClassName -> do
+        | GHC.getName cls == GHC.isStringClassName || GHC.getName cls == GHC.fromStringName -> do
             let throwUnsupported =
                   throwSd UnsupportedError $
                     ""
