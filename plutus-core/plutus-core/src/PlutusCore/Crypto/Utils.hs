@@ -1,7 +1,12 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusCore.Crypto.Utils (failWithMessage, byteStringAsHex) where
+module PlutusCore.Crypto.Utils
+  ( failWithMessage
+  , byteStringAsHex
+  , msmScalarUb
+  , msmScalarLb
+  ) where
 
 import PlutusCore.Builtin.Result (BuiltinResult, builtinResultFailure, emit)
 
@@ -17,3 +22,9 @@ failWithMessage location reason = do
 
 byteStringAsHex :: ByteString -> String
 byteStringAsHex bs = "0x" ++ (Prelude.concat $ foldr' (\w s -> (printf "%02x" w) : s) [] bs)
+
+msmScalarUb :: Integer
+msmScalarUb = 2 ^ (512 * 8 :: Integer) - 1
+
+msmScalarLb :: Integer
+msmScalarLb = -(2 ^ (512 * 8 :: Integer))
