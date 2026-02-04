@@ -884,7 +884,7 @@ compileHaskellList = buildList . strip
         consume li >>= traverse compileExpr
     buildList _ = err
 
-{- FOURMOLU_DISABLE -}    
+{- FOURMOLU_DISABLE -} -- Fourmolu can't parse non-top-level #if directives
 compileExpr :: CompilingDefault uni fun m ann => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
