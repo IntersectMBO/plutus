@@ -135,15 +135,19 @@ test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
 -- | Test that builtin and non-builtin values are encoded identically in Data.
 test_toData :: TestTree
 test_toData = testProperty "toData" . scaleTestsBy 10 $ \v ->
-  PLC.valueData v === toData (valueFromBuiltin v)
+  case PLC.valueData v of
+    BuiltinSuccess d -> d === toData (valueFromBuiltin v)
+    _ -> property False
 
 -- | Test that builtin and non-builtin values are decoded identically from Data.
 test_fromData :: TestTree
 test_fromData = testProperty "fromData" . scaleTestsBy 10 $ \v ->
-  let d = PLC.valueData v
-   in case PLC.unValueData d of
+  case PLC.valueData v of
+    BuiltinSuccess d ->
+      case PLC.unValueData d of
         BuiltinSuccess v' -> valueFromBuiltin v' === unsafeFromData d
         _ -> property False
+    _ -> property False
 
 test_Value :: TestTree
 test_Value =

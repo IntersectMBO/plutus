@@ -432,10 +432,16 @@ unionValue vA vB
         else (unpack vA, unpack vB)
 {-# INLINEABLE unionValue #-}
 
+valueDataMaxSize :: Int
+valueDataMaxSize = 40000
+
 {-| \(O(n)\). Encodes `Value` as `Data`, in the same way as non-builtin @Value@.
 This is the denotation of @ValueData@ in Plutus V1, V2 and V3. -}
-valueData :: Value -> Data
-valueData = Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack
+valueData :: Value -> BuiltinResult Data
+valueData v =
+  if totalSize v <= valueDataMaxSize
+    then pure $ Map . fmap (bimap (B . unK) tokensData) . Map.toList . unpack $ v
+    else fail $ "valueData: maximum input size (" ++ show valueDataMaxSize ++ ") exceeded"
   where
     tokensData :: Map K Quantity -> Data
     tokensData = Map . fmap (bimap (B . unK) (I . unQuantity)) . Map.toList

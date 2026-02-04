@@ -1098,7 +1098,12 @@ valueContains (BuiltinValue v1) (BuiltinValue v2) =
 {-# OPAQUE valueContains #-}
 
 mkValue :: BuiltinValue -> BuiltinData
-mkValue (BuiltinValue v) = BuiltinData $ Value.valueData v
+mkValue (BuiltinValue v) =
+  case Value.valueData v of
+    BuiltinSuccess d -> BuiltinData d
+    BuiltinSuccessWithLogs logs d -> traceAll logs (BuiltinData d)
+    BuiltinFailure logs err ->
+      traceAll (logs <> pure (display err)) $ Haskell.error "mkValue failed."
 {-# OPAQUE mkValue #-}
 
 unsafeDataAsValue :: BuiltinData -> BuiltinValue

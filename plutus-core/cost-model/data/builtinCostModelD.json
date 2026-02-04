@@ -2,8 +2,8 @@
   "addInteger": {
     "cpu": {
       "arguments": {
-        "intercept": 205665,
-        "slope": 812
+        "intercept": 100788,
+        "slope": 420
       },
       "type": "max_size"
     },
@@ -19,7 +19,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 571
+        "slope": 173
       },
       "type": "added_sizes"
     },
@@ -35,7 +35,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 24177
+        "slope": 59957
       },
       "type": "added_sizes"
     },
@@ -49,7 +49,7 @@
   },
   "bData": {
     "cpu": {
-      "arguments": 1000,
+      "arguments": 11183,
       "type": "constant_cost"
     },
     "memory": {
@@ -73,8 +73,8 @@
   "blake2b_256": {
     "cpu": {
       "arguments": {
-        "intercept": 117366,
-        "slope": 10475
+        "intercept": 201305,
+        "slope": 8356
       },
       "type": "linear_in_x"
     },
@@ -310,7 +310,7 @@
   },
   "chooseData": {
     "cpu": {
-      "arguments": 19537,
+      "arguments": 94375,
       "type": "constant_cost"
     },
     "memory": {
@@ -320,7 +320,7 @@
   },
   "chooseList": {
     "cpu": {
-      "arguments": 175354,
+      "arguments": 132994,
       "type": "constant_cost"
     },
     "memory": {
@@ -330,7 +330,7 @@
   },
   "chooseUnit": {
     "cpu": {
-      "arguments": 46417,
+      "arguments": 61462,
       "type": "constant_cost"
     },
     "memory": {
@@ -341,8 +341,8 @@
   "consByteString": {
     "cpu": {
       "arguments": {
-        "intercept": 221973,
-        "slope": 511
+        "intercept": 72010,
+        "slope": 178
       },
       "type": "linear_in_y"
     },
@@ -356,7 +356,7 @@
   },
   "constrData": {
     "cpu": {
-      "arguments": 89141,
+      "arguments": 22151,
       "type": "constant_cost"
     },
     "memory": {
@@ -367,8 +367,8 @@
   "decodeUtf8": {
     "cpu": {
       "arguments": {
-        "intercept": 497525,
-        "slope": 14068
+        "intercept": 91189,
+        "slope": 769
       },
       "type": "linear_in_x"
     },
@@ -383,13 +383,18 @@
   "divideInteger": {
     "cpu": {
       "arguments": {
-        "constant": 196500,
+        "constant": 85848,
         "model": {
           "arguments": {
-            "intercept": 453240,
-            "slope": 220
+            "c00": 123203,
+            "c01": 7305,
+            "c02": -900,
+            "c10": 1716,
+            "c11": 549,
+            "c20": 57,
+            "minimum": 85848
           },
-          "type": "multiplied_sizes"
+          "type": "quadratic_in_x_and_y"
         }
       },
       "type": "const_above_diagonal"
@@ -407,7 +412,7 @@
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 28662
+        "slope": 42921
       },
       "type": "linear_in_x"
     },
@@ -422,9 +427,9 @@
   "equalsByteString": {
     "cpu": {
       "arguments": {
-        "constant": 245000,
-        "intercept": 216773,
-        "slope": 62
+        "constant": 24548,
+        "intercept": 29498,
+        "slope": 38
       },
       "type": "linear_on_diagonal"
     },
@@ -436,8 +441,8 @@
   "equalsData": {
     "cpu": {
       "arguments": {
-        "intercept": 1060367,
-        "slope": 12586
+        "intercept": 898148,
+        "slope": 27279
       },
       "type": "min_size"
     },
@@ -449,8 +454,8 @@
   "equalsInteger": {
     "cpu": {
       "arguments": {
-        "intercept": 208512,
-        "slope": 421
+        "intercept": 51775,
+        "slope": 558
       },
       "type": "min_size"
     },
@@ -462,9 +467,9 @@
   "equalsString": {
     "cpu": {
       "arguments": {
-        "constant": 187000,
+        "constant": 39184,
         "intercept": 1000,
-        "slope": 52998
+        "slope": 60594
       },
       "type": "linear_on_diagonal"
     },
@@ -475,7 +480,7 @@
   },
   "fstPair": {
     "cpu": {
-      "arguments": 80436,
+      "arguments": 141895,
       "type": "constant_cost"
     },
     "memory": {
@@ -485,7 +490,7 @@
   },
   "headList": {
     "cpu": {
-      "arguments": 43249,
+      "arguments": 83150,
       "type": "constant_cost"
     },
     "memory": {
@@ -495,7 +500,7 @@
   },
   "iData": {
     "cpu": {
-      "arguments": 1000,
+      "arguments": 15299,
       "type": "constant_cost"
     },
     "memory": {
@@ -505,7 +510,7 @@
   },
   "ifThenElse": {
     "cpu": {
-      "arguments": 80556,
+      "arguments": 76049,
       "type": "constant_cost"
     },
     "memory": {
@@ -515,7 +520,7 @@
   },
   "indexByteString": {
     "cpu": {
-      "arguments": 57667,
+      "arguments": 13169,
       "type": "constant_cost"
     },
     "memory": {
@@ -555,7 +560,7 @@
   },
   "lengthOfByteString": {
     "cpu": {
-      "arguments": 1000,
+      "arguments": 22100,
       "type": "constant_cost"
     },
     "memory": {
@@ -566,8 +571,8 @@
   "lessThanByteString": {
     "cpu": {
       "arguments": {
-        "intercept": 197145,
-        "slope": 156
+        "intercept": 28999,
+        "slope": 74
       },
       "type": "min_size"
     },
@@ -579,8 +584,8 @@
   "lessThanEqualsByteString": {
     "cpu": {
       "arguments": {
-        "intercept": 197145,
-        "slope": 156
+        "intercept": 28999,
+        "slope": 74
       },
       "type": "min_size"
     },
@@ -592,8 +597,8 @@
   "lessThanEqualsInteger": {
     "cpu": {
       "arguments": {
-        "intercept": 204924,
-        "slope": 473
+        "intercept": 43285,
+        "slope": 552
       },
       "type": "min_size"
     },
@@ -605,8 +610,8 @@
   "lessThanInteger": {
     "cpu": {
       "arguments": {
-        "intercept": 208896,
-        "slope": 511
+        "intercept": 44749,
+        "slope": 541
       },
       "type": "min_size"
     },
@@ -617,7 +622,7 @@
   },
   "listData": {
     "cpu": {
-      "arguments": 52467,
+      "arguments": 33852,
       "type": "constant_cost"
     },
     "memory": {
@@ -627,7 +632,7 @@
   },
   "mapData": {
     "cpu": {
-      "arguments": 64832,
+      "arguments": 68246,
       "type": "constant_cost"
     },
     "memory": {
@@ -637,7 +642,7 @@
   },
   "mkCons": {
     "cpu": {
-      "arguments": 65493,
+      "arguments": 72362,
       "type": "constant_cost"
     },
     "memory": {
@@ -647,7 +652,7 @@
   },
   "mkNilData": {
     "cpu": {
-      "arguments": 22558,
+      "arguments": 7243,
       "type": "constant_cost"
     },
     "memory": {
@@ -657,7 +662,7 @@
   },
   "mkNilPairData": {
     "cpu": {
-      "arguments": 16563,
+      "arguments": 7391,
       "type": "constant_cost"
     },
     "memory": {
@@ -667,7 +672,7 @@
   },
   "mkPairData": {
     "cpu": {
-      "arguments": 76511,
+      "arguments": 11546,
       "type": "constant_cost"
     },
     "memory": {
@@ -678,13 +683,18 @@
   "modInteger": {
     "cpu": {
       "arguments": {
-        "constant": 196500,
+        "constant": 85848,
         "model": {
           "arguments": {
-            "intercept": 453240,
-            "slope": 220
+            "c00": 123203,
+            "c01": 7305,
+            "c02": -900,
+            "c10": 1716,
+            "c11": 549,
+            "c20": 57,
+            "minimum": 85848
           },
-          "type": "multiplied_sizes"
+          "type": "quadratic_in_x_and_y"
         }
       },
       "type": "const_above_diagonal"
@@ -692,19 +702,18 @@
     "memory": {
       "arguments": {
         "intercept": 0,
-        "minimum": 1,
         "slope": 1
       },
-      "type": "subtracted_sizes"
+      "type": "linear_in_y"
     }
   },
   "multiplyInteger": {
     "cpu": {
       "arguments": {
-        "intercept": 69522,
-        "slope": 11687
+        "intercept": 90434,
+        "slope": 519
       },
-      "type": "added_sizes"
+      "type": "multiplied_sizes"
     },
     "memory": {
       "arguments": {
@@ -716,7 +725,7 @@
   },
   "nullList": {
     "cpu": {
-      "arguments": 60091,
+      "arguments": 74433,
       "type": "constant_cost"
     },
     "memory": {
@@ -763,13 +772,18 @@
   "quotientInteger": {
     "cpu": {
       "arguments": {
-        "constant": 196500,
+        "constant": 85848,
         "model": {
           "arguments": {
-            "intercept": 453240,
-            "slope": 220
+            "c00": 123203,
+            "c01": 7305,
+            "c02": -900,
+            "c10": 1716,
+            "c11": 549,
+            "c20": 57,
+            "minimum": 85848
           },
-          "type": "multiplied_sizes"
+          "type": "quadratic_in_x_and_y"
         }
       },
       "type": "const_above_diagonal"
@@ -786,13 +800,18 @@
   "remainderInteger": {
     "cpu": {
       "arguments": {
-        "constant": 196500,
+        "constant": 85848,
         "model": {
           "arguments": {
-            "intercept": 453240,
-            "slope": 220
+            "c00": 123203,
+            "c01": 7305,
+            "c02": -900,
+            "c10": 1716,
+            "c11": 549,
+            "c20": 57,
+            "minimum": 85848
           },
-          "type": "multiplied_sizes"
+          "type": "quadratic_in_x_and_y"
         }
       },
       "type": "const_above_diagonal"
@@ -800,17 +819,16 @@
     "memory": {
       "arguments": {
         "intercept": 0,
-        "minimum": 1,
         "slope": 1
       },
-      "type": "subtracted_sizes"
+      "type": "linear_in_y"
     }
   },
   "serialiseData": {
     "cpu": {
       "arguments": {
-        "intercept": 1159724,
-        "slope": 392670
+        "intercept": 955506,
+        "slope": 213312
       },
       "type": "linear_in_x"
     },
@@ -825,8 +843,8 @@
   "sha2_256": {
     "cpu": {
       "arguments": {
-        "intercept": 806990,
-        "slope": 30482
+        "intercept": 270652,
+        "slope": 22588
       },
       "type": "linear_in_x"
     },
@@ -838,8 +856,8 @@
   "sha3_256": {
     "cpu": {
       "arguments": {
-        "intercept": 1927926,
-        "slope": 82523
+        "intercept": 1457325,
+        "slope": 64566
       },
       "type": "linear_in_x"
     },
@@ -851,8 +869,8 @@
   "sliceByteString": {
     "cpu": {
       "arguments": {
-        "intercept": 265318,
-        "slope": 0
+        "intercept": 20467,
+        "slope": 1
       },
       "type": "linear_in_z"
     },
@@ -866,7 +884,7 @@
   },
   "sndPair": {
     "cpu": {
-      "arguments": 85931,
+      "arguments": 141992,
       "type": "constant_cost"
     },
     "memory": {
@@ -877,8 +895,8 @@
   "subtractInteger": {
     "cpu": {
       "arguments": {
-        "intercept": 205665,
-        "slope": 812
+        "intercept": 100788,
+        "slope": 420
       },
       "type": "max_size"
     },
@@ -892,7 +910,7 @@
   },
   "tailList": {
     "cpu": {
-      "arguments": 41182,
+      "arguments": 81663,
       "type": "constant_cost"
     },
     "memory": {
@@ -902,7 +920,7 @@
   },
   "trace": {
     "cpu": {
-      "arguments": 212342,
+      "arguments": 59498,
       "type": "constant_cost"
     },
     "memory": {
@@ -912,7 +930,7 @@
   },
   "unBData": {
     "cpu": {
-      "arguments": 31220,
+      "arguments": 20142,
       "type": "constant_cost"
     },
     "memory": {
@@ -922,7 +940,7 @@
   },
   "unConstrData": {
     "cpu": {
-      "arguments": 32696,
+      "arguments": 24588,
       "type": "constant_cost"
     },
     "memory": {
@@ -932,7 +950,7 @@
   },
   "unIData": {
     "cpu": {
-      "arguments": 43357,
+      "arguments": 20744,
       "type": "constant_cost"
     },
     "memory": {
@@ -942,7 +960,7 @@
   },
   "unListData": {
     "cpu": {
-      "arguments": 32247,
+      "arguments": 25933,
       "type": "constant_cost"
     },
     "memory": {
@@ -952,7 +970,7 @@
   },
   "unMapData": {
     "cpu": {
-      "arguments": 38314,
+      "arguments": 24623,
       "type": "constant_cost"
     },
     "memory": {
@@ -962,7 +980,7 @@
   },
   "verifyEcdsaSecp256k1Signature": {
     "cpu": {
-      "arguments": 35190005,
+      "arguments": 43053543,
       "type": "constant_cost"
     },
     "memory": {
@@ -973,10 +991,10 @@
   "verifyEd25519Signature": {
     "cpu": {
       "arguments": {
-        "intercept": 57996947,
-        "slope": 18975
+        "intercept": 53384111,
+        "slope": 14333
       },
-      "type": "linear_in_z"
+      "type": "linear_in_y"
     },
     "memory": {
       "arguments": 10,
@@ -986,8 +1004,8 @@
   "verifySchnorrSecp256k1Signature": {
     "cpu": {
       "arguments": {
-        "intercept": 39121781,
-        "slope": 32260
+        "intercept": 43574283,
+        "slope": 26308
       },
       "type": "linear_in_y"
     },
@@ -1222,17 +1240,10 @@
   "valueContains": {
     "cpu": {
       "arguments": {
-        "constant": 213283,
-        "model": {
-          "arguments": {
-             "intercept": 618401,
-             "slope1": 1998,
-             "slope2": 28258
-           },
-          "type": "linear_in_x_and_y"
-        }
+        "intercept": 1163050,
+        "slope": 1470
       },
-      "type": "const_above_diagonal"
+      "type": "multiplied_sizes"
     },
     "memory": {
       "arguments": 1,
@@ -1240,86 +1251,26 @@
     }
   },
   "valueData": {
-      "cpu": {
-          "arguments": {
-              "intercept": 1000,
-              "slope": 38159
-          },
-          "type": "linear_in_x"
-      },
-      "memory": {
-          "arguments": {
-              "intercept": 2,
-              "slope": 22
-          },
-          "type": "linear_in_x"
-      }
+    "cpu": {
+      "arguments": 194713,
+      "type": "constant_cost"
+    },
+    "memory": {
+      "arguments": 1,
+      "type": "constant_cost"
+    }
   },
   "unValueData": {
-      "cpu": {
-          "arguments": {
-              "c0": 1000,
-              "c1": 95933,
-              "c2": 1
-          },
-          "type": "quadratic_in_x"
-      },
-      "memory": {
-          "arguments": {
-              "intercept": 11,
-              "slope": 1
-          },
-          "type": "linear_in_x"
-      }
-  },
-  "insertCoin": {
-    "cpu": {
-      "arguments": {
-        "intercept": 356924,
-        "slope": 18413
-      },
-      "type": "linear_in_u"
-    },
-    "memory": {
-      "arguments": {
-        "intercept": 45,
-        "slope": 21
-      },
-      "type": "linear_in_u"
-    }
-  },
-  "unionValue": {
-    "cpu": {
-      "arguments": {
-        "c00": 1000,
-        "c01": 183150,
-        "c10": 172116,
-        "c11": 6
-      },
-      "type": "with_interaction_in_x_and_y"
-    },
-    "memory": {
-      "arguments": {
-        "intercept": 24,
-        "slope": 21
-      },
-      "type": "added_sizes"
-    }
-  },
-  "scaleValue": {
     "cpu": {
       "arguments": {
         "intercept": 1000,
-        "slope": 277577
+        "slope": 43200
       },
-      "type": "linear_in_y"
+      "type": "linear_in_x"
     },
     "memory": {
-      "arguments": {
-        "intercept": 12,
-        "slope": 21
-      },
-      "type": "linear_in_y"
+      "arguments": 1,
+      "type": "constant_cost"
     }
   }
 }
