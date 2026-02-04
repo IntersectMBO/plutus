@@ -2012,7 +2012,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           valueContainsDenotation
           (runCostingFunTwoArguments . paramValueContains)
   toBuiltinMeaning _semvar ValueData =
-    let valueDataDenotation :: ValueTotalSize -> Data
+    let valueDataDenotation :: ValueTotalSize -> BuiltinResult Data
         valueDataDenotation (ValueTotalSize v) = Value.valueData v
         {-# INLINE valueDataDenotation #-}
      in makeBuiltinMeaning

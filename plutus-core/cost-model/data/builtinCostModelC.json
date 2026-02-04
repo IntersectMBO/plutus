@@ -1260,8 +1260,8 @@
   "valueData": {
       "cpu": {
           "arguments": {
-              "intercept": 199604,
-              "slope": 39211
+              "intercept": 1000,
+              "slope": 38159
           },
           "type": "linear_in_x"
       },
@@ -1274,21 +1274,21 @@
       }
   },
   "unValueData": {
-        "cpu": {
-            "arguments": {
-                "c0": 1000,
-                "c1": 204904,
-                "c2": 1
-            },
-            "type": "quadratic_in_x"
-        },
-    "memory": {
-      "arguments": {
-          "intercept": 11,
-          "slope": 1
+      "cpu": {
+          "arguments": {
+              "c0": 1000,
+              "c1": 95933,
+              "c2": 1
+          },
+          "type": "quadratic_in_x"
       },
-      "type": "linear_in_x"
-    }
+      "memory": {
+          "arguments": {
+              "intercept": 11,
+              "slope": 1
+          },
+          "type": "linear_in_x"
+      }
   },
   "insertCoin": {
     "cpu": {

@@ -279,7 +279,9 @@ unValueDataBenchmark gen =
     DataNodeCount
     UnValueData
     []
-    (Value.valueData <$> generateTestValues gen)
+    ((unsafeFromBuiltinResult . Value.valueData) <$> generateTestValues gen)
+
+-- FIXME: account properly for out-of-range errors when test values are too big.
 
 ----------------------------------------------------------------------------------------------------
 -- InsertCoin --------------------------------------------------------------------------------------

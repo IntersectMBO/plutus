@@ -1,1 +1,1 @@
-ValueTotalSize -> Data
+ValueTotalSize -> BuiltinResult Data
