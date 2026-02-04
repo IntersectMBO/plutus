@@ -333,7 +333,7 @@ mkVariableLengthScalarLists :: StdGen -> [Int] -> ([[Integer]], StdGen)
 mkVariableLengthScalarLists gen = foldl go ([], gen)
   where
     go (acc, g) size =
-      let (ints, g') = makeSizedIntegers g (replicate size 64)
+      let (ints, g') = makeSizedIntegers g (replicate size 8)
        in (acc ++ [ints], g')
 
 blsBenchmarks :: StdGen -> [Benchmark]
