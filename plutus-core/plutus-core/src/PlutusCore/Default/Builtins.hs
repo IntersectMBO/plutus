@@ -1962,7 +1962,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
      in makeBuiltinMeaning indexArrayDenotation (runCostingFunTwoArguments . paramIndexArray)
   toBuiltinMeaning _semvar Bls12_381_G1_multiScalarMul =
     let bls12_381_G1_multiScalarMulDenotation
-          :: [Integer] -> [BLS12_381.G1.Element] -> BLS12_381.G1.Element
+          :: [Integer] -> [BLS12_381.G1.Element] -> BuiltinResult BLS12_381.G1.Element
         bls12_381_G1_multiScalarMulDenotation = BLS12_381.G1.multiScalarMul
         {-# INLINE bls12_381_G1_multiScalarMulDenotation #-}
      in makeBuiltinMeaning
@@ -1970,7 +1970,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunTwoArguments . paramBls12_381_G1_multiScalarMul)
   toBuiltinMeaning _semvar Bls12_381_G2_multiScalarMul =
     let bls12_381_G2_multiScalarMulDenotation
-          :: [Integer] -> [BLS12_381.G2.Element] -> BLS12_381.G2.Element
+          :: [Integer] -> [BLS12_381.G2.Element] -> BuiltinResult BLS12_381.G2.Element
         bls12_381_G2_multiScalarMulDenotation = BLS12_381.G2.multiScalarMul
         {-# INLINE bls12_381_G2_multiScalarMulDenotation #-}
      in makeBuiltinMeaning
