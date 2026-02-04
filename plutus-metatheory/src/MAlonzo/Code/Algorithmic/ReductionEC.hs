@@ -325,7 +325,7 @@ du_BUILTIN''_326 ::
   T_BApp_74 -> MAlonzo.Code.Algorithmic.T__'8866'__178
 du_BUILTIN''_326 v0 v1 v2 v3 v4 v5
   = coe
-      MAlonzo.Code.Algorithmic.CEK.du_BUILTIN''_1050 (coe v0) (coe v1)
+      MAlonzo.Code.Algorithmic.CEK.du_BUILTIN''_1078 (coe v0) (coe v1)
       (coe du_red2cekBApp_266 (coe v3) (coe v4) (coe v2) (coe v5))
 -- Algorithmic.ReductionEC.Error
 d_Error_338 a0 a1 a2 a3 = ()

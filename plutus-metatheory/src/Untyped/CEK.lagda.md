@@ -598,11 +598,17 @@ BUILTIN dropList = λ
   ; _ -> inj₁ userError
   }
 BUILTIN bls12-381-G1-multiScalarMul = λ
-  { (app (app base (V-con (list integer) is)) (V-con (list bls12-381-g1-element) es)) -> inj₂ (V-con bls12-381-g1-element (BLS12-381-G1-multiScalarMul (toList is) (toList es)))
+  { (app (app base (V-con (list integer) is)) (V-con (list bls12-381-g1-element) es)) -> case BLS12-381-G1-multiScalarMul (toList is) (toList es) of λ
+     { (just r) -> inj₂ (V-con bls12-381-g1-element r)
+     ; nothing  -> inj₁ userError
+     }
   ;  _ -> inj₁ userError
   }
 BUILTIN bls12-381-G2-multiScalarMul = λ
-  { (app (app base (V-con (list integer) is)) (V-con (list bls12-381-g2-element) es)) -> inj₂ (V-con bls12-381-g2-element (BLS12-381-G2-multiScalarMul (toList is) (toList es)))
+  { (app (app base (V-con (list integer) is)) (V-con (list bls12-381-g2-element) es)) -> case BLS12-381-G2-multiScalarMul (toList is) (toList es) of λ
+     { (just r) -> inj₂ (V-con bls12-381-g2-element r)
+     ; nothing  -> inj₁ userError
+     }
   ;  _ -> inj₁ userError
   }
 

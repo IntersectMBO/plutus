@@ -2773,15 +2773,19 @@ d_BLS12'45'381'45'G1'45'multiScalarMul_422 ::
   MAlonzo.Code.Agda.Builtin.List.T_List_10 () Integer ->
   MAlonzo.Code.Agda.Builtin.List.T_List_10
     () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_670 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_670
-d_BLS12'45'381'45'G1'45'multiScalarMul_422 = G1.multiScalarMul
+  MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G1'45'Element_670
+d_BLS12'45'381'45'G1'45'multiScalarMul_422
+  = \s p -> builtinResultToMaybe $ G1.multiScalarMul s p
 -- Builtin.BLS12-381-G2-multiScalarMul
 d_BLS12'45'381'45'G2'45'multiScalarMul_424 ::
   MAlonzo.Code.Agda.Builtin.List.T_List_10 () Integer ->
   MAlonzo.Code.Agda.Builtin.List.T_List_10
     () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_674 ->
-  MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_674
-d_BLS12'45'381'45'G2'45'multiScalarMul_424 = G2.multiScalarMul
+  MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10
+    () MAlonzo.Code.Utils.T_Bls12'45'381'45'G2'45'Element_674
+d_BLS12'45'381'45'G2'45'multiScalarMul_424
+  = \s p -> builtinResultToMaybe $ G2.multiScalarMul s p
 -- Builtin.decBuiltin
 d_decBuiltin_426 ::
   T_Builtin_2 ->

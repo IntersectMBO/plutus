@@ -671,8 +671,8 @@ postulate
     then Nothing
     else fmap fromIntegral $ builtinResultToMaybe $ ExpMod.expMod b e (fromIntegral m) #-}
 
-{-# COMPILE GHC BLS12-381-G1-multiScalarMul s p = builtinResultToMaybe $ G1.multiScalarMul s p #-}
-{-# COMPILE GHC BLS12-381-G2-multiScalarMul s p = builtinResultToMaybe $ G2.multiScalarMul s p #-}
+{-# COMPILE GHC BLS12-381-G1-multiScalarMul = \s p -> builtinResultToMaybe $ G1.multiScalarMul s p #-}
+{-# COMPILE GHC BLS12-381-G2-multiScalarMul = \s p -> builtinResultToMaybe $ G2.multiScalarMul s p #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

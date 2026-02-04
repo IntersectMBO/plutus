@@ -101,7 +101,7 @@ d_isCR'63'_42 v0 v1 v2
                                                              seq (coe v10)
                                                              (let v18
                                                                     = coe
-                                                                        MAlonzo.Code.Untyped.CEK.du_lookup'63'_988
+                                                                        MAlonzo.Code.Untyped.CEK.du_lookup'63'_996
                                                                         (coe v16) (coe v12) in
                                                               coe
                                                                 (case coe v18 of
