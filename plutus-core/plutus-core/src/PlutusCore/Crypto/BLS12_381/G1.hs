@@ -180,4 +180,4 @@ multiScalarMul ss p
   | any outOfBounds ss = fail "Scalar exceeds 512-byte bound for G1.multiScalarMul"
   | otherwise = pure . coerce $ BlstBindings.blsMSM @BlstBindings.Curve1 (zip ss (coerce p))
   where
-    outOfBounds s = msmScalarLb <= s && s <= msmScalarUb
+    outOfBounds s = s < msmScalarLb || s > msmScalarUb
