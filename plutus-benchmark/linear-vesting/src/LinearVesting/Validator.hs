@@ -29,6 +29,7 @@
 module LinearVesting.Validator where
 
 import PlutusTx
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Prelude
 import Prelude qualified as Haskell
 
@@ -37,6 +38,8 @@ import PlutusLedgerApi.V1.Data.Value (AssetClass, assetClassValueOf)
 import PlutusLedgerApi.V3.Data.Contexts (txSignedBy)
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List qualified as List
+
+{-# ANN module ("onchain-contract" :: Haskell.String) #-}
 
 data VestingDatum = VestingDatum
   { beneficiary :: Address
@@ -139,13 +142,17 @@ validateVestingFullUnlock ctx =
     vestingDatum :: VestingDatum = unsafeFromBuiltinData datum
     PubKeyCredential beneficiaryKey = addressCredential (beneficiary vestingDatum)
    in
-    if
-      | not (txSignedBy txInfo beneficiaryKey) ->
-          traceError "Missing beneficiary signature"
-      | vestingPeriodEnd vestingDatum >= currentTimeApproximation ->
-          traceError "Unlock not permitted until vestingPeriodEnd time"
-      | otherwise ->
-          True
+    BI.ifThenElse
+      (not (txSignedBy txInfo beneficiaryKey))
+      (\_ -> traceError "Missing beneficiary signature")
+      ( \_ ->
+          BI.ifThenElse
+            (vestingPeriodEnd vestingDatum >= currentTimeApproximation)
+            (\_ -> traceError "Unlock not permitted until vestingPeriodEnd time")
+            (\_ -> True)
+            BI.unitval
+      )
+      BI.unitval
 
 getLowerInclusiveTimeRange :: POSIXTimeRange -> POSIXTime
 getLowerInclusiveTimeRange = \case
@@ -153,6 +160,19 @@ getLowerInclusiveTimeRange = \case
     if inclusive then posixTime else posixTime + 1
   _ -> traceError "Time range not Finite"
 
+-- Evaluation was SUCCESSFUL, result is:
+--   ()
+
+-- Execution budget spent:
+--   CPU 30,837,131
+--   MEM 131,619
+
+-- Evaluation traces:
+--   1. Parsing ScriptContext...
+--   2. Parsed ScriptContext
+--   3. Parsed Redeemer
+--   4. Full unlock requested
+--   5. Validation completed
 {-# INLINEABLE typedValidator #-}
 typedValidator :: ScriptContext -> Bool
 typedValidator context =
