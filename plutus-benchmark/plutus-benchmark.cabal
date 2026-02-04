@@ -740,7 +740,9 @@ library linear-vesting-internal
   hs-source-dirs:  linear-vesting/src
   exposed-modules:
     LinearVesting.Test
+    LinearVesting.TestOptimized
     LinearVesting.Validator
+    LinearVesting.ValidatorOptimized
 
   build-depends:
     , base               >=4.9 && <5
@@ -751,6 +753,16 @@ library linear-vesting-internal
 executable linear-vesting
   import:         lang, ghc-version-support, os-support
   main-is:        Main.hs
+  hs-source-dirs: linear-vesting/exe
+  build-depends:
+    , base                         >=4.9 && <5
+    , linear-vesting-internal
+    , plutus-tx:plutus-tx-testlib
+    , text
+
+executable linear-vesting-optimized
+  import:         lang, ghc-version-support, os-support
+  main-is:        MainOptimized.hs
   hs-source-dirs: linear-vesting/exe
   build-depends:
     , base                         >=4.9 && <5
