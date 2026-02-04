@@ -1,0 +1,8 @@
+An error has occurred:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
+Caused by: error
+
+Trace:
+-> functionFromOtherModule (test/CallTrace/Spec.hs:94:1-94:23)
+-> $
+-> errorWhenTrue

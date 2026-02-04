@@ -1,0 +1,13 @@
+CPU:               155_773_381
+Memory:                320_970
+AST Size:                  329
+Flat Size:                 337
+
+(constr
+  0
+  (constr 0 (con integer 0))
+  (constr 0 (con integer 5))
+  (constr 0 (con integer 10))
+  (constr 1)
+  (constr 1)
+)

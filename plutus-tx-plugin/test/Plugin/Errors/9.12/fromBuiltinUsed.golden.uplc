@@ -1,0 +1,1 @@
+Error: Unsupported feature: It is no longer possible to use 'fromBuiltin' with a script, use 'fromOpaque' instead
