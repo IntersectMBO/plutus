@@ -1176,7 +1176,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
     -- want to check the unfoldings case first), see GHC:Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
-    GHC.Var n@(maybeGetClassOpId -> Just cls) -> do
+    GHC.Var n@(maybeGetClassOpId . GHC.idDetails -> Just cls) -> do
       -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
       -- selectors that do have them
       let sel_names = fmap GHC.getName (GHC.classAllSelIds cls)
