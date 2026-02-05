@@ -4,7 +4,25 @@ layout: page
 ---
 # Certificates
 
-## Produce a Proof, or a useful Counter Example
+## Verifying Compiler Transformations Against Translation Relations
+
+Given a list of ASTs and an indication of which pass transforms each AST to the next, the certifier determines whether each transformation satisfies the corresponding translation relation.
+
+If it does, the certifier produces a proof.
+Otherwise, it rejects the transformation, either with a refutation showing that the translation relation does not hold, or without one.
+We refer to the former as a _decision procedure_, and the latter as a _checking procedure_.
+
+There are several reasons why checking procedures can be desirable, even though they don't produce refutations:
+
+- A decision procedure can be viewed as a checking procedure together with a completeness proof.
+  Separating these concerns can improve performance, since the completeness proof is not something users need to run.
+- In some cases, deciding whether the translation relation is satisfied can be computationally difficult.
+  A checking procedure allows the use of heuristics that may be incomplete (i.e., they may fail to find a proof even when one exists), but are efficient and work well in practice.
+- In some cases, it can be easier to conclude that a proof cannot exist than to construct an explicit refutation.
+  For example, classic reasoning may establish the nonexistence of a proof, whereas a decision procedure must still construct an explicit refutation, which can be substantially more expensive.
+- Checking procedures are often easier to develop and maintain.
+  This makes it easier to keep the certifier up to date: when a compiler pass is added or modified, a checking procedure can be implemented or updated quickly and made available to users, while completeness proofs (if desired) can be developed later.
+
 ```
 module VerifiedCompilation.Certificate where
 
