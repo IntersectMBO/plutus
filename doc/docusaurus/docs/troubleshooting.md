@@ -49,7 +49,57 @@ case (x :: Maybe Integer) of Just y | y PlutusTx.== 42 -> ...
 
 ### "Unsupported feature: Cannot construct a value of type"
 
-Conversely, to convert a Haskell type to the corresponding builtin type in Plinth, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
+This error can occur in two main scenarios:
+
+#### 1. Direct Construction of Builtin Types
+
+To convert a Haskell type to the corresponding builtin type in Plinth, you should use `toOpaque`, rather than directly using the data constructor or `toBuiltin`.
+
+#### 2. Stage Violation with Where-Bindings
+
+This error often appears when using where-bindings that reference builtin types within `compile` quotations.
+After GHC simplification, the compiler may generate pattern matches on builtin constructors that Plinth cannot compile.
+
+For example:
+```haskell
+code = $$(compile [||validator||])
+  where
+    validator :: BuiltinUnit
+    validator = unitval
+```
+
+After GHC simplification, this becomes:
+```haskell
+code = case unitval of
+  validator_X0 { BuiltinUnit ipv -> plc Proxy validator_X0 }
+```
+
+The pattern match on the `BuiltinUnit` constructor cannot be compiled by Plinth because `BuiltinUnit` (and other types like `BuiltinData`, `BuiltinByteString`, etc.) are opaque wrappers that only exist on the Haskell side—they have no corresponding constructors in Plutus IR.
+
+**Workarounds:**
+
+1. **Move the binding to the top level:**
+   ```haskell
+   validator :: BuiltinUnit
+   validator = unitval
+   {-# INLINEABLE validator #-}
+
+   code = $$(compile [||validator||])
+   ```
+
+2. **Use lazy bindings with tilde (`~`):**
+   ```haskell
+   code = $$(compile [||validator||])
+     where
+       ~validator = unitval
+   ```
+
+3. **Define the binding inside the quotation:**
+   ```haskell
+   code = $$(compile [|| let validator = unitval in validator ||])
+   ```
+
+Variables inside `compile` quotations must be either top-level, bound inside the quotation itself, or use lazy bindings (`~`) to avoid stage violations.
 
 ## Runtime Issues
 
