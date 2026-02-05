@@ -4,11 +4,13 @@
 module PlutusCore.Crypto.Utils
   ( failWithMessage
   , byteStringAsHex
-  , msmScalarUb
-  , msmScalarLb
   ) where
 
-import PlutusCore.Builtin.Result (BuiltinResult, builtinResultFailure, emit)
+import PlutusCore.Builtin.Result
+  ( BuiltinResult
+  , builtinResultFailure
+  , emit
+  )
 
 import Data.ByteString (ByteString, foldr')
 import Data.Kind (Type)
@@ -22,9 +24,3 @@ failWithMessage location reason = do
 
 byteStringAsHex :: ByteString -> String
 byteStringAsHex bs = "0x" ++ (Prelude.concat $ foldr' (\w s -> (printf "%02x" w) : s) [] bs)
-
-msmScalarUb :: Integer
-msmScalarUb = 2 ^ (512 * 8 :: Integer) - 1
-
-msmScalarLb :: Integer
-msmScalarLb = -(2 ^ (512 * 8 :: Integer))

@@ -23,13 +23,21 @@ import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
 import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
 import PlutusCore.Builtin.Result (BuiltinResult (..))
+import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
 import PlutusCore.Crypto.BLS12_381.Error
 import PlutusCore.Crypto.Utils
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
 
-import Control.DeepSeq (NFData, rnf, rwhnf)
-import Data.ByteString (ByteString, length)
+import Control.DeepSeq
+  ( NFData
+  , rnf
+  , rwhnf
+  )
+import Data.ByteString
+  ( ByteString
+  , length
+  )
 import Data.Coerce (coerce)
 import Data.Hashable
 import Data.Proxy (Proxy (..))
@@ -135,7 +143,5 @@ compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBind
 -- | Multi-scalar multiplication of G2 points.
 multiScalarMul :: [Integer] -> [Element] -> BuiltinResult Element
 multiScalarMul ss p
-  | any outOfBounds ss = fail "Scalar exceeds 512-byte bound for G2.multiScalarMul"
+  | any msmScalarOutOfBounds ss = fail "Scalar exceeds 512-byte bound for G2.multiScalarMul"
   | otherwise = pure . coerce $ BlstBindings.blsMSM @BlstBindings.Curve2 (zip ss (coerce p))
-  where
-    outOfBounds s = s < msmScalarLb || s > msmScalarUb
