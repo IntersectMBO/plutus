@@ -37,6 +37,7 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
+import PlutusTx.Compiler.Compat (maybeGetClassOpId)
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Laziness
 import PlutusTx.Compiler.Names
@@ -884,7 +885,6 @@ compileHaskellList = buildList . strip
         consume li >>= traverse compileExpr
     buildList _ = err
 
-{- FOURMOLU_DISABLE -} -- Fourmolu can't parse non-top-level #if directives
 compileExpr :: CompilingDefault uni fun m ann => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
@@ -1176,11 +1176,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
     -- want to check the unfoldings case first), see GHC:Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
-#if __GLASGOW_HASKELL__ >= 912
-    GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls _) -> do
-#else
-    GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
-#endif
+    GHC.Var n@(maybeGetClassOpId -> Just cls) -> do
       -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
       -- selectors that do have them
       let sel_names = fmap GHC.getName (GHC.classAllSelIds cls)
@@ -1311,7 +1307,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Cast body _ -> compileExpr body
     GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
     GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
-{- FOURMOLU_ENABLE -}
 
 compileCase
   :: CompilingDefault uni fun m ann

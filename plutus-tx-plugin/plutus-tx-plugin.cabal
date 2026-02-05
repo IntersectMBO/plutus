@@ -61,6 +61,7 @@ library
   other-modules:
     PlutusTx.Compiler.Binders
     PlutusTx.Compiler.Builtins
+    PlutusTx.Compiler.Compat
     PlutusTx.Compiler.Expr
     PlutusTx.Compiler.Kind
     PlutusTx.Compiler.Laziness
