@@ -24,8 +24,8 @@ import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings
 
 import PlutusCore.Builtin.Result (BuiltinResult (..))
 import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
-import PlutusCore.Crypto.BLS12_381.Error
-import PlutusCore.Crypto.Utils
+import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error (..))
+import PlutusCore.Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
 

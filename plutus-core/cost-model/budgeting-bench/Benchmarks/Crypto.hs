@@ -338,7 +338,7 @@ mkScalarsForMSM :: StdGen -> [Int] -> ([[Integer]], StdGen)
 mkScalarsForMSM gen = foldl go ([], gen)
   where
     go (acc, g) size =
-      let (ints, g') = makeSizedIntegers g (replicate size msmMaxScalarWords)
+      let (ints, g') = makeSizedIntegers g (replicate size (fromInteger msmMaxScalarWords))
        in (acc ++ [ints], g')
 
 blsBenchmarks :: StdGen -> [Benchmark]
