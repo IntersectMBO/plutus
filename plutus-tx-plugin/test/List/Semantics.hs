@@ -4,6 +4,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-x-partial #-}
 
 module List.Semantics where
 
