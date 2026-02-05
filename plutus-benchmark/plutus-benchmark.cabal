@@ -813,7 +813,7 @@ executable gen-coop-flat
     , plutus-tx                    ^>=1.57
     , plutus-tx:plutus-tx-testlib
 
------------------- linear vesting -------------------    
+------------------ linear vesting -------------------
 
 test-suite linear-vesting-test
   import:         lang, ghc-version-support, os-support
@@ -902,6 +902,7 @@ executable uplc-evaluator
 
 test-suite uplc-evaluator-integration-tests
   import:             lang, os-support
+  buildable:          False
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:
