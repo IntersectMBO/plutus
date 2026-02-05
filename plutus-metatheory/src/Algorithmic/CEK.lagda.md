@@ -350,9 +350,12 @@ BUILTIN expModInteger (base  $ V-con b $ V-con e $ V-con m) with expModINTEGER b
 ... | just r = inj₂ (V-con r)
 ... | nothing  = inj₁ (con (ne (^ (atomic aInteger))))
 BUILTIN dropList (Λ̂ A $ V-con n $ V-con l) = inj₂ (V-con (dropLIST n l))
-BUILTIN bls12-381-G1-multiScalarMul (base $ V-con is $ V-con es) = inj₂ (V-con (BLS12-381-G1-multiScalarMul (toList is) (toList es)))
-BUILTIN bls12-381-G2-multiScalarMul (base $ V-con is $ V-con es) = inj₂ (V-con (BLS12-381-G2-multiScalarMul (toList is) (toList es)))
-
+BUILTIN bls12-381-G1-multiScalarMul (base $ V-con is $ V-con es) with BLS12-381-G1-multiScalarMul (toList is) (toList es)
+... | just r = inj₂ (V-con r)
+... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g1-element))))
+BUILTIN bls12-381-G2-multiScalarMul (base $ V-con is $ V-con es) with BLS12-381-G2-multiScalarMul (toList is) (toList es)
+... | just r = inj₂ (V-con r)
+... | nothing = inj₁ (con (ne (^ (atomic aBls12-381-g2-element))))
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}

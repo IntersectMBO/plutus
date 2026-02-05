@@ -538,8 +538,8 @@ postulate
   findFirstSetBIT             : ByteString -> Int
   RIPEMD-160                  : ByteString → ByteString
   expModINTEGER               : Int -> Int -> Int -> Maybe Int
-  BLS12-381-G1-multiScalarMul : List Int → List Bls12-381-G1-Element → Bls12-381-G1-Element
-  BLS12-381-G2-multiScalarMul : List Int → List Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G1-multiScalarMul : List Int → List Bls12-381-G1-Element → Maybe Bls12-381-G1-Element
+  BLS12-381-G2-multiScalarMul : List Int → List Bls12-381-G2-Element → Maybe Bls12-381-G2-Element
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -671,8 +671,8 @@ postulate
     then Nothing
     else fmap fromIntegral $ builtinResultToMaybe $ ExpMod.expMod b e (fromIntegral m) #-}
 
-{-# COMPILE GHC BLS12-381-G1-multiScalarMul = G1.multiScalarMul #-}
-{-# COMPILE GHC BLS12-381-G2-multiScalarMul = G2.multiScalarMul #-}
+{-# COMPILE GHC BLS12-381-G1-multiScalarMul = \s p -> builtinResultToMaybe $ G1.multiScalarMul s p #-}
+{-# COMPILE GHC BLS12-381-G2-multiScalarMul = \s p -> builtinResultToMaybe $ G2.multiScalarMul s p #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

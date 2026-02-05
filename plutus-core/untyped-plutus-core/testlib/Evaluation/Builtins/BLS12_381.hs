@@ -22,6 +22,7 @@ import Evaluation.Builtins.Common
   , integer
   , mkApp2
   )
+import PlutusCore.Crypto.BLS12_381.Bounds qualified as Bounds
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
@@ -30,8 +31,17 @@ import UntypedPlutusCore qualified as UPLC
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 (scalarPeriod)
 import Control.Monad (replicateM)
-import Data.ByteString as BS (empty, length, pack)
-import Data.List as List (foldl', genericReplicate, length, nub)
+import Data.ByteString as BS
+  ( empty
+  , length
+  , pack
+  )
+import Data.List as List
+  ( foldl'
+  , genericReplicate
+  , length
+  , nub
+  )
 import Text.Printf (printf)
 
 import Test.QuickCheck hiding (Some (..))
@@ -67,6 +77,14 @@ arbitraryScalar =
     ]
   where
     b = (2 :: Integer) ^ (10000 :: Integer)
+
+-- Scalar inputs for the multiScalarMul functions, which enforce a bound.
+arbitraryMsmScalar :: Gen Integer
+arbitraryMsmScalar =
+  frequency
+    [ (1, arbitraryBuiltin @Integer `suchThat` (not . Bounds.msmScalarOutOfBounds))
+    , (4, choose (Bounds.msmScalarLb, Bounds.msmScalarUb))
+    ]
 
 -- Arbitrary scalar as PLC constant
 arbitraryPlcScalar :: Gen PlcTerm
@@ -287,7 +305,7 @@ test_multiScalarMul_correct =
     (mkTestName @g "multiScalarMul_is_iterated_mul_and_add")
     . withNTests
     $ do
-      scalars <- listOf arbitraryScalar
+      scalars <- listOf arbitraryMsmScalar
       points <- listOf (arbitrary @g)
       let e1 = multiScalarMulTerm @g (asPlc scalars) (asPlc points)
           mkMulAdd acc (s, x) = addTerm @g acc (scalarMulTerm @g s x)
@@ -317,7 +335,7 @@ test_multiScalarMul_no_points =
     (mkTestName @g "multiScalarMul_returns_zero_if_no_points")
     . withNTests
     $ do
-      scalars <- listOf arbitraryScalar
+      scalars <- listOf arbitraryMsmScalar
       let e = multiScalarMulTerm @g (asPlc scalars) (asPlc ([] @g))
       pure $ evalTerm e === evalTerm (zeroTerm @g)
 
@@ -331,7 +349,7 @@ test_multiScalarMul_permutation =
     (mkTestName @g "multiScalarMul_invariant_under_permutation")
     . withNTests
     $ do
-      l <- listOf ((,) <$> arbitraryScalar <*> arbitrary @g)
+      l <- listOf ((,) <$> arbitraryMsmScalar <*> arbitrary @g)
       l' <- shuffle l
       let (scalars, points) = unzip l
           (scalars', points') = unzip l'

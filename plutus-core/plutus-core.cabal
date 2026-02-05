@@ -113,6 +113,7 @@ library
     PlutusCore.Compiler.Types
     PlutusCore.Core
     PlutusCore.Core.Plated
+    PlutusCore.Crypto.BLS12_381.Bounds
     PlutusCore.Crypto.BLS12_381.Error
     PlutusCore.Crypto.BLS12_381.G1
     PlutusCore.Crypto.BLS12_381.G2

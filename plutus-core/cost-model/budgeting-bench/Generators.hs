@@ -3,7 +3,10 @@ module Generators where
 
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
-import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage (..), flattenCostRose)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
+  ( ExMemoryUsage (..)
+  , flattenCostRose
+  )
 
 import Control.Monad
 import Data.Bits
@@ -39,8 +42,8 @@ import Test.QuickCheck.Instances.ByteString ()
 randNwords :: Int -> StdGen -> (Integer, StdGen)
 randNwords n gen = randomR (lb, ub) gen
   where
-    lb = 2 ^ (64 * (n - 1))
-    ub = 2 ^ (64 * n) - 1
+    lb = -2 ^ (64 * n - 1)
+    ub = 2 ^ (64 * n - 1) - 1
 
 -- Generate a random Bool (just here for consistency)
 randBool :: StdGen -> (Bool, StdGen)

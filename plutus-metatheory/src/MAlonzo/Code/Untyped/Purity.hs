@@ -397,7 +397,7 @@ d_isPure'63'_82 v0 v1
              MAlonzo.Code.Untyped.C_constr_34 v4 v5
                -> let v6
                         = coe
-                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_988 (coe v4) (coe v3) in
+                            MAlonzo.Code.Untyped.CEK.du_lookup'63'_996 (coe v4) (coe v3) in
                   coe
                     (case coe v6 of
                        MAlonzo.Code.Agda.Builtin.Maybe.C_just_16 v7

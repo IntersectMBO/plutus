@@ -22,13 +22,22 @@ module PlutusCore.Crypto.BLS12_381.G1
 import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
 import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
-import PlutusCore.Crypto.BLS12_381.Error
+import PlutusCore.Builtin.Result (BuiltinResult (..))
+import PlutusCore.Crypto.BLS12_381.Bounds (msmScalarOutOfBounds)
+import PlutusCore.Crypto.BLS12_381.Error (BLS12_381_Error (..))
 import PlutusCore.Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
 
-import Control.DeepSeq (NFData, rnf, rwhnf)
-import Data.ByteString (ByteString, length)
+import Control.DeepSeq
+  ( NFData
+  , rnf
+  , rwhnf
+  )
+import Data.ByteString
+  ( ByteString
+  , length
+  )
 import Data.Coerce (coerce)
 import Data.Hashable
 import Data.Proxy (Proxy (..))
@@ -173,6 +182,9 @@ memSizeBytes = BlstBindings.Internal.sizePoint (Proxy @BlstBindings.Curve1)
 compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve1)
 
--- | Multi-scalar multiplication of G1 points.
-multiScalarMul :: [Integer] -> [Element] -> Element
-multiScalarMul = coerce (\s p -> BlstBindings.blsMSM @BlstBindings.Curve1 (zip s p))
+{-| Multi-scalar multiplication of G1 points.  We limit the allowable size of
+scalars to simplify costing. -}
+multiScalarMul :: [Integer] -> [Element] -> BuiltinResult Element
+multiScalarMul ss p
+  | any msmScalarOutOfBounds ss = fail "Scalar exceeds 512-byte bound for G1.multiScalarMul"
+  | otherwise = pure . coerce $ BlstBindings.blsMSM @BlstBindings.Curve1 (zip ss (coerce p))

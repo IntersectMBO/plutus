@@ -20,11 +20,15 @@ import Cardano.Crypto.DSIGN.Class
   , rawSerialiseVerKeyDSIGN
   , signDSIGN
   )
-import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1
+  ( EcdsaSecp256k1DSIGN
+  , toMessageHash
+  )
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
+import PlutusCore.Crypto.BLS12_381.Bounds (msmMaxScalarWords)
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
@@ -328,22 +332,23 @@ benchBls12_381_finalVerify =
 
 -- constant time
 
--- A helper function to generate lists of integers of a given sizes
-mkVariableLengthScalarLists :: StdGen -> [Int] -> ([[Integer]], StdGen)
-mkVariableLengthScalarLists gen = foldl go ([], gen)
+{-| Scalars for the multiScalarMul functions.  We want these to be close to the
+maximum allowable size. -}
+mkScalarsForMSM :: StdGen -> [Int] -> ([[Integer]], StdGen)
+mkScalarsForMSM gen = foldl go ([], gen)
   where
     go (acc, g) size =
-      let (ints, g') = makeSizedIntegers g [1 .. size]
+      let (ints, g') = makeSizedIntegers g (replicate size (fromInteger msmMaxScalarWords))
        in (acc ++ [ints], g')
 
 blsBenchmarks :: StdGen -> [Benchmark]
 blsBenchmarks gen =
-  let multipliers = fst $ makeSizedIntegers gen [1 .. 100] -- Constants for scalar multiplication functions
-      scalarLists = fst $ mkVariableLengthScalarLists gen [1 .. 100] -- Create a list of lists of integers of various sizes between 1 and 100 elements
+  let multipliers = fst $ makeSizedIntegers gen [1 .. 100] -- Scalars for single-scalar multiplication functions
+      msmScalars = fst $ mkScalarsForMSM gen [1 .. 100] -- Scalars for multi-scalar multiplication functions
    in [ benchBls12_381_G1_add
       , benchBls12_381_G1_neg
       , benchBls12_381_G1_scalarMul multipliers
-      , benchBls12_381_G1_multiScalarMul scalarLists
+      , benchBls12_381_G1_multiScalarMul msmScalars
       , benchBls12_381_G1_equal
       , benchBls12_381_G1_hashToGroup
       , benchBls12_381_G1_compress
@@ -351,7 +356,7 @@ blsBenchmarks gen =
       , benchBls12_381_G2_add
       , benchBls12_381_G2_neg
       , benchBls12_381_G2_scalarMul multipliers
-      , benchBls12_381_G2_multiScalarMul scalarLists
+      , benchBls12_381_G2_multiScalarMul msmScalars
       , benchBls12_381_G2_equal
       , benchBls12_381_G2_hashToGroup
       , benchBls12_381_G2_compress

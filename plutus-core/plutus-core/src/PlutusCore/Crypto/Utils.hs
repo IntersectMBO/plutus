@@ -1,9 +1,16 @@
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusCore.Crypto.Utils (failWithMessage, byteStringAsHex) where
+module PlutusCore.Crypto.Utils
+  ( failWithMessage
+  , byteStringAsHex
+  ) where
 
-import PlutusCore.Builtin.Result (BuiltinResult, builtinResultFailure, emit)
+import PlutusCore.Builtin.Result
+  ( BuiltinResult
+  , builtinResultFailure
+  , emit
+  )
 
 import Data.ByteString (ByteString, foldr')
 import Data.Kind (Type)
