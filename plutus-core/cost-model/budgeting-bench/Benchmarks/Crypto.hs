@@ -332,7 +332,8 @@ benchBls12_381_finalVerify =
 
 -- constant time
 
---
+{-| Scalars for the multiScalarMul functions.  We want these to be close to the
+maximum allowable size. -}
 mkScalarsForMSM :: StdGen -> [Int] -> ([[Integer]], StdGen)
 mkScalarsForMSM gen = foldl go ([], gen)
   where
@@ -342,8 +343,8 @@ mkScalarsForMSM gen = foldl go ([], gen)
 
 blsBenchmarks :: StdGen -> [Benchmark]
 blsBenchmarks gen =
-  let multipliers = fst $ makeSizedIntegers gen [1 .. 100] -- Constants for scalar multiplication functions
-      msmScalars = fst $ mkScalarsForMSM gen [1 .. 100] -- A list of lists of of length 1..100 of integers of size `msmMaxScalarWords`
+  let multipliers = fst $ makeSizedIntegers gen [1 .. 100] -- Scalars for single-scalar multiplication functions
+      msmScalars = fst $ mkScalarsForMSM gen [1 .. 100] -- Scalars for multi-scalar multiplication functions
    in [ benchBls12_381_G1_add
       , benchBls12_381_G1_neg
       , benchBls12_381_G1_scalarMul multipliers

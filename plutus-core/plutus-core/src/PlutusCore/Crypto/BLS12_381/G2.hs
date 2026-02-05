@@ -140,7 +140,8 @@ memSizeBytes = BlstBindings.Internal.sizePoint (Proxy @BlstBindings.Curve2)
 compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve2)
 
--- | Multi-scalar multiplication of G2 points.
+{-| Multi-scalar multiplication of G2 points.  We limit the allowable size of
+scalars to simplify costing. -}
 multiScalarMul :: [Integer] -> [Element] -> BuiltinResult Element
 multiScalarMul ss p
   | any msmScalarOutOfBounds ss = fail "Scalar exceeds 512-byte bound for G2.multiScalarMul"
