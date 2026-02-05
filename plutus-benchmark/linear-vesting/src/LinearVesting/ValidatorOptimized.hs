@@ -372,30 +372,22 @@ untypedValidatorOptimized scriptContextData =
           "Parsed ScriptContext"
           ( BI.trace
               "Parsed Redeemer"
-              ( builtinIf
-                  (BI.equalsInteger redeemerTag 1)
-                  ( \_ ->
-                      BI.trace
-                        "Full unlock requested"
-                        (validateVestingFullUnlockOptimized txValidRange txSignatories datumData)
-                  )
-                  ( \_ ->
-                      builtinIf
-                        (BI.equalsInteger redeemerTag 0)
-                        ( \_ ->
-                            BI.trace
-                              "Partial unlock requested"
-                              ( validateVestingPartialUnlockOptimized
-                                  txInputs
-                                  txOutputs
-                                  txValidRange
-                                  txSignatories
-                                  ownRef
-                                  datumData
-                              )
-                        )
-                        (\_ -> traceError "Failed to parse Redeemer")
-                  )
+              ( BI.caseInteger
+                  redeemerTag
+                  [ BI.trace
+                      "Partial unlock requested"
+                      ( validateVestingPartialUnlockOptimized
+                          txInputs
+                          txOutputs
+                          txValidRange
+                          txSignatories
+                          ownRef
+                          datumData
+                      )
+                  , BI.trace
+                      "Full unlock requested"
+                      (validateVestingFullUnlockOptimized txValidRange txSignatories datumData)
+                  ]
               )
           )
    in builtinIf
