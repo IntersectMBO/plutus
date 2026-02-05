@@ -177,6 +177,7 @@ test-suite plutus-tx-plugin-tests
     ShortCircuit.Spec
     ShortCircuit.WithGHCOptimisations
     ShortCircuit.WithoutGHCOptimisations
+    StageViolation.Spec
     StdLib.Spec
     Strictness.Spec
     TH.Spec
