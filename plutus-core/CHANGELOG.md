@@ -1,4 +1,11 @@
 
+<a id='changelog-1.58.0.0'></a>
+# 1.58.0.0 — 2026-02-05
+
+## Changed
+
+- Updated `unValueData` to reject non-canonical input, based on https://github.com/cardano-foundation/CIPs/pull/1134
+
 <a id='changelog-1.57.0.0'></a>
 # 1.57.0.0 — 2026-01-20
 

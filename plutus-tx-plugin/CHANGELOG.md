@@ -1,4 +1,15 @@
 
+<a id='changelog-1.58.0.0'></a>
+# 1.58.0.0 — 2026-02-05
+
+## Added
+
+Added the compiler option `--cse-which-subterms` to control which terms the CSE pass of the UPLC simplifier considers
+
+## Changed
+
+- Improved "Cannot construct a value of type" error messages for opaque builtin types to explain stage violations and suggest moving where-bindings to top-level
+
 <a id='changelog-1.55.0.0'></a>
 # 1.55.0.0 — 2025-11-11
 
