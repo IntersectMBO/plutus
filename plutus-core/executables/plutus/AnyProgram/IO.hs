@@ -35,7 +35,7 @@ readProgram
 readProgram sngS fileS =
   case fileS ^. fName of
     Just (Example _eName) ->
-      error "FIXME: Not implemented yet."
+      failE "Reading from examples is not supported yet. Provide a file path instead."
     -- case sngS of
     --     SPir SName SUnit ->
     --         case lookup eName termExamples of
@@ -66,7 +66,7 @@ readProgram sngS fileS =
             case deserialiseOrFail $ BSL.fromStrict bs of
               Left err -> failE $ show err
               Right (SerialiseViaFlat res) -> pure res
-      Json -> error "FIXME: not implemented yet."
+      Json -> failE "JSON input is not supported yet. Use --text, --flat, or --cbor instead."
 
 writeProgram
   :: (?opts :: Opts)
@@ -89,7 +89,7 @@ writeProgram sng ast file afterCompile =
             case sng %~ SData of
               Proved Refl -> serialise ast
               _ -> withLang @Flat sng $ serialise (SerialiseViaFlat ast)
-        Json -> error "FIXME: not implemented yet"
+        Json -> failE "JSON output is not supported yet. Use --text, --flat, or --cbor instead."
     _ -> case afterCompile of
       Exit ->
         printE
