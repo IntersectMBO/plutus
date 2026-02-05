@@ -1,1 +1,1 @@
-[Integer] -> [Element] -> Element
+[Integer] -> [Element] -> BuiltinResult Element
