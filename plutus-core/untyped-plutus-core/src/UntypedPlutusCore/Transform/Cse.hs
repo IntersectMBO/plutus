@@ -4,10 +4,12 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module UntypedPlutusCore.Transform.Cse (cse) where
+module UntypedPlutusCore.Transform.Cse (cse, CseWhichSubterms (..)) where
 
 import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import PlutusCore.Builtin (ToBuiltinMeaning (BuiltinSemanticsVariant))
+import PlutusCore.Pretty
+import Prettyprinter (viaShow)
 import UntypedPlutusCore.AstSize (termAstSize)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
@@ -44,6 +46,8 @@ This is a simplified (i.e., not fully optimal) implementation of CSE. The one si
 we made is:
 
 - No alpha equivalence check, i.e., `\x -> x` and `\y -> y` are considered different expressions.
+  Moreover, subterms that have lambda abstractions inside are never considered equal, because
+  the renamer runs at the start of the pass, giving each lambda a unique name.
 
 -------------------------------------------------------------------------------
 2. How does it work?
@@ -73,10 +77,10 @@ three case branches are 2, 3, 4 (the actual numbers don't matter, as long as the
 The path for the first `1+(2+x)` and the first `2+x` is "0.1"; the path for the second
 `1+(2+x)` and the second `2+x` is "0.1.2"; the path for `4+x` is "0.1.4".
 
-In the third pass, we calculate a count for each `(term, path)` pair, where `term` is a
-non-workfree term, and `path` is its path. If the same term has two paths, and one is an
-ancestor (i.e., prefix) of the other, we increment the count for the ancestor path in both
-instances.
+In the third pass, we calculate a count for each (term, path). Depending on the `cseWhichSubterms`
+option, `term` can be any subterm or a subterm that is not work-free, while `path` is the
+path of that term. If the same term has two paths, and one is an ancestor (i.e., prefix)
+of the other, we increment the count for the ancestor path in both instances.
 
 In the above example, there are three occurrences of `2+x`, whose paths are "0.1", "0.1.2"
 and "0.1.3", respectively. The first path is an ancestor of the latter two. Therefore,
@@ -85,9 +89,10 @@ is 0. The following all have a count of 1: `(3+x, "0.1.2")`, `(3+x, "0.1.3")` an
 `(4+x, "0.1.4")`.
 
 Now, each `(term, path)` pair whose count is greater than 1 is a CSE candidate.
-In the above example, the CSE candidates are `(2+x, "0.1")` and `(1+(2+x), "0.1")`.
-Note that `3+x` is not a CSE candidate, because it has two paths, and neither has a count
-greater than 1. `2+` is also not a CSE candidate, because it is workfree.
+In the above example, the CSE candidates are `(2+x, "0.1")` and `(1+(2+x), "0.1")`, assuming
+we are excluding work-free subterms during this pass. Note that `3+x` is not a CSE candidate,
+because it has two paths, and neither has a count greater than 1. `2+` is also not a CSE candidate,
+because it is workfree.
 
 The CSE candidates are then processed in descending order of their `termAstSize`s. For each CSE
 candidate, we generate a fresh variable, create a LamAbs for it under its path, and substitute
@@ -200,6 +205,13 @@ type Path = [Int]
 isAncestorOrSelf :: Path -> Path -> Bool
 isAncestorOrSelf = isSuffixOf
 
+-- | Which subterms should be considered as candidates?
+data CseWhichSubterms = AllSubterms | ExcludeWorkFree
+  deriving stock (Show, Read)
+
+instance Pretty CseWhichSubterms where
+  pretty = viaShow
+
 data CseCandidate uni fun ann = CseCandidate
   { ccFreshName :: Name
   , ccTerm :: Term Name uni fun ()
@@ -214,10 +226,11 @@ cse
      , Rename (Term Name uni fun ann)
      , ToBuiltinMeaning uni fun
      )
-  => BuiltinSemanticsVariant fun
+  => CseWhichSubterms
+  -> BuiltinSemanticsVariant fun
   -> Term Name uni fun ann
   -> SimplifierT Name uni fun ann m (Term Name uni fun ann)
-cse builtinSemanticsVariant t0 = do
+cse whichSubterms builtinSemanticsVariant t0 = do
   t <- rename t0
   let annotated = annotate t
       commonSubexprs =
@@ -229,7 +242,7 @@ cse builtinSemanticsVariant t0 = do
           . filter ((> 1) . thd3)
           . join
           . Map.elems
-          $ countOccs builtinSemanticsVariant annotated
+          $ countOccs whichSubterms builtinSemanticsVariant annotated
   result <- mkCseTerm commonSubexprs annotated
   recordSimplification t0 CSE result
   return result
@@ -268,41 +281,19 @@ annotate = flip evalState 0 . flip runReaderT [] . go
                     local (freshId :) (go br)
                 )
 
--- | The third pass. See Note [CSE].
-countOccs
-  :: forall name uni fun ann
-   . (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun)
+{-| The notion of work-free expressions is extended to also include partially
+applied/forced built-ins. -}
+isWorkFree'
+  :: forall name uni fun a
+   . ToBuiltinMeaning uni fun
   => BuiltinSemanticsVariant fun
-  -> Term name uni fun (Path, ann)
-  -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
-  {-^ Here, the value of the inner map not only contains the count, but also contains
-  the annotated term, corresponding to the term that is the key of the outer map.
-  The annotated terms need to be recorded since they will be used for substitution. -}
-countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
+  -> Term name uni fun a
+  -> Bool
+isWorkFree' builtinSemanticsVariant term =
+  isWorkFree builtinSemanticsVariant term
+    || not (isBuiltinSaturated term)
+    || isForcingBuiltin term
   where
-    addToMap
-      :: Term name uni fun (Path, ann)
-      -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
-      -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
-    addToMap t0
-      -- We don't consider work-free terms for CSE, because doing so may or may not
-      -- have a size benefit, but certainly doesn't have any cost benefit (the cost
-      -- will in fact be slightly higher due to the additional application).
-      | isWorkFree builtinSemanticsVariant t0
-          || not (isBuiltinSaturated t0)
-          || isForcingBuiltin t0 =
-          id
-      | otherwise =
-          Map.alter
-            ( \case
-                Nothing -> Just [(path, t0, 1)]
-                Just paths -> Just $ combinePaths t0 path paths
-            )
-            t
-      where
-        t = void t0
-        path = fst (termAnn t0)
-
     isBuiltinSaturated =
       splitApplication >>> \case
         (Builtin _ fun, args) ->
@@ -313,6 +304,44 @@ countOccs builtinSemanticsVariant = foldrOf termSubtermsDeep addToMap Map.empty
       Builtin {} -> True
       Force _ t -> isForcingBuiltin t
       _ -> False
+
+-- | The third pass. See Note [CSE].
+countOccs
+  :: forall name uni fun ann
+   . (Hashable (Term name uni fun ()), ToBuiltinMeaning uni fun)
+  => CseWhichSubterms
+  -> BuiltinSemanticsVariant fun
+  -> Term name uni fun (Path, ann)
+  -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+  {-^ Here, the value of the inner map not only contains the count, but also contains
+  the annotated term, corresponding to the term that is the key of the outer map.
+  The annotated terms need to be recorded since they will be used for substitution. -}
+countOccs whichSubterms builtinSemanticsVariant =
+  foldrOf
+    termSubtermsDeep
+    (case whichSubterms of AllSubterms -> addToMap; ExcludeWorkFree -> addOrSkip)
+    Map.empty
+  where
+    addOrSkip
+      , addToMap
+        :: Term name uni fun (Path, ann)
+        -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+        -> HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
+
+    addOrSkip t0
+      | isWorkFree' builtinSemanticsVariant t0 = id
+      | otherwise = addToMap t0
+
+    addToMap t0 =
+      Map.alter
+        ( \case
+            Nothing -> Just [(path, t0, 1)]
+            Just paths -> Just $ combinePaths t0 path paths
+        )
+        t
+      where
+        t = void t0
+        path = fst (termAnn t0)
 
 -- | Combine a new path with a number of existing (path, count) pairs.
 combinePaths

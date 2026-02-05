@@ -590,6 +590,9 @@ runCompiler moduleName opts expr = do
             (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
             (opts ^. posMaxSimplifierIterationsUPlc)
           & set
+            (PLC.coSimplifyOpts . UPLC.soCseWhichSubterms)
+            (opts ^. posCseWhichSubterms)
+          & set
             (PLC.coSimplifyOpts . UPLC.soMaxCseIterations)
             (opts ^. posMaxCseIterations)
           & set

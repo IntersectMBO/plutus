@@ -7,7 +7,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (assertBool, assertFailure, testCase)
 import Transform.Simplify.Lib (testCse, testSimplify)
 import Transform.Simplify.Spec (testCseInputs, testSimplifyInputs)
-import UntypedPlutusCore (DefaultFun, DefaultUni, Name, SimplifierTrace, Term)
+import UntypedPlutusCore (CseWhichSubterms (..), DefaultFun, DefaultUni, Name, SimplifierTrace, Term)
 
 type SimplifierFunc =
   Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -39,17 +39,21 @@ mkUPLCSimplifierTest
 mkUPLCSimplifierTest = mkUPLCTest testSimplify
 
 mkUPLCCseTest
-  :: String
+  :: CseWhichSubterms
+  -> String
   -> Term Name DefaultUni DefaultFun ()
   -> TestTree
-mkUPLCCseTest = mkUPLCTest testCse
+mkUPLCCseTest which = mkUPLCTest (testCse which)
 
 optimizerTests :: TestTree
 optimizerTests =
   testGroup
     "uplc optimizer tests"
-    [ testGroup "cse tests" $
-        fmap (uncurry mkUPLCCseTest) testCseInputs
-    , testGroup "simplification tests" $
-        fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs
-    ]
+    $ [ testGroup "cse tests" $
+          [ testGroup (show whichSubterms) $
+              fmap (uncurry (mkUPLCCseTest whichSubterms)) testCseInputs
+          | whichSubterms <- [AllSubterms, ExcludeWorkFree]
+          ]
+      , testGroup "simplification tests" $
+          fmap (uncurry mkUPLCSimplifierTest) testSimplifyInputs
+      ]
