@@ -1,6 +1,8 @@
 module PlutusCore.Crypto.BLS12_381.Bounds
   ( msmMaxScalarWords
+  , msmScalarLb
   , msmScalarOutOfBounds
+  , msmScalarUb
   ) where
 
 {-|  The maximum size of a scalar for the BLS12-381 multiScalarMul functions.
