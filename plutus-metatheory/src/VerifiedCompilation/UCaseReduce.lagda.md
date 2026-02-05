@@ -32,7 +32,7 @@ open import RawU using (tag2TyTag; tmCon)
 open import Agda.Builtin.Int using (Int)
 open import Data.Empty using (⊥)
 open import Function using (case_of_)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; caseReduceT)
+open import VerifiedCompilation.Certificate
 open import Untyped.Reduction using (iterApp)
 ```
 
@@ -66,6 +66,9 @@ isCR? ast ast' with (isCase? (isConstr? allTerms?) allTerms?) ast
 isCaseReduce? = translation? caseReduceT isCR?
 
 UCaseReduce = Translation CaseReduce
+
+certCaseReduce : Certifier (UCaseReduce {0})
+certCaseReduce = runDecider isCaseReduce?
 
 ```
 ## An Example:

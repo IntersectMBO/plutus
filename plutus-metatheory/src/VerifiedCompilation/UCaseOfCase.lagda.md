@@ -14,7 +14,7 @@ module VerifiedCompilation.UCaseOfCase where
 open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; caseOfCaseT)
+open import VerifiedCompilation.Certificate
 
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)
@@ -116,6 +116,9 @@ isCoC? ast ast' with (isCoCCase? ast) ×-dec (isCoCForce? ast')
 ...        | proof alts=alts' = proof (isCoC b tn fn tt tt' ft ft' alts alts' alts=alts' tt=tt' ft=ft')
 
 isCaseOfCase? {X} = translation? {X} caseOfCaseT isCoC?
+
+certCaseOfCase : Certifier (CaseOfCase {0})
+certCaseOfCase = runDecider isCaseOfCase?
 ```
 
 ## Semantic Equivalence

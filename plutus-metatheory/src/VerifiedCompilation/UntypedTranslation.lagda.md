@@ -26,7 +26,7 @@ open import Builtin using (Builtin)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Untyped.Equality using (DecEq; _≟_; decPointwise)
-open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; MatchOrCE; SimplifierTag)
+open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; Decider; SimplifierTag)
 open import Data.Sum using (_⊎_;inj₁; inj₂)
 
 ```
@@ -107,13 +107,13 @@ matchIx error = refl
 translation?
   : {X' : ℕ} {R : Relation}
   → SimplifierTag
-  → ({ X : ℕ } → MatchOrCE (R {X}))
+  → ({ X : ℕ } → Decider (R {X}))
   → (p q : X' ⊢) → ProofOrCE (Translation R {X'} p q)
 
 decPointwiseTranslation?
   : {X' : ℕ} {R : Relation}
   → SimplifierTag
-  → ({ X : ℕ } → MatchOrCE (R {X}))
+  → ({ X : ℕ } → Decider (R {X}))
   → (p q : List (X' ⊢)) → ProofOrCE (Pointwise (Translation R {X'}) p q)
 decPointwiseTranslation? _ _ [] [] = proof Pointwise.[]
 decPointwiseTranslation? {X' = X'} tag isR? [] (x ∷ ys) = ce (λ ()) {X = List (Fin X')} tag [] (x ∷ ys)

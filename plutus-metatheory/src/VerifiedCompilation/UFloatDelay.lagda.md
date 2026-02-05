@@ -33,7 +33,7 @@ open import Builtin using (Builtin)
 open import RawU using (TmCon)
 open import Untyped.Purity using (Pure; isPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; floatDelayT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; Decider; Certifier; runDecider; floatDelayT)
 
 variable
   X : ℕ
@@ -144,10 +144,10 @@ FloatDelay = Translation FlD
 ## Decision Procedure
 ```
 
-isFloatDelay? : {X : ℕ} → MatchOrCE (FloatDelay {X})
+isFloatDelay? : {X : ℕ} → Decider (FloatDelay {X})
 
 {-# TERMINATING #-}
-isFlD? : {X : ℕ} → MatchOrCE (FlD {X})
+isFlD? : {X : ℕ} → Decider (FlD {X})
 isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
 ... | no ¬match = ce (λ { (floatdelay x x₁ x₂) → ¬match (isapp (islambda (isterm _)) (isdelay (isterm _)))}) floatDelayT ast ast'
 ... | yes (isapp (islambda (isterm t₁)) (isdelay (isterm t₂))) with (isApp? (isLambda? isTerm?) isTerm?) ast'
@@ -161,5 +161,8 @@ isFlD? ast ast' with (isApp? (isLambda? isTerm?) (isDelay? isTerm?)) ast
 ...     | yes puret₂' = proof (floatdelay t₁=t₁' t₂=t₂' puret₂')
 
 isFloatDelay? = translation? floatDelayT isFlD?
+
+certFloatDelay : Certifier (FloatDelay {0})
+certFloatDelay = runDecider isFloatDelay?
 
 ```

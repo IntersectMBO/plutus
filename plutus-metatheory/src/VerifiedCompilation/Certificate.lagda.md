@@ -49,6 +49,30 @@ data Proof? (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → Proof? P
   abort : {X X' : Set} → SimplifierTag → X → X' → Proof? P
 
+
+-- Shorthands for deciders/checkers/certifiers
+
+Decider : {X X' : Set} {𝓁 : Level} → (P : X → X' → Set 𝓁) → Set (suc 𝓁)
+Decider {X} {X'} P = (a : X) → (b : X') → ProofOrCE (P a b)
+
+Checker : {X X' : Set} → (P : X → X' → Set) → Set₁
+Checker {X} {X'} P = (a : X) → (b : X') → Proof? (P a b)
+
+Certifier : {X X' : Set} {𝓁 : Level} → (P : X → X' → Set 𝓁) → Set (suc 𝓁)
+Certifier {X} {X'} P = (a : X) → (b : X') → CertResult (P a b)
+
+-- Conversions
+
+runChecker : ∀ {X X'} {P : X → X' → Set} → Checker P → Certifier P
+runChecker f x y with f x y
+... | proof p = proof p
+... | abort tag a b = abort tag a b
+
+runDecider : ∀ {X X'} {P : X → X' → Set} → Decider P → Certifier P
+runDecider f x y with f x y
+... | proof p = proof p
+... | ce ¬p tag a b = ce ¬p tag a b
+
 decToPCE : {X : Set} {P : Set} → SimplifierTag → Dec P → {before after : X} → ProofOrCE P
 decToPCE _ (yes p) = proof p
 decToPCE tag (no ¬p) {before} {after} = ce ¬p tag before after
@@ -57,15 +81,12 @@ pceToDec : {P : Set} → ProofOrCE P → Dec P
 pceToDec (proof p) = yes p
 pceToDec (ce ¬p _ _ _) = no ¬p
 
-MatchOrCE : {X X' : Set} {𝓁 : Level} → (P : X → X' → Set 𝓁) → Set (suc 𝓁)
-MatchOrCE {X} {X'} P = (a : X) → (b : X') → ProofOrCE (P a b)
-
-matchOrCE : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → SimplifierTag → Binary.Decidable P → MatchOrCE P
+matchOrCE : {X X' : Set} {𝓁 : Level} → {P : X → X' → Set 𝓁} → SimplifierTag → Binary.Decidable P → Decider P
 matchOrCE tag P a b with P a b
 ... | yes p = proof p
 ... | no ¬p = ce ¬p tag a b
 
-pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → SimplifierTag → MatchOrCE P → MatchOrCE (Pointwise P)
+pcePointwise : {X X' : Set} {𝓁 : Level} {P : X → X' → Set 𝓁} → SimplifierTag → Decider P → Decider (Pointwise P)
 pcePointwise tag isP? [] [] = proof Pointwise.[]
 pcePointwise {X = X} tag isP? [] (y ∷ ys) = ce (λ ()) {X = List X} tag [] ys
 pcePointwise {X' = X'} tag isP? (x ∷ xs) [] = ce (λ ()) {X' = List X'} tag xs []
