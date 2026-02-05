@@ -23,6 +23,7 @@ import Optimization.Spec qualified as Optimization
 import Plugin.Spec qualified as Plugin
 import Recursion.Spec qualified as Recursion
 import ShortCircuit.Spec qualified as ShortCircuit
+import StageViolation.Spec qualified as StageViolation
 import StdLib.Spec qualified as Lib
 import Strictness.Spec qualified as Strictness
 import TH.Spec qualified as TH
@@ -64,6 +65,7 @@ tests =
     , embed AssocMap.propertyTests
     , embed List.propertyTests
     , Array.smokeTests
+    , StageViolation.tests
     , CallTrace.tests
     , BuiltinCasing.tests
     ]
