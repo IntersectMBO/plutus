@@ -296,6 +296,65 @@ ghcStrictnessNote =
     GHC.<+> "'-fno-strictness', '-fno-specialise', '-fno-spec-constr',"
     GHC.<+> "'-fno-unbox-strict-fields', or '-fno-unbox-small-strict-fields'."
 
+{-| Opaque builtin type names that have no PIR constructors.
+These are wrapper types from PlutusTx.Builtins.Internal - attempting to
+construct or pattern match on them indicates a stage violation.
+
+Note: BuiltinInteger is intentionally NOT in this list as it is a type alias,
+not an opaque wrapper type. -}
+opaqueBuiltinTypeNames :: Set.Set String
+opaqueBuiltinTypeNames =
+  Set.fromList
+    [ "BuiltinUnit"
+    , "BuiltinByteString"
+    , "BuiltinString"
+    , "BuiltinData"
+    , "BuiltinPair"
+    , "BuiltinList"
+    , "BuiltinArray"
+    , "BuiltinBLS12_381_G1_Element"
+    , "BuiltinBLS12_381_G2_Element"
+    , "BuiltinBLS12_381_MlResult"
+    ]
+
+{-| Check if a type constructor is an opaque builtin type.
+
+These types are wrappers from PlutusTx.Builtins.Internal that have no
+PIR constructors - attempting to construct or pattern match on them
+indicates a stage violation.
+
+We check both:
+1. The type is from PlutusTx.Builtins.Internal module
+2. The type name is in our explicit list of opaque types
+
+This dual check ensures we don't misclassify future non-opaque types
+that might be added to the module (like type aliases). -}
+isOpaqueBuiltinTyCon :: GHC.TyCon -> Bool
+isOpaqueBuiltinTyCon tc =
+  isFromBuiltinsInternal && isOpaqueType
+  where
+    tcOccName = GHC.occNameString (GHC.getOccName tc)
+    isOpaqueType = tcOccName `Set.member` opaqueBuiltinTypeNames
+    isFromBuiltinsInternal =
+      "PlutusTx.Builtins.Internal"
+        == GHC.moduleNameString (GHC.moduleName (GHC.nameModule (GHC.getName tc)))
+
+stageViolationError :: GHC.TyCon -> GHC.SDoc
+stageViolationError tc =
+  "Cannot construct a value of type:"
+    GHC.<+> GHC.ppr tc
+    GHC.$+$ ""
+    GHC.$+$ "This error often indicates a stage violation in Plinth compilation."
+    GHC.$+$ "Variables inside compile quotations must be either:"
+    GHC.$+$ "  • Top-level variables, or"
+    GHC.$+$ "  • Bound inside the quotation itself"
+    GHC.$+$ ""
+    GHC.$+$ "Common causes:"
+    GHC.$+$ "  • Using a function defined in a 'where' clause: move it to the top level"
+    GHC.$+$ "  • Referencing local variables from outside the quotation"
+    GHC.$+$ ""
+    GHC.$+$ ghcStrictnessNote
+
 -- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: CompilingDefault uni fun m ann => GHC.TyCon -> m [PIRTerm uni fun]
 getConstructors tc = do
@@ -306,9 +365,15 @@ getConstructors tc = do
     Just constrs -> pure constrs
     Nothing ->
       throwSd UnsupportedError $
-        "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
+        if isOpaqueBuiltinTyCon tc
+          then stageViolationError tc
+          else "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
--- | Get the matcher of the given 'TyCon' as a PLC term
+{-| Get the matcher of the given 'TyCon' as a PLC term.
+
+Note: The opaque builtin check here is defensive. While opaque types don't
+expose constructors for explicit pattern matching, GHC optimizations could
+theoretically generate case expressions on these types. -}
 getMatch :: CompilingDefault uni fun m ann => GHC.TyCon -> m (PIR.ManualMatcher uni fun Ann)
 getMatch tc = do
   -- ensure the tycon has been compiled, which will create the matcher
@@ -318,7 +383,9 @@ getMatch tc = do
     Just match -> pure match
     Nothing ->
       throwSd UnsupportedError $
-        "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
+        if isOpaqueBuiltinTyCon tc
+          then stageViolationError tc
+          else "Cannot case on a value on type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 {-| Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types. -}
