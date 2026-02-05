@@ -1,13 +1,12 @@
 let
   data (Tuple :: * -> * -> *) a b | Tuple_match where
     Tuple2 : a -> b -> Tuple a b
-  !unsafeCaseList : all a r. (a -> list a -> r) -> list a -> r
-    = /\a r -> \(f : a -> list a -> r) (xs : list a) -> case r xs [f]
-  ~unsafeUncons : all a. list a -> Tuple a (list a)
-    = /\a ->
-        unsafeCaseList
-          {a}
-          {Tuple a (list a)}
-          (\(ds : a) (ds : list a) -> Tuple2 {a} {list a} ds ds)
 in
-\(xs : list integer) -> let !xs : list integer = xs in unsafeUncons {integer} xs
+\(xs : list integer) ->
+  (let
+      r = Tuple integer (list integer)
+    in
+    \(f : integer -> list integer -> r) (xs : list integer) -> case r xs [f])
+    (\(ds : integer) (ds : list integer) ->
+       Tuple2 {integer} {list integer} ds ds)
+    xs
