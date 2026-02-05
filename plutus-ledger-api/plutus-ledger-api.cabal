@@ -137,6 +137,9 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.Common.EvaluationContext
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
+    PlutusLedgerApi.Test.ScriptContextBuilder.Builder
+    PlutusLedgerApi.Test.ScriptContextBuilder.Lenses
+    PlutusLedgerApi.Test.ScriptContextBuilder.Lenses.TH
     PlutusLedgerApi.Test.Scripts
     PlutusLedgerApi.Test.V1.Data.EvaluationContext
     PlutusLedgerApi.Test.V1.Data.Value
@@ -156,6 +159,7 @@ library plutus-ledger-api-testlib
     , base64-bytestring
     , bytestring
     , containers
+    , lens
     , plutus-core                      ^>=1.57
     , plutus-core:plutus-core-testlib
     , plutus-ledger-api                ^>=1.57
@@ -163,6 +167,7 @@ library plutus-ledger-api-testlib
     , prettyprinter
     , QuickCheck
     , serialise
+    , template-haskell
     , text
 
 test-suite plutus-ledger-api-test
