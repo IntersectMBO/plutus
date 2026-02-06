@@ -21,7 +21,7 @@ The project is divided into several Agda modules, each of which is based on an o
 They each contain the respective Agda formalisation of the program transformation and a decision procedure which takes
 two programs as input and decides whether the transformation is applicable.
 
-This module is at the top of the project hierarchy and contains the main decision procedure which certified the entire optimisation
+This module is at the top of the project hierarchy and contains the main functions that cerityf the UPLC optimisation
 process. The final certification function receives a list of intermediate program ASTs produced by the compiler and outputs a file
 containing the generated proof object, a.k.a. the _certificate_. The certificate can then be checked by third parties by loading
 it into Agda and checking that it is correctly typed.

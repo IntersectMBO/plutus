@@ -159,8 +159,8 @@ d_checkScope'7511'_68 v0
                      MAlonzo.Code.Agda.Builtin.Maybe.C_just_16
                      (coe MAlonzo.Code.VerifiedCompilation.Trace.C_done_28 (coe v2))))
       _ -> MAlonzo.RTE.mazUnreachableError
--- VerifiedCompilation.run
-d_run_86 ::
+-- VerifiedCompilation.runCertifier
+d_runCertifier_86 ::
   MAlonzo.Code.Utils.T_List_432
     (MAlonzo.Code.Utils.T__'215'__414
        MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4
@@ -169,7 +169,7 @@ d_run_86 ::
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   MAlonzo.Code.Utils.T_Either_6
     T_Error_2 MAlonzo.Code.Agda.Builtin.Sigma.T_Σ_14
-d_run_86 v0
+d_runCertifier_86 v0
   = coe
       MAlonzo.Code.Utils.du_eitherBind_42
       (coe
@@ -195,34 +195,47 @@ d_run_86 v0
                               (coe
                                  MAlonzo.Code.Agda.Builtin.Sigma.C__'44'__32 (coe v2)
                                  (coe v3))))))))
+-- VerifiedCompilation.passed?
+d_passed'63'_100 ::
+  () -> () -> MAlonzo.Code.Utils.T_Either_6 AgdaAny AgdaAny -> Bool
+d_passed'63'_100 ~v0 ~v1 v2 = du_passed'63'_100 v2
+du_passed'63'_100 ::
+  MAlonzo.Code.Utils.T_Either_6 AgdaAny AgdaAny -> Bool
+du_passed'63'_100 v0
+  = case coe v0 of
+      MAlonzo.Code.Utils.C_inj'8321'_12 v1
+        -> coe MAlonzo.Code.Agda.Builtin.Bool.C_false_8
+      MAlonzo.Code.Utils.C_inj'8322'_14 v1
+        -> coe MAlonzo.Code.Agda.Builtin.Bool.C_true_10
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.FileHandle
-type T_FileHandle_96 = IO.Handle
-d_FileHandle_96
+type T_FileHandle_102 = IO.Handle
+d_FileHandle_102
   = error
       "MAlonzo Runtime Error: postulate evaluated: VerifiedCompilation.FileHandle"
 -- VerifiedCompilation.writeFile
-d_writeFile_98 ::
+d_writeFile_104 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
   MAlonzo.Code.Agda.Builtin.IO.T_IO_8
     () MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
-d_writeFile_98 = \f -> TextIO.writeFile (Text.unpack f)
+d_writeFile_104 = \f -> TextIO.writeFile (Text.unpack f)
 -- VerifiedCompilation.stderr
-d_stderr_100 :: T_FileHandle_96
-d_stderr_100 = IO.stderr
+d_stderr_106 :: T_FileHandle_102
+d_stderr_106 = IO.stderr
 -- VerifiedCompilation.hPutStrLn
-d_hPutStrLn_102 ::
-  T_FileHandle_96 ->
+d_hPutStrLn_108 ::
+  T_FileHandle_102 ->
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
   MAlonzo.Code.Agda.Builtin.IO.T_IO_8
     () MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
-d_hPutStrLn_102 = TextIO.hPutStr
+d_hPutStrLn_108 = TextIO.hPutStr
 -- VerifiedCompilation.putStrLn
-d_putStrLn_104 ::
+d_putStrLn_110 ::
   MAlonzo.Code.Agda.Builtin.String.T_String_6 ->
   MAlonzo.Code.Agda.Builtin.IO.T_IO_8
     () MAlonzo.Code.Agda.Builtin.Unit.T_'8868'_6
-d_putStrLn_104 = TextIO.putStrLn
+d_putStrLn_110 = TextIO.putStrLn
 -- VerifiedCompilation.runCertifierMain
 runCertifierMain ::
   MAlonzo.Code.Utils.T_List_432
@@ -232,8 +245,8 @@ runCertifierMain ::
           MAlonzo.Code.RawU.T_Untyped_208
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   MAlonzo.Code.Agda.Builtin.Maybe.T_Maybe_10 () Bool
-runCertifierMain = coe d_runCertifierMain_106
-d_runCertifierMain_106 ::
+runCertifierMain = coe d_runCertifierMain_112
+d_runCertifierMain_112 ::
   MAlonzo.Code.Utils.T_List_432
     (MAlonzo.Code.Utils.T__'215'__414
        MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4
@@ -241,7 +254,7 @@ d_runCertifierMain_106 ::
           MAlonzo.Code.RawU.T_Untyped_208
           MAlonzo.Code.RawU.T_Untyped_208)) ->
   Maybe Bool
-d_runCertifierMain_106 v0
+d_runCertifierMain_112 v0
   = let v1
           = coe
               MAlonzo.Code.Utils.du_eitherBind_42
