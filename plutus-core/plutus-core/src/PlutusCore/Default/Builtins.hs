@@ -56,6 +56,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short qualified as SBS
+import Data.Int (Int64)
 import Data.Ix (Ix)
 import Data.Text.Array (pattern ByteArray)
 import Data.Text.Encoding (encodeUtf8)
@@ -1200,26 +1201,26 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantD -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantE -> consByteStringMeaning_V2
   toBuiltinMeaning _semvar SliceByteString =
-    let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BuiltinResult BS.ByteString
-        sliceByteStringDenotation start n xs = pure $ BS.take n (BS.drop start xs)
+    let sliceByteStringDenotation :: Int64 -> Int64 -> BS.ByteString -> BuiltinResult BS.ByteString
+        sliceByteStringDenotation start n xs = pure $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs)
         {-# INLINE sliceByteStringDenotation #-}
      in makeBuiltinMeaning
           sliceByteStringDenotation
           (runCostingFunThreeArguments . paramSliceByteString)
   toBuiltinMeaning _semvar LengthOfByteString =
-    let lengthOfByteStringDenotation :: BS.ByteString -> BuiltinResult Int
-        lengthOfByteStringDenotation = pure . BS.length
+    let lengthOfByteStringDenotation :: BS.ByteString -> BuiltinResult Int64
+        lengthOfByteStringDenotation = pure . fromIntegral . BS.length
         {-# INLINE lengthOfByteStringDenotation #-}
      in makeBuiltinMeaning
           lengthOfByteStringDenotation
           (runCostingFunOneArgument . paramLengthOfByteString)
   toBuiltinMeaning _semvar IndexByteString =
-    let indexByteStringDenotation :: BS.ByteString -> Int -> BuiltinResult Word8
+    let indexByteStringDenotation :: BS.ByteString -> Int64 -> BuiltinResult Word8
         -- See Note [Structural vs operational errors within builtins].
         -- The arguments are going to be printed in the "cause" part of the error
         -- message, so we don't need to repeat them here.
         indexByteStringDenotation xs n =
-          maybe (fail "Index out of bounds") pure $ BS.indexMaybe xs n
+          maybe (fail "Index out of bounds") pure $ BS.indexMaybe xs (fromIntegral n)
         {-# INLINE indexByteStringDenotation #-}
      in makeBuiltinMeaning
           indexByteStringDenotation
@@ -1809,8 +1810,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
   -- Bitwise operations
 
   toBuiltinMeaning _semvar ReadBit =
-    let readBitDenotation :: BS.ByteString -> Int -> BuiltinResult Bool
-        readBitDenotation = Bitwise.readBit
+    let readBitDenotation :: BS.ByteString -> Int64 -> BuiltinResult Bool
+        readBitDenotation bs = Bitwise.readBit bs . fromIntegral
         {-# INLINE readBitDenotation #-}
      in makeBuiltinMeaning
           readBitDenotation
@@ -1848,15 +1849,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           rotateByteStringDenotation
           (runCostingFunTwoArguments . paramRotateByteString)
   toBuiltinMeaning _semvar CountSetBits =
-    let countSetBitsDenotation :: BS.ByteString -> Int
-        countSetBitsDenotation = Bitwise.countSetBits
+    let countSetBitsDenotation :: BS.ByteString -> Int64
+        countSetBitsDenotation = fromIntegral . Bitwise.countSetBits
         {-# INLINE countSetBitsDenotation #-}
      in makeBuiltinMeaning
           countSetBitsDenotation
           (runCostingFunOneArgument . paramCountSetBits)
   toBuiltinMeaning _semvar FindFirstSetBit =
-    let findFirstSetBitDenotation :: BS.ByteString -> Int
-        findFirstSetBitDenotation = Bitwise.findFirstSetBit
+    let findFirstSetBitDenotation :: BS.ByteString -> Int64
+        findFirstSetBitDenotation = fromIntegral . Bitwise.findFirstSetBit
         {-# INLINE findFirstSetBitDenotation #-}
      in makeBuiltinMeaning
           findFirstSetBitDenotation
@@ -1935,10 +1936,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           dropListDenotation
           (runCostingFunTwoArguments . paramDropList)
   toBuiltinMeaning _semvar LengthOfArray =
-    let lengthOfArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int
+    let lengthOfArrayDenotation :: SomeConstant uni (Vector a) -> BuiltinResult Int64
         lengthOfArrayDenotation (SomeConstant (Some (ValueOf uni vec))) =
           case uni of
-            DefaultUniArray _uniA -> pure $ Vector.length vec
+            DefaultUniArray _uniA -> pure $ fromIntegral (Vector.length vec)
             _ -> throwError $ structuralUnliftingError "Expected an array but got something else"
         {-# INLINE lengthOfArrayDenotation #-}
      in makeBuiltinMeaning lengthOfArrayDenotation (runCostingFunOneArgument . paramLengthOfArray)
@@ -1952,11 +1953,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         {-# INLINE listToArrayDenotation #-}
      in makeBuiltinMeaning listToArrayDenotation (runCostingFunOneArgument . paramListToArray)
   toBuiltinMeaning _semvar IndexArray =
-    let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int -> BuiltinResult (Opaque val a)
+    let indexArrayDenotation :: SomeConstant uni (Vector a) -> Int64 -> BuiltinResult (Opaque val a)
         indexArrayDenotation (SomeConstant (Some (ValueOf uni vec))) n =
           case uni of
             DefaultUniArray arg -> do
-              case vec Vector.!? n of
+              case vec Vector.!? fromIntegral n of
                 Nothing -> fail "Array index out of bounds"
                 Just el -> pure $ fromValueOf arg el
             _ ->
