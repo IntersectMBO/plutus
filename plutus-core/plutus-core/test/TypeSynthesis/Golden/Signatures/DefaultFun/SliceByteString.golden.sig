@@ -1,1 +1,1 @@
-Int -> Int -> CByteString -> ByteString
+Int64 -> Int64 -> CByteString -> ByteString
