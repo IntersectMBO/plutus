@@ -32,6 +32,7 @@ import qualified MAlonzo.Code.Relation.Nullary.Reflects
 import qualified MAlonzo.Code.Untyped
 import qualified MAlonzo.Code.Untyped.Purity
 import qualified MAlonzo.Code.VerifiedCompilation.Certificate
+import qualified MAlonzo.Code.VerifiedCompilation.Trace
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedTranslation
 import qualified MAlonzo.Code.VerifiedCompilation.UntypedViews
 
@@ -534,19 +535,19 @@ d_isFloatDelay'63'_488 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_54
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isFloatDelay'63'_488 v0
   = coe
       MAlonzo.Code.VerifiedCompilation.UntypedTranslation.du_translation'63'_164
       (coe v0)
-      (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_floatDelayT_6)
+      (coe MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6)
       (coe d_isFlD'63'_492)
 -- VerifiedCompilation.UFloatDelay.isFlD?
 d_isFlD'63'_492 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_54
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_ProofOrCE_38
 d_isFlD'63'_492 v0 v1 v2
   = let v3
           = coe
@@ -655,7 +656,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                                                       coe
                                                                                                                                         (case coe
                                                                                                                                                 v32 of
-                                                                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_60 v33
+                                                                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v33
                                                                                                                                              -> let v34
                                                                                                                                                       = coe
                                                                                                                                                           d_isFloatDelay'63'_488
@@ -665,7 +666,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                                                                 coe
                                                                                                                                                   (case coe
                                                                                                                                                           v34 of
-                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_60 v35
+                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44 v35
                                                                                                                                                        -> let v36
                                                                                                                                                                 = MAlonzo.Code.Untyped.Purity.d_isPure'63'_82
                                                                                                                                                                     (coe
@@ -682,7 +683,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                                                                                                   v38 of
                                                                                                                                                                              MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v39
                                                                                                                                                                                -> coe
-                                                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_60
+                                                                                                                                                                                    MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_44
                                                                                                                                                                                     (coe
                                                                                                                                                                                        C_floatdelay_476
                                                                                                                                                                                        v33
@@ -694,22 +695,22 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                                                                                              (coe
                                                                                                                                                                                 v38)
                                                                                                                                                                              (coe
-                                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_68
+                                                                                                                                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
                                                                                                                                                                                 (coe
-                                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.Certificate.C_floatDelayT_6)
+                                                                                                                                                                                   MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6)
                                                                                                                                                                                 v1
                                                                                                                                                                                 v2)
                                                                                                                                                                _ -> MAlonzo.RTE.mazUnreachableError)
-                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_68 v38 v39 v40
+                                                                                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v38 v39 v40
                                                                                                                                                        -> coe
-                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_68
+                                                                                                                                                            MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
                                                                                                                                                             v38
                                                                                                                                                             v39
                                                                                                                                                             v40
                                                                                                                                                      _ -> MAlonzo.RTE.mazUnreachableError)
-                                                                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_68 v36 v37 v38
+                                                                                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52 v36 v37 v38
                                                                                                                                              -> coe
-                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_68
+                                                                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
                                                                                                                                                   v36
                                                                                                                                                   v37
                                                                                                                                                   v38
@@ -724,9 +725,9 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                (coe
                                                                                                   v21)
                                                                                                (coe
-                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_68
+                                                                                                  MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
                                                                                                   (coe
-                                                                                                     MAlonzo.Code.VerifiedCompilation.Certificate.C_floatDelayT_6)
+                                                                                                     MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6)
                                                                                                   v1
                                                                                                   v2)
                                                                                  _ -> MAlonzo.RTE.mazUnreachableError))
@@ -740,9 +741,8 @@ d_isFlD'63'_492 v0 v1 v2
                 else coe
                        seq (coe v5)
                        (coe
-                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_68
-                          (coe MAlonzo.Code.VerifiedCompilation.Certificate.C_floatDelayT_6)
-                          v1 v2)
+                          MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_52
+                          (coe MAlonzo.Code.VerifiedCompilation.Trace.C_floatDelayT_6) v1 v2)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.UFloatDelay..extendedlambda8
 d_'46'extendedlambda8_508 ::
@@ -772,7 +772,7 @@ d_'46'extendedlambda10_582 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -788,7 +788,7 @@ d_'46'extendedlambda11_630 ::
    MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20) ->
   () ->
   () ->
-  MAlonzo.Code.VerifiedCompilation.Certificate.T_SimplifierTag_4 ->
+  MAlonzo.Code.VerifiedCompilation.Trace.T_SimplifierTag_4 ->
   AgdaAny ->
   AgdaAny ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
@@ -809,3 +809,12 @@ d_'46'extendedlambda12_676 ::
   MAlonzo.Code.VerifiedCompilation.UntypedTranslation.T_Translation_12 ->
   T_FlD_464 -> MAlonzo.Code.Data.Irrelevant.T_Irrelevant_20
 d_'46'extendedlambda12_676 = erased
+-- VerifiedCompilation.UFloatDelay.certFloatDelay
+d_certFloatDelay_702 ::
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.Untyped.T__'8866'_14 ->
+  MAlonzo.Code.VerifiedCompilation.Certificate.T_CertResult_12
+d_certFloatDelay_702
+  = coe
+      MAlonzo.Code.VerifiedCompilation.Certificate.du_runDecider_174
+      (coe d_isFloatDelay'63'_488 (coe (0 :: Integer)))

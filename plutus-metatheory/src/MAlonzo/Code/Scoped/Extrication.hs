@@ -39,7 +39,7 @@ d_len'8902'_4 v0
 -- Scoped.Extrication.extricateVar⋆
 d_extricateVar'8902'_16 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_754 ->
   MAlonzo.Code.Type.T__'8715''8902'__14 ->
   MAlonzo.Code.Data.Fin.Base.T_Fin_10
 d_extricateVar'8902'_16 v0 ~v1 v2 = du_extricateVar'8902'_16 v0 v2
@@ -62,7 +62,7 @@ du_extricateVar'8902'_16 v0 v1
 -- Scoped.Extrication.extricateNf⋆
 d_extricateNf'8902'_26 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_754 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Scoped.T_ScopedTy_14
 d_extricateNf'8902'_26 v0 v1 v2
@@ -73,19 +73,19 @@ d_extricateNf'8902'_26 v0 v1 v2
              (coe
                 d_extricateNf'8902'_26
                 (coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v4))
-                (coe MAlonzo.Code.Utils.C_'42'_684) (coe v5))
+                (coe MAlonzo.Code.Utils.C_'42'_756) (coe v5))
       MAlonzo.Code.Type.BetaNormal.C__'8658'__16 v4 v5
         -> coe
              MAlonzo.Code.Scoped.C__'8658'__20
              (coe
-                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)
+                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_756)
                 (coe v4))
              (coe
-                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)
+                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_756)
                 (coe v5))
       MAlonzo.Code.Type.BetaNormal.C_ƛ_18 v6
         -> case coe v1 of
-             MAlonzo.Code.Utils.C__'8658'__688 v7 v8
+             MAlonzo.Code.Utils.C__'8658'__760 v7 v8
                -> coe
                     MAlonzo.Code.Scoped.C_ƛ_24 (coe v7)
                     (coe
@@ -100,7 +100,7 @@ d_extricateNf'8902'_26 v0 v1 v2
              MAlonzo.Code.Type.BetaNormal.C_ne_20 v7
                -> coe
                     d_extricateNe'8902'_34 (coe v0)
-                    (coe MAlonzo.Code.Utils.C_'9839'_686) (coe v7)
+                    (coe MAlonzo.Code.Utils.C_'9839'_758) (coe v7)
              _ -> MAlonzo.RTE.mazUnreachableError
       MAlonzo.Code.Type.BetaNormal.C_μ_24 v4 v5 v6
         -> coe
@@ -108,13 +108,13 @@ d_extricateNf'8902'_26 v0 v1 v2
              (coe
                 d_extricateNf'8902'_26 (coe v0)
                 (coe
-                   MAlonzo.Code.Utils.C__'8658'__688
+                   MAlonzo.Code.Utils.C__'8658'__760
                    (coe
-                      MAlonzo.Code.Utils.C__'8658'__688 (coe v4)
-                      (coe MAlonzo.Code.Utils.C_'42'_684))
+                      MAlonzo.Code.Utils.C__'8658'__760 (coe v4)
+                      (coe MAlonzo.Code.Utils.C_'42'_756))
                    (coe
-                      MAlonzo.Code.Utils.C__'8658'__688 (coe v4)
-                      (coe MAlonzo.Code.Utils.C_'42'_684)))
+                      MAlonzo.Code.Utils.C__'8658'__760 (coe v4)
+                      (coe MAlonzo.Code.Utils.C_'42'_756)))
                 (coe v5))
              (coe d_extricateNf'8902'_26 (coe v0) (coe v4) (coe v6))
       MAlonzo.Code.Type.BetaNormal.C_SOP_28 v4 v5
@@ -122,12 +122,12 @@ d_extricateNf'8902'_26 v0 v1 v2
              MAlonzo.Code.Scoped.C_SOP_34
              (coe
                 du_extricateNf'8902''45'VecList_56 (coe v0)
-                (coe MAlonzo.Code.Utils.C_'42'_684) (coe v5))
+                (coe MAlonzo.Code.Utils.C_'42'_756) (coe v5))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.Extrication.extricateNe⋆
 d_extricateNe'8902'_34 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_754 ->
   MAlonzo.Code.Type.BetaNormal.T__'8866'Ne'8902'__6 ->
   MAlonzo.Code.Scoped.T_ScopedTy_14
 d_extricateNe'8902'_34 v0 v1 v2
@@ -141,7 +141,7 @@ d_extricateNe'8902'_34 v0 v1 v2
              MAlonzo.Code.Scoped.C__'183'__26
              (coe
                 d_extricateNe'8902'_34 (coe v0)
-                (coe MAlonzo.Code.Utils.C__'8658'__688 (coe v4) (coe v1)) (coe v6))
+                (coe MAlonzo.Code.Utils.C__'8658'__760 (coe v4) (coe v1)) (coe v6))
              (coe d_extricateNf'8902'_26 (coe v0) (coe v4) (coe v7))
       MAlonzo.Code.Type.BetaNormal.C_'94'_12 v5
         -> coe MAlonzo.Code.Scoped.C_con_30 (coe v1) (coe v5)
@@ -149,41 +149,41 @@ d_extricateNe'8902'_34 v0 v1 v2
 -- Scoped.Extrication.extricateNf⋆-List
 d_extricateNf'8902''45'List_42 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_754 ->
   [MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4] ->
-  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTy_14
+  MAlonzo.Code.Utils.T_List_432 MAlonzo.Code.Scoped.T_ScopedTy_14
 d_extricateNf'8902''45'List_42 v0 v1 v2
   = case coe v2 of
-      [] -> coe MAlonzo.Code.Utils.C_'91''93'_418
+      [] -> coe MAlonzo.Code.Utils.C_'91''93'_436
       (:) v3 v4
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__420
+             MAlonzo.Code.Utils.C__'8759'__438
              (coe d_extricateNf'8902'_26 (coe v0) (coe v1) (coe v3))
              (coe d_extricateNf'8902''45'List_42 (coe v0) (coe v1) (coe v4))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.Extrication.extricateNf⋆-VecList
 d_extricateNf'8902''45'VecList_56 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_754 ->
   Integer ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
-  MAlonzo.Code.Utils.T_List_414
-    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTy_14)
+  MAlonzo.Code.Utils.T_List_432
+    (MAlonzo.Code.Utils.T_List_432 MAlonzo.Code.Scoped.T_ScopedTy_14)
 d_extricateNf'8902''45'VecList_56 v0 v1 ~v2 v3
   = du_extricateNf'8902''45'VecList_56 v0 v1 v3
 du_extricateNf'8902''45'VecList_56 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  MAlonzo.Code.Utils.T_Kind_682 ->
+  MAlonzo.Code.Utils.T_Kind_754 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
-  MAlonzo.Code.Utils.T_List_414
-    (MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTy_14)
+  MAlonzo.Code.Utils.T_List_432
+    (MAlonzo.Code.Utils.T_List_432 MAlonzo.Code.Scoped.T_ScopedTy_14)
 du_extricateNf'8902''45'VecList_56 v0 v1 v2
   = case coe v2 of
       MAlonzo.Code.Data.Vec.Base.C_'91''93'_32
-        -> coe MAlonzo.Code.Utils.C_'91''93'_418
+        -> coe MAlonzo.Code.Utils.C_'91''93'_436
       MAlonzo.Code.Data.Vec.Base.C__'8759'__38 v4 v5
         -> coe
-             MAlonzo.Code.Utils.C__'8759'__420
+             MAlonzo.Code.Utils.C__'8759'__438
              (coe d_extricateNf'8902''45'List_42 (coe v0) (coe v1) (coe v4))
              (coe du_extricateNf'8902''45'VecList_56 (coe v0) (coe v1) (coe v5))
       _ -> MAlonzo.RTE.mazUnreachableError
@@ -241,7 +241,7 @@ du_extricateVar_110 v0 v1 v2
 d_extricateSub_122 ::
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
   MAlonzo.Code.Type.T_Ctx'8902'_2 ->
-  (MAlonzo.Code.Utils.T_Kind_682 ->
+  (MAlonzo.Code.Utils.T_Kind_754 ->
    MAlonzo.Code.Type.T__'8715''8902'__14 ->
    MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4) ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28
@@ -280,7 +280,7 @@ d_extricate_140 v0 v1 v2 v3
                -> coe
                     MAlonzo.Code.Scoped.C_ƛ_534
                     (coe
-                       d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)
+                       d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_756)
                        (coe v8))
                     (coe
                        d_extricate_140 (coe v0)
@@ -319,37 +319,37 @@ d_extricate_140 v0 v1 v2 v3
                     (coe
                        d_extricateNf'8902'_26 (coe v0)
                        (coe
-                          MAlonzo.Code.Utils.C__'8658'__688
+                          MAlonzo.Code.Utils.C__'8658'__760
                           (coe
-                             MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                             (coe MAlonzo.Code.Utils.C_'42'_684))
+                             MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                             (coe MAlonzo.Code.Utils.C_'42'_756))
                           (coe
-                             MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                             (coe MAlonzo.Code.Utils.C_'42'_684)))
+                             MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                             (coe MAlonzo.Code.Utils.C_'42'_756)))
                        (coe v10))
                     (coe d_extricateNf'8902'_26 (coe v0) (coe v9) (coe v11))
                     (coe
                        d_extricate_140 (coe v0) (coe v1)
                        (coe
                           MAlonzo.Code.Type.BetaNBE.d_nf_258 (coe v0)
-                          (coe MAlonzo.Code.Utils.C_'42'_684)
+                          (coe MAlonzo.Code.Utils.C_'42'_756)
                           (coe
                              MAlonzo.Code.Type.C__'183'__30 v9
                              (coe
                                 MAlonzo.Code.Type.C__'183'__30
                                 (coe
-                                   MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                                   (coe MAlonzo.Code.Utils.C_'42'_684))
+                                   MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                                   (coe MAlonzo.Code.Utils.C_'42'_756))
                                 (MAlonzo.Code.Type.BetaNormal.d_embNf_128
                                    (coe v0)
                                    (coe
-                                      MAlonzo.Code.Utils.C__'8658'__688
+                                      MAlonzo.Code.Utils.C__'8658'__760
                                       (coe
-                                         MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                                         (coe MAlonzo.Code.Utils.C_'42'_684))
+                                         MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                                         (coe MAlonzo.Code.Utils.C_'42'_756))
                                       (coe
-                                         MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                                         (coe MAlonzo.Code.Utils.C_'42'_684)))
+                                         MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                                         (coe MAlonzo.Code.Utils.C_'42'_756)))
                                    (coe v10))
                                 (coe
                                    MAlonzo.Code.Type.C_ƛ_28
@@ -358,23 +358,23 @@ d_extricate_140 v0 v1 v2 v3
                                       (MAlonzo.Code.Type.BetaNormal.d_embNf_128
                                          (coe MAlonzo.Code.Type.C__'44''8902'__6 (coe v0) (coe v9))
                                          (coe
-                                            MAlonzo.Code.Utils.C__'8658'__688
+                                            MAlonzo.Code.Utils.C__'8658'__760
                                             (coe
-                                               MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                                               (coe MAlonzo.Code.Utils.C_'42'_684))
+                                               MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                                               (coe MAlonzo.Code.Utils.C_'42'_756))
                                             (coe
-                                               MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                                               (coe MAlonzo.Code.Utils.C_'42'_684)))
+                                               MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                                               (coe MAlonzo.Code.Utils.C_'42'_756)))
                                          (coe
                                             MAlonzo.Code.Type.BetaNormal.d_weakenNf_122 v0
                                             (coe
-                                               MAlonzo.Code.Utils.C__'8658'__688
+                                               MAlonzo.Code.Utils.C__'8658'__760
                                                (coe
-                                                  MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                                                  (coe MAlonzo.Code.Utils.C_'42'_684))
+                                                  MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                                                  (coe MAlonzo.Code.Utils.C_'42'_756))
                                                (coe
-                                                  MAlonzo.Code.Utils.C__'8658'__688 (coe v9)
-                                                  (coe MAlonzo.Code.Utils.C_'42'_684)))
+                                                  MAlonzo.Code.Utils.C__'8658'__760 (coe v9)
+                                                  (coe MAlonzo.Code.Utils.C_'42'_756)))
                                             v9 v10))
                                       (coe
                                          MAlonzo.Code.Type.C_'96'_22
@@ -395,7 +395,7 @@ d_extricate_140 v0 v1 v2 v3
                -> coe
                     MAlonzo.Code.Scoped.C_constr_556
                     (coe
-                       d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)
+                       d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_756)
                        (coe MAlonzo.Code.Type.BetaNormal.C_SOP_28 v11 v12))
                     (coe MAlonzo.Code.Data.Fin.Base.du_toℕ_18 (coe v5))
                     (coe
@@ -407,7 +407,7 @@ d_extricate_140 v0 v1 v2 v3
         -> coe
              MAlonzo.Code.Scoped.C_case_564
              (coe
-                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)
+                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_756)
                 (coe v2))
              (coe
                 d_extricate_140 (coe v0) (coe v1)
@@ -427,7 +427,7 @@ d_extricate_140 v0 v1 v2 v3
         -> coe
              MAlonzo.Code.Scoped.C_error_540
              (coe
-                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_684)
+                d_extricateNf'8902'_26 (coe v0) (coe MAlonzo.Code.Utils.C_'42'_756)
                 (coe v2))
       _ -> MAlonzo.RTE.mazUnreachableError
 -- Scoped.Extrication.extricate-ConstrArgs
@@ -436,16 +436,16 @@ d_extricate'45'ConstrArgs_148 ::
   MAlonzo.Code.Algorithmic.T_Ctx_2 ->
   [MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4] ->
   MAlonzo.Code.Utils.List.T_IList_302 ->
-  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTm_522
+  MAlonzo.Code.Utils.T_List_432 MAlonzo.Code.Scoped.T_ScopedTm_522
 d_extricate'45'ConstrArgs_148 v0 v1 v2 v3
   = case coe v3 of
       MAlonzo.Code.Utils.List.C_'91''93'_308
-        -> coe MAlonzo.Code.Utils.C_'91''93'_418
+        -> coe MAlonzo.Code.Utils.C_'91''93'_436
       MAlonzo.Code.Utils.List.C__'8759'__314 v6 v7
         -> case coe v2 of
              (:) v8 v9
                -> coe
-                    MAlonzo.Code.Utils.C__'8759'__420
+                    MAlonzo.Code.Utils.C__'8759'__438
                     (coe d_extricate_140 (coe v0) (coe v1) (coe v8) (coe v6))
                     (coe
                        d_extricate'45'ConstrArgs_148 (coe v0) (coe v1) (coe v9) (coe v7))
@@ -459,7 +459,7 @@ d_extricate'45'Cases_166 ::
   Integer ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
   MAlonzo.Code.Algorithmic.T_Cases_172 ->
-  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTm_522
+  MAlonzo.Code.Utils.T_List_432 MAlonzo.Code.Scoped.T_ScopedTm_522
 d_extricate'45'Cases_166 v0 v1 v2 ~v3 v4 v5
   = du_extricate'45'Cases_166 v0 v1 v2 v4 v5
 du_extricate'45'Cases_166 ::
@@ -468,16 +468,16 @@ du_extricate'45'Cases_166 ::
   MAlonzo.Code.Type.BetaNormal.T__'8866'Nf'8902'__4 ->
   MAlonzo.Code.Data.Vec.Base.T_Vec_28 ->
   MAlonzo.Code.Algorithmic.T_Cases_172 ->
-  MAlonzo.Code.Utils.T_List_414 MAlonzo.Code.Scoped.T_ScopedTm_522
+  MAlonzo.Code.Utils.T_List_432 MAlonzo.Code.Scoped.T_ScopedTm_522
 du_extricate'45'Cases_166 v0 v1 v2 v3 v4
   = case coe v4 of
       MAlonzo.Code.Algorithmic.C_'91''93'_278
-        -> coe MAlonzo.Code.Utils.C_'91''93'_418
+        -> coe MAlonzo.Code.Utils.C_'91''93'_436
       MAlonzo.Code.Algorithmic.C__'8759'__290 v8 v9
         -> case coe v3 of
              MAlonzo.Code.Data.Vec.Base.C__'8759'__38 v11 v12
                -> coe
-                    MAlonzo.Code.Utils.C__'8759'__420
+                    MAlonzo.Code.Utils.C__'8759'__438
                     (coe
                        d_extricate_140 (coe v0) (coe v1)
                        (coe MAlonzo.Code.Algorithmic.du_mkCaseType_156 v2 v11) (coe v8))

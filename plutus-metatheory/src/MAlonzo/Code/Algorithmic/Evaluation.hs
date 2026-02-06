@@ -124,7 +124,7 @@ d_stepper_86 ::
   MAlonzo.Code.Algorithmic.T__'8866'__178 ->
   Integer ->
   MAlonzo.Code.Utils.T_Either_6
-    MAlonzo.Code.Utils.T_RuntimeError_378
+    MAlonzo.Code.Utils.T_RuntimeError_396
     MAlonzo.Code.Algorithmic.T__'8866'__178
 d_stepper_86 v0 v1 v2
   = let v3 = d_eval_58 (coe v0) (coe C_gas_6 (coe v2)) (coe v1) in
@@ -136,7 +136,7 @@ d_stepper_86 v0 v1 v2
                 C_out'45'of'45'gas_22
                   -> coe
                        MAlonzo.Code.Utils.C_inj'8321'_12
-                       (coe MAlonzo.Code.Utils.C_gasError_380)
+                       (coe MAlonzo.Code.Utils.C_gasError_398)
                 C_error_26 v10
                   -> coe
                        MAlonzo.Code.Utils.C_inj'8322'_14
