@@ -39,7 +39,7 @@ import Data.UUID qualified as UUID
 import Data.Word (Word64)
 import GHC.Generics (Generic)
 import Harness (ServiceHandle (..))
-import System.Directory (doesFileExist)
+import System.Directory (doesFileExist, renameFile)
 import System.FilePath ((</>))
 import Test.Tasty.HUnit (assertFailure)
 
@@ -93,22 +93,34 @@ instance FromJSON EvalError where
 {-| Submit a textual UPLC program
 
 Writes the program content to a file in the service's input directory
-with the naming pattern: {uuid}.uplc.txt -}
+with the naming pattern: {uuid}.uplc.txt
+
+Uses atomic file creation (write to temp, then rename) to prevent
+race conditions where the service reads a partially written file. -}
 submitProgram :: ServiceHandle -> UUID -> Text -> IO ()
 submitProgram ServiceHandle {..} jobId programContent = do
   let filename = UUID.toString jobId ++ ".uplc.txt"
       filepath = shInputDir </> filename
-  writeFile filepath (T.unpack programContent)
+      tempPath = filepath ++ ".tmp"
+  -- Write to temp file first, then atomically rename
+  writeFile tempPath (T.unpack programContent)
+  renameFile tempPath filepath
 
 {-| Submit a flat-encoded UPLC program
 
 Writes the binary content to a file in the service's input directory
-with the naming pattern: {uuid}.uplc.flat -}
+with the naming pattern: {uuid}.uplc.flat
+
+Uses atomic file creation (write to temp, then rename) to prevent
+race conditions where the service reads a partially written file. -}
 submitProgramFlat :: ServiceHandle -> UUID -> ByteString -> IO ()
 submitProgramFlat ServiceHandle {..} jobId programBytes = do
   let filename = UUID.toString jobId ++ ".uplc.flat"
       filepath = shInputDir </> filename
-  BS.writeFile filepath programBytes
+      tempPath = filepath ++ ".tmp"
+  -- Write to temp file first, then atomically rename
+  BS.writeFile tempPath programBytes
+  renameFile tempPath filepath
 
 {-| Wait for a result.json file to appear
 
