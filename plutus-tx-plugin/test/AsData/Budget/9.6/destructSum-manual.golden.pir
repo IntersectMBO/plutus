@@ -1,115 +1,102 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
-  !fail : unit -> data
-    = \(ds : unit) ->
-        let
-          !defaultBody : data = error {data}
-        in
-        Unit_match (error {Unit}) {data} defaultBody
-  !`$mInts` :
-     all r.
-       data ->
-       (integer -> integer -> integer -> integer -> r) ->
-       (unit -> r) ->
-       r
-    = /\r ->
-        \(scrut : data)
-         (cont : integer -> integer -> integer -> integer -> r)
-         (fail : unit -> r) ->
-          let
-            !l : list data
-              = case
-                  (list data)
-                  (unConstrData scrut)
-                  [(\(l : integer) (r : list data) -> r)]
-            !l : list data = tailList {data} l
-            !l : list data = tailList {data} l
-          in
-          cont
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} l))
-            (unIData (headList {data} (tailList {data} l)))
+  !snd : all a b. pair a b -> b
+    = /\a b -> \(x : pair a b) -> case b x [(\(l : a) (r : b) -> r)]
 in
 \(d : data) ->
   let
-    !tup : pair integer (list data) = unConstrData d
+    !constrPair : pair integer (list data) = unConstrData d
   in
-  case
-    (all dead. data)
-    (equalsInteger 0 (case integer tup [(\(l : integer) (r : list data) -> l)]))
-    [ (/\dead ->
-         let
-           !tup : pair integer (list data) = unConstrData d
+  (let
+      a = integer -> list data -> data
+    in
+    /\b -> \(f : a -> b) (x : a) -> f x)
+    {data}
+    ((let
+         b = list data
+       in
+       /\r -> \(p : pair integer b) (f : integer -> b -> r) -> case r p [f])
+       {data}
+       constrPair)
+    (\(idx : integer) (args : list data) ->
+       case
+         data
+         idx
+         [ (headList {data} args)
+         , (headList {data} args)
+         , (let
+           !intsB : list data
+             = (let
+                   a = pair integer (list data)
+                 in
+                 /\b -> \(f : a -> b) (x : a) -> f x)
+                 {list data}
+                 (snd {integer} {list data})
+                 (unConstrData (headList {data} (tailList {data} args)))
+           !intsA : list data
+             = (let
+                   a = pair integer (list data)
+                 in
+                 /\b -> \(f : a -> b) (x : a) -> f x)
+                 {list data}
+                 (snd {integer} {list data})
+                 (unConstrData (headList {data} args))
+           !b1_tail : list data = tailList {data} intsB
+           !b : integer = unIData (headList {data} b1_tail)
+           !b2_tail : list data = tailList {data} b1_tail
+           !b : integer = unIData (headList {data} b2_tail)
+           !b : integer
+             = unIData
+                 ((let
+                      a = list data
+                    in
+                    /\b -> \(f : a -> b) (x : a) -> f x)
+                    {data}
+                    (headList {data})
+                    (tailList {data} b2_tail))
+           !b : integer = unIData (headList {data} intsB)
+           !a1_tail : list data = tailList {data} intsA
+           !a : integer = unIData (headList {data} a1_tail)
+           !a2_tail : list data = tailList {data} a1_tail
+           !a : integer = unIData (headList {data} a2_tail)
+           !a : integer
+             = unIData
+                 ((let
+                      a = list data
+                    in
+                    /\b -> \(f : a -> b) (x : a) -> f x)
+                    {data}
+                    (headList {data})
+                    (tailList {data} a2_tail))
+           !a : integer = unIData (headList {data} intsA)
          in
-         case
-           (all dead. data)
-           (equalsInteger
-              1
-              (case integer tup [(\(l : integer) (r : list data) -> l)]))
-           [ (/\dead ->
-                let
-                  !tup : pair integer (list data) = unConstrData d
-                in
-                case
-                  (all dead. data)
-                  (equalsInteger
-                     2
-                     (case integer tup [(\(l : integer) (r : list data) -> l)]))
-                  [ (/\dead -> fail ())
-                  , (/\dead ->
-                       let
-                         !args : list data
-                           = case
-                               (list data)
-                               tup
-                               [(\(l : integer) (r : list data) -> r)]
-                         !y : data = headList {data} (tailList {data} args)
-                         !ds : data = headList {data} args
-                       in
-                       `$mInts`
-                         {data}
-                         ds
-                         (\(x : integer)
-                           (y : integer)
-                           (z : integer)
-                           (w : integer) ->
-                            `$mInts`
-                              {data}
-                              y
-                              (\(x : integer)
-                                (y : integer)
-                                (z : integer)
-                                (w : integer) ->
-                                 constrData
-                                   0
-                                   (mkCons
-                                      {data}
-                                      (iData (addInteger x x))
-                                      (mkCons
-                                         {data}
-                                         (iData (addInteger y y))
-                                         (mkCons
-                                            {data}
-                                            (iData (addInteger z z))
-                                            (mkCons
-                                               {data}
-                                               (iData (addInteger w w))
-                                               [])))))
-                              (\(void : unit) -> fail ()))
-                         (\(void : unit) -> fail ())) ]
-                  {all dead. dead})
-           , (/\dead ->
-                headList
-                  {data}
-                  (case
-                     (list data)
-                     tup
-                     [(\(l : integer) (r : list data) -> r)])) ]
-           {all dead. dead})
-    , (/\dead ->
-         headList
+         (let
+             a = list data
+           in
+           /\b -> \(f : a -> b) (x : a) -> f x)
            {data}
-           (case (list data) tup [(\(l : integer) (r : list data) -> r)])) ]
-    {all dead. dead}
+           (constrData 0)
+           ((let
+                a = list data
+              in
+              /\b -> \(f : a -> b) (x : a) -> f x)
+              {list data}
+              (mkCons {data} (iData (addInteger a b)))
+              ((let
+                   a = list data
+                 in
+                 /\b -> \(f : a -> b) (x : a) -> f x)
+                 {list data}
+                 (mkCons {data} (iData (addInteger a b)))
+                 ((let
+                      a = list data
+                    in
+                    /\b -> \(f : a -> b) (x : a) -> f x)
+                    {list data}
+                    (mkCons {data} (iData (addInteger a b)))
+                    ((let
+                         a = list data
+                       in
+                       /\b -> \(f : a -> b) (x : a) -> f x)
+                       {list data}
+                       (mkCons {data} (iData (addInteger a b)))
+                       []))))) ])

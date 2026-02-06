@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
@@ -11,6 +12,7 @@ import Test.Tasty.Extras
 
 import AsData.Budget.Types
 import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
@@ -129,20 +131,39 @@ destructSum =
         ||]
     )
 
-destructSumManual :: CompiledCode (PlutusTx.BuiltinData -> Ints)
+destructSumManual :: CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData)
 destructSumManual =
   $$( compile
         [||
         \d ->
-          case PlutusTx.unsafeFromBuiltinData d of
-            ThisDManual is -> is
-            ThatDManual is -> is
-            TheseDManual (Ints x1 y1 z1 w1) (Ints x2 y2 z2 w2) ->
-              Ints
-                (x1 `PlutusTx.addInteger` x2)
-                (y1 `PlutusTx.addInteger` y2)
-                (z1 `PlutusTx.addInteger` z2)
-                (w1 `PlutusTx.addInteger` w2)
+          let !constrPair = BI.unsafeDataAsConstr d
+           in BI.casePair constrPair $ \idx args ->
+                BI.caseInteger
+                  idx
+                  [ (BI.head args)
+                  , (BI.head args)
+                  , let intsA = BI.snd $ BI.unsafeDataAsConstr $ BI.head args
+                        intsB = BI.snd $ BI.unsafeDataAsConstr $ BI.head (BI.tail args)
+                     in let a1 = BI.unsafeDataAsI (BI.head intsA)
+                            !a1_tail = BI.tail intsA
+                            a2 = BI.unsafeDataAsI (BI.head a1_tail)
+                            !a2_tail = BI.tail a1_tail
+                            a3 = BI.unsafeDataAsI (BI.head a2_tail)
+                            a4 = BI.unsafeDataAsI (BI.head $ BI.tail a2_tail)
+
+                            b1 = BI.unsafeDataAsI (BI.head intsB)
+                            !b1_tail = BI.tail intsB
+                            b2 = BI.unsafeDataAsI (BI.head b1_tail)
+                            !b2_tail = BI.tail b1_tail
+                            b3 = BI.unsafeDataAsI (BI.head b2_tail)
+                            b4 = BI.unsafeDataAsI (BI.head $ BI.tail b2_tail)
+                         in BI.mkConstr 0 $
+                              BI.mkCons (BI.mkI $ a1 `PlutusTx.addInteger` b1) $
+                                BI.mkCons (BI.mkI $ a2 `PlutusTx.addInteger` b2) $
+                                  BI.mkCons (BI.mkI $ a3 `PlutusTx.addInteger` b3) $
+                                    BI.mkCons (BI.mkI $ a4 `PlutusTx.addInteger` b4) $
+                                      BI.mkNilData BI.unitval
+                  ]
         ||]
     )
 
