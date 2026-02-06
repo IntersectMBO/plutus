@@ -1,1 +1,1 @@
-ByteString -> Int -> BuiltinResult Word8
+ByteString -> Int64 -> BuiltinResult Word8
