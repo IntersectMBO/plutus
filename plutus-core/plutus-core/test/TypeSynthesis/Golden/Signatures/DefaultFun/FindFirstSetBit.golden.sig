@@ -1,1 +1,1 @@
-CByteString -> Int
+CByteString -> Int64
