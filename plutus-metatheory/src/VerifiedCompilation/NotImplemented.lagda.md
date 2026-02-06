@@ -13,14 +13,19 @@ open import VerifiedCompilation.Certificate
 import Data.Nat using (ℕ)
 ```
 
-Depending on whether the certifier should fail or 
-The `NotImplemented true` is trivially inhabited, while `NotImplemented false` is empty.
+`Policy` determines whether the certifier should succeed or fail when certifying
+this relation.
 
 ```
 data Policy : Set where
   accept : Policy
   reject : Policy
+```
 
+`NotImplemented reject` is an empty type, whereas `NotImplemented accept` has a
+trivial inhabitant.
+
+```
 data NotImplemented {X} : Policy → (X ⊢) → (X ⊢) → Set where
   notImplemented : ∀ {M N} → NotImplemented accept M N
 
