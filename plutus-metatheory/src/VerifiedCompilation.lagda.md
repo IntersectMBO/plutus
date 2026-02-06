@@ -132,12 +132,16 @@ checkScopeᵗ (step pass t ts) = do
 ## Running the certifier
 
 ```
-run : (d : Dump) → Either Error (Σ (Trace (0 ⊢)) Certificate)
-run dump = do
+runCertifier : (d : Dump) → Either Error (Σ (Trace (0 ⊢)) Certificate)
+runCertifier dump = do
   trace ← try (toTrace dump) emptyDump
   trace' ← try (checkScopeᵗ trace) illScoped
   cert ← certifyᵗ trace'
   return (trace' , cert)
+
+passed? : ∀{A B} → Either A B → Bool
+passed? (inj₂ _) = true
+passed? (inj₁ _)  = false
 
 ```
 
@@ -168,7 +172,7 @@ postulate
 
 -- FIXME: Instead of `Maybe Bool`, we should use something like on the Haskell side
 runCertifierMain : Dump → Maybe Bool
-runCertifierMain dump with run dump
+runCertifierMain dump with runCertifier dump
 ... | inj₂ (trace , p)    = just true
 ... | inj₁ counterExample = just false
 ... | inj₁ abort          = just false
