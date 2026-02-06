@@ -265,6 +265,7 @@ mkCertificateModule certModule agdaTrace imports =
        \\n\
        \\nopen import VerifiedCompilation\
        \\nopen import VerifiedCompilation.Certificate\
+       \\nopen import VerifiedCompilation.Trace\
        \\nopen import Untyped\
        \\nopen import RawU\
        \\nopen import Builtin\
