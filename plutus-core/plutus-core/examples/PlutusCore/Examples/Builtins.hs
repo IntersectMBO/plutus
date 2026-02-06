@@ -33,11 +33,13 @@ import Control.Monad
 import Control.Monad.Except
 import Data.Default.Class
 import Data.Either
+import Data.Int (Int64)
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Some.GADT qualified as GADT
 import Data.Tuple
 import Data.Void
+import Data.Word (Word64)
 import GHC.Generics
 import GHC.Ix
 import GHC.TypeLits as GHC
@@ -535,11 +537,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
   toBuiltinMeaning semvar IntNoIntegerNoWord =
     case semvar of
-      ExtensionFunSemanticsVariant0 -> makeBuiltinMeaning @(Int -> ()) mempty whatever
+      ExtensionFunSemanticsVariant0 -> makeBuiltinMeaning @(Int64 -> ()) mempty whatever
       ExtensionFunSemanticsVariant1 -> makeBuiltinMeaning @(Integer -> ()) mempty whatever
       ExtensionFunSemanticsVariant2 -> makeBuiltinMeaning @(Integer -> ()) mempty whatever
-      ExtensionFunSemanticsVariant3 -> makeBuiltinMeaning @(Word -> ()) mempty whatever
-      ExtensionFunSemanticsVariant4 -> makeBuiltinMeaning @(Word -> ()) mempty whatever
+      ExtensionFunSemanticsVariant3 -> makeBuiltinMeaning @(Word64 -> ()) mempty whatever
+      ExtensionFunSemanticsVariant4 -> makeBuiltinMeaning @(Word64 -> ()) mempty whatever
 
 instance Default (BuiltinSemanticsVariant ExtensionFun) where
   def = maxBound
