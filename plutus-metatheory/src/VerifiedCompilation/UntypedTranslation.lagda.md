@@ -8,6 +8,7 @@ layout: page
 module VerifiedCompilation.UntypedTranslation where
 
 open import Untyped using (_⊢; `; ƛ; case; constr; _·_; force; delay; con; builtin; error)
+open import VerifiedCompilation.Trace using (SimplifierTag)
 import Relation.Unary as Unary using (Decidable)
 import Relation.Binary as Binary using (Decidable)
 open import Relation.Nullary using (_×-dec_)
@@ -26,7 +27,7 @@ open import Builtin using (Builtin)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
 open import Untyped.Equality using (DecEq; _≟_; decPointwise)
-open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; Decider; SimplifierTag)
+open import VerifiedCompilation.Certificate using (ProofOrCE; proof; ce; decToPCE; Decider)
 open import Data.Sum using (_⊎_;inj₁; inj₂)
 
 ```

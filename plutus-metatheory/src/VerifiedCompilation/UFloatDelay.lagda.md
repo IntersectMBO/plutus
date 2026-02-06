@@ -33,7 +33,8 @@ open import Builtin using (Builtin)
 open import RawU using (TmCon)
 open import Untyped.Purity using (Pure; isPure?)
 open import Data.List.Relation.Unary.All using (All; all?)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; Decider; Certifier; runDecider; floatDelayT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; Decider; Certifier; runDecider)
+open import VerifiedCompilation.Trace
 
 variable
   X : ℕ

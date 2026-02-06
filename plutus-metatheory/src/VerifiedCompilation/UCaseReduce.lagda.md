@@ -33,6 +33,7 @@ open import Agda.Builtin.Int using (Int)
 open import Data.Empty using (⊥)
 open import Function using (case_of_)
 open import VerifiedCompilation.Certificate
+open import VerifiedCompilation.Trace
 open import Untyped.Reduction using (iterApp)
 ```
 

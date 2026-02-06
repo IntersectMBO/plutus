@@ -15,6 +15,7 @@ open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?; Relation)
 open import VerifiedCompilation.Certificate
+open import VerifiedCompilation.Trace
 
 import Relation.Binary as Binary using (Decidable)
 import Relation.Unary as Unary using (Decidable)

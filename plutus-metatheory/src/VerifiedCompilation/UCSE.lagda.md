@@ -28,6 +28,7 @@ open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped.RenamingSubstitution using (_[_])
 open import Untyped.Purity using (Pure; isPure?)
 open import VerifiedCompilation.Certificate
+open import VerifiedCompilation.Trace
 ```
 ## Translation Relation
 

@@ -25,7 +25,8 @@ open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; inlineT)
+open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof)
+open import VerifiedCompilation.Trace
 ```
 ## Translation Relation
 

@@ -28,6 +28,7 @@ open import Data.Nat using (ℕ; zero; suc; _+_)
 open import Untyped.RenamingSubstitution using (weaken)
 open import Data.List using (List; _∷_; [])
 open import VerifiedCompilation.Certificate
+open import VerifiedCompilation.Trace
 open import Untyped.Purity using (Pure; isPure?)
 open import Builtin using (ifThenElse)
 ```

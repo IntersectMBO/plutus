@@ -8,6 +8,7 @@ layout: page
 ```
 module VerifiedCompilation.Certificate where
 
+open import VerifiedCompilation.Trace using (SimplifierTag)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 import Relation.Binary as Binary using (Decidable)
 open import Level
@@ -18,18 +19,6 @@ open import Data.Sum using (_⊎_;inj₁; inj₂)
 open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Data.List.Relation.Binary.Pointwise using (Pointwise-≡⇒≡; ≡⇒Pointwise-≡)
-
-data SimplifierTag : Set where
-  floatDelayT : SimplifierTag
-  forceDelayT : SimplifierTag
-  forceCaseDelayT : SimplifierTag
-  caseOfCaseT : SimplifierTag
-  caseReduceT : SimplifierTag
-  inlineT : SimplifierTag
-  cseT : SimplifierTag
-
-{-# FOREIGN GHC import UntypedPlutusCore.Transform.Simplifier #-}
-{-# COMPILE GHC SimplifierTag = data SimplifierStage (FloatDelay | ForceDelay | ForceCaseDelay | CaseOfCase | CaseReduce | Inline | CSE) #-}
 
 variable
   𝓁 𝓂 : Level
