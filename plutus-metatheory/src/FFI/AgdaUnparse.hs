@@ -18,6 +18,7 @@ import PlutusCore.Data qualified as Data
 import PlutusCore.Value (Value)
 import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
 import UntypedPlutusCore.Transform.Simplifier
 
 usToHyphen :: String -> String
@@ -57,6 +58,11 @@ instance AgdaUnparse SimplifierStage where
   agdaUnparse CaseReduce = "caseReduceT"
   agdaUnparse Inline = "inlineT"
   agdaUnparse CSE = "cseT"
+
+instance AgdaUnparse Hints.Hints where
+  -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/2063):
+  -- add unparsing for inline hints
+  agdaUnparse _ = "none"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show
