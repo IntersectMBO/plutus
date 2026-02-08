@@ -245,13 +245,14 @@ mkCertificateFile Certificate {certName, certTrace, certReprAsts} =
   let imports = fmap (mkAgdaOpenImport . mkAstModuleName) certReprAsts
       agdaTrace =
         agdaUnparse $
-          -- FIXME: add hints to certificate file
-          -- (https://github.com/IntersectMBO/plutus-private/issues/2063)
-          ( \(st, (_hints, (ast1, ast2))) ->
+          ( \(st, (hints, (ast1, ast2))) ->
               ( st
               ,
-                ( AgdaVar $ "ast" <> (show . equivClass) ast1
-                , AgdaVar $ "ast" <> (show . equivClass) ast2
+                ( hints
+                ,
+                  ( AgdaVar $ "ast" <> (show . equivClass) ast1
+                  , AgdaVar $ "ast" <> (show . equivClass) ast2
+                  )
                 )
               )
           )
@@ -285,7 +286,7 @@ mkCertificateModule certModule agdaTrace imports =
     <> unlines imports
     <> "\n"
     <> "\n\
-       \\nasts : List (SimplifierTag × Untyped × Untyped)\
+       \\nasts : List (SimplifierTag × Hints × Untyped × Untyped)\
        \\nasts = "
     <> agdaTrace
     <> "\n\
