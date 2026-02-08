@@ -226,6 +226,8 @@ library
     UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
+    UntypedPlutusCore.Transform.Certify.Hints
+    UntypedPlutusCore.Transform.Certify.Trace
     UntypedPlutusCore.Transform.Cse
     UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceCaseDelay

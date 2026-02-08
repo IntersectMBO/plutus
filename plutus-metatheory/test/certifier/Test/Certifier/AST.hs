@@ -3,6 +3,7 @@ module Test.Certifier.AST where
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc (mkConstant)
 import UntypedPlutusCore
+import UntypedPlutusCore.Transform.Certify.Hints qualified as Hints
 
 import FFI.SimplifierTrace (mkFfiSimplifierTrace)
 import MAlonzo.Code.VerifiedCompilation (runCertifierMain)
@@ -22,6 +23,7 @@ mkMockTracePair stage before' after' =
         [ Simplification
             { beforeAST = before'
             , stage = stage
+            , hints = Hints.NoHints
             , afterAST = after'
             }
         ]

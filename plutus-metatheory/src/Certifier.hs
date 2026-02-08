@@ -20,7 +20,7 @@ import System.Directory (createDirectory)
 import System.FilePath ((</>))
 
 import FFI.AgdaUnparse (AgdaUnparse (..))
-import FFI.SimplifierTrace (mkFfiSimplifierTrace)
+import FFI.SimplifierTrace (Trace, mkFfiSimplifierTrace)
 import FFI.Untyped (UTerm)
 
 import UntypedPlutusCore qualified as UPLC
@@ -115,11 +115,11 @@ getTermId Ast {astTermWithId = TermWithId {termId}} = termId
 
 data Certificate = Certificate
   { certName :: String
-  , certTrace :: [(SimplifierStage, (Ast, Ast))]
+  , certTrace :: Trace Ast
   , certReprAsts :: [Ast]
   }
 
-mkCertificate :: String -> [(SimplifierStage, (UTerm, UTerm))] -> Certificate
+mkCertificate :: String -> Trace UTerm -> Certificate
 mkCertificate certName rawTrace =
   let traceWithIds = addIds rawTrace
       allTermWithIds = extractTermWithIds traceWithIds
@@ -134,24 +134,24 @@ mkCertificate certName rawTrace =
         }
   where
     addIds
-      :: [(SimplifierStage, (UTerm, UTerm))]
-      -> [(SimplifierStage, (TermWithId, TermWithId))]
+      :: Trace UTerm
+      -> Trace TermWithId
     addIds = go 0
       where
         go
           :: Int
-          -> [(SimplifierStage, (UTerm, UTerm))]
-          -> [(SimplifierStage, (TermWithId, TermWithId))]
+          -> Trace UTerm
+          -> Trace TermWithId
         go _ [] = []
-        go id' ((stage, (before, after)) : rest) =
+        go id' ((stage, (hints, (before, after))) : rest) =
           let beforeWithId = TermWithId id' before
               afterWithId = TermWithId (id' + 1) after
-           in (stage, (beforeWithId, afterWithId)) : go (id' + 2) rest
+           in (stage, (hints, (beforeWithId, afterWithId))) : go (id' + 2) rest
 
     extractTermWithIds
-      :: [(SimplifierStage, (TermWithId, TermWithId))]
+      :: Trace TermWithId
       -> [TermWithId]
-    extractTermWithIds = concatMap (\(_, (before, after)) -> [before, after])
+    extractTermWithIds = concatMap (\(_, (_, (before, after))) -> [before, after])
 
     findEquivClasses :: [TermWithId] -> [NonEmpty Ast]
     findEquivClasses =
@@ -174,17 +174,17 @@ mkCertificate certName rawTrace =
 
     mkAstTrace
       :: [Ast]
-      -> [(SimplifierStage, (TermWithId, TermWithId))]
-      -> [(SimplifierStage, (Ast, Ast))]
+      -> Trace TermWithId
+      -> Trace Ast
     mkAstTrace _ [] = []
-    mkAstTrace allAsts ((stage, (rawBefore, rawAfter)) : rest) =
+    mkAstTrace allAsts ((stage, (hints, (rawBefore, rawAfter))) : rest) =
       let processedBefore =
             fromMaybe (error errorMessage) $
               find (\ast -> getTermId ast == termId rawBefore) allAsts
           processedAfter =
             fromMaybe (error errorMessage) $
               find (\ast -> getTermId ast == termId rawAfter) allAsts
-       in (stage, (processedBefore, processedAfter)) : mkAstTrace allAsts rest
+       in (stage, (hints, (processedBefore, processedAfter))) : mkAstTrace allAsts rest
 
 mkAstModuleName :: Ast -> String
 mkAstModuleName Ast {equivClass} =
@@ -245,7 +245,9 @@ mkCertificateFile Certificate {certName, certTrace, certReprAsts} =
   let imports = fmap (mkAgdaOpenImport . mkAstModuleName) certReprAsts
       agdaTrace =
         agdaUnparse $
-          ( \(st, (ast1, ast2)) ->
+          -- FIXME: add hints to certificate file
+          -- (https://github.com/IntersectMBO/plutus-private/issues/2063)
+          ( \(st, (_hints, (ast1, ast2))) ->
               ( st
               ,
                 ( AgdaVar $ "ast" <> (show . equivClass) ast1

@@ -55,7 +55,7 @@ open import VerifiedCompilation.UntypedTranslation using (Relation)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
-open import VerifiedCompilation.Certificate using (CertResult; ce; proof; abort; pcePointwise; MatchOrCE; SimplifierTag)
+open import VerifiedCompilation.Certificate using (CertResult; Hints; ce; proof; abort; pcePointwise; MatchOrCE; SimplifierTag)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 ```
 
@@ -87,15 +87,15 @@ data Transformation : SimplifierTag → Relation where
   isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
   forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
-data Trace : { X : ℕ }  → List (SimplifierTag × (X ⊢) × (X ⊢)) → Set where
+data Trace : { X : ℕ }  → List (SimplifierTag × Hints × (X ⊢) × (X ⊢)) → Set where
   empty : {X : ℕ} → Trace {X} []
   cons
     : {X : ℕ}
-    {tag : SimplifierTag} {x x' : X ⊢}
-    {xs : List (SimplifierTag × (X ⊢) × (X ⊢))}
+    {tag : SimplifierTag} {hints : Hints} {x x' : X ⊢}
+    {xs : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))}
     → Transformation tag x x'
     → Trace xs
-    → Trace ((tag , x , x') ∷ xs)
+    → Trace ((tag , hints , x , x') ∷ xs)
 
 isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → (a : X ⊢) → (b : X ⊢) → CertResult (Transformation tag a b)
 isTransformation? tag ast ast' with tag
@@ -117,9 +117,9 @@ isTransformation? tag ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast 
 ... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
 ... | proof p = proof (isCSE p)
 
-isTrace? : {X : ℕ}  → (t : List (SimplifierTag × (X ⊢) × (X ⊢))) → CertResult (Trace {X} t)
+isTrace? : {X : ℕ}  → (t : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))) → CertResult (Trace {X} t)
 isTrace? [] = proof empty
-isTrace? {X} ((tag , x₁ , x₂) ∷ xs) with isTrace? xs
+isTrace? {X} ((tag , hints , x₁ , x₂) ∷ xs) with isTrace? xs
 ... | ce ¬p t b a = ce (λ { (cons x xx) → ¬p xx}) t b a
 ... | abort t b a = abort t b a
 ... | proof pₜ with isTransformation? {X} tag x₁ x₂
@@ -161,23 +161,23 @@ buildPairs [] = []
 buildPairs (x ∷ []) = (x , x) ∷ []
 buildPairs (x₁ ∷ (x₂ ∷ xs)) = (x₁ , x₂) ∷ buildPairs (x₂ ∷ xs)
 
-traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × A × A) → Either E (List (SimplifierTag × B × B))
+traverseEitherList : {A B E : Set} → (A → Either E B) → List (SimplifierTag × Hints × A × A) → Either E (List (SimplifierTag × Hints × B × B))
 traverseEitherList _ [] = inj₂ []
-traverseEitherList f ((tag , before , after) ∷ xs) with f before
+traverseEitherList f ((tag , hints , before , after) ∷ xs) with f before
 ... | inj₁ e = inj₁ e
 ... | inj₂ b with f after
 ... | inj₁ e = inj₁ e
 ... | inj₂ a with traverseEitherList f xs
 ... | inj₁ e = inj₁ e
-... | inj₂ xs' = inj₂ (((tag , b , a)) ∷ xs')
+... | inj₂ xs' = inj₂ (((tag , hints , b , a)) ∷ xs')
 
 data Cert : Set₂ where
   cert
-    : {X : ℕ} {result : List (SimplifierTag × (X ⊢) × (X ⊢))}
+    : {X : ℕ} {result : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))}
     → CertResult (Trace {X} result)
     → Cert
 
-runCertifier : List (SimplifierTag × Untyped × Untyped) → Maybe Cert
+runCertifier : List (SimplifierTag × Hints × Untyped × Untyped) → Maybe Cert
 runCertifier rawInput with traverseEitherList scopeCheckU0 rawInput
 ... | inj₁ _ = nothing
 ... | inj₂ inputTrace = just (cert (isTrace? inputTrace))
@@ -197,7 +197,7 @@ passed? (just (cert (abort _ _ _))) = false
 passed? (just (cert (proof _))) = true
 passed? nothing = false
 
-runCertifierMain : List (SimplifierTag × Untyped × Untyped) → Maybe Bool
+runCertifierMain : List (SimplifierTag × Hints × Untyped × Untyped) → Maybe Bool
 runCertifierMain asts with runCertifier asts
 ... | just (cert (proof a)) = just true
 ... | just (cert (ce ¬p t b a)) = just false
