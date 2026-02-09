@@ -1,0 +1,34 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.TxCert
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertRegStaking l1l_0
+                                                                                l2l_1) (PlutusLedgerApi.V3.Contexts.TxCertRegStaking r1r_2
+                                                                                                                                     r2r_3) = (l1l_0 PlutusTx.Eq.Class.== r1r_2) PlutusTx.Bool.&& (l2l_1 PlutusTx.Eq.Class.== r2r_3)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertUnRegStaking l1l_4
+                                                                                  l2l_5) (PlutusLedgerApi.V3.Contexts.TxCertUnRegStaking r1r_6
+                                                                                                                                         r2r_7) = (l1l_4 PlutusTx.Eq.Class.== r1r_6) PlutusTx.Bool.&& (l2l_5 PlutusTx.Eq.Class.== r2r_7)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertDelegStaking l1l_8
+                                                                                  l2l_9) (PlutusLedgerApi.V3.Contexts.TxCertDelegStaking r1r_10
+                                                                                                                                         r2r_11) = (l1l_8 PlutusTx.Eq.Class.== r1r_10) PlutusTx.Bool.&& (l2l_9 PlutusTx.Eq.Class.== r2r_11)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertRegDeleg l1l_12
+                                                                              l2l_13
+                                                                              l3l_14) (PlutusLedgerApi.V3.Contexts.TxCertRegDeleg r1r_15
+                                                                                                                                  r2r_16
+                                                                                                                                  r3r_17) = (l1l_12 PlutusTx.Eq.Class.== r1r_15) PlutusTx.Bool.&& ((l2l_13 PlutusTx.Eq.Class.== r2r_16) PlutusTx.Bool.&& (l3l_14 PlutusTx.Eq.Class.== r3r_17))
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertRegDRep l1l_18
+                                                                             l2l_19) (PlutusLedgerApi.V3.Contexts.TxCertRegDRep r1r_20
+                                                                                                                                r2r_21) = (l1l_18 PlutusTx.Eq.Class.== r1r_20) PlutusTx.Bool.&& (l2l_19 PlutusTx.Eq.Class.== r2r_21)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertUpdateDRep l1l_22) (PlutusLedgerApi.V3.Contexts.TxCertUpdateDRep r1r_23) = l1l_22 PlutusTx.Eq.Class.== r1r_23
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertUnRegDRep l1l_24
+                                                                               l2l_25) (PlutusLedgerApi.V3.Contexts.TxCertUnRegDRep r1r_26
+                                                                                                                                    r2r_27) = (l1l_24 PlutusTx.Eq.Class.== r1r_26) PlutusTx.Bool.&& (l2l_25 PlutusTx.Eq.Class.== r2r_27)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertPoolRegister l1l_28
+                                                                                  l2l_29) (PlutusLedgerApi.V3.Contexts.TxCertPoolRegister r1r_30
+                                                                                                                                          r2r_31) = (l1l_28 PlutusTx.Eq.Class.== r1r_30) PlutusTx.Bool.&& (l2l_29 PlutusTx.Eq.Class.== r2r_31)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertPoolRetire l1l_32
+                                                                                l2l_33) (PlutusLedgerApi.V3.Contexts.TxCertPoolRetire r1r_34
+                                                                                                                                      r2r_35) = (l1l_32 PlutusTx.Eq.Class.== r1r_34) PlutusTx.Bool.&& (l2l_33 PlutusTx.Eq.Class.== r2r_35)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertAuthHotCommittee l1l_36
+                                                                                      l2l_37) (PlutusLedgerApi.V3.Contexts.TxCertAuthHotCommittee r1r_38
+                                                                                                                                                  r2r_39) = (l1l_36 PlutusTx.Eq.Class.== r1r_38) PlutusTx.Bool.&& (l2l_37 PlutusTx.Eq.Class.== r2r_39)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxCertResignColdCommittee l1l_40) (PlutusLedgerApi.V3.Contexts.TxCertResignColdCommittee r1r_41) = l1l_40 PlutusTx.Eq.Class.== r1r_41
+           (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

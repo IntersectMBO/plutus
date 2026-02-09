@@ -178,6 +178,7 @@ test-suite plutus-ledger-api-test
     Spec.Data.CostModelParams
     Spec.Data.Eval
     Spec.Data.Versions
+    Spec.Eq.Golden
     Spec.Eval
     Spec.Interval
     Spec.ScriptDecodeError

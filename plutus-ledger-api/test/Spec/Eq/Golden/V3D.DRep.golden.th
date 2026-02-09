@@ -1,0 +1,3 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Data.Contexts.DRep
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Data.Contexts.DRep_6989586621679916369 l1l_0) (PlutusLedgerApi.V3.Data.Contexts.DRep_6989586621679916369 r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

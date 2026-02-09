@@ -1,0 +1,3 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V1.Data.Address.Address
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.Data.Address.Address_6989586621679141579 l1l_0) (PlutusLedgerApi.V1.Data.Address.Address_6989586621679141579 r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

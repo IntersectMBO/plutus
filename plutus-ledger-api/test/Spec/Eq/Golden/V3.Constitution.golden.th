@@ -1,0 +1,3 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.Constitution
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.Constitution l1l_0) (PlutusLedgerApi.V3.Contexts.Constitution r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

@@ -1,0 +1,5 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V1.Address.Address
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.Address.Address l1l_0
+                                                                      l2l_1) (PlutusLedgerApi.V1.Address.Address r1r_2
+                                                                                                                 r2r_3) = (l1l_0 PlutusTx.Eq.Class.== r1r_2) PlutusTx.Bool.&& (l2l_1 PlutusTx.Eq.Class.== r2r_3);
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

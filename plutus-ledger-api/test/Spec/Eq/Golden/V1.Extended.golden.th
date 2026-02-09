@@ -1,0 +1,6 @@
+instance PlutusTx.Eq.Class.Eq a_0 => PlutusTx.Eq.Class.Eq (PlutusLedgerApi.V1.Interval.Extended a_0)
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.Interval.NegInf) (PlutusLedgerApi.V1.Interval.NegInf) = GHC.Types.True
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.Interval.Finite l1l_1) (PlutusLedgerApi.V1.Interval.Finite r1r_2) = l1l_1 PlutusTx.Eq.Class.== r1r_2
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.Interval.PosInf) (PlutusLedgerApi.V1.Interval.PosInf) = GHC.Types.True
+           (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

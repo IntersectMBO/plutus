@@ -1,0 +1,3 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Data.Tx.TxOutRef
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Data.Tx.TxOutRef_6989586621679555032 l1l_0) (PlutusLedgerApi.V3.Data.Tx.TxOutRef_6989586621679555032 r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

@@ -1,0 +1,5 @@
+instance PlutusTx.Eq.Class.Eq PlutusTx.Ratio.Rational
+    where {(PlutusTx.Eq.Class.==) (PlutusTx.Ratio.Rational l1l_0
+                                                           l2l_1) (PlutusTx.Ratio.Rational r1r_2
+                                                                                           r2r_3) = (l1l_0 PlutusTx.Eq.Class.== r1r_2) PlutusTx.Bool.&& (l2l_1 PlutusTx.Eq.Class.== r2r_3);
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

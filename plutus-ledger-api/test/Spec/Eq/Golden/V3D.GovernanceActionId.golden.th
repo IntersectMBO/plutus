@@ -1,0 +1,3 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Data.Contexts.GovernanceActionId
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Data.Contexts.GovernanceActionId_6989586621679922472 l1l_0) (PlutusLedgerApi.V3.Data.Contexts.GovernanceActionId_6989586621679922472 r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

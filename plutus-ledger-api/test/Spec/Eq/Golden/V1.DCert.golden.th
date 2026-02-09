@@ -1,0 +1,16 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V1.DCert.DCert
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.DCert.DCertDelegRegKey l1l_0) (PlutusLedgerApi.V1.DCert.DCertDelegRegKey r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.DCert.DCertDelegDeRegKey l1l_2) (PlutusLedgerApi.V1.DCert.DCertDelegDeRegKey r1r_3) = l1l_2 PlutusTx.Eq.Class.== r1r_3
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.DCert.DCertDelegDelegate l1l_4
+                                                                               l2l_5) (PlutusLedgerApi.V1.DCert.DCertDelegDelegate r1r_6
+                                                                                                                                   r2r_7) = (l1l_4 PlutusTx.Eq.Class.== r1r_6) PlutusTx.Bool.&& (l2l_5 PlutusTx.Eq.Class.== r2r_7)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.DCert.DCertPoolRegister l1l_8
+                                                                              l2l_9) (PlutusLedgerApi.V1.DCert.DCertPoolRegister r1r_10
+                                                                                                                                 r2r_11) = (l1l_8 PlutusTx.Eq.Class.== r1r_10) PlutusTx.Bool.&& (l2l_9 PlutusTx.Eq.Class.== r2r_11)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.DCert.DCertPoolRetire l1l_12
+                                                                            l2l_13) (PlutusLedgerApi.V1.DCert.DCertPoolRetire r1r_14
+                                                                                                                              r2r_15) = (l1l_12 PlutusTx.Eq.Class.== r1r_14) PlutusTx.Bool.&& (l2l_13 PlutusTx.Eq.Class.== r2r_15)
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.DCert.DCertGenesis) (PlutusLedgerApi.V1.DCert.DCertGenesis) = GHC.Types.True
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V1.DCert.DCertMir) (PlutusLedgerApi.V1.DCert.DCertMir) = GHC.Types.True
+           (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

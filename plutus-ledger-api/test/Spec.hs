@@ -15,6 +15,7 @@ import Spec.CostModelParams qualified
 import Spec.Data.CostModelParams qualified
 import Spec.Data.Eval qualified
 import Spec.Data.Versions qualified
+import Spec.Eq.Golden qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.ScriptDecodeError qualified
@@ -223,4 +224,5 @@ tests =
             , Data.Value.test_Value
             ]
         ]
+    , Spec.Eq.Golden.eqGoldenTests
     ]

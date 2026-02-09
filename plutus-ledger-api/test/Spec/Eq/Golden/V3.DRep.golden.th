@@ -1,0 +1,6 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.DRep
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.DRep l1l_0) (PlutusLedgerApi.V3.Contexts.DRep r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.DRepAlwaysAbstain) (PlutusLedgerApi.V3.Contexts.DRepAlwaysAbstain) = GHC.Types.True
+           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.DRepAlwaysNoConfidence) (PlutusLedgerApi.V3.Contexts.DRepAlwaysNoConfidence) = GHC.Types.True
+           (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}
