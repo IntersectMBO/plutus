@@ -95,6 +95,7 @@ let
     r-with-packages
 
     inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.linkchecker
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.scriv
 
     tools.haskell-language-server
     tools.stylish-haskell
@@ -119,7 +120,6 @@ let
     pkgs.yarn
     pkgs.zlib
     pkgs.cacert
-    pkgs.scriv
     pkgs.upx
     pkgs.curl
     pkgs.bash
@@ -159,6 +159,7 @@ let
   quick-shell = project.projectVariants.${ghc}.shellFor {
     name = "plutus-shell-${ghc}";
     tools = { cabal = "latest"; };
+    withHoogle = false;
     shellHook = ''
       ${locale-archive-hook}
       export PS1="\n\[\033[1;32m\][nix-shell:\w]\$\[\033[0m\] "

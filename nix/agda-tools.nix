@@ -1,4 +1,4 @@
-{ self, pkgs, lib }:
+{ inputs, self, pkgs, lib }:
 
 let
 
@@ -68,7 +68,7 @@ let
         };
       };
     in
-    pkgs.agdaPackages.override {
+    inputs.nixpkgs-2405.legacyPackages.${pkgs.stdenv.hostPlatform.system}.agdaPackages.override {
       Agda = frankenAgda;
       pkgs = frankenPkgs;
     };
