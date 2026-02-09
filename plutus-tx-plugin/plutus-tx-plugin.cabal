@@ -50,6 +50,11 @@ common os-support
   if (impl(ghcjs) || os(windows))
     buildable: False
 
+flag certify
+  default:     False
+  manual:      True
+  description: Build with the Agda-based compiler certification tool.
+
 library
   import:          lang, ghc-version-support, os-support
   hs-source-dirs:  src
@@ -92,6 +97,13 @@ library
     , template-haskell
     , text
     , uniplate
+
+  if flag(certify)
+    build-depends:
+      , megaparsec
+      , plutus-metatheory  ^>=1.58
+
+    cpp-options:   -DCERTIFY
 
 executable gen-plugin-opts-doc
   import:           lang, ghc-version-support, os-support
