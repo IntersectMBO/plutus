@@ -1,0 +1,11 @@
+instance PlutusTx.Ord.Class.Ord a_0 => PlutusTx.Ord.Class.Ord (PlutusLedgerApi.V1.Interval.Extended a_0)
+    where {PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.NegInf) (PlutusLedgerApi.V1.Interval.NegInf) = GHC.Types.EQ
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.Finite l1l_1) (PlutusLedgerApi.V1.Interval.Finite r1r_2) = l1l_1 `PlutusTx.Ord.Class.compare` r1r_2
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.PosInf) (PlutusLedgerApi.V1.Interval.PosInf) = GHC.Types.EQ
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.NegInf {}) (PlutusLedgerApi.V1.Interval.Finite {}) = GHC.Types.LT
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.NegInf {}) (PlutusLedgerApi.V1.Interval.PosInf {}) = GHC.Types.LT
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.Finite {}) (PlutusLedgerApi.V1.Interval.PosInf {}) = GHC.Types.LT
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.Finite {}) (PlutusLedgerApi.V1.Interval.NegInf {}) = GHC.Types.GT
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.PosInf {}) (PlutusLedgerApi.V1.Interval.Finite {}) = GHC.Types.GT
+           PlutusTx.Ord.Class.compare (PlutusLedgerApi.V1.Interval.PosInf {}) (PlutusLedgerApi.V1.Interval.NegInf {}) = GHC.Types.GT;
+           {-# INLINABLE PlutusTx.Ord.Class.compare #-}}
