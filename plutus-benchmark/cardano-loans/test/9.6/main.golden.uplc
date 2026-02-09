@@ -1,7 +1,7 @@
 (program
    1.1.0
    ((\traceError ->
-       (\`$fEqCredential_$c==` ->
+       (\`$fEqCredential0_$c==` ->
           (\foo ->
              (\foo ->
                 (\concatMap ->
@@ -1668,41 +1668,43 @@
                                                                                                                                                                                                                                                 (\cse ->
                                                                                                                                                                                                                                                    (\cse ->
                                                                                                                                                                                                                                                       (\cse ->
-                                                                                                                                                                                                                                                         case
-                                                                                                                                                                                                                                                           (case
-                                                                                                                                                                                                                                                              (equalsInteger
-                                                                                                                                                                                                                                                                 (cse
-                                                                                                                                                                                                                                                                    cse)
-                                                                                                                                                                                                                                                                 (cse
+                                                                                                                                                                                                                                                         (\cse ->
+                                                                                                                                                                                                                                                            case
+                                                                                                                                                                                                                                                              (case
+                                                                                                                                                                                                                                                                 (equalsInteger
                                                                                                                                                                                                                                                                     (cse
-                                                                                                                                                                                                                                                                       cse)))
-                                                                                                                                                                                                                                                              [ (force
-                                                                                                                                                                                                                                                                   trace
-                                                                                                                                                                                                                                                                   "Offer beacons not burned"
-                                                                                                                                                                                                                                                                   False)
-                                                                                                                                                                                                                                                              , True ])
-                                                                                                                                                                                                                                                           [ False
-                                                                                                                                                                                                                                                           , (case
-                                                                                                                                                                                                                                                                (equalsInteger
-                                                                                                                                                                                                                                                                   (cse
-                                                                                                                                                                                                                                                                      cse)
-                                                                                                                                                                                                                                                                   (cse
+                                                                                                                                                                                                                                                                       cse)
+                                                                                                                                                                                                                                                                    (cse
+                                                                                                                                                                                                                                                                       (cse
+                                                                                                                                                                                                                                                                          cse)))
+                                                                                                                                                                                                                                                                 [ (force
+                                                                                                                                                                                                                                                                      trace
+                                                                                                                                                                                                                                                                      "Offer beacons not burned"
+                                                                                                                                                                                                                                                                      False)
+                                                                                                                                                                                                                                                                 , True ])
+                                                                                                                                                                                                                                                              [ False
+                                                                                                                                                                                                                                                              , (case
+                                                                                                                                                                                                                                                                   (equalsInteger
                                                                                                                                                                                                                                                                       (cse
-                                                                                                                                                                                                                                                                         cse)))
-                                                                                                                                                                                                                                                                [ (force
-                                                                                                                                                                                                                                                                     trace
-                                                                                                                                                                                                                                                                     "Lender IDs not burned"
-                                                                                                                                                                                                                                                                     False)
-                                                                                                                                                                                                                                                                , True ]) ])
+                                                                                                                                                                                                                                                                         cse)
+                                                                                                                                                                                                                                                                      (cse
+                                                                                                                                                                                                                                                                         (cse
+                                                                                                                                                                                                                                                                            cse)))
+                                                                                                                                                                                                                                                                   [ (force
+                                                                                                                                                                                                                                                                        trace
+                                                                                                                                                                                                                                                                        "Lender IDs not burned"
+                                                                                                                                                                                                                                                                        False)
+                                                                                                                                                                                                                                                                   , True ]) ])
+                                                                                                                                                                                                                                                           (uncurry
+                                                                                                                                                                                                                                                              cse))
                                                                                                                                                                                                                                                         (uncurry
                                                                                                                                                                                                                                                            cse))
-                                                                                                                                                                                                                                                     (uncurry
-                                                                                                                                                                                                                                                        (valueOf
-                                                                                                                                                                                                                                                           nt)))
+                                                                                                                                                                                                                                                     (negate
+                                                                                                                                                                                                                                                        `$fAdditiveGroupInteger`))
                                                                                                                                                                                                                                                   (valueOf
                                                                                                                                                                                                                                                      nt))
-                                                                                                                                                                                                                                               (negate
-                                                                                                                                                                                                                                                  `$fAdditiveGroupInteger`)) ])
+                                                                                                                                                                                                                                               (valueOf
+                                                                                                                                                                                                                                                  nt)) ])
                                                                                                                                                                                                                                        (case
                                                                                                                                                                                                                                           loanDatum
                                                                                                                                                                                                                                           [ (\ds
@@ -2020,7 +2022,7 @@
                                                                                                                                                                                                                 [ (\c'
                                                                                                                                                                                                                     i ->
                                                                                                                                                                                                                      case
-                                                                                                                                                                                                                       (`$fEqCredential_$c==`
+                                                                                                                                                                                                                       (`$fEqCredential0_$c==`
                                                                                                                                                                                                                           c'
                                                                                                                                                                                                                           cred)
                                                                                                                                                                                                                        [ (s
@@ -3007,35 +3009,27 @@
                                                                                                                                              [ (\iRef
                                                                                                                                                  ot ->
                                                                                                                                                   case
-                                                                                                                                                    (case
-                                                                                                                                                       (case
-                                                                                                                                                          iRef
-                                                                                                                                                          [ (\ds
-                                                                                                                                                              ds ->
-                                                                                                                                                               case
-                                                                                                                                                                 ds
-                                                                                                                                                                 [ (\ds
-                                                                                                                                                                     ds ->
-                                                                                                                                                                      equalsByteString
-                                                                                                                                                                        ds
-                                                                                                                                                                        ds) ]) ])
-                                                                                                                                                       [ False
-                                                                                                                                                       , (case
-                                                                                                                                                            iRef
-                                                                                                                                                            [ (\ds
-                                                                                                                                                                ds ->
-                                                                                                                                                                 case
-                                                                                                                                                                   ds
-                                                                                                                                                                   [ (\ds
-                                                                                                                                                                       ds ->
-                                                                                                                                                                        equalsInteger
-                                                                                                                                                                          ds
-                                                                                                                                                                          ds) ]) ]) ])
-                                                                                                                                                    [ (s
-                                                                                                                                                         s
-                                                                                                                                                         tl
-                                                                                                                                                         ds)
-                                                                                                                                                    , ot ]) ]) ])))
+                                                                                                                                                    ds
+                                                                                                                                                    [ (\ipv
+                                                                                                                                                        ipv ->
+                                                                                                                                                         case
+                                                                                                                                                           (case
+                                                                                                                                                              iRef
+                                                                                                                                                              [ (\l1l
+                                                                                                                                                                  l2l ->
+                                                                                                                                                                   case
+                                                                                                                                                                     (equalsByteString
+                                                                                                                                                                        l1l
+                                                                                                                                                                        ipv)
+                                                                                                                                                                     [ False
+                                                                                                                                                                     , (equalsInteger
+                                                                                                                                                                          l2l
+                                                                                                                                                                          ipv) ]) ])
+                                                                                                                                                           [ (s
+                                                                                                                                                                s
+                                                                                                                                                                tl
+                                                                                                                                                                ds)
+                                                                                                                                                           , ot ]) ]) ]) ])))
                                                                                                                            (\ds ->
                                                                                                                               case
                                                                                                                                 ds
@@ -6273,62 +6267,62 @@
                                           case
                                             (case
                                                ds
-                                               [ (\cred
-                                                   stakingCred ->
+                                               [ (\l1l
+                                                   l2l ->
                                                     case
                                                       ds
-                                                      [ (\cred'
-                                                          stakingCred' ->
+                                                      [ (\r1r
+                                                          r2r ->
                                                            case
-                                                             (`$fEqCredential_$c==`
-                                                                cred
-                                                                cred')
+                                                             (`$fEqCredential0_$c==`
+                                                                l1l
+                                                                r1r)
                                                              [ False
                                                              , (case
-                                                                  stakingCred
+                                                                  l2l
                                                                   [ (\l1l ->
                                                                        case
-                                                                         stakingCred'
+                                                                         r2r
                                                                          [ (\r1r ->
                                                                               case
                                                                                 l1l
-                                                                                [ (\l ->
+                                                                                [ (\l1l ->
                                                                                      case
                                                                                        r1r
-                                                                                       [ (\r ->
-                                                                                            `$fEqCredential_$c==`
-                                                                                              l
-                                                                                              r)
+                                                                                       [ (\r1r ->
+                                                                                            `$fEqCredential0_$c==`
+                                                                                              l1l
+                                                                                              r1r)
                                                                                        , (\ipv
                                                                                            ipv
                                                                                            ipv ->
                                                                                             False) ])
-                                                                                , (\a
-                                                                                    b
-                                                                                    c ->
+                                                                                , (\l1l
+                                                                                    l2l
+                                                                                    l3l ->
                                                                                      case
                                                                                        r1r
                                                                                        [ (\ipv ->
                                                                                             False)
-                                                                                       , (\a'
-                                                                                           b'
-                                                                                           c' ->
+                                                                                       , (\r1r
+                                                                                           r2r
+                                                                                           r3r ->
                                                                                             case
                                                                                               (equalsInteger
-                                                                                                 a
-                                                                                                 a')
+                                                                                                 l1l
+                                                                                                 r1r)
                                                                                               [ False
                                                                                               , (case
                                                                                                    (equalsInteger
-                                                                                                      b
-                                                                                                      b')
+                                                                                                      l2l
+                                                                                                      r2r)
                                                                                                    [ False
                                                                                                    , (equalsInteger
-                                                                                                        c
-                                                                                                        c') ]) ]) ]) ])
+                                                                                                        l3l
+                                                                                                        r3r) ]) ]) ]) ])
                                                                          , False ])
                                                                   , (case
-                                                                       stakingCred'
+                                                                       r2r
                                                                        [ (\ipv ->
                                                                             False)
                                                                        , True ]) ]) ]) ]) ])
@@ -6358,62 +6352,62 @@
                                 case
                                   (case
                                      ds
-                                     [ (\cred
-                                         stakingCred ->
+                                     [ (\l1l
+                                         l2l ->
                                           case
                                             ds
-                                            [ (\cred'
-                                                stakingCred' ->
+                                            [ (\r1r
+                                                r2r ->
                                                  case
-                                                   (`$fEqCredential_$c==`
-                                                      cred
-                                                      cred')
+                                                   (`$fEqCredential0_$c==`
+                                                      l1l
+                                                      r1r)
                                                    [ False
                                                    , (case
-                                                        stakingCred
+                                                        l2l
                                                         [ (\l1l ->
                                                              case
-                                                               stakingCred'
+                                                               r2r
                                                                [ (\r1r ->
                                                                     case
                                                                       l1l
-                                                                      [ (\l ->
+                                                                      [ (\l1l ->
                                                                            case
                                                                              r1r
-                                                                             [ (\r ->
-                                                                                  `$fEqCredential_$c==`
-                                                                                    l
-                                                                                    r)
+                                                                             [ (\r1r ->
+                                                                                  `$fEqCredential0_$c==`
+                                                                                    l1l
+                                                                                    r1r)
                                                                              , (\ipv
                                                                                  ipv
                                                                                  ipv ->
                                                                                   False) ])
-                                                                      , (\a
-                                                                          b
-                                                                          c ->
+                                                                      , (\l1l
+                                                                          l2l
+                                                                          l3l ->
                                                                            case
                                                                              r1r
                                                                              [ (\ipv ->
                                                                                   False)
-                                                                             , (\a'
-                                                                                 b'
-                                                                                 c' ->
+                                                                             , (\r1r
+                                                                                 r2r
+                                                                                 r3r ->
                                                                                   case
                                                                                     (equalsInteger
-                                                                                       a
-                                                                                       a')
+                                                                                       l1l
+                                                                                       r1r)
                                                                                     [ False
                                                                                     , (case
                                                                                          (equalsInteger
-                                                                                            b
-                                                                                            b')
+                                                                                            l2l
+                                                                                            r2r)
                                                                                          [ False
                                                                                          , (equalsInteger
-                                                                                              c
-                                                                                              c') ]) ]) ]) ])
+                                                                                              l3l
+                                                                                              r3r) ]) ]) ]) ])
                                                                , False ])
                                                         , (case
-                                                             stakingCred'
+                                                             r2r
                                                              [ (\ipv -> False)
                                                              , True ]) ]) ]) ]) ])
                                   [ (s s ds acc xs')
@@ -6429,11 +6423,14 @@
          (\ds ds ->
             case
               ds
-              [ (\l -> case ds [(\r -> equalsByteString l r), (\ipv -> False)])
-              , (\a ->
+              [ (\l1l ->
                    case
                      ds
-                     [(\ipv -> False), (\a' -> equalsByteString a a')]) ]))
+                     [(\r1r -> equalsByteString l1l r1r), (\ipv -> False)])
+              , (\l1l ->
+                   case
+                     ds
+                     [(\ipv -> False), (\r1r -> equalsByteString l1l r1r)]) ]))
       (\str -> (\x -> error) (force trace str (constr 0 [])))
       (Constr 0
          [ Constr 0

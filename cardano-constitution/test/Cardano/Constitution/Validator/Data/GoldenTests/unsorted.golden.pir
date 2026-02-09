@@ -245,37 +245,40 @@ program
                          Rational_match
                            ds
                            {bool}
-                           (\(n : integer) (d : integer) ->
+                           (\(l1l : integer) (l2l : integer) ->
                               Rational_match
                                 ds
                                 {bool}
-                                (\(n' : integer) (d' : integer) ->
+                                (\(r1r : integer) (r2r : integer) ->
                                    case
                                      (all dead. bool)
-                                     (equalsInteger n n')
+                                     (equalsInteger l1l r1r)
                                      [ (/\dead -> False)
-                                     , (/\dead -> equalsInteger d d') ]
+                                     , (/\dead -> equalsInteger l2l r2r) ]
                                      {all dead. dead})))
-                      (\(ds : Rational) (ds : Rational) ->
+                      (\(eta : Rational) (eta : Rational) ->
                          Rational_match
-                           ds
+                           eta
                            {Ordering}
-                           (\(n : integer) (d : integer) ->
+                           (\(ipv : integer) (ipv : integer) ->
                               Rational_match
-                                ds
+                                eta
                                 {Ordering}
-                                (\(n' : integer) (d' : integer) ->
-                                   let
-                                     !x : integer = multiplyInteger n d'
-                                     !y : integer = multiplyInteger n' d
-                                   in
+                                (\(ipv : integer) (ipv : integer) ->
                                    case
                                      (all dead. Ordering)
-                                     (equalsInteger x y)
+                                     (case
+                                        (all dead. bool)
+                                        (equalsInteger ipv ipv)
+                                        [ (/\dead -> False)
+                                        , (/\dead -> equalsInteger ipv ipv) ]
+                                        {all dead. dead})
                                      [ (/\dead ->
                                           case
                                             (all dead. Ordering)
-                                            (lessThanEqualsInteger x y)
+                                            (lessThanEqualsInteger
+                                               (multiplyInteger ipv ipv)
+                                               (multiplyInteger ipv ipv))
                                             [(/\dead -> GT), (/\dead -> LT)]
                                             {all dead. dead})
                                      , (/\dead -> EQ) ]
