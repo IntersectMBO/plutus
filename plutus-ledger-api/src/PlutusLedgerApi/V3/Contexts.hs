@@ -163,12 +163,7 @@ data DRep
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow DRep)
 
-instance PlutusTx.Eq DRep where
-  {-# INLINEABLE (==) #-}
-  DRep a == DRep a' = a PlutusTx.== a'
-  DRepAlwaysAbstain == DRepAlwaysAbstain = Haskell.True
-  DRepAlwaysNoConfidence == DRepAlwaysNoConfidence = Haskell.True
-  _ == _ = Haskell.False
+PlutusTx.deriveEq ''DRep
 
 data Delegatee
   = DelegStake V2.PubKeyHash
@@ -178,13 +173,7 @@ data Delegatee
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow Delegatee)
 
-instance PlutusTx.Eq Delegatee where
-  {-# INLINEABLE (==) #-}
-  DelegStake a == DelegStake a' = a PlutusTx.== a'
-  DelegVote a == DelegVote a' = a PlutusTx.== a'
-  DelegStakeVote a b == DelegStakeVote a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  _ == _ = Haskell.False
+PlutusTx.deriveEq ''Delegatee
 
 data TxCert
   = -- | Register staking credential with an optional deposit amount
@@ -217,27 +206,7 @@ data TxCert
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow TxCert)
 
-instance PlutusTx.Eq TxCert where
-  {-# INLINEABLE (==) #-}
-  TxCertRegStaking a b == TxCertRegStaking a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TxCertUnRegStaking a b == TxCertUnRegStaking a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TxCertDelegStaking a b == TxCertDelegStaking a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TxCertRegDeleg a b c == TxCertRegDeleg a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
-  TxCertRegDRep a b == TxCertRegDRep a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TxCertUpdateDRep a == TxCertUpdateDRep a' =
-    a PlutusTx.== a'
-  TxCertUnRegDRep a b == TxCertUnRegDRep a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TxCertAuthHotCommittee a b == TxCertAuthHotCommittee a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TxCertResignColdCommittee a == TxCertResignColdCommittee a' =
-    a PlutusTx.== a'
-  _ == _ = Haskell.False
+PlutusTx.deriveEq ''TxCert
 
 data Voter
   = CommitteeVoter HotCommitteeCredential
@@ -247,15 +216,7 @@ data Voter
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow Voter)
 
-instance PlutusTx.Eq Voter where
-  {-# INLINEABLE (==) #-}
-  CommitteeVoter a == CommitteeVoter a' =
-    a PlutusTx.== a'
-  DRepVoter a == DRepVoter a' =
-    a PlutusTx.== a'
-  StakePoolVoter a == StakePoolVoter a' =
-    a PlutusTx.== a'
-  _ == _ = Haskell.False
+PlutusTx.deriveEq ''Voter
 
 -- | A vote. The optional anchor is omitted.
 data Vote
@@ -266,12 +227,7 @@ data Vote
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow Vote)
 
-instance PlutusTx.Eq Vote where
-  {-# INLINEABLE (==) #-}
-  VoteNo == VoteNo = Haskell.True
-  VoteYes == VoteYes = Haskell.True
-  Abstain == Abstain = Haskell.True
-  _ == _ = Haskell.False
+PlutusTx.deriveEq ''Vote
 
 -- | Similar to TxOutRef, but for GovActions
 data GovernanceActionId = GovernanceActionId
@@ -281,17 +237,14 @@ data GovernanceActionId = GovernanceActionId
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''GovernanceActionId
+
 instance Pretty GovernanceActionId where
   pretty GovernanceActionId {..} =
     vsep
       [ "gaidTxId:" <+> pretty gaidTxId
       , "gaidGovActionIx:" <+> pretty gaidGovActionIx
       ]
-
-instance PlutusTx.Eq GovernanceActionId where
-  {-# INLINEABLE (==) #-}
-  GovernanceActionId a b == GovernanceActionId a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
 data Committee = Committee
   { committeeMembers :: Map ColdCommitteeCredential Haskell.Integer
@@ -317,12 +270,10 @@ newtype Constitution = Constitution
   deriving newtype (Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''Constitution
+
 instance Pretty Constitution where
   pretty (Constitution script) = "constitutionScript:" <+> pretty script
-
-instance PlutusTx.Eq Constitution where
-  {-# INLINEABLE (==) #-}
-  Constitution a == Constitution a' = a PlutusTx.== a'
 
 data ProtocolVersion = ProtocolVersion
   { pvMajor :: Haskell.Integer
@@ -331,17 +282,14 @@ data ProtocolVersion = ProtocolVersion
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''ProtocolVersion
+
 instance Pretty ProtocolVersion where
   pretty ProtocolVersion {..} =
     vsep
       [ "pvMajor:" <+> pretty pvMajor
       , "pvMinor:" <+> pretty pvMinor
       ]
-
-instance PlutusTx.Eq ProtocolVersion where
-  {-# INLINEABLE (==) #-}
-  ProtocolVersion a b == ProtocolVersion a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
 {-| A Plutus Data object containing proposed parameter changes. The Data object contains
 a @Map@ with one entry per changed parameter, from the parameter ID to the new value.
@@ -412,6 +360,9 @@ data GovernanceAction
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
+-- See Note [No PlutusTx.Eq for types with AssocMap]
+-- PlutusTx.deriveEq ''GovernanceAction
+
 -- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
   { ppDeposit :: V2.Lovelace
@@ -420,6 +371,9 @@ data ProposalProcedure = ProposalProcedure
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
+
+-- See Note [No PlutusTx.Eq for types with AssocMap]
+-- PlutusTx.deriveEq ''ProposalProcedure
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure {..} =
@@ -473,9 +427,7 @@ data TxInInfo = TxInInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
-instance PlutusTx.Eq TxInInfo where
-  TxInInfo ref res == TxInInfo ref' res' =
-    ref PlutusTx.== ref' PlutusTx.&& res PlutusTx.== res'
+PlutusTx.deriveEq ''TxInInfo
 
 instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
@@ -506,6 +458,9 @@ data TxInfo = TxInfo
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
+
+-- See Note [No PlutusTx.Eq for types with AssocMap]
+-- PlutusTx.deriveEq ''TxInfo
 
 instance Pretty TxInfo where
   pretty TxInfo {..} =
@@ -540,6 +495,9 @@ data ScriptContext = ScriptContext
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
   deriving anyclass (HasBlueprintDefinition)
+
+-- See Note [No PlutusTx.Eq for types with AssocMap]
+-- PlutusTx.deriveEq ''ScriptContext
 
 instance Pretty ScriptContext where
   pretty ScriptContext {..} =

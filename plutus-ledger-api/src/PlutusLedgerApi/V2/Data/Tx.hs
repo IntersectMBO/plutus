@@ -53,7 +53,6 @@ import Prettyprinter
 
 import PlutusTx qualified
 import PlutusTx.AsData qualified as PlutusTx
-import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 
 import PlutusLedgerApi.V1.Crypto
@@ -85,12 +84,7 @@ PlutusTx.asData
       deriving anyclass (NFData)
     |]
 
-instance PlutusTx.Eq OutputDatum where
-  {-# INLINEABLE (==) #-}
-  NoOutputDatum == NoOutputDatum = True
-  (OutputDatumHash dh) == (OutputDatumHash dh') = dh PlutusTx.== dh'
-  (OutputDatum d) == (OutputDatum d') = d PlutusTx.== d'
-  _ == _ = False
+PlutusTx.deriveEq ''OutputDatum
 
 instance Pretty OutputDatum where
   pretty NoOutputDatum = "no datum"
@@ -111,6 +105,8 @@ PlutusTx.asData
       deriving newtype (PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
 
+PlutusTx.deriveEq ''TxOut
+
 instance Pretty TxOut where
   pretty TxOut {txOutAddress, txOutValue, txOutDatum, txOutReferenceScript} =
     hang 2 $
@@ -122,19 +118,6 @@ instance Pretty TxOut where
         , "with referenceScript"
         , pretty txOutReferenceScript
         ]
-
-instance PlutusTx.Eq TxOut where
-  {-# INLINEABLE (==) #-}
-  (TxOut txOutAddress1 txOutValue1 txOutDatum1 txOutRefScript1)
-    == (TxOut txOutAddress2 txOutValue2 txOutDatum2 txOutRefScript2) =
-      txOutAddress1
-        PlutusTx.== txOutAddress2
-        PlutusTx.&& txOutValue1
-        PlutusTx.== txOutValue2
-        PlutusTx.&& txOutDatum1
-        PlutusTx.== txOutDatum2
-        PlutusTx.&& txOutRefScript1
-        PlutusTx.== txOutRefScript2
 
 -- | The public key attached to a 'TxOut', if there is one.
 txOutPubKey :: TxOut -> Maybe PubKeyHash

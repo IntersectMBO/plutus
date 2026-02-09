@@ -22,10 +22,22 @@ import PlutusLedgerApi.V1.Crypto (PubKeyHash)
 import PlutusLedgerApi.V1.Scripts (ScriptHash)
 import PlutusTx qualified
 import PlutusTx.Blueprint (HasBlueprintDefinition, definitionRef)
-import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Show (deriveShow)
 import Prettyprinter (Pretty (..), (<+>))
+
+-- | Credentials required to unlock a transaction output.
+data Credential
+  = {-| The transaction that spends this output must be signed by the private key.
+    See `Crypto.PubKeyHash`. -}
+    PubKeyCredential PubKeyHash
+  | {-| The transaction that spends this output must include the validator script and
+    be accepted by the validator. See `ScriptHash`. -}
+    ScriptCredential ScriptHash
+  deriving stock (Eq, Ord, Show, Generic)
+  deriving anyclass (NFData, HasBlueprintDefinition)
+
+PlutusTx.deriveEq ''Credential
 
 -- | Staking credential used to assign rewards.
 data StakingCredential
@@ -47,42 +59,15 @@ data StakingCredential
   deriving stock (Eq, Ord, Show, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''StakingCredential
+
 instance Pretty StakingCredential where
   pretty (StakingHash h) = "StakingHash" <+> pretty h
   pretty (StakingPtr a b c) = "StakingPtr:" <+> pretty a <+> pretty b <+> pretty c
 
-instance PlutusTx.Eq StakingCredential where
-  {-# INLINEABLE (==) #-}
-  StakingHash l == StakingHash r = l PlutusTx.== r
-  StakingPtr a b c == StakingPtr a' b' c' =
-    a
-      PlutusTx.== a'
-      PlutusTx.&& b
-      PlutusTx.== b'
-      PlutusTx.&& c
-      PlutusTx.== c'
-  _ == _ = False
-
--- | Credentials required to unlock a transaction output.
-data Credential
-  = {-| The transaction that spends this output must be signed by the private key.
-    See `Crypto.PubKeyHash`. -}
-    PubKeyCredential PubKeyHash
-  | {-| The transaction that spends this output must include the validator script and
-    be accepted by the validator. See `ScriptHash`. -}
-    ScriptCredential ScriptHash
-  deriving stock (Eq, Ord, Show, Generic)
-  deriving anyclass (NFData, HasBlueprintDefinition)
-
 instance Pretty Credential where
   pretty (PubKeyCredential pkh) = "PubKeyCredential:" <+> pretty pkh
   pretty (ScriptCredential val) = "ScriptCredential:" <+> pretty val
-
-instance PlutusTx.Eq Credential where
-  {-# INLINEABLE (==) #-}
-  PubKeyCredential l == PubKeyCredential r = l PlutusTx.== r
-  ScriptCredential a == ScriptCredential a' = a PlutusTx.== a'
-  _ == _ = False
 
 ----------------------------------------------------------------------------------------------------
 -- TH Splices --------------------------------------------------------------------------------------

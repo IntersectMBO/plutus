@@ -40,7 +40,6 @@ import GHC.Generics (Generic)
 import Prettyprinter (Pretty (pretty), hang, vsep, (<+>))
 
 import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
-import PlutusTx.Bool qualified as PlutusTx
 import PlutusTx.Eq qualified as PlutusTx
 import PlutusTx.Lift (makeLift)
 
@@ -68,12 +67,7 @@ data OutputDatum = NoOutputDatum | OutputDatumHash DatumHash | OutputDatum Datum
   deriving stock (Show, Eq, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
-instance PlutusTx.Eq OutputDatum where
-  {-# INLINEABLE (==) #-}
-  NoOutputDatum == NoOutputDatum = True
-  (OutputDatumHash dh) == (OutputDatumHash dh') = dh PlutusTx.== dh'
-  (OutputDatum d) == (OutputDatum d') = d PlutusTx.== d'
-  _ == _ = False
+PlutusTx.deriveEq ''OutputDatum
 
 instance Pretty OutputDatum where
   pretty NoOutputDatum = "no datum"
@@ -91,6 +85,8 @@ data TxOut = TxOut
   deriving stock (Show, Eq, Generic)
   deriving anyclass (NFData, HasBlueprintDefinition)
 
+PlutusTx.deriveEq ''TxOut
+
 instance Pretty TxOut where
   pretty TxOut {txOutAddress, txOutValue, txOutDatum, txOutReferenceScript} =
     hang 2 $
@@ -104,19 +100,6 @@ instance Pretty TxOut where
         , "with referenceScript"
         , pretty txOutReferenceScript
         ]
-
-instance PlutusTx.Eq TxOut where
-  {-# INLINEABLE (==) #-}
-  TxOut txOutAddress txOutValue txOutDatum txOutRefScript
-    == TxOut txOutAddress' txOutValue' txOutDatum' txOutRefScript' =
-      txOutAddress
-        PlutusTx.== txOutAddress'
-        PlutusTx.&& txOutValue
-        PlutusTx.== txOutValue'
-        PlutusTx.&& txOutDatum
-        PlutusTx.== txOutDatum'
-        PlutusTx.&& txOutRefScript
-        PlutusTx.== txOutRefScript'
 
 -- | The public key attached to a 'TxOut', if there is one.
 txOutPubKey :: TxOut -> Maybe PubKeyHash

@@ -25,7 +25,7 @@ module PlutusLedgerApi.V3.MintValue
   )
 where
 
-import PlutusTx.Prelude
+import PlutusTx.Prelude as PlutusTx
 
 import Control.DeepSeq (NFData)
 import Data.Data (Data)
@@ -61,14 +61,20 @@ Users should project 'MintValue' into 'Value' using 'mintValueMinted' or 'mintVa
 -}
 
 -- | A 'MintValue' represents assets that are minted and burned in a transaction.
-newtype MintValue = UnsafeMintValue {unMintValue :: (Map CurrencySymbol (Map TokenName Integer))}
+newtype MintValue = UnsafeMintValue {unMintValue :: Map CurrencySymbol (Map TokenName Integer)}
   deriving stock (Generic, Data, Haskell.Show)
   deriving anyclass (NFData)
   deriving newtype (ToData, FromData, UnsafeFromData)
   deriving (Pretty) via (PrettyShow MintValue)
 
-instance Haskell.Eq MintValue where
+-- Manual Eq instance: two MintValues are equal if they mint and burn the same assets,
+-- regardless of internal Map representation. Cannot use deriveEq for semantic equality.
+instance PlutusTx.Eq MintValue where
+  {-# INLINEABLE (==) #-}
   l == r = mintValueMinted l == mintValueMinted r && mintValueBurned l == mintValueBurned r
+
+instance Haskell.Eq MintValue where
+  (==) = (PlutusTx.==)
 
 instance HasBlueprintDefinition MintValue where
   type Unroll MintValue = '[MintValue, CurrencySymbol, TokenName, Integer]
