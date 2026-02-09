@@ -902,7 +902,6 @@ executable uplc-evaluator
 
 test-suite uplc-evaluator-integration-tests
   import:             lang, os-support
-  buildable:          False
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:

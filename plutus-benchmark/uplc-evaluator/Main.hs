@@ -202,6 +202,7 @@ toNamedDeBruijnTerm (UPLC.Program _ _ term) =
 
 {-| Evaluate a UPLC term using the CEK machine and extract budget costs.
 Returns the CPU and memory budget consumed, or an error if evaluation fails. -}
+{-# NOINLINE evaluateWithBudget #-}
 evaluateWithBudget
   :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
   -> Either EvalFailure EvalBudget
@@ -255,19 +256,19 @@ collectMeasurements term sampleCount = do
       let samples = map buildTimingSample timings
       return $ Right (budget, samples)
   where
-    -- Measure a single execution and return wall-clock time in nanoseconds
+    -- Measure a single execution and return wall-clock time in nanoseconds.
+    -- NOINLINE is critical here: it prevents GHC from inlining this function
+    -- into the loop body, which would expose 'evaluateWithBudget term' to
+    -- full laziness / CSE and allow sharing the pure result across iterations.
+    -- With NOINLINE, each call re-enters this function and 'evaluateWithBudget t'
+    -- depends on the lambda-bound 't', so full laziness cannot float it out.
+    {-# NOINLINE measureSingleExecution #-}
     measureSingleExecution
       :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
       -> IO Word64
     measureSingleExecution t = do
-      (_, timeNs) <- measureExecution $ return $! evalTerm t
+      (_, timeNs) <- measureExecution $ evaluate (evaluateWithBudget t)
       return timeNs
-
-    -- Evaluate term (used for timing, result discarded)
-    evalTerm
-      :: UPLC.Term UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-      -> Either EvalFailure EvalBudget
-    evalTerm = evaluateWithBudget
 
     -- Build a TimingSample from timing (only variable data)
     buildTimingSample :: Word64 -> TimingSample
