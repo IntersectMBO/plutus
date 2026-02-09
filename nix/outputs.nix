@@ -132,6 +132,7 @@ let
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      { aaaa = devShells.ghc96-plugin; } //
       { required = hydra-required-job; };
     "aarch64-linux" =
       { };
@@ -141,6 +142,7 @@ let
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      { aaaa = devShells.ghc96-plugin; } //
       { required = hydra-required-job; };
   };
 
