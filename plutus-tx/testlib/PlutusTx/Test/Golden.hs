@@ -90,7 +90,7 @@ import UntypedPlutusCore qualified as UPLC
 goldenCodeGen :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
 goldenCodeGen name code = do
   c <- code
-  [|nestedGoldenVsDoc name ".th" $(TH.stringE $ TH.pprint c)|]
+  [|nestedGoldenVsDoc name ".th" (pretty @String $(TH.stringE $ TH.pprint c))|]
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do

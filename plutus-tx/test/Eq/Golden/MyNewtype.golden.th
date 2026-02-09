@@ -1,0 +1,3 @@
+instance PlutusTx.Eq.Class.Eq Eq.Spec.MyNewtype
+    where {(PlutusTx.Eq.Class.==) (Eq.Spec.MyNewtype l1l_0) (Eq.Spec.MyNewtype r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}
