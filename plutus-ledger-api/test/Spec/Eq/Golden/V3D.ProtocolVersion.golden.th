@@ -1,3 +1,3 @@
 instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Data.Contexts.ProtocolVersion
-    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Data.Contexts.ProtocolVersion_6989586621679925148 l1l_0) (PlutusLedgerApi.V3.Data.Contexts.ProtocolVersion_6989586621679925148 r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Data.Contexts.ProtocolVersion l1l_0) (PlutusLedgerApi.V3.Data.Contexts.ProtocolVersion r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
            {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

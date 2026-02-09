@@ -1,3 +1,3 @@
 instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Data.Contexts.TxInInfo
-    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Data.Contexts.TxInInfo_6989586621679932057 l1l_0) (PlutusLedgerApi.V3.Data.Contexts.TxInInfo_6989586621679932057 r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
+    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Data.Contexts.TxInInfo l1l_0) (PlutusLedgerApi.V3.Data.Contexts.TxInInfo r1r_1) = l1l_0 PlutusTx.Eq.Class.== r1r_1;
            {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}

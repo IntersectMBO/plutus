@@ -8,7 +8,7 @@ the original manual implementations. -}
 module Spec.Eq.Golden (eqGoldenTests) where
 
 import PlutusTx.Eq (deriveEq)
-import PlutusTx.Test.Golden (goldenCodeGen)
+import PlutusTx.Test.Golden (goldenCodeGen, goldenCodeGenNormalized)
 import Test.Tasty (TestTree)
 import Test.Tasty.Extras (runTestNested)
 
@@ -58,24 +58,26 @@ eqGoldenTests =
     , $(goldenCodeGen "V1.TxOutRef" (deriveEq ''V1.TxOutRef))
     , $(goldenCodeGen "V1.TxOut" (deriveEq ''V1.TxOut))
     , -- V1 Data types
-      $(goldenCodeGen "V1D.Address" (deriveEq ''V1D.Address))
-    , $(goldenCodeGen "V1D.TxInInfo" (deriveEq ''V1D.TxInInfo))
-    , $(goldenCodeGen "V1D.ScriptPurpose" (deriveEq ''V1D.ScriptPurpose))
-    , $(goldenCodeGen "V1D.TxInfo" (deriveEq ''V1D.TxInfo))
-    , $(goldenCodeGen "V1D.ScriptContext" (deriveEq ''V1D.ScriptContext))
-    , $(goldenCodeGen "V1D.Credential" (deriveEq ''V1D.Credential))
-    , $(goldenCodeGen "V1D.StakingCredential" (deriveEq ''V1D.StakingCredential))
-    , $(goldenCodeGen "V1D.DCert" (deriveEq ''V1D.DCert))
-    , $(goldenCodeGen "V1D.TxOutRef" (deriveEq ''V1D.TxOutRef))
-    , $(goldenCodeGen "V1D.TxOut" (deriveEq ''V1D.TxOut))
+      -- See Note [Stripping TH-generated unique suffixes in golden tests]
+      -- in PlutusTx.Test.Golden
+      $(goldenCodeGenNormalized "V1D.Address" (deriveEq ''V1D.Address))
+    , $(goldenCodeGenNormalized "V1D.TxInInfo" (deriveEq ''V1D.TxInInfo))
+    , $(goldenCodeGenNormalized "V1D.ScriptPurpose" (deriveEq ''V1D.ScriptPurpose))
+    , $(goldenCodeGenNormalized "V1D.TxInfo" (deriveEq ''V1D.TxInfo))
+    , $(goldenCodeGenNormalized "V1D.ScriptContext" (deriveEq ''V1D.ScriptContext))
+    , $(goldenCodeGenNormalized "V1D.Credential" (deriveEq ''V1D.Credential))
+    , $(goldenCodeGenNormalized "V1D.StakingCredential" (deriveEq ''V1D.StakingCredential))
+    , $(goldenCodeGenNormalized "V1D.DCert" (deriveEq ''V1D.DCert))
+    , $(goldenCodeGenNormalized "V1D.TxOutRef" (deriveEq ''V1D.TxOutRef))
+    , $(goldenCodeGenNormalized "V1D.TxOut" (deriveEq ''V1D.TxOut))
     , -- V2 Original types
       $(goldenCodeGen "V2.TxInInfo" (deriveEq ''V2.TxInInfo))
     , $(goldenCodeGen "V2.OutputDatum" (deriveEq ''V2.OutputDatum))
     , $(goldenCodeGen "V2.TxOut" (deriveEq ''V2.TxOut))
     , -- V2 Data types
-      $(goldenCodeGen "V2D.TxInInfo" (deriveEq ''V2D.TxInInfo))
-    , $(goldenCodeGen "V2D.OutputDatum" (deriveEq ''V2D.OutputDatum))
-    , $(goldenCodeGen "V2D.TxOut" (deriveEq ''V2D.TxOut))
+      $(goldenCodeGenNormalized "V2D.TxInInfo" (deriveEq ''V2D.TxInInfo))
+    , $(goldenCodeGenNormalized "V2D.OutputDatum" (deriveEq ''V2D.OutputDatum))
+    , $(goldenCodeGenNormalized "V2D.TxOut" (deriveEq ''V2D.TxOut))
     , -- V3 Original types
       $(goldenCodeGen "V3.DRep" (deriveEq ''V3.DRep))
     , $(goldenCodeGen "V3.Delegatee" (deriveEq ''V3.Delegatee))
@@ -88,14 +90,14 @@ eqGoldenTests =
     , $(goldenCodeGen "V3.TxInInfo" (deriveEq ''V3.TxInInfo))
     , $(goldenCodeGen "V3.TxOutRef" (deriveEq ''V3.TxOutRef))
     , -- V3 Data types
-      $(goldenCodeGen "V3D.DRep" (deriveEq ''V3D.DRep))
-    , $(goldenCodeGen "V3D.Delegatee" (deriveEq ''V3D.Delegatee))
-    , $(goldenCodeGen "V3D.TxCert" (deriveEq ''V3D.TxCert))
-    , $(goldenCodeGen "V3D.Voter" (deriveEq ''V3D.Voter))
-    , $(goldenCodeGen "V3D.Vote" (deriveEq ''V3D.Vote))
-    , $(goldenCodeGen "V3D.GovernanceActionId" (deriveEq ''V3D.GovernanceActionId))
-    , $(goldenCodeGen "V3D.Constitution" (deriveEq ''V3D.Constitution))
-    , $(goldenCodeGen "V3D.ProtocolVersion" (deriveEq ''V3D.ProtocolVersion))
-    , $(goldenCodeGen "V3D.TxInInfo" (deriveEq ''V3D.TxInInfo))
-    , $(goldenCodeGen "V3D.TxOutRef" (deriveEq ''V3D.TxOutRef))
+      $(goldenCodeGenNormalized "V3D.DRep" (deriveEq ''V3D.DRep))
+    , $(goldenCodeGenNormalized "V3D.Delegatee" (deriveEq ''V3D.Delegatee))
+    , $(goldenCodeGenNormalized "V3D.TxCert" (deriveEq ''V3D.TxCert))
+    , $(goldenCodeGenNormalized "V3D.Voter" (deriveEq ''V3D.Voter))
+    , $(goldenCodeGenNormalized "V3D.Vote" (deriveEq ''V3D.Vote))
+    , $(goldenCodeGenNormalized "V3D.GovernanceActionId" (deriveEq ''V3D.GovernanceActionId))
+    , $(goldenCodeGenNormalized "V3D.Constitution" (deriveEq ''V3D.Constitution))
+    , $(goldenCodeGenNormalized "V3D.ProtocolVersion" (deriveEq ''V3D.ProtocolVersion))
+    , $(goldenCodeGenNormalized "V3D.TxInInfo" (deriveEq ''V3D.TxInInfo))
+    , $(goldenCodeGenNormalized "V3D.TxOutRef" (deriveEq ''V3D.TxOutRef))
     ]
