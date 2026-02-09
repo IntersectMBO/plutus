@@ -20,7 +20,6 @@ import Codec.Extras.SerialiseViaFlat
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Data.Maybe
 import Data.Singletons.Decide
 import Data.Text.Encoding qualified as T
 import PlutusCore.Flat
@@ -39,19 +38,23 @@ readProgram sngS fileS =
             --         case lookup eName termExamples of
             --             Just ast -> pure $ PIR.Program () undefined ast
             --             Nothing -> error $ "Couldn't find example with name " ++ eName
-        _ -> case fileS^.fType.fFormat of
-                Text -> do
-                    bs <- readFileName (fromJust $ fileS^.fName)
+         _ -> do
+            fileName <- case fileS^.fName of
+                Just name -> pure name
+                Nothing -> failE "No input file specified."
+            case fileS^.fType.fFormat of
+                      Text -> do
+                       bs <- readFileName fileName
                     case parseProgram sngS $ T.decodeUtf8Lenient bs of
                         Left err  -> failE $ show err
                         Right res -> pure res
                 Flat_ -> withLang @Flat sngS $ do
-                    bs <- readFileName (fromJust $ fileS^.fName)
+                    bs <- readFileName fileName
                     case unflat bs of
                        Left err  -> failE $ show err
                        Right res -> pure res
                 Cbor -> do
-                    bs <- readFileName (fromJust $ fileS^.fName)
+                    bs <- readFileName fileName
                     -- TODO: deduplicate
                     case sngS %~ SData of
                         Proved Refl ->
