@@ -51,7 +51,6 @@ runPlc (PLC.Program _ _ t)
             failE $ show errorWithCause
         (Right finalTerm, logs) -> do
             for_ logs (printE . unpack)
-            printE "Execution succeeded. Final Term:"
             -- TODO: lift the final term back to the target singleton
             printE "Execution succeeded. Final Term:"
             printE $ show $ prettyWithStyle (_prettyStyle ?opts) finalTerm
