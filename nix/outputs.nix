@@ -123,6 +123,7 @@ let
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
+      { aaaa = devShells.ghc96-plugin; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
