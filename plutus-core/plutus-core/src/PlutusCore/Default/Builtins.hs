@@ -1202,25 +1202,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantD -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantE -> consByteStringMeaning_V2
   toBuiltinMeaning _semvar SliceByteString =
-<<<<<<< HEAD
-    let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BuiltinResult BS.ByteString
-        sliceByteStringDenotation start n xs = pure $ BS.take n (BS.drop start xs)
-=======
-    let sliceByteStringDenotation :: Int64 -> Int64 -> BS.ByteString -> BS.ByteString
-        sliceByteStringDenotation start n xs = BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs)
->>>>>>> 32d3b8b919 (Fix issue with `KnownTypeAst` and wasm)
+    let sliceByteStringDenotation :: Int64 -> Int64 -> BS.ByteString -> BuiltinResult BS.ByteString
+        sliceByteStringDenotation start n xs = pure $ BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs)
         {-# INLINE sliceByteStringDenotation #-}
      in makeBuiltinMeaning
           sliceByteStringDenotation
           (runCostingFunThreeArguments . paramSliceByteString)
   toBuiltinMeaning _semvar LengthOfByteString =
-<<<<<<< HEAD
-    let lengthOfByteStringDenotation :: BS.ByteString -> BuiltinResult Int
-        lengthOfByteStringDenotation = pure . BS.length
-=======
-    let lengthOfByteStringDenotation :: BS.ByteString -> Int64
-        lengthOfByteStringDenotation = fromIntegral . BS.length
->>>>>>> 32d3b8b919 (Fix issue with `KnownTypeAst` and wasm)
+    let lengthOfByteStringDenotation :: BS.ByteString -> BuiltinResult Int64
+        lengthOfByteStringDenotation = pure . fromIntegral . BS.length
         {-# INLINE lengthOfByteStringDenotation #-}
      in makeBuiltinMeaning
           lengthOfByteStringDenotation
