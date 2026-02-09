@@ -22,7 +22,7 @@ on:
 jobs:
   run:
     name: Run 
-    runs-on: [self-hosted, plutus-ci]
+    runs-on: [plutus-ci, plutus-node, plutus-benchmark, self-hosted]
     permissions:
       contents: write
       pull-requests: write
