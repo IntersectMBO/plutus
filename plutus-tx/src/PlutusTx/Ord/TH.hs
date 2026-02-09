@@ -9,12 +9,17 @@ import Data.Traversable
 import Language.Haskell.TH as TH
 import Language.Haskell.TH.Datatype as TH
 import PlutusTx.Ord.Class
-import Prelude hiding (Bool (True), Eq ((==)), Ord (..), Ordering (..), (&&))
+import Prelude hiding
+  ( Bool (True)
+  , Eq ((==))
+  , Ord (..)
+  , Ordering (..)
+  , (&&)
+  )
 
-{- | derive a PlutusTx.Ord instance for a datatype/newtype, similar to Haskell's `deriving stock Ord`.
+{-| derive a PlutusTx.Ord instance for a datatype/newtype, similar to Haskell's `deriving stock Ord`.
 
-One shortcoming compared to Haskell's deriving is that you cannot `PlutusTx.deriveOrd` for polymorphic phantom types.
--}
+One shortcoming compared to Haskell's deriving is that you cannot `PlutusTx.deriveOrd` for polymorphic phantom types. -}
 deriveOrd :: TH.Name -> TH.Q [TH.Dec]
 deriveOrd name = do
   TH.DatatypeInfo
@@ -44,7 +49,7 @@ deriveOrd name = do
     <$> instanceD
       (pure instanceCxt)
       (pure instanceType)
-      [ funD 'compare (fmap deriveOrdSame cons ++ maybeDeriveOrdDifferent cons)
+      [ funD 'compare (fmap deriveOrdSame cons ++ deriveOrdDifferent cons)
       , TH.pragInlD 'compare TH.Inlinable TH.FunLike TH.AllPhases
       ]
 
@@ -70,19 +75,22 @@ deriveOrdSame (ConstructorInfo {constructorName = name, constructorFields = fiel
         []
     )
 
-maybeDeriveOrdDifferent :: [ConstructorInfo] -> [Q Clause]
-maybeDeriveOrdDifferent = \case
-  [] -> [clause [wildP, wildP] (normalB $ conE 'EQ) []] -- if void datatype aka 0 constructors, generate an EQ clause
-  (x : xs) -> mkLTGT [] x xs -- if >1 constructors, generate LT,GT sequences
-
--- OPTIMIZE: can be a small optimization here so that if lt==[] or gt==[], then use wildcard instead of generating multiple clauses
-mkLTGT :: [ConstructorInfo] -> ConstructorInfo -> [ConstructorInfo] -> [Q Clause]
-mkLTGT gt needle@(ConstructorInfo {constructorName = name}) lt =
-  case lt of
-    [] -> mkClause 'GT <$> gt -- this covers also the case of a single constructor
-    (hlt : tlt) ->
-      (mkClause 'LT <$> lt)
-        ++ (mkClause 'GT <$> gt)
-        ++ mkLTGT (needle : gt) hlt tlt
+{-| Generate clauses for cross-constructor comparisons.
+Since same-constructor clauses (from 'deriveOrdSame') come first, we can use
+wildcard patterns here. For each constructor except the last, we generate:
+  compare Ci{} _   = LT   (Ci is less than any later constructor)
+  compare _   Ci{} = GT   (any later constructor is greater than Ci)
+This produces O(n) clauses instead of O(n^2). -}
+deriveOrdDifferent :: [ConstructorInfo] -> [Q Clause]
+deriveOrdDifferent = \case
+  -- Void datatype (0 constructors): vacuously EQ
+  [] -> [clause [wildP, wildP] (normalB $ conE 'EQ) []]
+  -- 1 constructor: same-constructor clause already covers it, nothing needed
+  [_] -> []
+  -- 2+ constructors: generate wildcard LT/GT pairs for all but the last
+  cons -> concatMap mkPair (init cons)
   where
-    mkClause val r = clause [recP name [], recP (constructorName r) []] (normalB $ conE val) []
+    mkPair (ConstructorInfo {constructorName = name}) =
+      [ clause [recP name [], wildP] (normalB $ conE 'LT) []
+      , clause [wildP, recP name []] (normalB $ conE 'GT) []
+      ]

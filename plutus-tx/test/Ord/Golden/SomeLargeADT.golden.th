@@ -28,10 +28,8 @@ instance (PlutusTx.Ord.Class.Ord a_0,
                                                                                               r3r_24
                                                                                               r4r_25
                                                                                               r5r_26) = (l1l_17 `PlutusTx.Ord.Class.compare` r1r_22) GHC.Base.<> ((l2l_18 `PlutusTx.Ord.Class.compare` r2r_23) GHC.Base.<> ((l3l_19 `PlutusTx.Ord.Class.compare` r3r_24) GHC.Base.<> ((l4l_20 `PlutusTx.Ord.Class.compare` r4r_25) GHC.Base.<> (l5l_21 `PlutusTx.Ord.Class.compare` r5r_26))))
-           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT1 {}) (Ord.Spec.SomeLargeADT2 {}) = GHC.Types.LT
-           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT1 {}) (Ord.Spec.SomeLargeADT3 {}) = GHC.Types.LT
-           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT2 {}) (Ord.Spec.SomeLargeADT3 {}) = GHC.Types.LT
-           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT2 {}) (Ord.Spec.SomeLargeADT1 {}) = GHC.Types.GT
-           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT3 {}) (Ord.Spec.SomeLargeADT2 {}) = GHC.Types.GT
-           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT3 {}) (Ord.Spec.SomeLargeADT1 {}) = GHC.Types.GT;
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT1 {}) _ = GHC.Types.LT
+           PlutusTx.Ord.Class.compare _ (Ord.Spec.SomeLargeADT1 {}) = GHC.Types.GT
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT2 {}) _ = GHC.Types.LT
+           PlutusTx.Ord.Class.compare _ (Ord.Spec.SomeLargeADT2 {}) = GHC.Types.GT;
            {-# INLINABLE PlutusTx.Ord.Class.compare #-}}

@@ -243,26 +243,26 @@
                    ds
                    {all dead. Ordering}
                    (/\dead -> EQ)
-                   (\(ds : a) (ds : List a) -> /\dead -> LT)
+                   (\(ipv : a) (ipv : List a) -> /\dead -> LT)
                    {all dead. dead})
-              (\(ds : a) (ds : List a) ->
+              (\(l1l : a) (l2l : List a) ->
                  /\dead ->
                    List_match
                      {a}
                      ds
                      {all dead. Ordering}
                      (/\dead -> GT)
-                     (\(y : a) ->
+                     (\(r1r : a) ->
                         let
-                          ~defaultBody : Ordering = compare {a} `$dOrd` ds y
+                          ~defaultBody : Ordering = compare {a} `$dOrd` l1l r1r
                         in
-                        \(ys : List a) ->
+                        \(r2r : List a) ->
                           /\dead ->
                             Ordering_match
-                              (compare {a} `$dOrd` ds y)
+                              (compare {a} `$dOrd` l1l r1r)
                               {all dead. Ordering}
                               (/\dead ->
-                                 `$fOrdList_$ccompare` {a} `$dOrd` ds ys)
+                                 `$fOrdList_$ccompare` {a} `$dOrd` l2l r2r)
                               (/\dead -> defaultBody)
                               (/\dead -> defaultBody)
                               {all dead. dead})
@@ -489,23 +489,23 @@
                                         {b}
                                         ds
                                         {Ordering}
-                                        (\(a : a) (b : b) ->
+                                        (\(l1l : a) (l2l : b) ->
                                            Tuple2_match
                                              {a}
                                              {b}
                                              ds
                                              {Ordering}
-                                             (\(a' : a) ->
+                                             (\(r1r : a) ->
                                                 let
                                                   ~defaultBody : Ordering
-                                                    = compare {a} v a a'
+                                                    = compare {a} v l1l r1r
                                                 in
-                                                \(b' : b) ->
+                                                \(r2r : b) ->
                                                   Ordering_match
-                                                    (compare {a} v a a')
+                                                    (compare {a} v l1l r1r)
                                                     {all dead. Ordering}
                                                     (/\dead ->
-                                                       compare {b} v b b')
+                                                       compare {b} v l2l r2r)
                                                     (/\dead -> defaultBody)
                                                     (/\dead -> defaultBody)
                                                     {all dead. dead})))

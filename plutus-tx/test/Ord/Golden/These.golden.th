@@ -6,10 +6,8 @@ instance (PlutusTx.Ord.Class.Ord a_0,
            PlutusTx.Ord.Class.compare (PlutusTx.These.These l1l_6
                                                             l2l_7) (PlutusTx.These.These r1r_8
                                                                                          r2r_9) = (l1l_6 `PlutusTx.Ord.Class.compare` r1r_8) GHC.Base.<> (l2l_7 `PlutusTx.Ord.Class.compare` r2r_9)
-           PlutusTx.Ord.Class.compare (PlutusTx.These.This {}) (PlutusTx.These.That {}) = GHC.Types.LT
-           PlutusTx.Ord.Class.compare (PlutusTx.These.This {}) (PlutusTx.These.These {}) = GHC.Types.LT
-           PlutusTx.Ord.Class.compare (PlutusTx.These.That {}) (PlutusTx.These.These {}) = GHC.Types.LT
-           PlutusTx.Ord.Class.compare (PlutusTx.These.That {}) (PlutusTx.These.This {}) = GHC.Types.GT
-           PlutusTx.Ord.Class.compare (PlutusTx.These.These {}) (PlutusTx.These.That {}) = GHC.Types.GT
-           PlutusTx.Ord.Class.compare (PlutusTx.These.These {}) (PlutusTx.These.This {}) = GHC.Types.GT;
+           PlutusTx.Ord.Class.compare (PlutusTx.These.This {}) _ = GHC.Types.LT
+           PlutusTx.Ord.Class.compare _ (PlutusTx.These.This {}) = GHC.Types.GT
+           PlutusTx.Ord.Class.compare (PlutusTx.These.That {}) _ = GHC.Types.LT
+           PlutusTx.Ord.Class.compare _ (PlutusTx.These.That {}) = GHC.Types.GT;
            {-# INLINABLE PlutusTx.Ord.Class.compare #-}}
