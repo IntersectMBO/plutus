@@ -75,7 +75,7 @@ toRange cost =
 
 -- | Generate a 'SatInt' in the given range.
 chooseSatInt :: (SatInt, SatInt) -> Gen SatInt
-chooseSatInt = fmap unsafeToSatInt . chooseInt . bimap unSatInt unSatInt
+chooseSatInt = fmap unsafeToSatInt . choose . bimap unSatInt unSatInt
 
 {-| Generate asymptotically bigger 'SatInt's with exponentially lower chance. This is in order to
 make the generator of 'CostStream' produce streams whose sums are more or less evenly distributed
@@ -193,7 +193,8 @@ test_addCostStreamIsAdd :: TestTree
 test_addCostStreamIsAdd =
   testProperty "addCostStream is add" . withMaxSuccess 5000 $ \costs1 costs2 ->
     sumCostStream (addCostStream costs1 costs2)
-      === sumCostStream costs1 + sumCostStream costs2
+      === sumCostStream costs1
+        + sumCostStream costs2
 
 {-| Test that the sum of a stream returned by 'minCostStream' equals the minimum of the sums of its
 two arguments. -}
@@ -224,7 +225,8 @@ test_addCostStreamReasonableLength :: TestTree
 test_addCostStreamReasonableLength =
   testProperty "addCostStream: reasonable length " . withMaxSuccess 5000 $ \costs1 costs2 ->
     max 2 (length (toCostList (addCostStream costs1 costs2)))
-      === length (toCostList costs1) + length (toCostList costs2)
+      === length (toCostList costs1)
+        + length (toCostList costs2)
 
 {-| Test that the length of the stream returned by 'addCostStream' is
 
@@ -261,8 +263,8 @@ test_addCostStreamHandlesBottom :: TestTree
 test_addCostStreamHandlesBottom =
   testProperty "addCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \(Positive n) ->
     let interleave xs ys = concat $ transpose [xs, ys]
-        zeroToN = map unsafeToSatInt [0 .. n] ++ bottom
-        nPlus1To2NPlus1 = map unsafeToSatInt [n + 1 .. n * 2 + 1] ++ bottom
+        zeroToN = map (unsafeToSatInt . fromIntegral) [0 .. n] ++ bottom
+        nPlus1To2NPlus1 = map (unsafeToSatInt . fromIntegral) [n + 1 .. n * 2 + 1] ++ bottom
         taken =
           take n . getNonEmpty . toCostList $
             addCostStream
@@ -272,7 +274,8 @@ test_addCostStreamHandlesBottom =
         all (\cost -> cost `elem` interleave zeroToN nPlus1To2NPlus1) taken
           .&&.
           -- No element is duplicated.
-          length (map head . group $ sort taken) === length taken
+          length (map head . group $ sort taken)
+            === length taken
 
 -- | Test that 'minCostStream' preserves the laziness of its two arguments.
 test_minCostStreamHandlesBottom :: TestTree

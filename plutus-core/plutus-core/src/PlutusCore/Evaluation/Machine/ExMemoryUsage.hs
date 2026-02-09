@@ -318,7 +318,7 @@ instance ExMemoryUsage IntegerCostedLiterally where
    bytestring.  -}
 instance ExMemoryUsage BS.ByteString where
   -- Don't use `div` here!  That gives 0 instead of 1 for the empty bytestring.
-  memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1
+  memoryUsage bs = singletonRose . unsafeToSatInt . fromIntegral $ ((n - 1) `quot` 8) + 1
     where
       n = BS.length bs
   {-# INLINE memoryUsage #-}
@@ -337,7 +337,7 @@ newtype TextCostedByByteLength = TextCostedByByteLength {unTextCostedByByteLengt
 
 instance ExMemoryUsage TextCostedByByteLength where
   memoryUsage (TextCostedByByteLength (TI.Text _ _ lenInBytes)) =
-    singletonRose . unsafeToSatInt $ lenInBytes `quot` 4
+    singletonRose . unsafeToSatInt . fromIntegral $ lenInBytes `quot` 4
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
@@ -467,7 +467,7 @@ getting the memoryUsage instances to call those.
 -}
 
 g1ElementCost :: CostRose
-g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
+g1ElementCost = singletonRose . unsafeToSatInt . fromIntegral $ BLS12_381.G1.memSizeBytes `div` 8
 {-# OPAQUE g1ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G1.Element where
@@ -476,7 +476,7 @@ instance ExMemoryUsage BLS12_381.G1.Element where
 -- Should be 18
 
 g2ElementCost :: CostRose
-g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
+g2ElementCost = singletonRose . unsafeToSatInt . fromIntegral $ BLS12_381.G2.memSizeBytes `div` 8
 {-# OPAQUE g2ElementCost #-}
 
 instance ExMemoryUsage BLS12_381.G2.Element where
@@ -485,7 +485,7 @@ instance ExMemoryUsage BLS12_381.G2.Element where
 -- Should be 36
 
 mlResultElementCost :: CostRose
-mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
+mlResultElementCost = singletonRose . unsafeToSatInt . fromIntegral $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
 {-# OPAQUE mlResultElementCost #-}
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where
