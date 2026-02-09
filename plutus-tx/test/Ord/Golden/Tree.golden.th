@@ -1,0 +1,8 @@
+instance PlutusTx.Ord.Class.Ord a_0 => PlutusTx.Ord.Class.Ord (Ord.Spec.Tree a_0)
+    where {PlutusTx.Ord.Class.compare (Ord.Spec.Leaf l1l_1) (Ord.Spec.Leaf r1r_2) = l1l_1 `PlutusTx.Ord.Class.compare` r1r_2
+           PlutusTx.Ord.Class.compare (Ord.Spec.Node l1l_3
+                                                     l2l_4) (Ord.Spec.Node r1r_5
+                                                                           r2r_6) = (l1l_3 `PlutusTx.Ord.Class.compare` r1r_5) GHC.Base.<> (l2l_4 `PlutusTx.Ord.Class.compare` r2r_6)
+           PlutusTx.Ord.Class.compare (Ord.Spec.Leaf {}) (Ord.Spec.Node {}) = GHC.Types.LT
+           PlutusTx.Ord.Class.compare (Ord.Spec.Node {}) (Ord.Spec.Leaf {}) = GHC.Types.GT;
+           {-# INLINABLE PlutusTx.Ord.Class.compare #-}}

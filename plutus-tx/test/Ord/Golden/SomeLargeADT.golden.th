@@ -1,0 +1,37 @@
+instance (PlutusTx.Ord.Class.Ord a_0,
+          PlutusTx.Ord.Class.Ord b_1,
+          PlutusTx.Ord.Class.Ord c_2,
+          PlutusTx.Ord.Class.Ord d_3,
+          PlutusTx.Ord.Class.Ord e_4) => PlutusTx.Ord.Class.Ord (Ord.Spec.SomeLargeADT a_0
+                                                                                       b_1
+                                                                                       c_2
+                                                                                       d_3
+                                                                                       e_4)
+    where {PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT1 l1l_5
+                                                              l2l_6
+                                                              l3l_7
+                                                              l4l_8
+                                                              l5l_9
+                                                              l6l_10) (Ord.Spec.SomeLargeADT1 r1r_11
+                                                                                              r2r_12
+                                                                                              r3r_13
+                                                                                              r4r_14
+                                                                                              r5r_15
+                                                                                              r6r_16) = (l1l_5 `PlutusTx.Ord.Class.compare` r1r_11) GHC.Base.<> ((l2l_6 `PlutusTx.Ord.Class.compare` r2r_12) GHC.Base.<> ((l3l_7 `PlutusTx.Ord.Class.compare` r3r_13) GHC.Base.<> ((l4l_8 `PlutusTx.Ord.Class.compare` r4r_14) GHC.Base.<> ((l5l_9 `PlutusTx.Ord.Class.compare` r5r_15) GHC.Base.<> (l6l_10 `PlutusTx.Ord.Class.compare` r6r_16)))))
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT2) (Ord.Spec.SomeLargeADT2) = GHC.Types.EQ
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT3 l1l_17
+                                                              l2l_18
+                                                              l3l_19
+                                                              l4l_20
+                                                              l5l_21) (Ord.Spec.SomeLargeADT3 r1r_22
+                                                                                              r2r_23
+                                                                                              r3r_24
+                                                                                              r4r_25
+                                                                                              r5r_26) = (l1l_17 `PlutusTx.Ord.Class.compare` r1r_22) GHC.Base.<> ((l2l_18 `PlutusTx.Ord.Class.compare` r2r_23) GHC.Base.<> ((l3l_19 `PlutusTx.Ord.Class.compare` r3r_24) GHC.Base.<> ((l4l_20 `PlutusTx.Ord.Class.compare` r4r_25) GHC.Base.<> (l5l_21 `PlutusTx.Ord.Class.compare` r5r_26))))
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT1 {}) (Ord.Spec.SomeLargeADT2 {}) = GHC.Types.LT
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT1 {}) (Ord.Spec.SomeLargeADT3 {}) = GHC.Types.LT
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT2 {}) (Ord.Spec.SomeLargeADT3 {}) = GHC.Types.LT
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT2 {}) (Ord.Spec.SomeLargeADT1 {}) = GHC.Types.GT
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT3 {}) (Ord.Spec.SomeLargeADT2 {}) = GHC.Types.GT
+           PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT3 {}) (Ord.Spec.SomeLargeADT1 {}) = GHC.Types.GT;
+           {-# INLINABLE PlutusTx.Ord.Class.compare #-}}
