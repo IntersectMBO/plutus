@@ -8,12 +8,12 @@ instance PlutusTx.IsData.Class.FromData Plugin.Data.Spec.MyMonoData
     where {{-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-};
            PlutusTx.IsData.Class.fromBuiltinData d_4 = let constrFun_5 (!index_6) (!args_7) = case (index_6,
                                                                                                     args_7) of
-                                                                                              {(((PlutusTx.Eq.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
+                                                                                              {(((PlutusTx.Eq.Class.==) (0 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.uncons -> GHC.Maybe.Just ((PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_8),
                                                                                                                                              (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_9))))) -> GHC.Maybe.Just (Plugin.Data.Spec.Mono1 arg_8 arg_9);
-                                                                                               (((PlutusTx.Eq.==) (1 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
+                                                                                               (((PlutusTx.Eq.Class.==) (1 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_10))) -> GHC.Maybe.Just (Plugin.Data.Spec.Mono2 arg_10);
-                                                                                               (((PlutusTx.Eq.==) (2 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
+                                                                                               (((PlutusTx.Eq.Class.==) (2 :: GHC.Num.Integer.Integer) -> GHC.Types.True),
                                                                                                 (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just arg_11))) -> GHC.Maybe.Just (Plugin.Data.Spec.Mono3 arg_11);
                                                                                                _ -> GHC.Maybe.Nothing}
                                                         in PlutusTx.Builtins.matchData' d_4 constrFun_5 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}

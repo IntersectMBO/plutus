@@ -1376,7 +1376,8 @@
                                                                          {data}
                                                                          l)))
                                                                 {all dead. bool}
-                                                                (\(a : data) ->
+                                                                (\(l1l :
+                                                                     data) ->
                                                                    /\dead ->
                                                                      Maybe_match
                                                                        {data}
@@ -1389,7 +1390,7 @@
                                                                                 {data}
                                                                                 l)))
                                                                        {bool}
-                                                                       (\(a :
+                                                                       (\(r1r :
                                                                             data) ->
                                                                           let
                                                                             !fail :
@@ -1399,7 +1400,7 @@
                                                                                     unit) ->
                                                                                   `$mStakingPtr`
                                                                                     {bool}
-                                                                                    a
+                                                                                    l1l
                                                                                     (\(a :
                                                                                          integer)
                                                                                       (b :
@@ -1408,7 +1409,7 @@
                                                                                          integer) ->
                                                                                        `$mStakingPtr`
                                                                                          {bool}
-                                                                                         a
+                                                                                         r1r
                                                                                          (\(a' :
                                                                                               integer)
                                                                                            (b' :
@@ -1452,7 +1453,7 @@
                                                                                  (list
                                                                                     data)
                                                                               = unConstrData
-                                                                                  a
+                                                                                  l1l
                                                                           in
                                                                           case
                                                                             (all dead.
@@ -1479,7 +1480,7 @@
                                                                                         (list
                                                                                            data)
                                                                                      = unConstrData
-                                                                                         a
+                                                                                         r1r
                                                                                  in
                                                                                  case
                                                                                    (all dead.

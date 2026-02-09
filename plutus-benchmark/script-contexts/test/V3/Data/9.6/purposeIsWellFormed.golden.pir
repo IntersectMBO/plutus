@@ -8,13 +8,13 @@ let
           {integer}
           ds
           {all dead. bool}
-          (\(a : integer) ->
+          (\(l1l : integer) ->
              /\dead ->
                Maybe_match
                  {integer}
                  ds
                  {bool}
-                 (\(a : integer) -> equalsInteger a a)
+                 (\(r1r : integer) -> equalsInteger l1l r1r)
                  False)
           (/\dead ->
              Maybe_match {integer} ds {bool} (\(ipv : integer) -> False) True)
