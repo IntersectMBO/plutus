@@ -17,7 +17,7 @@ on:
 
 jobs:
   build:
-    runs-on: [plutus-ci, plutus-node, plutus-benchmark, self-hosted]
+    runs-on: [self-hosted, plutus-runner]
     strategy:
       matrix:
         ghc: [ghc910, ghc96, ghc98]
