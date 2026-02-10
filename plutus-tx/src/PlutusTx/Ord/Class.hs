@@ -9,7 +9,6 @@ We export off-chain Haskell's Ordering type as on-chain Plutus's Ordering type s
 
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins qualified as Builtins
-import PlutusTx.Either (Either (..))
 import PlutusTx.Eq
 import Prelude (Ordering (..))
 
@@ -19,11 +18,10 @@ infix 4 <, <=, >, >=
 
 -- Copied from the GHC definition
 
-{- | The 'Ord' class is used for totally ordered datatypes.
+{-| The 'Ord' class is used for totally ordered datatypes.
 
 Minimal complete definition: either 'compare' or '<='.
-Using 'compare' can be more efficient for complex types.
--}
+Using 'compare' can be more efficient for complex types. -}
 class Eq a => Ord a where
   compare :: a -> a -> Ordering
   (<), (<=), (>), (>=) :: a -> a -> Bool

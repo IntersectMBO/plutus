@@ -50,7 +50,7 @@ deriveOrd ''MyNewtype
 data SomeLargeADT a b c d e
   = SomeLargeADT1 Integer a Bool b c d
   | SomeLargeADT2
-  | SomeLargeADT3 {f1 :: e, f2 :: e, _f3 :: e, _f4 :: e, _f5 :: e}
+  | SomeLargeADT3 {_f1 :: e, _f2 :: e, _f3 :: e, _f4 :: e, _f5 :: e}
   deriving stock (HS.Eq, HS.Ord)
 deriveEq ''SomeLargeADT
 deriveOrd ''SomeLargeADT
