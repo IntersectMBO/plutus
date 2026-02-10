@@ -22,12 +22,12 @@ module Budget.Spec where
 
 import Test.Tasty.Extras
 
+import Budget.BuiltinAndLib qualified as BuiltinAndLib
 import Budget.WithGHCOptimisations qualified as WithGHCOptTest
 import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import Data.Set qualified as Set
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx hiding (null)
-import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.Data.List (List)
 import PlutusTx.Data.List.TH (destructList)
@@ -662,21 +662,14 @@ compiledAndWithLocal =
 -- && vs builtinAnd vs alternatives: boolean AND chaining budget
 ------------------------------------------------------------------------
 
--- | Philip DiSarro's builtinAnd: uses lambda/unit instead of delay/force.
-builtinAnd :: Bool -> Bool -> Bool
-builtinAnd b1 b2 = BI.ifThenElse b1 (\_ -> b2) (\_ -> False) BI.unitval
-{-# INLINEABLE builtinAnd #-}
-
 -- Pattern 1: Standard && (lazy, delay/force)
 andLazyPattern :: Integer -> Integer -> Integer -> Bool
 andLazyPattern x y z = (x < 100) && ((y < 100) && (z < 100))
 {-# INLINEABLE andLazyPattern #-}
 
--- Pattern 2: builtinAnd (lambda/unit)
-andBuiltinAndPattern :: Integer -> Integer -> Integer -> Bool
-andBuiltinAndPattern x y z =
-  builtinAnd (x < 100) (builtinAnd (y < 100) (z < 100))
-{-# INLINEABLE andBuiltinAndPattern #-}
+-- Patterns 2 and 4 (builtinAnd, direct BI.ifThenElse) are defined in
+-- Budget.BuiltinAndLib with GHC optimisation flags disabled and INLINE pragmas,
+-- matching Philip DiSarro's approach in PR #7562.
 
 -- Pattern 3: Multi-way if (negated guards)
 andMultiWayIfPattern :: Integer -> Integer -> Integer -> Bool
@@ -687,16 +680,6 @@ andMultiWayIfPattern x y z =
     | z >= 100 -> False
     | otherwise -> True
 {-# INLINEABLE andMultiWayIfPattern #-}
-
--- Pattern 4: Direct BI.ifThenElse chain (manual lambda/unit)
-andDirectIfThenElsePattern :: Integer -> Integer -> Integer -> Bool
-andDirectIfThenElsePattern x y z =
-  BI.ifThenElse
-    (x < 100)
-    (\_ -> BI.ifThenElse (y < 100) (\_ -> z < 100) (\_ -> False) BI.unitval)
-    (\_ -> False)
-    BI.unitval
-{-# INLINEABLE andDirectIfThenElsePattern #-}
 
 -- Test scenarios: AllTrue (50,60,70), EarlyFail (150,60,70), LateFail (50,60,150)
 
@@ -722,24 +705,24 @@ andLazy_LateFail =
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 150
 
--- Pattern 2: builtinAnd
+-- Pattern 2: builtinAnd (from BuiltinAndLib, with -fno-* flags + INLINE)
 andBuiltinAnd_AllTrue :: CompiledCode Bool
 andBuiltinAnd_AllTrue =
-  $$(compile [||andBuiltinAndPattern||])
+  $$(compile [||BuiltinAndLib.andBuiltinAndPattern||])
     `unsafeApplyCode` liftCodeDef 50
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 70
 
 andBuiltinAnd_EarlyFail :: CompiledCode Bool
 andBuiltinAnd_EarlyFail =
-  $$(compile [||andBuiltinAndPattern||])
+  $$(compile [||BuiltinAndLib.andBuiltinAndPattern||])
     `unsafeApplyCode` liftCodeDef 150
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 70
 
 andBuiltinAnd_LateFail :: CompiledCode Bool
 andBuiltinAnd_LateFail =
-  $$(compile [||andBuiltinAndPattern||])
+  $$(compile [||BuiltinAndLib.andBuiltinAndPattern||])
     `unsafeApplyCode` liftCodeDef 50
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 150
@@ -766,24 +749,24 @@ andMultiWayIf_LateFail =
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 150
 
--- Pattern 4: Direct BI.ifThenElse
+-- Pattern 4: Direct BI.ifThenElse (from BuiltinAndLib, with -fno-* flags + INLINE)
 andDirectIfThenElse_AllTrue :: CompiledCode Bool
 andDirectIfThenElse_AllTrue =
-  $$(compile [||andDirectIfThenElsePattern||])
+  $$(compile [||BuiltinAndLib.andDirectIfThenElsePattern||])
     `unsafeApplyCode` liftCodeDef 50
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 70
 
 andDirectIfThenElse_EarlyFail :: CompiledCode Bool
 andDirectIfThenElse_EarlyFail =
-  $$(compile [||andDirectIfThenElsePattern||])
+  $$(compile [||BuiltinAndLib.andDirectIfThenElsePattern||])
     `unsafeApplyCode` liftCodeDef 150
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 70
 
 andDirectIfThenElse_LateFail :: CompiledCode Bool
 andDirectIfThenElse_LateFail =
-  $$(compile [||andDirectIfThenElsePattern||])
+  $$(compile [||BuiltinAndLib.andDirectIfThenElsePattern||])
     `unsafeApplyCode` liftCodeDef 50
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 150
