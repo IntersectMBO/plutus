@@ -110,8 +110,8 @@ let
     metatheory-jailbreak = metatheory-jailbreak-shell;
   };
 
-  # test-profiled-ghc =
-  #   project.projectVariants.ghc96-plugin.hsPkgs.plutus-tx-plugin.components.tests.plutus-tx-plugin-tests; # editorconfig-checker-disable-line
+  test-profiled-ghc =
+    project.projectVariants.ghc96-plugin.hsPkgs.plutus-tx-plugin.components.tests.plutus-tx-plugin-tests; # editorconfig-checker-disable-line
 
   nested-ci-jobs = {
     "x86_64-linux" =
@@ -123,7 +123,7 @@ let
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
-      { aaaa = devShells.ghc96-plugin; } //
+      { inherit test-profiled-ghc; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
@@ -132,7 +132,7 @@ let
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
-      { aaaa = devShells.ghc96-plugin; } //
+      { inherit test-profiled-ghc; } //
       { required = hydra-required-job; };
     "aarch64-linux" =
       { };
@@ -140,9 +140,7 @@ let
       (project-variants-roots-and-plan-nix) //
       { devShells.ghc96 = devShells.ghc96; } //
       { devShells.ghc912 = devShells.ghc912; } //
-      { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
-      { aaaa = devShells.ghc96-plugin; } //
       { required = hydra-required-job; };
   };
 

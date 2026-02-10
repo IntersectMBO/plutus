@@ -23,6 +23,23 @@ let
         ghc96-plugin = {
           ghcOverride = pkgs.haskell-nix.compiler.ghc967.override {
             extraFlavourTransformers = [ "+profiled_ghc+no_dynamic_ghc" ];
+            ghc-patches = [
+              ''
+                diff --git a/hadrian/src/Flavour.hs b/hadrian/src/Flavour.hs
+                index a281a2401a..da513a70e8 100644
+                --- a/hadrian/src/Flavour.hs
+                +++ b/hadrian/src/Flavour.hs
+                @@ -221,7 +221,7 @@ viaLlvmBackend = addArgs $ notStage0 ? builder Ghc ? arg "-fllvm"
+                 -- dynamically-linker.
+                 enableProfiledGhc :: Flavour -> Flavour
+                 enableProfiledGhc flavour =
+                -    enableLateCCS flavour { rtsWays = do
+                +    flavour { rtsWays = do
+                                 ws <- rtsWays flavour
+                                 pure $ (Set.map (\w -> if wayUnit Dynamic w then w else w <> profiling) ws) <> ws
+                             , libraryWays = (Set.singleton profiling <>) <$> (libraryWays flavour)
+              ''
+            ];
           };
           modules = [{
             enableProfiling = true;
