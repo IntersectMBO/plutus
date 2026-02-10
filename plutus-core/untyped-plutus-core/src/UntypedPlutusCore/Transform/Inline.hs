@@ -367,8 +367,8 @@ shouldUnconditionallyInline
   If so, bypass the purity check. -}
   -> name
   -> Term name uni fun a
-  -> Term name uni fun a
-  -> InlineM name uni fun a Bool
+  -> Term name uni fun b
+  -> InlineM name uni fun c Bool
 shouldUnconditionallyInline safe n rhs body = do
   isTermPure <- checkPurity rhs
   inlineConstants <- view iiInlineConstants
@@ -392,7 +392,7 @@ shouldUnconditionallyInline safe n rhs body = do
 checkPurity
   :: PLC.ToBuiltinMeaning uni fun
   => Term name uni fun a
-  -> InlineM name uni fun a Bool
+  -> InlineM name uni fun b Bool
 checkPurity t = do
   builtinSemanticsVariant <- view iiBuiltinSemanticsVariant
   pure $ isPure builtinSemanticsVariant t
@@ -459,13 +459,13 @@ isStrictIn name = go
       Case _ann scrut _branches -> go scrut
 
 effectSafe
-  :: forall name uni fun a
+  :: forall name uni fun a b
    . InliningConstraints name uni fun
   => Term name uni fun a
   -> name
   -> Bool
   -- ^ is it pure? See Note [Inlining and purity]
-  -> InlineM name uni fun a Bool
+  -> InlineM name uni fun b Bool
 effectSafe body n termIsPure = do
   preserveLogging <- view iiPreserveLogging
   builtinSemantics <- view iiBuiltinSemanticsVariant
@@ -480,7 +480,7 @@ acceptable
   :: Bool
   -- ^ inline constants
   -> Term name uni fun a
-  -> InlineM name uni fun a Bool
+  -> InlineM name uni fun b Bool
 acceptable inlineConstants t =
   -- See Note [Inlining criteria]
   pure $ costIsAcceptable t && sizeIsAcceptable inlineConstants t
