@@ -1,18 +1,17 @@
--- editorconfig-checker-disable-file
-{-# OPTIONS_GHC -fno-warn-orphans #-}
-
-module PlutusTx.Ord.Class (Ord (..), Ordering (..)) where
+module PlutusTx.Ord.Class
+  ( Ord (..)
+  , Ordering (..)
+  ) where
 
 {-
-We export off-chain Haskell's Ordering type as on-chain Plutus's Ordering type since they are the same.
+  We export off-chain Haskell's Ordering type as on-chain Plutus's
+  Ordering type since they are the same.
 -}
 
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins qualified as Builtins
-import PlutusTx.Eq
+import PlutusTx.Eq.Class (Eq (..))
 import Prelude (Ordering (..))
-
-{- HLINT ignore -}
 
 infix 4 <, <=, >, >=
 
