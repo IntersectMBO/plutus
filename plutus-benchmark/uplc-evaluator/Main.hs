@@ -37,6 +37,7 @@ import System.Directory
 import System.Exit (exitFailure)
 import System.FilePath (takeBaseName, takeExtension, (</>))
 import System.IO (BufferMode (LineBuffering), hPutStrLn, hSetBuffering, stderr)
+import System.Mem (performGC, performMinorGC)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Parser qualified as UPLC.Parser
@@ -232,6 +233,26 @@ warmupIterations = 3
 defaultSampleCount :: Int
 defaultSampleCount = 15
 
+{-| Run a service-level warmup to prime CPU caches, GHC RTS, and OS pages.
+Parses and evaluates a trivial UPLC program through the full pipeline
+(parse → NamedDeBruijn → CEK evaluation with timing) so the first real
+submission gets consistent timing. All results are discarded. -}
+serviceWarmup :: IO ()
+serviceWarmup = do
+  hPutStrLn stderr "Service warmup: starting..."
+  let trivialProgram = "(program 1.0.0 (con integer 42))"
+  case parseUplcProgram trivialProgram of
+    Left err -> hPutStrLn stderr $ "Service warmup: parse failed: " ++ T.unpack err
+    Right prog ->
+      case toNamedDeBruijnTerm prog of
+        Left err -> hPutStrLn stderr $ "Service warmup: conversion failed: " ++ show err
+        Right term -> do
+          -- Run a single timed evaluation to exercise the full path:
+          -- CEK machine, timing infrastructure, force/evaluate, NFData.
+          _ <- measureExecution $ evaluate (evaluateWithBudget term)
+          performGC
+          hPutStrLn stderr "Service warmup: complete"
+
 {-| Collect multiple timing samples for a UPLC term evaluation.
 Performs warm-up iterations first, then collects timing samples.
 Budget values are deterministic and returned separately from variable timing data.
@@ -249,8 +270,9 @@ collectMeasurements term sampleCount = do
       -- Perform warm-up iterations (discard results)
       replicateM_ warmupIterations (measureSingleExecution term)
 
-      -- Collect timing samples
-      timings <- replicateM sampleCount (measureSingleExecution term)
+      -- Collect timing samples, with a minor GC between each to prevent
+      -- garbage from earlier samples triggering a major GC mid-measurement.
+      timings <- replicateM sampleCount (measureSingleExecution term <* performMinorGC)
 
       -- Build timing samples (only variable timing data)
       let samples = map buildTimingSample timings
@@ -361,6 +383,9 @@ processProgram Config {..} inputPath = do
                             "evaluation_error"
                             evalErr
                         Right term -> do
+                          -- Force a major GC before measuring to drain accumulated
+                          -- garbage and reduce the chance of GC pauses mid-sample.
+                          performGC
                           -- Collect measurements using real CEK evaluation
                           evalResult <- collectMeasurements term defaultSampleCount
                           case evalResult of
@@ -472,6 +497,7 @@ main = withUtf8 do
   hPutStrLn stderr $ "Input directory: " ++ cfgInputDir config
   hPutStrLn stderr $ "Output directory: " ++ cfgOutputDir config
   hPutStrLn stderr $ "Poll interval: " ++ show (cfgPollInterval config) ++ "ms"
+  serviceWarmup
   evaluationLoop config Map.empty
   where
     opts =
