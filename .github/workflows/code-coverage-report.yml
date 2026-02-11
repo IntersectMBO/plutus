@@ -12,7 +12,7 @@ on:
 jobs:
   deploy:
     name: Deploy
-    runs-on: [self-hosted, plutus-ci]
+    runs-on: [self-hosted, plutus-runner]
     permissions:
       contents: write
     environment:
