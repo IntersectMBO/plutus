@@ -69,6 +69,14 @@ testDischargeFree =
       , ("freeRemainsInNestedEnv", freeRemainsInNestedEnv)
       , ("deepFreeVarRemains", deepFreeVarRemains)
       , ("multipleFreeVarsRemain", multipleFreeVarsRemain)
+      , -- Tests for truly free vars that go *past* a non-empty env.
+        -- These exercise the global shift parameter threading approach:
+        -- instead of a separate shiftTermBy post-pass, the shift is threaded through
+        -- goValue and applied to free vars as they are encountered.
+        ("freeVarPastNonEmptyEnvNoLambda", freeVarPastNonEmptyEnvNoLambda)
+      , ("freeVarPastNonEmptyEnvWithLambda", freeVarPastNonEmptyEnvWithLambda)
+      , ("freeVarPastNonEmptyEnvNested", freeVarPastNonEmptyEnvNested)
+      , ("freeVarMixedBoundAndTrulyFree", freeVarMixedBoundAndTrulyFree)
       ]
   where
     delayWithEmptyEnv =
@@ -206,6 +214,80 @@ testDischargeFree =
         @?= DischargeNonConstant
           ( toFakeTerm . lamAbs0 . lamAbs0 $
               Delay () (v 3 @@ [v 4]) -- var 1 -> var 3, var 2 -> var 4
+          )
+
+    freeVarPastNonEmptyEnvNoLambda =
+      -- VDelay (var 2) [VCon unit]
+      -- Env has 1 entry; var 2 at shift=0 looks up idx 2, past env size 1.
+      -- Truly free var at top level (global=0, shift=0): shifted by 0, stays as var 2.
+      dis
+        ( VDelay
+            (toFakeTerm $ v 2)
+            [VCon $ someValue ()]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . Delay () $
+              v 2 -- free var past env, no lambda context, unchanged
+          )
+
+    freeVarPastNonEmptyEnvWithLambda =
+      -- VDelay (\x -> var 3) [VCon unit]
+      -- Under \x (shift=1), var 3 looks up idx 3-1=2, past env size 1.
+      -- Truly free, shifted by (global + shift). At top level: global=0, shift=1 → var 4.
+      -- Note: with the previous shiftTermBy approach, this would have given var 3
+      -- (the post-pass shiftTermBy was never reached at the top level for free vars
+      -- not looked up from an env). The global shift approach applies shift uniformly.
+      dis
+        ( VDelay
+            (toFakeTerm $ LamAbs () (DeBruijn deBruijnInitIndex) (v 3))
+            [VCon $ someValue ()]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . Delay () . lamAbs0 $
+              v 4 -- var 3 shifted by (0 + 1) = 1
+          )
+
+    freeVarPastNonEmptyEnvNested =
+      -- Outer: VLamAbs _ (var 2) [innerDelay]
+      -- Inner: VDelay (\x -> var 3) [VCon unit]
+      -- Outer body var 2 under 1 lambda (shift=1) → look up 1 → found innerDelay
+      -- Discharge innerDelay with global=(0+1)=1.
+      -- Inner: \x -> var 3 in env [VCon unit], global=1, shift=1
+      -- var 3 at shift=1: look up 2, past env → truly free
+      -- Shifted by (global + shift) = (1 + 1) = 2 → var 5.
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            (toFakeTerm $ v 2)
+            [ VDelay
+                (toFakeTerm $ LamAbs () (DeBruijn deBruijnInitIndex) (v 3))
+                [VCon $ someValue ()]
+            ]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 . Delay () . lamAbs0 $
+              v 5 -- var 3 shifted by (1 + 1) = 2
+          )
+
+    freeVarMixedBoundAndTrulyFree =
+      -- VDelay (\x -> x @ var 2 @ var 3) [VCon unit]
+      -- Under \x (shift=1):
+      --   var 1 (x): bound by lambda
+      --   var 2: look up 1 in env → found VCon unit → discharged as (con unit)
+      --   var 3: look up 2 in env → not found → truly free
+      -- Truly free var 3 shifted by (global=0 + shift=1) = 1 → var 4
+      dis
+        ( VDelay
+            ( toFakeTerm $
+                LamAbs () (DeBruijn deBruijnInitIndex) $
+                  v 1 @@ [v 2, v 3]
+            )
+            [VCon $ someValue ()]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . Delay () . lamAbs0 $
+              v 1 @@ [Constant () (someValue ()), v 4]
+              -- x stays, unit substituted, free var 3 → var 4
           )
 
     dis = dischargeCekValue @DefaultUni @DefaultFun

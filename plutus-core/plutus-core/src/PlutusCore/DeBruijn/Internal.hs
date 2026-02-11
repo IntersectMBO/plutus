@@ -42,6 +42,7 @@ module PlutusCore.DeBruijn.Internal
   , deBruijnInitIndex
   , toFake
   , fromFake
+  , shiftNamedDeBruijn
   ) where
 
 import PlutusCore.Name.Unique
@@ -106,6 +107,10 @@ newtype Index = Index Word64
 -- | The LamAbs index (for debruijn indices) and the starting level of DeBruijn monad
 deBruijnInitIndex :: Index
 deBruijnInitIndex = 0
+
+-- | Shift a 'NamedDeBruijn' index by a given amount.
+shiftNamedDeBruijn :: Word64 -> NamedDeBruijn -> NamedDeBruijn
+shiftNamedDeBruijn i (NamedDeBruijn t (Index n)) = NamedDeBruijn t (Index (n + i))
 
 -- The bangs gave us a speedup of 6%.
 
