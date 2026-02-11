@@ -67,7 +67,7 @@ type T_InlineHints_20 = Hints.Inline
 pattern C_var_22 = Hints.InlVar
 pattern C_expand_24 a0 = Hints.InlExpand a0
 pattern C_ƛ_26 a0 = Hints.InlLam a0
-pattern C__'183'__28 a0 a1 = Hints.InlKeep a0 a1
+pattern C__'183'__28 a0 a1 = Hints.InlApply a0 a1
 pattern C__'183''8595'_30 a0 = Hints.InlDrop a0
 pattern C_force_32 a0 = Hints.InlForce a0
 pattern C_delay_34 a0 = Hints.InlDelay a0
@@ -84,7 +84,7 @@ check_ƛ_26 :: T_InlineHints_20 -> T_InlineHints_20
 check_ƛ_26 = Hints.InlLam
 check__'183'__28 ::
   T_InlineHints_20 -> T_InlineHints_20 -> T_InlineHints_20
-check__'183'__28 = Hints.InlKeep
+check__'183'__28 = Hints.InlApply
 check__'183''8595'_30 :: T_InlineHints_20 -> T_InlineHints_20
 check__'183''8595'_30 = Hints.InlDrop
 check_force_32 :: T_InlineHints_20 -> T_InlineHints_20
@@ -112,7 +112,7 @@ cover_InlineHints_20 x
       Hints.InlVar -> ()
       Hints.InlExpand _ -> ()
       Hints.InlLam _ -> ()
-      Hints.InlKeep _ _ -> ()
+      Hints.InlApply _ _ -> ()
       Hints.InlDrop _ -> ()
       Hints.InlForce _ -> ()
       Hints.InlDelay _ -> ()
