@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -24,7 +25,11 @@ import Control.Lens
 import Data.Bifunctor (first)
 import Data.Coerce (coerce)
 import Data.Either.Validation
+#if __GLASGOW_HASKELL__ >= 912
+import Data.Foldable (toList)
+#else 
 import Data.Foldable (foldl', toList)
+#endif 
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)

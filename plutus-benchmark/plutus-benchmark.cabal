@@ -885,6 +885,7 @@ executable uplc-evaluator
   default-language: Haskell2010
   main-is:          Main.hs
   hs-source-dirs:   uplc-evaluator
+  ghc-options:      -rtsopts -with-rtsopts=-I0
   build-depends:
     , aeson                  >=2.0
     , base                   >=4.9   && <5
@@ -902,7 +903,6 @@ executable uplc-evaluator
 
 test-suite uplc-evaluator-integration-tests
   import:             lang, os-support
-  buildable:          False
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:

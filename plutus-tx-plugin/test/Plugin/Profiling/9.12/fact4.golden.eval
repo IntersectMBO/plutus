@@ -1,0 +1,36 @@
+[ -> fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> equalsInteger
+, <- equalsInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:91:1-91:4)
+, -> multiplyInteger
+, <- multiplyInteger
+, <- fact (test/Plugin/Profiling/Spec.hs:91:1-91:4) ]

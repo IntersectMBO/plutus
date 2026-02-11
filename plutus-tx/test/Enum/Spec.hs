@@ -58,10 +58,12 @@ enumTests =
         , testCase "full length" $ Tx.length (Tx.enumFromTo @SomeVeryLargeEnum HS.minBound HS.maxBound) @?= Tx.fromEnum @SomeVeryLargeEnum HS.maxBound + 1
         , runTestNested
             ["test", "Enum", "Golden"]
-            [ $(goldenCodeGen "SomeVeryLargeEnum" (deriveEnum ''SomeVeryLargeEnum))
-            , $(goldenCodeGen "SomeVeryLargePhantom" (deriveEnum ''SomeVeryLargePhantom))
-            , $(goldenCodeGen "Bool" (deriveEnum ''Bool))
-            , $(goldenCodeGen "Unit" (deriveEnum ''()))
+            [ testNestedGhc
+                [ $(goldenCodeGen "SomeVeryLargeEnum" (deriveEnum ''SomeVeryLargeEnum))
+                , $(goldenCodeGen "SomeVeryLargePhantom" (deriveEnum ''SomeVeryLargePhantom))
+                , $(goldenCodeGen "Bool" (deriveEnum ''Bool))
+                , $(goldenCodeGen "Unit" (deriveEnum ''()))
+                ]
             ]
         , enumFromToTests
         , enumFromThenToTests

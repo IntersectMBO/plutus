@@ -1,0 +1,28 @@
+[ -> f (test/Plugin/Profiling/Spec.hs:138:9-138:9)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> f (test/Plugin/Profiling/Spec.hs:138:9-138:9)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> f (test/Plugin/Profiling/Spec.hs:138:9-138:9)
+, -> equalsInteger
+, <- equalsInteger
+, -> subtractInteger
+, <- subtractInteger
+, -> f (test/Plugin/Profiling/Spec.hs:138:9-138:9)
+, -> equalsInteger
+, <- equalsInteger
+, <- f (test/Plugin/Profiling/Spec.hs:138:9-138:9)
+, -> addInteger
+, <- addInteger
+, <- f (test/Plugin/Profiling/Spec.hs:138:9-138:9)
+, -> addInteger
+, <- addInteger
+, <- f (test/Plugin/Profiling/Spec.hs:138:9-138:9)
+, -> addInteger
+, <- addInteger
+, <- f (test/Plugin/Profiling/Spec.hs:138:9-138:9) ]

@@ -144,11 +144,13 @@ let
       (windows-hydra-jobs) //
       (packages) //
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
+      { ghc912 = project-variants-hydra-jobs.ghc912; } //
       { devShells.default = non-profiled-shells.default; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
       { ghc96 = project-variants-hydra-jobs.ghc96; } //
+      { ghc912 = project-variants-hydra-jobs.ghc912; } //
       { devShells.default = non-profiled-shells.default; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { required = hydra-required-job; };

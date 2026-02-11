@@ -1,0 +1,18 @@
+CPU:                 6_194_730
+Memory:                 27_320
+AST Size:                   55
+Flat Size:                  84
+
+(constr
+  1
+  (con integer 2)
+  (constr
+    1
+    (con integer 4)
+    (constr
+      1
+      (con integer 6)
+      (constr 1 (con integer 8) (constr 1 (con integer 10) (constr 0)))
+    )
+  )
+)

@@ -4,6 +4,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-unrecognised-warning-flags #-}
+{-# OPTIONS_GHC -Wno-x-partial #-}
 
 module List.Semantics where
 

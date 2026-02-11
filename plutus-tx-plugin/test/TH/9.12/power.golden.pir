@@ -1,0 +1,55 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl
+      multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
+    )
+    (builtin multiplyInteger)
+  )
+  (termbind
+    (nonstrict)
+    (vardecl
+      multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
+    )
+    (lam
+      x
+      (con integer)
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl x (con integer)) x)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ multiplyInteger x ] y ]
+          )
+        )
+      )
+    )
+  )
+  (lam
+    ds
+    (con integer)
+    (let
+      (nonrec)
+      (termbind (strict) (vardecl ds (con integer)) ds)
+      (termbind
+        (strict)
+        (vardecl y (con integer))
+        (let
+          (nonrec)
+          (termbind
+            (strict)
+            (vardecl y (con integer))
+            [ [ multiplyInteger ds ] (con integer 1) ]
+          )
+          [ [ multiplyInteger y ] y ]
+        )
+      )
+      [ [ multiplyInteger y ] y ]
+    )
+  )
+)

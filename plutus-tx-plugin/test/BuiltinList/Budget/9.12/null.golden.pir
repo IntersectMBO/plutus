@@ -1,0 +1,1 @@
+\(xs : list integer) -> nullList {integer} xs

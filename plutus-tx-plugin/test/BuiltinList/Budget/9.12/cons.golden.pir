@@ -1,0 +1,1 @@
+\(xs : list integer) -> mkCons {integer} 0 xs
