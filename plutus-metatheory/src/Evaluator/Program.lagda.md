@@ -192,6 +192,20 @@ executeUPLC Silent t = (withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
 executeUPLC (Counting rcm) t = executeUPLCwithMP rcm machineParameters countingReport t
 executeUPLC (Tallying rcm) t = executeUPLCwithMP rcm tallyingMachineParameters tallyingReport t
 
+```
+# Evaluation of Programs
+
+`evalProgramNU` parses and evaluates a named UPLC program (its variables are named,
+not de Bruijn indices). 
+
+`evalProgramN` is similar to `evalProgramNU` but its input is a PLC program.
+
+`typeCheckProgramN` parses and type checks a PLC program.
+
+Note that some of the functions or types these functions depend on are postulated and
+implemented in Haskell, therefore they are expected to be run in Haskell after Agda is compiled.
+
+```
 evalProgramNU : BudgetMode RawCostModel → ProgramNU → Either ERROR String
 evalProgramNU bm namedprog = do
   t ← parseUPLC namedprog

@@ -281,8 +281,8 @@ runUCounting : RawCostModel → TermU → Either ERROR (TermU × (Nat × Nat))
 runUCounting (cekMachineCosts , rawmodel) t with createMap rawmodel
 ... | just model = do
         tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
-        let machineParameters = machineParameters (cekMachineCosts , model)
-            (ev , exBudget) = U.stepperC machineParameters maxsteps (ε ; [] ▻ tDB)
+        let params = machineParameters (cekMachineCosts , model)
+            (ev , exBudget) = U.stepperC params maxsteps (ε ; [] ▻ tDB)
         □ V ← withE runtimeError ev
             where
             ◆ → inj₁ (runtimeError userError) -- ◆ returns a `userError` runtimeError.
