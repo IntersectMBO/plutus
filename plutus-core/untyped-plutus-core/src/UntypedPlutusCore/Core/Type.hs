@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -20,6 +21,7 @@ module UntypedPlutusCore.Core.Type
   , bindFun
   , mapFun
   , termAnn
+  , modifyTermAnn
   , UVarDecl (..)
   , uvarDeclName
   , uvarDeclAnn
@@ -175,6 +177,19 @@ termAnn (Force ann _) = ann
 termAnn (Error ann) = ann
 termAnn (Constr ann _ _) = ann
 termAnn (Case ann _ _) = ann
+
+modifyTermAnn :: (ann -> ann) -> Term name uni fun ann -> Term name uni fun ann
+modifyTermAnn f = \case
+  Constant ann c -> Constant (f ann) c
+  Builtin ann b -> Builtin (f ann) b
+  Var ann v -> Var (f ann) v
+  LamAbs ann x body -> LamAbs (f ann) x body
+  Apply ann fun arg -> Apply (f ann) fun arg
+  Delay ann body -> Delay (f ann) body
+  Force ann body -> Force (f ann) body
+  Error ann -> Error (f ann)
+  Constr ann i args -> Constr (f ann) i args
+  Case ann scrut alts -> Case (f ann) scrut alts
 
 bindFunM
   :: Monad m

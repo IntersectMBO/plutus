@@ -3,10 +3,8 @@ module UntypedPlutusCore.Transform.Certify.Hints where
 -- | Certifier hints for the inlining pass.
 data Inline
   = InlVar
-  | InlExpand Inline
   | InlLam Inline
-  | InlKeep Inline Inline
-  | InlDrop Inline
+  | InlApply Inline Inline
   | InlForce Inline
   | InlDelay Inline
   | InlCon
@@ -14,6 +12,9 @@ data Inline
   | InlError
   | InlConstr [Inline]
   | InlCase Inline [Inline]
+  | -- Decorations
+    InlExpand Inline
+  | InlDrop Inline
 
 {-| Hints for the certifier.
 
