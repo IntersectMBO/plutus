@@ -159,6 +159,9 @@ let
   quick-shell = project.projectVariants.${ghc}.shellFor {
     name = "plutus-shell-${ghc}";
     tools = { cabal = "latest"; };
+    buildInputs = [
+      pkgs.git
+    ];
     withHoogle = false;
     shellHook = ''
       ${locale-archive-hook}
