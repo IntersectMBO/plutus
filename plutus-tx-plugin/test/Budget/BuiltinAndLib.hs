@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use const" #-}
@@ -22,6 +23,7 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
 import PlutusTx.Ord ((<))
+import PlutusTx.Trace (traceError)
 
 {-# INLINE builtinIf #-}
 builtinIf :: Bool -> (BI.BuiltinUnit -> a) -> (BI.BuiltinUnit -> a) -> a
@@ -50,3 +52,26 @@ andDirectIfThenElsePattern x y z =
     )
     (\_ -> False)
     BI.unitval
+
+-- | Philip's exact claim: if (builtinAnd a $ builtinAnd b $ builtinAnd c) then X else error
+{-# INLINE andBuiltinAndIfErrorPattern #-}
+andBuiltinAndIfErrorPattern :: Integer -> Integer -> Integer -> BI.BuiltinUnit
+andBuiltinAndIfErrorPattern x y z =
+  builtinIf
+    (builtinAnd (x < 100) (builtinAnd (y < 100) (z < 100)))
+    (\_ -> BI.unitval)
+    (\_ -> traceError "conditions not met")
+
+-- | Equivalent with nested builtinIf (Philip's actual validator pattern)
+{-# INLINE andBuiltinIfNestPattern #-}
+andBuiltinIfNestPattern :: Integer -> Integer -> Integer -> BI.BuiltinUnit
+andBuiltinIfNestPattern x y z =
+  builtinIf
+    (x < 100)
+    ( \_ ->
+        builtinIf
+          (y < 100)
+          (\_ -> builtinIf (z < 100) (\_ -> BI.unitval) (\_ -> traceError "conditions not met"))
+          (\_ -> traceError "conditions not met")
+    )
+    (\_ -> traceError "conditions not met")

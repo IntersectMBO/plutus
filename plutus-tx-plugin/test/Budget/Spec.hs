@@ -126,6 +126,14 @@ tests =
         goldenBundle' "andDirectIfThenElse_AllTrue" andDirectIfThenElse_AllTrue
       , goldenBundle' "andDirectIfThenElse_EarlyFail" andDirectIfThenElse_EarlyFail
       , goldenBundle' "andDirectIfThenElse_LateFail" andDirectIfThenElse_LateFail
+      , -- Pattern 5: Philip's claim — if (builtinAnd a $ builtinAnd b c) then ok else error
+        goldenBundle' "andBuiltinAndIfError_AllTrue" andBuiltinAndIfError_AllTrue
+      , goldenBundle' "andBuiltinAndIfError_EarlyFail" andBuiltinAndIfError_EarlyFail
+      , goldenBundle' "andBuiltinAndIfError_LateFail" andBuiltinAndIfError_LateFail
+      , -- Pattern 6: Nested builtinIf (Philip's actual validator pattern)
+        goldenBundle' "andBuiltinIfNest_AllTrue" andBuiltinIfNest_AllTrue
+      , goldenBundle' "andBuiltinIfNest_EarlyFail" andBuiltinIfNest_EarlyFail
+      , goldenBundle' "andBuiltinIfNest_LateFail" andBuiltinIfNest_LateFail
       ]
 
 compiledSum :: CompiledCode Integer
@@ -767,6 +775,50 @@ andDirectIfThenElse_EarlyFail =
 andDirectIfThenElse_LateFail :: CompiledCode Bool
 andDirectIfThenElse_LateFail =
   $$(compile [||BuiltinAndLib.andDirectIfThenElsePattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
+
+-- Pattern 5: Philip's claim — if (builtinAnd a $ builtinAnd b c) then ok else error
+andBuiltinAndIfError_AllTrue :: CompiledCode BuiltinUnit
+andBuiltinAndIfError_AllTrue =
+  $$(compile [||BuiltinAndLib.andBuiltinAndIfErrorPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinAndIfError_EarlyFail :: CompiledCode BuiltinUnit
+andBuiltinAndIfError_EarlyFail =
+  $$(compile [||BuiltinAndLib.andBuiltinAndIfErrorPattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinAndIfError_LateFail :: CompiledCode BuiltinUnit
+andBuiltinAndIfError_LateFail =
+  $$(compile [||BuiltinAndLib.andBuiltinAndIfErrorPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 150
+
+-- Pattern 6: Nested builtinIf (Philip's actual validator pattern)
+andBuiltinIfNest_AllTrue :: CompiledCode BuiltinUnit
+andBuiltinIfNest_AllTrue =
+  $$(compile [||BuiltinAndLib.andBuiltinIfNestPattern||])
+    `unsafeApplyCode` liftCodeDef 50
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinIfNest_EarlyFail :: CompiledCode BuiltinUnit
+andBuiltinIfNest_EarlyFail =
+  $$(compile [||BuiltinAndLib.andBuiltinIfNestPattern||])
+    `unsafeApplyCode` liftCodeDef 150
+    `unsafeApplyCode` liftCodeDef 60
+    `unsafeApplyCode` liftCodeDef 70
+
+andBuiltinIfNest_LateFail :: CompiledCode BuiltinUnit
+andBuiltinIfNest_LateFail =
+  $$(compile [||BuiltinAndLib.andBuiltinIfNestPattern||])
     `unsafeApplyCode` liftCodeDef 50
     `unsafeApplyCode` liftCodeDef 60
     `unsafeApplyCode` liftCodeDef 150
