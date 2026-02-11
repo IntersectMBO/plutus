@@ -1,0 +1,1 @@
+(program 1.1.0 (\xs -> constr 0 [(force headList xs), (force tailList xs)]))

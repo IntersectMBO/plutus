@@ -79,7 +79,6 @@ let
             ];
           };
         }
-
         {
           packages = {
             docusaurus-examples.ghcOptions = [ "-Werror" ];

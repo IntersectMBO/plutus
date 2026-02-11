@@ -1,0 +1,1 @@
+\(ds : list integer) -> [42]

@@ -1,0 +1,10 @@
+[ -> f (test/Plugin/Profiling/Spec.hs:125:9-125:9)
+, -> addInteger
+, <- addInteger
+, <- f (test/Plugin/Profiling/Spec.hs:125:9-125:9)
+, -> f (test/Plugin/Profiling/Spec.hs:125:9-125:9)
+, -> addInteger
+, <- addInteger
+, <- f (test/Plugin/Profiling/Spec.hs:125:9-125:9)
+, -> addInteger
+, <- addInteger ]

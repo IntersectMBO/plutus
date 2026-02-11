@@ -1,0 +1,6 @@
+CPU:                45_516_260
+Memory:                239_360
+AST Size:                  100
+Flat Size:                 113
+
+(con (list integer) [1,2,3,4,5,6,7,8,9,10])

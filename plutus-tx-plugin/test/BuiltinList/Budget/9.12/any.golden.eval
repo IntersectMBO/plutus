@@ -1,0 +1,6 @@
+CPU:                 7_327_320
+Memory:                 40_818
+AST Size:                   55
+Flat Size:                  74
+
+(constr 0 (con bool True) (con bool False))

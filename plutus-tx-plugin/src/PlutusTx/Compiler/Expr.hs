@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- editorconfig-checker-disable-file
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -36,6 +37,7 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
+import PlutusTx.Compiler.Compat (maybeGetClassOpId)
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Laziness
 import PlutusTx.Compiler.Names
@@ -1017,11 +1019,11 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- We can safely commit to this match as soon as we've seen fromString -
     -- we won't accept any applications of fromString that aren't creating literals of
     -- the types we support.
-    (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls))
+    (strip -> GHC.Var var)
       `GHC.App` GHC.Type ty
       `GHC.App` _dict
       `GHC.App` (strip -> content)
-        | GHC.getName cls == GHC.isStringClassName -> do
+        | GHC.getName var == GHC.fromStringName -> do
             let throwUnsupported =
                   throwSd UnsupportedError $
                     ""
@@ -1174,7 +1176,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
     -- want to check the unfoldings case first), see GHC:Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
-    GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
+    GHC.Var n@(maybeGetClassOpId . GHC.idDetails -> Just cls) -> do
       -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
       -- selectors that do have them
       let sel_names = fmap GHC.getName (GHC.classAllSelIds cls)
