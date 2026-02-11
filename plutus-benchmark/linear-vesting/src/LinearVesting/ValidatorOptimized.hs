@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -21,22 +22,10 @@
 module LinearVesting.ValidatorOptimized where
 
 import PlutusTx (CompiledCode, compile)
-import PlutusTx.Bool (Bool (..))
+import PlutusTx.Bool (Bool (..), not, otherwise)
 import PlutusTx.Builtins.HasOpaque ()
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Trace (traceError)
-
-{-# INLINE builtinIf #-}
-builtinIf :: Bool -> (BI.BuiltinUnit -> a) -> (BI.BuiltinUnit -> a) -> a
-builtinIf cond t f = BI.ifThenElse cond t f BI.unitval
-
-{-# INLINE builtinNot #-}
-builtinNot :: Bool -> Bool
-builtinNot b = builtinIf b (\_ -> False) (\_ -> True)
-
-{-# INLINE builtinAnd #-}
-builtinAnd :: Bool -> Bool -> Bool
-builtinAnd b1 b2 = builtinIf b1 (\_ -> b2) (\_ -> False)
 
 {-# INLINE divCeil #-}
 divCeil :: BI.BuiltinInteger -> BI.BuiltinInteger -> BI.BuiltinInteger
@@ -55,14 +44,10 @@ lowerInclusiveTime iv =
       extTag = BI.fst extCon
       extFields = BI.snd extCon
       offset =
-        builtinIf
-          (BI.equalsInteger closureTag 1)
-          (\_ -> 0)
-          (\_ -> 1)
-   in builtinIf
-        (BI.equalsInteger extTag 1)
-        (\_ -> BI.addInteger (BI.unsafeDataAsI (BI.head extFields)) offset)
-        (\_ -> traceError "Time range not Finite")
+        if BI.equalsInteger closureTag 1 then 0 else 1
+   in if BI.equalsInteger extTag 1
+        then BI.addInteger (BI.unsafeDataAsI (BI.head extFields)) offset
+        else traceError "Time range not Finite"
 
 {-# INLINE txSignedByOptimized #-}
 txSignedByOptimized :: BI.BuiltinList BI.BuiltinData -> BI.BuiltinByteString -> Bool
@@ -71,10 +56,9 @@ txSignedByOptimized signatories pkh =
     False
     ( \s ss ->
         let sBytes = BI.unsafeDataAsB s
-         in builtinIf
-              (BI.equalsByteString sBytes pkh)
-              (\_ -> True)
-              (\_ -> txSignedByOptimized ss pkh)
+         in if BI.equalsByteString sBytes pkh
+              then True
+              else txSignedByOptimized ss pkh
     )
     signatories
 
@@ -86,10 +70,9 @@ findInputByOutRef ref inputs =
     ( \txIn txIns ->
         let txInFields = BI.snd (BI.unsafeDataAsConstr txIn)
             txInRef = BI.head txInFields
-         in builtinIf
-              (BI.equalsData txInRef ref)
-              (\_ -> txIn)
-              (\_ -> findInputByOutRef ref txIns)
+         in if BI.equalsData txInRef ref
+              then txIn
+              else findInputByOutRef ref txIns
     )
     inputs
 
@@ -101,10 +84,9 @@ findOutputByAddress addr outputs =
     ( \out outs ->
         let outFields = BI.snd (BI.unsafeDataAsConstr out)
             outAddr = BI.head outFields
-         in builtinIf
-              (BI.equalsData outAddr addr)
-              (\_ -> out)
-              (\_ -> findOutputByAddress addr outs)
+         in if BI.equalsData outAddr addr
+              then out
+              else findOutputByAddress addr outs
     )
     outputs
 
@@ -124,16 +106,13 @@ countInputsAtScript scriptHash inputs =
             credTag = BI.fst credCon
             credFields = BI.snd credCon
             rest = countInputsAtScript scriptHash txIns
-         in builtinIf
-              (BI.equalsInteger credTag 1)
-              ( \_ ->
-                  let vh = BI.unsafeDataAsB (BI.head credFields)
-                   in builtinIf
-                        (BI.equalsByteString vh scriptHash)
-                        (\_ -> BI.addInteger 1 rest)
-                        (\_ -> rest)
-              )
-              (\_ -> rest)
+         in if BI.equalsInteger credTag 1
+              then
+                let vh = BI.unsafeDataAsB (BI.head credFields)
+                 in if BI.equalsByteString vh scriptHash
+                      then BI.addInteger 1 rest
+                      else rest
+              else rest
     )
     inputs
 
@@ -145,31 +124,25 @@ valueOf valueData cs tn =
   where
     findCurrency :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> BI.BuiltinInteger
     findCurrency pairs =
-      builtinIf
-        (BI.null pairs)
-        (\_ -> 0)
-        ( \_ ->
-            let pair = BI.head pairs
-                key = BI.unsafeDataAsB (BI.fst pair)
-             in builtinIf
-                  (BI.equalsByteString key cs)
-                  (\_ -> findToken (BI.unsafeDataAsMap (BI.snd pair)))
-                  (\_ -> findCurrency (BI.tail pairs))
-        )
+      if BI.null pairs
+        then 0
+        else
+          let pair = BI.head pairs
+              key = BI.unsafeDataAsB (BI.fst pair)
+           in if BI.equalsByteString key cs
+                then findToken (BI.unsafeDataAsMap (BI.snd pair))
+                else findCurrency (BI.tail pairs)
 
     findToken :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> BI.BuiltinInteger
     findToken pairs =
-      builtinIf
-        (BI.null pairs)
-        (\_ -> 0)
-        ( \_ ->
-            let pair = BI.head pairs
-                key = BI.unsafeDataAsB (BI.fst pair)
-             in builtinIf
-                  (BI.equalsByteString key tn)
-                  (\_ -> BI.unsafeDataAsI (BI.snd pair))
-                  (\_ -> findToken (BI.tail pairs))
-        )
+      if BI.null pairs
+        then 0
+        else
+          let pair = BI.head pairs
+              key = BI.unsafeDataAsB (BI.fst pair)
+           in if BI.equalsByteString key tn
+                then BI.unsafeDataAsI (BI.snd pair)
+                else findToken (BI.tail pairs)
 
 {-# INLINE getScriptHashFromAddress #-}
 getScriptHashFromAddress :: BI.BuiltinData -> BI.BuiltinByteString
@@ -179,10 +152,9 @@ getScriptHashFromAddress addr =
       !credCon = BI.unsafeDataAsConstr cred
       credTag = BI.fst credCon
       credFields = BI.snd credCon
-   in builtinIf
-        (BI.equalsInteger credTag 1)
-        (\_ -> BI.unsafeDataAsB (BI.head credFields))
-        (\_ -> traceError "Expected ScriptCredential")
+   in if BI.equalsInteger credTag 1
+        then BI.unsafeDataAsB (BI.head credFields)
+        else traceError "Expected ScriptCredential"
 
 {-# INLINE getPubKeyHashFromAddress #-}
 getPubKeyHashFromAddress :: BI.BuiltinData -> BI.BuiltinByteString
@@ -192,10 +164,9 @@ getPubKeyHashFromAddress addr =
       !credCon = BI.unsafeDataAsConstr cred
       credTag = BI.fst credCon
       credFields = BI.snd credCon
-   in builtinIf
-        (BI.equalsInteger credTag 0)
-        (\_ -> BI.unsafeDataAsB (BI.head credFields))
-        (\_ -> traceError "Expected PubKeyCredential")
+   in if BI.equalsInteger credTag 0
+        then BI.unsafeDataAsB (BI.head credFields)
+        else traceError "Expected PubKeyCredential"
 
 {-# INLINE getSpendingInfo #-}
 getSpendingInfo :: BI.BuiltinData -> BI.BuiltinPair BI.BuiltinData BI.BuiltinData
@@ -203,20 +174,17 @@ getSpendingInfo scriptInfo =
   let con = BI.unsafeDataAsConstr scriptInfo
       tag = BI.fst con
       fields = BI.snd con
-   in builtinIf
-        (BI.equalsInteger tag 1)
-        ( \_ ->
-            let ownRef = BI.head fields
-                maybeDatum = BI.head (BI.tail fields)
-                !mdCon = BI.unsafeDataAsConstr maybeDatum
-                mdTag = BI.fst mdCon
-                mdFields = BI.snd mdCon
-             in builtinIf
-                  (BI.equalsInteger mdTag 0)
-                  (\_ -> BI.mkPairData ownRef (BI.head mdFields))
-                  (\_ -> traceError "Missing datum")
-        )
-        (\_ -> traceError "Not spending script")
+   in if BI.equalsInteger tag 1
+        then
+          let ownRef = BI.head fields
+              maybeDatum = BI.head (BI.tail fields)
+              !mdCon = BI.unsafeDataAsConstr maybeDatum
+              mdTag = BI.fst mdCon
+              mdFields = BI.snd mdCon
+           in if BI.equalsInteger mdTag 0
+                then BI.mkPairData ownRef (BI.head mdFields)
+                else traceError "Missing datum"
+        else traceError "Not spending script"
 
 {-# INLINE validateVestingPartialUnlockOptimized #-}
 validateVestingPartialUnlockOptimized
@@ -275,40 +243,22 @@ validateVestingPartialUnlockOptimized txInputs txOutputs txValidRange txSignator
 
       beneficiaryHash = getPubKeyHashFromAddress beneficiaryAddr
       signed = txSignedByOptimized txSignatories beneficiaryHash
-   in builtinIf
-        (builtinNot signed)
-        (\_ -> traceError "Missing beneficiary signature")
-        ( \_ ->
-            builtinIf
-              (BI.lessThanEqualsInteger currentTimeApproximation firstUnlockPossibleAfter)
-              (\_ -> traceError "Unlock not permitted until firstUnlockPossibleAfter time")
-              ( \_ ->
-                  builtinIf
-                    (BI.lessThanEqualsInteger newRemainingQty 0)
-                    (\_ -> traceError "Zero remaining assets not allowed")
-                    ( \_ ->
-                        builtinIf
-                          (BI.lessThanEqualsInteger oldRemainingQty newRemainingQty)
-                          (\_ -> traceError "Remaining asset is not decreasing")
-                          ( \_ ->
-                              builtinIf
-                                (builtinNot (BI.equalsInteger expectedRemainingQty newRemainingQty))
-                                (\_ -> traceError "Mismatched remaining asset")
-                                ( \_ ->
-                                    builtinIf
-                                      (builtinNot (BI.equalsData resolvedDatum outputDatum))
-                                      (\_ -> traceError "Datum Modification Prohibited")
-                                      ( \_ ->
-                                          builtinIf
-                                            (builtinNot (BI.equalsInteger (countInputsAtScript scriptHash txInputs) 1))
-                                            (\_ -> traceError "Double satisfaction")
-                                            (\_ -> True)
-                                      )
-                                )
-                          )
-                    )
-              )
-        )
+   in if
+        | not signed ->
+            traceError "Missing beneficiary signature"
+        | BI.lessThanEqualsInteger currentTimeApproximation firstUnlockPossibleAfter ->
+            traceError "Unlock not permitted until firstUnlockPossibleAfter time"
+        | BI.lessThanEqualsInteger newRemainingQty 0 ->
+            traceError "Zero remaining assets not allowed"
+        | BI.lessThanEqualsInteger oldRemainingQty newRemainingQty ->
+            traceError "Remaining asset is not decreasing"
+        | not (BI.equalsInteger expectedRemainingQty newRemainingQty) ->
+            traceError "Mismatched remaining asset"
+        | not (BI.equalsData resolvedDatum outputDatum) ->
+            traceError "Datum Modification Prohibited"
+        | not (BI.equalsInteger (countInputsAtScript scriptHash txInputs) 1) ->
+            traceError "Double satisfaction"
+        | otherwise -> True
 
 {-# INLINE validateVestingFullUnlockOptimized #-}
 validateVestingFullUnlockOptimized
@@ -327,15 +277,12 @@ validateVestingFullUnlockOptimized txValidRange txSignatories vestingDatum =
       vestingPeriodEnd = BI.unsafeDataAsI (BI.head vdFields4)
       currentTimeApproximation = lowerInclusiveTime txValidRange
       beneficiaryHash = getPubKeyHashFromAddress beneficiaryAddr
-   in builtinIf
-        (builtinNot (txSignedByOptimized txSignatories beneficiaryHash))
-        (\_ -> traceError "Missing beneficiary signature")
-        ( \_ ->
-            builtinIf
-              (BI.lessThanEqualsInteger currentTimeApproximation vestingPeriodEnd)
-              (\_ -> traceError "Unlock not permitted until vestingPeriodEnd time")
-              (\_ -> True)
-        )
+   in if
+        | not (txSignedByOptimized txSignatories beneficiaryHash) ->
+            traceError "Missing beneficiary signature"
+        | BI.lessThanEqualsInteger currentTimeApproximation vestingPeriodEnd ->
+            traceError "Unlock not permitted until vestingPeriodEnd time"
+        | otherwise -> True
 
 {-# INLINEABLE untypedValidatorOptimized #-}
 untypedValidatorOptimized :: BI.BuiltinData -> BI.BuiltinUnit
@@ -372,36 +319,27 @@ untypedValidatorOptimized scriptContextData =
           "Parsed ScriptContext"
           ( BI.trace
               "Parsed Redeemer"
-              ( builtinIf
-                  (BI.equalsInteger redeemerTag 1)
-                  ( \_ ->
-                      BI.trace
-                        "Full unlock requested"
-                        (validateVestingFullUnlockOptimized txValidRange txSignatories datumData)
-                  )
-                  ( \_ ->
-                      builtinIf
-                        (BI.equalsInteger redeemerTag 0)
-                        ( \_ ->
-                            BI.trace
-                              "Partial unlock requested"
-                              ( validateVestingPartialUnlockOptimized
-                                  txInputs
-                                  txOutputs
-                                  txValidRange
-                                  txSignatories
-                                  ownRef
-                                  datumData
-                              )
-                        )
-                        (\_ -> traceError "Failed to parse Redeemer")
-                  )
+              ( BI.caseInteger
+                  redeemerTag
+                  [ BI.trace
+                      "Partial unlock requested"
+                      ( validateVestingPartialUnlockOptimized
+                          txInputs
+                          txOutputs
+                          txValidRange
+                          txSignatories
+                          ownRef
+                          datumData
+                      )
+                  , BI.trace
+                      "Full unlock requested"
+                      (validateVestingFullUnlockOptimized txValidRange txSignatories datumData)
+                  ]
               )
           )
-   in builtinIf
-        result
-        (\_ -> BI.trace "Validation completed" BI.unitval)
-        (\_ -> traceError "Validation failed")
+   in if result
+        then BI.trace "Validation completed" BI.unitval
+        else traceError "Validation failed"
 
 validatorOptimizedCode :: CompiledCode (BI.BuiltinData -> BI.BuiltinUnit)
 validatorOptimizedCode = $$(compile [||untypedValidatorOptimized||])
