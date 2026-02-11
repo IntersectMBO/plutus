@@ -4,7 +4,7 @@ let
 
   # Agda standard library pinned to v2.1.1.
   # Used in: `nix/metatheory.nix` (as a build input) and `nix/shell.nix` (via agda-with-stdlib).
-  agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAtts: rec {
+  agda-stdlib = agda-packages.standard-library.overrideAttrs (oldAttrs: rec {
 
     version = "2.1.1";
 
