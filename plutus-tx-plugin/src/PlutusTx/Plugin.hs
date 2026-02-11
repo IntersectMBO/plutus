@@ -625,6 +625,7 @@ runCompiler moduleName opts expr = do
 
   -- (Simplified) Pir -> Plc translation.
   plcP <-
+    {-# SCC "plinth-spir2plc-step" #-}
     flip runReaderT pirCtx $
       modifyError (NoContext . PIRError) $
         PIR.compileReadableToPlc spirP

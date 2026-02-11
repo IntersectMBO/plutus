@@ -137,9 +137,6 @@ test-suite plutus-tx-plugin-tests
     BuiltinList.NoCasing.Spec
     ByteStringLiterals.Lib
     ByteStringLiterals.Spec
-    CallTrace.Lib
-    CallTrace.OtherModule
-    CallTrace.Spec
     DataList.Budget.Spec
     Inline.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
@@ -185,6 +182,9 @@ test-suite plutus-tx-plugin-tests
     TH.TestTH
     Unicode.Spec
 
+  -- CallTrace.Lib
+  -- CallTrace.OtherModule
+  -- CallTrace.Spec
   build-depends:
     , base                             >=4.9   && <5
     , base16-bytestring

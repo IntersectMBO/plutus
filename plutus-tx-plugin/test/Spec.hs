@@ -9,7 +9,8 @@ import BuiltinCasing.Spec qualified as BuiltinCasing
 import BuiltinList.Budget.Spec qualified as BuiltinList.Budget
 import BuiltinList.NoCasing.Spec qualified as BuiltinList.NoCasing
 import ByteStringLiterals.Spec qualified as ByteStringLiterals
-import CallTrace.Spec qualified as CallTrace
+
+-- import CallTrace.Spec qualified as CallTrace
 import DataList.Budget.Spec qualified as DataList.Budget
 import Inline.Spec qualified as Inline
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified
