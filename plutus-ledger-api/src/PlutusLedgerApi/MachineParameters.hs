@@ -24,10 +24,15 @@ machineParametersFor ledgerLang majorPV =
     (mkMachineVariantParameters builtinSemVar $ cekCostModelForVariant builtinSemVar)
   where
     builtinSemVar =
-      case ledgerLang of
-        PlutusV1 -> conwayDependentVariant
-        PlutusV2 -> conwayDependentVariant
-        PlutusV3 -> DefaultFunSemanticsVariantC
+      if majorPV < pv11PV
+        then case ledgerLang of
+          PlutusV1 -> conwayDependentVariant
+          PlutusV2 -> conwayDependentVariant
+          PlutusV3 -> DefaultFunSemanticsVariantC
+        else case ledgerLang of
+          PlutusV1 -> DefaultFunSemanticsVariantD
+          PlutusV2 -> DefaultFunSemanticsVariantD
+          PlutusV3 -> DefaultFunSemanticsVariantE
     conwayDependentVariant =
       if majorPV < changPV
         then DefaultFunSemanticsVariantA

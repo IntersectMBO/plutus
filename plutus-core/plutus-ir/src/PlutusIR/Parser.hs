@@ -25,7 +25,6 @@ import Control.Monad (fail, when)
 import Control.Monad.Combinators.NonEmpty qualified as NE
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
-import Data.Word (Word64)
 import PlutusCore (MonadQuote)
 import PlutusCore.Error (ParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)

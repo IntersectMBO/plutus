@@ -46,7 +46,6 @@ import Data.List.Extras (wix)
 import Data.STRef
 import Data.Text (Text)
 import Data.Vector qualified as Vector
-import Data.Word
 import Prettyprinter (vcat)
 import Universe
 

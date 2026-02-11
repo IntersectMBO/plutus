@@ -1075,6 +1075,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     = DefaultFunSemanticsVariantA
     | DefaultFunSemanticsVariantB
     | DefaultFunSemanticsVariantC
+    | DefaultFunSemanticsVariantD
+    | DefaultFunSemanticsVariantE
     deriving stock (Eq, Ord, Enum, Bounded, Show, Generic)
     deriving anyclass (NFData, NoThunks)
 
@@ -1196,6 +1198,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantA -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantB -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantC -> consByteStringMeaning_V2
+          DefaultFunSemanticsVariantD -> consByteStringMeaning_V1
+          DefaultFunSemanticsVariantE -> consByteStringMeaning_V2
   toBuiltinMeaning _semvar SliceByteString =
     let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BS.ByteString
         sliceByteStringDenotation start n xs = BS.take n (BS.drop start xs)

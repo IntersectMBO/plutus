@@ -67,7 +67,6 @@ import Control.Lens
 import Data.Hashable
 import Data.Kind qualified as GHC
 import Data.List.NonEmpty qualified as NE
-import Data.Word
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
 import Universe

@@ -108,7 +108,6 @@ import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Vector qualified as V
-import Data.Word
 import GHC.Generics
 import GHC.TypeLits
 import Prettyprinter

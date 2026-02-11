@@ -63,7 +63,6 @@ import Data.RandomAccessList.Class qualified as Env
 import Data.RandomAccessList.SkewBinary qualified as Env
 import Data.Semigroup (stimes)
 import Data.Vector qualified as V
-import Data.Word (Word64)
 import GHC.TypeNats
 import Universe
 
