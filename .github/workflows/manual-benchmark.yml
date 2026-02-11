@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
         with:
           # It's possible that new commits get merged into master since the PR 
           # was opened. We need a safe buffer to make sure that our use of merge-head 
