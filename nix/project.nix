@@ -22,7 +22,7 @@ let
         }];
         ghc96-plugin = {
           ghcOverride = pkgs.haskell-nix.compiler.ghc967.override {
-            extraFlavourTransformers = [ "+profiled_ghc+no_dynamic_ghc" ];
+            extraFlavourTransformers = [ "perf+profiled_ghc+debug_info+no_dynamic_ghc" ];
             ghc-patches = [ ./profiled-ghc-964.patch ];
           };
           modules = [{
