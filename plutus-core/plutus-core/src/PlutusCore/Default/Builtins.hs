@@ -9,6 +9,7 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
@@ -55,12 +56,11 @@ import Control.Monad.Except (throwError)
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
+import Data.ByteString.Short qualified as SBS
 import Data.Ix (Ix)
-import Data.Text (Text)
-import Data.Text.Encoding
-  ( decodeUtf8'
-  , encodeUtf8
-  )
+import Data.Text.Array (pattern ByteArray)
+import Data.Text.Encoding (encodeUtf8)
+import Data.Text.Internal (Text (Text))
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import GHC.Natural (naturalFromInteger)
@@ -1337,7 +1337,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunOneArgument . paramEncodeUtf8)
   toBuiltinMeaning _semvar DecodeUtf8 =
     let decodeUtf8Denotation :: BS.ByteString -> BuiltinResult Text
-        decodeUtf8Denotation = eitherToBuiltinResult . decodeUtf8'
+        decodeUtf8Denotation s
+          | BS.isValidUtf8 s =
+              let !(SBS.SBS arr) = SBS.toShort s
+               in pure $ Text (ByteArray arr) 0 (BS.length s)
+          | otherwise = fail "decodeUtf8: invalid input"
         {-# INLINE decodeUtf8Denotation #-}
      in makeBuiltinMeaning
           decodeUtf8Denotation
