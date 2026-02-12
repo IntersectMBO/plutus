@@ -47,7 +47,6 @@ import Control.Lens.TH
 import Control.Monad.Except
 import Data.Hashable
 import Data.Text qualified as T
-import Data.Word
 import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 
 -- Datatypes
