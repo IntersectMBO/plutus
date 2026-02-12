@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 -- editorconfig-checker-disable
 {-# LANGUAGE TypeApplications #-}
 
@@ -14,7 +15,13 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.V2.ParamName as V2
 
 import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
-import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB))
+import PlutusCore.Default
+  ( BuiltinSemanticsVariant
+      ( DefaultFunSemanticsVariantA
+      , DefaultFunSemanticsVariantB
+      , DefaultFunSemanticsVariantD
+      )
+  )
 
 import Control.Monad
 import Control.Monad.Writer.Strict
@@ -46,10 +53,11 @@ mkEvaluationContext =
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
             else CaserBuiltin caseBuiltin
       )
-      [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB]
+      [DefaultFunSemanticsVariantA, DefaultFunSemanticsVariantB, DefaultFunSemanticsVariantD]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
       ( \pv ->
-          if pv < changPV
-            then DefaultFunSemanticsVariantA
-            else DefaultFunSemanticsVariantB
+          if
+            | pv < changPV -> DefaultFunSemanticsVariantA
+            | pv < pv11PV -> DefaultFunSemanticsVariantB
+            | otherwise -> DefaultFunSemanticsVariantD
       )

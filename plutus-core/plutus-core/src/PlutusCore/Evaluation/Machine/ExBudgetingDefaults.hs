@@ -118,12 +118,42 @@ cekMachineCostsVariantC =
 cekCostModelVariantC :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantC = CostModel cekMachineCostsVariantC builtinCostModelVariantC
 
+builtinCostModelVariantD :: BuiltinCostModel
+builtinCostModelVariantD =
+  $$(readJSONFromFile DFP.builtinCostModelFileD)
+{-# OPAQUE builtinCostModelVariantD #-}
+
+-- See Note [No inlining for CekMachineCosts]
+cekMachineCostsVariantD :: CekMachineCosts
+cekMachineCostsVariantD =
+  $$(readJSONFromFile DFP.cekMachineCostsFileD)
+{-# OPAQUE cekMachineCostsVariantD #-}
+
+cekCostModelVariantD :: CostModel CekMachineCosts BuiltinCostModel
+cekCostModelVariantD = CostModel cekMachineCostsVariantD builtinCostModelVariantD
+
+builtinCostModelVariantE :: BuiltinCostModel
+builtinCostModelVariantE =
+  $$(readJSONFromFile DFP.builtinCostModelFileE)
+{-# OPAQUE builtinCostModelVariantE #-}
+
+-- See Note [No inlining for CekMachineCosts]
+cekMachineCostsVariantE :: CekMachineCosts
+cekMachineCostsVariantE =
+  $$(readJSONFromFile DFP.cekMachineCostsFileE)
+{-# OPAQUE cekMachineCostsVariantE #-}
+
+cekCostModelVariantE :: CostModel CekMachineCosts BuiltinCostModel
+cekCostModelVariantE = CostModel cekMachineCostsVariantE builtinCostModelVariantE
+
 {-| Return the 'CostModel' corresponding to the given semantics variant. The dependency on the
 semantics variant is what makes cost models configurable. -}
 cekCostModelForVariant :: BuiltinSemanticsVariant DefaultFun -> CostModel CekMachineCosts BuiltinCostModel
 cekCostModelForVariant DefaultFunSemanticsVariantA = cekCostModelVariantA
 cekCostModelForVariant DefaultFunSemanticsVariantB = cekCostModelVariantB
 cekCostModelForVariant DefaultFunSemanticsVariantC = cekCostModelVariantC
+cekCostModelForVariant DefaultFunSemanticsVariantD = cekCostModelVariantD
+cekCostModelForVariant DefaultFunSemanticsVariantE = cekCostModelVariantE
 
 {-| The default cost model data.  This is exposed to the ledger, so let's not
 confuse anybody by mentioning the CEK machine -}
@@ -136,11 +166,19 @@ defaultCostModelParamsB = extractCostModelParams cekCostModelVariantB
 defaultCostModelParamsC :: Maybe CostModelParams
 defaultCostModelParamsC = extractCostModelParams cekCostModelVariantC
 
+defaultCostModelParamsD :: Maybe CostModelParams
+defaultCostModelParamsD = extractCostModelParams cekCostModelVariantD
+
+defaultCostModelParamsE :: Maybe CostModelParams
+defaultCostModelParamsE = extractCostModelParams cekCostModelVariantE
+
 defaultCostModelParamsForVariant :: BuiltinSemanticsVariant DefaultFun -> Maybe CostModelParams
 defaultCostModelParamsForVariant = \case
   DefaultFunSemanticsVariantA -> defaultCostModelParamsA
   DefaultFunSemanticsVariantB -> defaultCostModelParamsB
   DefaultFunSemanticsVariantC -> defaultCostModelParamsC
+  DefaultFunSemanticsVariantD -> defaultCostModelParamsD
+  DefaultFunSemanticsVariantE -> defaultCostModelParamsE
 
 {- Note [No inlining for MachineParameters]
 We don't want this to get inlined in order for this definition not to appear
@@ -163,6 +201,18 @@ defaultCekParametersC =
   MachineParameters def $
     noinline mkMachineVariantParameters DefaultFunSemanticsVariantC cekCostModelVariantC
 
+-- See Note [No inlining for MachineParameters]
+defaultCekParametersD :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersD =
+  MachineParameters def $
+    noinline mkMachineVariantParameters DefaultFunSemanticsVariantD cekCostModelVariantD
+
+-- See Note [No inlining for MachineParameters]
+defaultCekParametersE :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParametersE =
+  MachineParameters def $
+    noinline mkMachineVariantParameters DefaultFunSemanticsVariantE cekCostModelVariantE
+
 {- Note [noinline for saving on ticks]
 We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
 matter. Otherwise compilation for this module is slower and GHC may end up exhausting simplifier
@@ -180,6 +230,8 @@ defaultBuiltinsRuntimeForSemanticsVariant semvar =
       DefaultFunSemanticsVariantA -> builtinCostModelVariantA
       DefaultFunSemanticsVariantB -> builtinCostModelVariantB
       DefaultFunSemanticsVariantC -> builtinCostModelVariantC
+      DefaultFunSemanticsVariantD -> builtinCostModelVariantD
+      DefaultFunSemanticsVariantE -> builtinCostModelVariantE
 
 defaultCekParametersForVariant
   :: Typeable ann
@@ -189,6 +241,8 @@ defaultCekParametersForVariant = \case
   DefaultFunSemanticsVariantA -> defaultCekParametersA
   DefaultFunSemanticsVariantB -> defaultCekParametersB
   DefaultFunSemanticsVariantC -> defaultCekParametersC
+  DefaultFunSemanticsVariantD -> defaultCekParametersD
+  DefaultFunSemanticsVariantE -> defaultCekParametersE
 
 -- *** THE FOLLOWING SHOULD ONLY BE USED FOR TESTING ***
 
@@ -206,22 +260,22 @@ defaultBuiltinsRuntimeForTesting
   :: HasMeaningIn DefaultUni term
   => BuiltinsRuntime DefaultFun term
 -- See Note [noinline for saving on ticks].
-defaultBuiltinsRuntimeForTesting = defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantC
+defaultBuiltinsRuntimeForTesting = defaultBuiltinsRuntimeForSemanticsVariant DefaultFunSemanticsVariantE
 
 defaultCekParametersForTesting :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
-defaultCekParametersForTesting = defaultCekParametersC
+defaultCekParametersForTesting = defaultCekParametersE
 
 defaultCekMachineCostsForTesting :: CekMachineCosts
-defaultCekMachineCostsForTesting = cekMachineCostsVariantC
+defaultCekMachineCostsForTesting = cekMachineCostsVariantE
 
 defaultBuiltinCostModelForTesting :: BuiltinCostModel
-defaultBuiltinCostModelForTesting = builtinCostModelVariantC
+defaultBuiltinCostModelForTesting = builtinCostModelVariantE
 
 defaultCostModelParamsForTesting :: Maybe CostModelParams
-defaultCostModelParamsForTesting = defaultCostModelParamsC
+defaultCostModelParamsForTesting = defaultCostModelParamsE
 
 defaultCekCostModelForTesting :: CostModel CekMachineCosts BuiltinCostModel
-defaultCekCostModelForTesting = cekCostModelVariantC
+defaultCekCostModelForTesting = cekCostModelVariantE
 
 defaultCekCostModelForTestingB :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModelForTestingB = cekCostModelVariantB

@@ -13,7 +13,12 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
 
 import PlutusCore.Builtin (CaserBuiltin (..), caseBuiltin, unavailableCaserBuiltin)
-import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariantC))
+import PlutusCore.Default
+  ( BuiltinSemanticsVariant
+      ( DefaultFunSemanticsVariantC
+      , DefaultFunSemanticsVariantE
+      )
+  )
 
 import Control.Monad
 import Control.Monad.Writer.Strict
@@ -45,6 +50,10 @@ mkEvaluationContext =
             then unavailableCaserBuiltin $ getMajorProtocolVersion pv
             else CaserBuiltin caseBuiltin
       )
-      [DefaultFunSemanticsVariantC]
+      [DefaultFunSemanticsVariantC, DefaultFunSemanticsVariantE]
       -- See Note [Mapping of protocol versions and ledger languages to semantics variants].
-      (const DefaultFunSemanticsVariantC)
+      ( \pv ->
+          if pv < pv11PV
+            then DefaultFunSemanticsVariantC
+            else DefaultFunSemanticsVariantE
+      )

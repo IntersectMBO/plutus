@@ -30,7 +30,6 @@ import Control.Monad.Except
 import PlutusPrelude
 
 import Data.Vector
-import Data.Word
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc

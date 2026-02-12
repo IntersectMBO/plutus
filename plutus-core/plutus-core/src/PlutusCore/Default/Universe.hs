@@ -74,11 +74,7 @@ import Data.Text qualified as Text
 import Data.Typeable (typeRep)
 import Data.Vector qualified as Vector
 import Data.Vector.Strict qualified as Strict (Vector)
-import Data.Word
-  ( Word16
-  , Word32
-  , Word64
-  )
+import Data.Word (Word16, Word32)
 import GHC.Exts (inline, oneShot)
 import Text.PrettyBy.Fixity
   ( RenderContext

@@ -205,6 +205,8 @@ builtinSemanticsVariantReader =
     "A" -> Just DefaultFunSemanticsVariantA
     "B" -> Just DefaultFunSemanticsVariantB
     "C" -> Just DefaultFunSemanticsVariantC
+    "D" -> Just DefaultFunSemanticsVariantD
+    "E" -> Just DefaultFunSemanticsVariantE
     _ -> Nothing
 
 -- This is used to make the help message show you what you actually need to type.
@@ -214,6 +216,8 @@ showBuiltinSemanticsVariant =
     DefaultFunSemanticsVariantA -> "A"
     DefaultFunSemanticsVariantB -> "B"
     DefaultFunSemanticsVariantC -> "C"
+    DefaultFunSemanticsVariantD -> "D"
+    DefaultFunSemanticsVariantE -> "E"
 
 builtinSemanticsVariant :: Parser (BuiltinSemanticsVariant DefaultFun)
 builtinSemanticsVariant =
@@ -222,12 +226,14 @@ builtinSemanticsVariant =
     ( long "builtin-semantics-variant"
         <> short 'S'
         <> metavar "VARIANT"
-        <> value DefaultFunSemanticsVariantC
+        <> value DefaultFunSemanticsVariantE
         <> showDefaultWith showBuiltinSemanticsVariant
         <> help
           ( "Builtin semantics variant: A -> DefaultFunSemanticsVariantA, "
               <> "B -> DefaultFunSemanticsVariantB, "
-              <> "C -> DefaultFunSemanticsVariantC"
+              <> "C -> DefaultFunSemanticsVariantC, "
+              <> "D -> DefaultFunSemanticsVariantD, "
+              <> "E -> DefaultFunSemanticsVariantE"
           )
     )
 

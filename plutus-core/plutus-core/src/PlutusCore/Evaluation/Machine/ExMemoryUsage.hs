@@ -266,6 +266,10 @@ instance ExMemoryUsage Word8 where
   memoryUsage _ = singletonRose 1
   {-# INLINE memoryUsage #-}
 
+instance ExMemoryUsage Word64 where
+  memoryUsage _ = singletonRose 1
+  {-# INLINE memoryUsage #-}
+
 {-| When invoking a built-in function, a value of type `NumBytesCostedAsNumWords`
    can be used transparently as a built-in Integer but with a different size
    measure: see Note [Integral types as Integer].  This is required by the

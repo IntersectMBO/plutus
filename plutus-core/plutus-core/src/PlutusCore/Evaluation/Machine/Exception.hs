@@ -37,7 +37,6 @@ import PlutusCore.Pretty
 
 import Control.Monad.Except
 import Data.Either.Extras
-import Data.Word (Word64)
 import Prettyprinter
 
 -- | Errors which can occur during a run of an abstract machine.

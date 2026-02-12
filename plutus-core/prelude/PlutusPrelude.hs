@@ -45,6 +45,7 @@ module PlutusPrelude
   , Natural
   , NonEmpty (..)
   , Word8
+  , Word64
   , Alternative (..)
   , Exception
   , PairT (..)
@@ -152,7 +153,7 @@ import Data.Semigroup (Endo (..), stimes)
 import Data.Text qualified as T
 import Data.Traversable (for)
 import Data.Typeable (Typeable)
-import Data.Word (Word8)
+import Data.Word (Word64, Word8)
 import Debug.Trace (trace, traceShowId)
 import GHC.Generics (Generic)
 import GHC.Natural (Natural)

@@ -102,7 +102,7 @@ defaultBuiltinCostModelExt = (defaultBuiltinCostModelForTesting, ())
 
    Here `def` is the default semantics variant defined in
    PlutusCore.Default.Builtins.  Currently that is equal to
-   `DefaultFunSemanticsVariantC`, and `defaultBuiltinCostModelForTesting` is the
+   `DefaultFunSemanticsVariantE`, and `defaultBuiltinCostModelForTesting` is the
    cost model for the same variant.  Can we couple these things together more
    tightly so that it's guaranteed that the two things refer to the same
    semantics variant?
@@ -1719,7 +1719,7 @@ test_Version =
         defaultBuiltinCostModelExt
         expr1
 
-{-| Check that 'ConsByteString' wraps around for plutus' builtin-version == 1, and fails in plutus's builtin-versions >=2.
+{-| Check that 'ConsByteString' wraps around for Plutus V1 and V2, and fails in Plutus V3.
 See Note [Builtin semantics variants] -}
 test_ConsByteString :: TestTree
 test_ConsByteString =
@@ -1740,6 +1740,12 @@ test_ConsByteString =
         Right (EvaluationSuccess $ cons @ByteString "!hello world")
           @=? typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
       semVar@DefaultFunSemanticsVariantC ->
+        Right EvaluationFailure
+          @=? typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
+      semVar@DefaultFunSemanticsVariantD ->
+        Right (EvaluationSuccess $ cons @ByteString "!hello world")
+          @=? typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
+      semVar@DefaultFunSemanticsVariantE ->
         Right EvaluationFailure
           @=? typecheckEvaluateCekNoEmit semVar defaultBuiltinCostModelForTesting expr1
 

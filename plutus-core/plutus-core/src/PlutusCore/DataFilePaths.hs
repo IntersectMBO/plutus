@@ -17,6 +17,12 @@ builtinCostModelFileB = costModelDataDir </> "builtinCostModelB" <.> "json"
 builtinCostModelFileC :: FilePath
 builtinCostModelFileC = costModelDataDir </> "builtinCostModelC" <.> "json"
 
+builtinCostModelFileD :: FilePath
+builtinCostModelFileD = costModelDataDir </> "builtinCostModelB" <.> "json"
+
+builtinCostModelFileE :: FilePath
+builtinCostModelFileE = costModelDataDir </> "builtinCostModelC" <.> "json"
+
 latestBuiltinCostModelFile :: FilePath
 latestBuiltinCostModelFile = builtinCostModelFileC
 
@@ -28,6 +34,12 @@ cekMachineCostsFileB = costModelDataDir </> "cekMachineCostsB" <.> "json"
 
 cekMachineCostsFileC :: FilePath
 cekMachineCostsFileC = costModelDataDir </> "cekMachineCostsC" <.> "json"
+
+cekMachineCostsFileD :: FilePath
+cekMachineCostsFileD = costModelDataDir </> "cekMachineCostsB" <.> "json"
+
+cekMachineCostsFileE :: FilePath
+cekMachineCostsFileE = costModelDataDir </> "cekMachineCostsC" <.> "json"
 
 latestMachineCostsFile :: FilePath
 latestMachineCostsFile = cekMachineCostsFileC

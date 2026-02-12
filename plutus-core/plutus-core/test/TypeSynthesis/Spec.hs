@@ -246,6 +246,8 @@ test_dumpTypeRepDefaultFuns =
                   ( ConsByteString
                   ,
                     [ DefaultFunSemanticsVariantC
+                    , DefaultFunSemanticsVariantD
+                    , DefaultFunSemanticsVariantE
                     ]
                   )
                 ]
