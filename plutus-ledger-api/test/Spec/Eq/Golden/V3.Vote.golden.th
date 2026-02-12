@@ -1,6 +1,9 @@
-instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.Vote
-    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.VoteNo) (PlutusLedgerApi.V3.Contexts.VoteNo) = GHC.Types.True
-           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.VoteYes) (PlutusLedgerApi.V3.Contexts.VoteYes) = GHC.Types.True
-           (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.Abstain) (PlutusLedgerApi.V3.Contexts.Abstain) = GHC.Types.True
-           (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False;
-           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.Vote where
+  (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.VoteNo) (PlutusLedgerApi.V3.Contexts.VoteNo)
+    = GHC.Types.True
+  (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.VoteYes) (PlutusLedgerApi.V3.Contexts.VoteYes)
+    = GHC.Types.True
+  (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.Abstain) (PlutusLedgerApi.V3.Contexts.Abstain)
+    = GHC.Types.True
+  (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

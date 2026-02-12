@@ -81,6 +81,7 @@ import PlutusIR.Test ()
 import PlutusTx.Code (CompiledCode, CompiledCodeIn (..), countAstNodes, getPir, getPirNoAnn)
 import PlutusTx.Test.Orphans ()
 import PlutusTx.Test.Run.Uplc (runPlcCek, runPlcCekBudget, runPlcCekTrace)
+import PlutusTx.Test.THPretty (pprintDecs)
 import PlutusTx.Test.Util.Compiled (countFlatBytes)
 import Prettyprinter (fill, vsep, (<+>))
 import Test.Tasty (TestName)
@@ -105,18 +106,18 @@ in deriveEq) are stable and left intact.
 -- Value assertion tests
 
 -- | Golden test for TH-generated code, with exact output (no normalization).
-goldenCodeGen :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
+goldenCodeGen :: TestName -> TH.Q [TH.Dec] -> TH.ExpQ
 goldenCodeGen name code = do
-  c <- code
-  [|nestedGoldenVsDoc name ".th" (pretty @String $(TH.stringE $ TH.pprint c))|]
+  decs <- code
+  [|nestedGoldenVsDoc name ".th" (pretty @String $(TH.stringE $ pprintDecs decs))|]
 
 {-| Like 'goldenCodeGen' but strips TH-generated unique name suffixes
 to produce deterministic output.
 See Note [Stripping TH-generated unique suffixes in golden tests] -}
-goldenCodeGenNormalized :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
+goldenCodeGenNormalized :: TestName -> TH.Q [TH.Dec] -> TH.ExpQ
 goldenCodeGenNormalized name code = do
-  c <- code
-  [|nestedGoldenVsDoc name ".th" (pretty @String $(TH.stringE $ stripTHSuffixes $ TH.pprint c))|]
+  decs <- code
+  [|nestedGoldenVsDoc name ".th" (pretty @String $(TH.stringE $ stripTHSuffixes $ pprintDecs decs))|]
 
 -- | See Note [Stripping TH-generated unique suffixes in golden tests]
 stripTHSuffixes :: String -> String

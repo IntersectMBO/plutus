@@ -1,18 +1,30 @@
-instance PlutusTx.IsData.Class.ToData Plugin.Data.Spec.MyMonoRecord
-    where {{-# INLINABLE PlutusTx.IsData.Class.toBuiltinData #-};
-           PlutusTx.IsData.Class.toBuiltinData (Plugin.Data.Spec.MyMonoRecord arg_0
-                                                                              arg_1) = PlutusTx.Builtins.Internal.mkList (PlutusTx.Builtins.Internal.mkCons (PlutusTx.IsData.Class.toBuiltinData arg_0) (PlutusTx.Builtins.Internal.mkCons (PlutusTx.IsData.Class.toBuiltinData arg_1) (PlutusTx.Builtins.Internal.mkNilData PlutusTx.Builtins.Internal.unitval)))}
-instance PlutusTx.IsData.Class.FromData Plugin.Data.Spec.MyMonoRecord
-    where {{-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-};
-           PlutusTx.IsData.Class.fromBuiltinData d_2 = let constrFun_3 (!args_4) = case args_4 of
-                                                                                   {(PlutusTx.Builtins.uncons -> GHC.Maybe.Just ((PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just consArg_5),
-                                                                                                                                 (PlutusTx.Builtins.headMaybe -> GHC.Maybe.Just (PlutusTx.IsData.Class.fromBuiltinData -> GHC.Maybe.Just consArg_6)))) -> GHC.Maybe.Just (Plugin.Data.Spec.MyMonoRecord consArg_5 consArg_6);
-                                                                                    _ -> GHC.Maybe.Nothing}
-                                                        in PlutusTx.Builtins.matchData' d_2 (GHC.Base.const GHC.Base.$ GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing) constrFun_3 (GHC.Base.const GHC.Maybe.Nothing) (GHC.Base.const GHC.Maybe.Nothing)}
-instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoRecord
-    where {{-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-};
-           PlutusTx.IsData.Class.unsafeFromBuiltinData d_7 = let !args_8 = PlutusTx.Builtins.Internal.unsafeDataAsList d_7
-                                                              in case args_8 of
-                                                                 {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ((PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_9),
-                                                                                                                 (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_10)))) -> Plugin.Data.Spec.MyMonoRecord arg_9 arg_10;
-                                                                  _ -> PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}}
+instance PlutusTx.IsData.Class.ToData Plugin.Data.Spec.MyMonoRecord where
+  {-# INLINABLE PlutusTx.IsData.Class.toBuiltinData #-}
+  PlutusTx.IsData.Class.toBuiltinData (Plugin.Data.Spec.MyMonoRecord arg_0 arg_0)
+    = PlutusTx.Builtins.Internal.mkList (PlutusTx.Builtins.Internal.mkCons
+        (PlutusTx.IsData.Class.toBuiltinData arg_0)
+        (PlutusTx.Builtins.Internal.mkCons (PlutusTx.IsData.Class.toBuiltinData arg_0)
+          (PlutusTx.Builtins.Internal.mkNilData PlutusTx.Builtins.Internal.unitval)))
+instance PlutusTx.IsData.Class.FromData Plugin.Data.Spec.MyMonoRecord where
+  {-# INLINABLE PlutusTx.IsData.Class.fromBuiltinData #-}
+  PlutusTx.IsData.Class.fromBuiltinData d_0
+    = let constrFun_0 !args_0 = case args_0 of
+              {(PlutusTx.Builtins.uncons -> (GHC.Maybe.Just
+                ( (PlutusTx.IsData.Class.fromBuiltinData -> (GHC.Maybe.Just consArg_0))
+                , (PlutusTx.Builtins.headMaybe -> (GHC.Maybe.Just
+                  (PlutusTx.IsData.Class.fromBuiltinData -> (GHC.Maybe.Just consArg_0)))) )))
+                = GHC.Maybe.Just (Plugin.Data.Spec.MyMonoRecord consArg_0 consArg_0)
+               _ = GHC.Maybe.Nothing} in PlutusTx.Builtins.matchData' d_0
+      (GHC.Base.const GHC.Base.$ (GHC.Base.const GHC.Maybe.Nothing))
+      (GHC.Base.const GHC.Maybe.Nothing)
+      constrFun_0
+      (GHC.Base.const GHC.Maybe.Nothing)
+      (GHC.Base.const GHC.Maybe.Nothing)
+instance PlutusTx.IsData.Class.UnsafeFromData Plugin.Data.Spec.MyMonoRecord where
+  {-# INLINABLE PlutusTx.IsData.Class.unsafeFromBuiltinData #-}
+  PlutusTx.IsData.Class.unsafeFromBuiltinData
+    d_0 = let !args_0 = PlutusTx.Builtins.Internal.unsafeDataAsList d_1 in case args_0 of
+      {(PlutusTx.AsData.Internal.wrapUnsafeUncons -> ( (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)
+      , (PlutusTx.Builtins.Internal.head -> (PlutusTx.IsData.Class.unsafeFromBuiltinData -> arg_0)) ))
+        = Plugin.Data.Spec.MyMonoRecord arg_0 arg_0
+       _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.reconstructCaseError}

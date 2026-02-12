@@ -13,7 +13,7 @@ import PlutusTx.Bool (Bool (True), (&&))
 import PlutusTx.Eq.Class hiding ((/=))
 import Prelude hiding (Bool (True), Eq, (&&), (==))
 
-{-| Derive a PlutusTx 'Eq' instance for a datatype or newtype.
+{-| Derive a Plinth 'Eq' instance for a datatype or newtype.
 
 Similar to Haskell's @deriving stock Eq@, this generates structural equality
 with short-circuit evaluation and INLINEABLE pragmas for optimal on-chain performance.
@@ -40,6 +40,7 @@ __Supported types:__
 * Types with strict or lazy fields
 * Records
 * Self-recursive types
+* Mutually recursive types (when all types in the group have Eq instances)
 
 __Unsupported:__
 

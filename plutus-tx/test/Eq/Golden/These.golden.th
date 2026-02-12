@@ -1,10 +1,10 @@
-instance (PlutusTx.Eq.Class.Eq a_0,
-          PlutusTx.Eq.Class.Eq b_1) => PlutusTx.Eq.Class.Eq (PlutusTx.These.These a_0
-                                                                                  b_1)
-    where {(PlutusTx.Eq.Class.==) (PlutusTx.These.This l1l_2) (PlutusTx.These.This r1r_3) = l1l_2 PlutusTx.Eq.Class.== r1r_3
-           (PlutusTx.Eq.Class.==) (PlutusTx.These.That l1l_4) (PlutusTx.These.That r1r_5) = l1l_4 PlutusTx.Eq.Class.== r1r_5
-           (PlutusTx.Eq.Class.==) (PlutusTx.These.These l1l_6
-                                                        l2l_7) (PlutusTx.These.These r1r_8
-                                                                                     r2r_9) = (l1l_6 PlutusTx.Eq.Class.== r1r_8) PlutusTx.Bool.&& (l2l_7 PlutusTx.Eq.Class.== r2r_9)
-           (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False;
-           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}
+instance (PlutusTx.Eq.Class.Eq a_0, PlutusTx.Eq.Class.Eq b_0) => PlutusTx.Eq.Class.Eq
+  (PlutusTx.These.These a_0 b_0) where
+  (PlutusTx.Eq.Class.==) (PlutusTx.These.This l1l_0) (PlutusTx.These.This r1r_0) = l1l_0
+      PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==) (PlutusTx.These.That l1l_0) (PlutusTx.These.That r1r_0) = l1l_0
+      PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==) (PlutusTx.These.These l1l_0 l2l_0) (PlutusTx.These.These r1r_0 r2r_0)
+    = (l1l_0 PlutusTx.Eq.Class.== r1r_0) PlutusTx.Bool.&& (l2l_0 PlutusTx.Eq.Class.== r2r_0)
+  (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

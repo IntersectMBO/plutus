@@ -1,5 +1,6 @@
-instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.TxInInfo
-    where {(PlutusTx.Eq.Class.==) (PlutusLedgerApi.V3.Contexts.TxInInfo l1l_0
-                                                                        l2l_1) (PlutusLedgerApi.V3.Contexts.TxInInfo r1r_2
-                                                                                                                     r2r_3) = (l1l_0 PlutusTx.Eq.Class.== r1r_2) PlutusTx.Bool.&& (l2l_1 PlutusTx.Eq.Class.== r2r_3);
-           {-# INLINABLE (PlutusTx.Eq.Class.==) #-}}
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.TxInInfo where
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V3.Contexts.TxInInfo l1l_0 l2l_0)
+    (PlutusLedgerApi.V3.Contexts.TxInInfo r1r_0 r2r_0) = (l1l_0 PlutusTx.Eq.Class.== r1r_0)
+      PlutusTx.Bool.&& (l2l_0 PlutusTx.Eq.Class.== r2r_0)
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}
