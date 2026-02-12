@@ -86,6 +86,30 @@ pattern ThisDManual arg <-
       TheseDManual_
         (BI.mkConstr 0 (BI.mkCons (PlutusTx.toBuiltinData arg) (BI.mkNilData BI.unitval)))
 
+-- case d of
+--    ThisDManualOpt x -> foo x
+--    ThatDManualOpt x -> bar x
+--    TheseDManualOpt x y -> baz x y
+-- -->
+
+-- matchingFun i d =
+--    BI.casePair (BI.unsafeDataAsConstr d) $ \i l ->
+--      BI.caseInteger i
+--        [ foo (head l)
+--        , bar (head l)
+--        , let a1 = head l
+--              a2 = head (tail l)
+--           in baz a1 a2
+--        ]
+-- pattern ThatDManualOpt arg <- TheseDManual_ (matchingFun 0 -> arg)
+-- but I don't have access to the foo, bar, baz functions
+-- I think this is not possible to do with just pattern synonyms, I need the whole case expression
+--
+-- in the patt syn I need to match on the integer, and based on that I can decide how many fields I need to upack as arg1, arg2 ...
+--
+-- what about a "kase" expression which compiles down to ^?
+-- or, just compile case expressions on builtindata as above? is this similar to Roman's work on casing on data?
+
 pattern ThatDManual :: (PlutusTx.ToData b, PlutusTx.UnsafeFromData b) => b -> TheseDManual a b
 pattern ThatDManual arg <-
   TheseDManual_

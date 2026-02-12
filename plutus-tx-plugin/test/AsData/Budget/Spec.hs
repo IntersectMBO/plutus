@@ -161,8 +161,8 @@ destructSumManualOptimal =
            in BI.casePair constrPair $ \idx args ->
                 BI.caseInteger
                   idx
-                  [ (BI.head args)
-                  , (BI.head args)
+                  [ BI.head args
+                  , BI.head args
                   , let intsA = BI.snd $ BI.unsafeDataAsConstr $ BI.head args
                         intsB = BI.snd $ BI.unsafeDataAsConstr $ BI.head (BI.tail args)
                      in let a1 = BI.unsafeDataAsI (BI.head intsA)
