@@ -10,9 +10,7 @@
 
 module Evaluation.Builtins.SignatureVerification
   ( ecdsaSecp256k1Prop
-  , ed25519_VariantAProp
-  , ed25519_VariantBProp
-  , ed25519_VariantCProp
+  , ed25519Prop
   , schnorrSecp256k1Prop
   ) where
 
@@ -82,24 +80,15 @@ schnorrSecp256k1Prop = do
   cover 5 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith def testCase id VerifySchnorrSecp256k1Signature
 
-ed25519Prop :: BuiltinSemanticsVariant DefaultFun -> PropertyT IO ()
-ed25519Prop semvar = do
+ed25519Prop :: PropertyT IO ()
+ed25519Prop = do
   testCase <- forAllWith ppShow genEd25519Case
   cover 5 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
   cover 5 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
   cover 5 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
   cover 5 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 5 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
-  runTestDataWith semvar testCase id VerifyEd25519Signature
-
-ed25519_VariantAProp :: PropertyT IO ()
-ed25519_VariantAProp = ed25519Prop DefaultFunSemanticsVariantA
-
-ed25519_VariantBProp :: PropertyT IO ()
-ed25519_VariantBProp = ed25519Prop DefaultFunSemanticsVariantB
-
-ed25519_VariantCProp :: PropertyT IO ()
-ed25519_VariantCProp = ed25519Prop DefaultFunSemanticsVariantC
+  runTestDataWith def testCase id VerifyEd25519Signature
 
 -- Helpers
 
