@@ -33,9 +33,7 @@ import Evaluation.Builtins.Integer.QuotRemProperties (test_integer_quot_rem_prop
 import Evaluation.Builtins.Integer.RingProperties (test_integer_ring_properties)
 import Evaluation.Builtins.SignatureVerification
   ( ecdsaSecp256k1Prop
-  , ed25519_VariantAProp
-  , ed25519_VariantBProp
-  , ed25519_VariantCProp
+  , ed25519Prop
   , schnorrSecp256k1Prop
   )
 
@@ -1761,28 +1759,12 @@ test_SignatureVerification =
   testGroup
     "Signature verification"
     [ testGroup
-        "Ed25519 signatures (VariantA)"
+        "Ed25519 signatures"
         [ testPropertyNamed
-            "Ed25519_VariantA verification behaves correctly on all inputs"
-            "ed25519_VariantA_correct"
+            "Ed25519 verification behaves correctly on all inputs"
+            "ed25519_correct"
             . mapTestLimitAtLeast 99 (`div` 10)
-            $ property ed25519_VariantAProp
-        ]
-    , testGroup
-        "Ed25519 signatures (VariantB)"
-        [ testPropertyNamed
-            "Ed25519_VariantB verification behaves correctly on all inputs"
-            "ed25519_VariantB_correct"
-            . mapTestLimitAtLeast 99 (`div` 10)
-            $ property ed25519_VariantBProp
-        ]
-    , testGroup
-        "Ed25519 signatures (VariantC)"
-        [ testPropertyNamed
-            "Ed25519_VariantC verification behaves correctly on all inputs"
-            "ed25519_VariantC_correct"
-            . mapTestLimitAtLeast 99 (`div` 10)
-            $ property ed25519_VariantCProp
+            $ property ed25519Prop
         ]
     , testGroup
         "Signatures on the SECP256k1 curve"
