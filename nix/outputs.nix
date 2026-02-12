@@ -107,6 +107,7 @@ let
     ghc912 = mkShell "ghc912";
     ghc96-profiled = mkShell "ghc96-profiled";
     ghc96-plugin = mkShell "ghc96-plugin";
+    ghc96-plugin2 = mkShell "ghc96-plugin2";
     metatheory-jailbreak = metatheory-jailbreak-shell;
   };
 
@@ -122,6 +123,7 @@ let
       { devShells.ghc96 = devShells.ghc96; } //
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
+      { devShells.ghc96-plugin2 = devShells.ghc96-plugin2; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { inherit test-profiled-ghc; } //
       { required = hydra-required-job; };
@@ -131,6 +133,7 @@ let
       { devShells.ghc96 = devShells.ghc96; } //
       { devShells.ghc912 = devShells.ghc912; } //
       { devShells.ghc96-plugin = devShells.ghc96-plugin; } //
+      { devShells.ghc96-plugin2 = devShells.ghc96-plugin2; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { inherit test-profiled-ghc; } //
       { required = hydra-required-job; };

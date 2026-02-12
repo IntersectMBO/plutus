@@ -12,8 +12,9 @@ plugin =
               liftIO $ threadDelay 1000000
               return True
 
+
         b <-
-          {-# SCC "XXXXxXXXXXXXXXX" #-}
+          {-# SCC "WOWREALLY?" #-}
           getBool
         putMsgS ("I got a bool from the plugin -> " ++ show b)
         pure todos

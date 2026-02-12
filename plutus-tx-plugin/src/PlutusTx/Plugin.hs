@@ -610,13 +610,16 @@ runCompiler moduleName opts expr = do
             (opts ^. posPreserveLogging)
 
   -- GHC.Core -> Pir translation.
-  pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
+  pirT <- 
+    {-# SCC "PLINTH-CORE-TO-PIR-STEP" #-}
+    original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)
   let pirP = PIR.Program noProvenance plcVersion pirT
   when (opts ^. posDumpPir) . liftIO $
     dumpFlat (void pirP) "initial PIR program" (moduleName ++ "_initial.pir-flat")
 
   -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
   spirP <-
+    {-# SCC "PLINTH-PIR-TO-SIMP-PIR-STEP" #-}
     flip runReaderT pirCtx $
       modifyError (NoContext . PIRError) $
         PIR.compileToReadable pirP
@@ -625,7 +628,7 @@ runCompiler moduleName opts expr = do
 
   -- (Simplified) Pir -> Plc translation.
   plcP <-
-    {-# SCC "plinth-spir2plc-step" #-}
+    {-# SCC "PLINTH-SIMP-PIR-TO-PLC-STEP" #-}
     flip runReaderT pirCtx $
       modifyError (NoContext . PIRError) $
         PIR.compileReadableToPlc spirP
@@ -638,7 +641,9 @@ runCompiler moduleName opts expr = do
       modifyError PLC.TypeErrorE $
         PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-  (uplcP, _) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
+  (uplcP, _) <- 
+    {-# SCC "PLINTH-PLC-TO-UPLC-STEP" #-}
+    flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
     dumpFlat
@@ -670,6 +675,7 @@ thNameToGhcNameOrFail name = do
   case maybeName of
     Just n -> pure n
     Nothing -> throwError . NoContext $ CoreNameLookupError name
+
 
 -- | Create a GHC Core expression that will evaluate to the given ByteString at runtime.
 makeByteStringLiteral :: BS.ByteString -> PluginM uni fun GHC.CoreExpr
@@ -722,9 +728,10 @@ makePrimitiveNameInfo names = do
     pure (name, thing)
   pure $ Map.fromList infos
 
+
 makeRewriteRules :: PluginOptions -> RewriteRules DefaultUni DefaultFun
 makeRewriteRules options =
-  fold
-    [ mwhen (options ^. posRemoveTrace) rewriteRuleRemoveTrace
+  fold 
+    [ mwhen (options ^.  posRemoveTrace) rewriteRuleRemoveTrace
     , defaultUniRewriteRules
     ]
