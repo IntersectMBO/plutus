@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
@@ -6,10 +8,14 @@
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE ViewPatterns #-}
+
+#include "MachDeps.h"
 
 {-|
 Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max or min bounds) instead of throwing on overflow.
@@ -35,6 +41,10 @@ import GHC.Generics
 import GHC.Natural
 import Language.Haskell.TH.Syntax (Lift)
 import NoThunks.Class
+#if WORD_SIZE_IN_BITS == 64
+import GHC.Base (addIntC#, andI#, int64ToInt#, intToInt64#, isTrue#, mulIntMayOflo#, subIntC#, (*#), (<#), (==#), (>#), (>=#))
+import GHC.Int (Int64 (I64#))
+#endif
 
 newtype SatInt = SI {unSatInt :: Int64}
   deriving newtype (Show, Read, Eq, Ord, Bounded, NFData, Bits, FiniteBits, Prim)
@@ -117,6 +127,18 @@ kind of overflow we're facing, and pick the correct result accordingly.
 -}
 
 plusSI :: SatInt -> SatInt -> SatInt
+#if WORD_SIZE_IN_BITS == 64
+plusSI (SI (I64# a)) (SI (I64# b)) =
+  let a_native = int64ToInt# a
+      b_native = int64ToInt# b
+   in case addIntC# a_native b_native of
+        (# r#, 0# #) -> SI (I64# (intToInt64# r#))
+        -- Overflow
+        _ ->
+          if isTrue# ((a_native ># 0#) `andI#` (b_native ># 0#))
+            then maxBound
+            else minBound
+#else
 plusSI (SI a) (SI b) =
   let r = a + b
    in if a > 0 && b > 0 && r < 0
@@ -125,9 +147,22 @@ plusSI (SI a) (SI b) =
           if a < 0 && b < 0 && r >= 0
             then minBound
             else SI r
+#endif
 {-# INLINE plusSI #-}
 
 minusSI :: SatInt -> SatInt -> SatInt
+#if WORD_SIZE_IN_BITS == 64
+minusSI (SI (I64# a)) (SI (I64# b)) =
+  let a_native = int64ToInt# a
+      b_native = int64ToInt# b
+   in case subIntC# a_native b_native of
+        (# r#, 0# #) -> SI (I64# (intToInt64# r#))
+        -- Overflow
+        _ ->
+          if isTrue# ((a_native >=# 0#) `andI#` (b_native <# 0#))
+            then maxBound
+            else minBound
+#else
 minusSI (SI a) (SI b) =
   let r = a - b
    in if a >= 0 && b < 0 && r < 0
@@ -136,19 +171,33 @@ minusSI (SI a) (SI b) =
           if a < 0 && b > 0 && r > 0
             then minBound
             else SI r
+#endif
 {-# INLINE minusSI #-}
 
 timesSI :: SatInt -> SatInt -> SatInt
+#if WORD_SIZE_IN_BITS == 64
+timesSI (SI (I64# a)) (SI (I64# b)) =
+  let a_native = int64ToInt# a
+      b_native = int64ToInt# b
+   in if isTrue# (mulIntMayOflo# a_native b_native ==# 0#)
+        then SI (I64# (intToInt64# (a_native *# b_native)))
+        else
+          ( if (isTrue# ((a_native ># 0#) ==# (b_native ># 0#)))
+              then maxBound
+              else minBound
+          )
+#else
 timesSI (SI a) (SI b) =
   let a' = toInteger a
       b' = toInteger b
       r = a' * b'
-   in if r > maxBoundInteger
+  in if r > maxBoundInteger
         then maxBound
         else
           if r < minBoundInteger
             then minBound
             else SI (fromInteger r)
+#endif
 {-# INLINE timesSI #-}
 
 -- Specialized versions of several functions. They're specialized for
