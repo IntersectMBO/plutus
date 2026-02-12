@@ -1,9 +1,21 @@
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE CPP #-}
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MagicHash #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE ViewPatterns #-}
+
+#include "MachDeps.h"
 
 {-|
 Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max or min bounds) instead of throwing on overflow.
@@ -21,32 +33,36 @@ import Codec.Serialise (Serialise)
 import Control.DeepSeq (NFData)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Bits
+import Data.Coerce
 import Data.Csv
+import Data.Int (Int64)
 import Data.Primitive (Prim)
-import GHC.Base
 import GHC.Generics
 import GHC.Natural
-import GHC.Real
 import Language.Haskell.TH.Syntax (Lift)
 import NoThunks.Class
+#if WORD_SIZE_IN_BITS == 64
+import GHC.Base (addIntC#, andI#, int64ToInt#, intToInt64#, isTrue#, mulIntMayOflo#, subIntC#, (*#), (<#), (==#), (>#), (>=#))
+import GHC.Int (Int64 (I64#))
+#endif
 
-newtype SatInt = SI {unSatInt :: Int}
+newtype SatInt = SI {unSatInt :: Int64}
   deriving newtype (Show, Read, Eq, Ord, Bounded, NFData, Bits, FiniteBits, Prim)
   deriving stock (Lift, Generic)
-  deriving (FromJSON, ToJSON) via Int
-  deriving (FromField) via Int -- For reading cost model data from CSV input
-  deriving (Serialise) via Int
+  deriving (FromJSON, ToJSON) via Int64
+  deriving (FromField) via Int64 -- For reading cost model data from CSV input
+  deriving (Serialise) via Int64
   deriving anyclass (NoThunks)
 
 {-| Wrap an 'Int' as a 'SatInt'. This is unsafe because the 'Int' can be a result of an arbitrary
 potentially underflowing/overflowing operation. -}
-unsafeToSatInt :: Int -> SatInt
+unsafeToSatInt :: Int64 -> SatInt
 unsafeToSatInt = SI
 {-# INLINE unsafeToSatInt #-}
 
 -- | An optimized version of @fromIntegral . unSatInt@.
 fromSatInt :: forall a. Num a => SatInt -> a
-fromSatInt = coerce (fromIntegral :: Int -> a)
+fromSatInt = coerce (fromIntegral :: Int64 -> a)
 {-# INLINE fromSatInt #-}
 
 {-| In the `Num' instance, we plug in our own addition, multiplication
@@ -72,7 +88,7 @@ instance Num SatInt where
     | otherwise = negate x
 
   {-# INLINE signum #-}
-  signum = coerce (signum :: Int -> Int)
+  signum = coerce (signum :: Int64 -> Int64)
 
   {-# INLINE fromInteger #-}
   fromInteger x
@@ -92,11 +108,11 @@ dividedBy x@(SI n) d =
 {-# INLINE dividedBy #-}
 
 maxBoundInteger :: Integer
-maxBoundInteger = toInteger maxInt
+maxBoundInteger = toInteger (maxBound :: Int64)
 {-# INLINEABLE maxBoundInteger #-}
 
 minBoundInteger :: Integer
-minBoundInteger = toInteger minInt
+minBoundInteger = toInteger (minBound :: Int64)
 {-# INLINEABLE minBoundInteger #-}
 
 {-
@@ -111,57 +127,77 @@ kind of overflow we're facing, and pick the correct result accordingly.
 -}
 
 plusSI :: SatInt -> SatInt -> SatInt
-plusSI (SI (I# x#)) (SI (I# y#)) =
-  case addIntC# x# y# of
-    (# r#, 0# #) -> SI (I# r#)
-    -- Overflow
-    _ ->
-      if isTrue# ((x# ># 0#) `andI#` (y# ># 0#))
+#if WORD_SIZE_IN_BITS == 64
+plusSI (SI (I64# a)) (SI (I64# b)) =
+  let a_native = int64ToInt# a
+      b_native = int64ToInt# b
+   in case addIntC# a_native b_native of
+        (# r#, 0# #) -> SI (I64# (intToInt64# r#))
+        -- Overflow
+        _ ->
+          if isTrue# ((a_native ># 0#) `andI#` (b_native ># 0#))
+            then maxBound
+            else minBound
+#else
+plusSI (SI a) (SI b) =
+  let r = a + b
+   in if a > 0 && b > 0 && r < 0
         then maxBound
         else
-          if isTrue# ((x# <# 0#) `andI#` (y# <# 0#))
+          if a < 0 && b < 0 && r >= 0
             then minBound
-            -- x and y have opposite signs, and yet we've overflowed, should
-            -- be impossible
-            else overflowError
+            else SI r
+#endif
 {-# INLINE plusSI #-}
 
 minusSI :: SatInt -> SatInt -> SatInt
-minusSI (SI (I# x#)) (SI (I# y#)) =
-  case subIntC# x# y# of
-    (# r#, 0# #) -> SI (I# r#)
-    -- Overflow
-    _ ->
-      if isTrue# ((x# >=# 0#) `andI#` (y# <# 0#))
+#if WORD_SIZE_IN_BITS == 64
+minusSI (SI (I64# a)) (SI (I64# b)) =
+  let a_native = int64ToInt# a
+      b_native = int64ToInt# b
+   in case subIntC# a_native b_native of
+        (# r#, 0# #) -> SI (I64# (intToInt64# r#))
+        -- Overflow
+        _ ->
+          if isTrue# ((a_native >=# 0#) `andI#` (b_native <# 0#))
+            then maxBound
+            else minBound
+#else
+minusSI (SI a) (SI b) =
+  let r = a - b
+   in if a >= 0 && b < 0 && r < 0
         then maxBound
         else
-          if isTrue# ((x# <=# 0#) `andI#` (y# ># 0#))
+          if a < 0 && b > 0 && r > 0
             then minBound
-            -- x and y have the same sign, and yet we've overflowed, should
-            -- be impossible
-            else overflowError
+            else SI r
+#endif
 {-# INLINE minusSI #-}
 
 timesSI :: SatInt -> SatInt -> SatInt
-timesSI (SI (I# x#)) (SI (I# y#)) =
-  case mulIntMayOflo# x# y# of
-    0# -> SI (I# (x# *# y#))
-    -- Overflow
-    _ ->
-      if isTrue# ((x# ># 0#) `andI#` (y# ># 0#))
+#if WORD_SIZE_IN_BITS == 64
+timesSI (SI (I64# a)) (SI (I64# b)) =
+  let a_native = int64ToInt# a
+      b_native = int64ToInt# b
+   in if isTrue# (mulIntMayOflo# a_native b_native ==# 0#)
+        then SI (I64# (intToInt64# (a_native *# b_native)))
+        else
+          ( if (isTrue# ((a_native ># 0#) ==# (b_native ># 0#)))
+              then maxBound
+              else minBound
+          )
+#else
+timesSI (SI a) (SI b) =
+  let a' = toInteger a
+      b' = toInteger b
+      r = a' * b'
+  in if r > maxBoundInteger
         then maxBound
         else
-          if isTrue# ((x# ># 0#) `andI#` (y# <# 0#))
+          if r < minBoundInteger
             then minBound
-            else
-              if isTrue# ((x# <# 0#) `andI#` (y# ># 0#))
-                then minBound
-                else
-                  if isTrue# ((x# <# 0#) `andI#` (y# <# 0#))
-                    then maxBound
-                    -- Logically unreachable unless x or y is 0, in which case
-                    -- it should be impossible to overflow
-                    else overflowError
+            else SI (fromInteger r)
+#endif
 {-# INLINE timesSI #-}
 
 -- Specialized versions of several functions. They're specialized for

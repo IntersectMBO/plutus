@@ -361,7 +361,7 @@ test-suite plutus-core-test
   import:           lang
 
   -- needs linux 'diff' available
-  if os(windows)
+  if (os(windows) || arch(wasm32))
     buildable: False
 
   type:             exitcode-stdio-1.0
@@ -419,7 +419,7 @@ test-suite untyped-plutus-core-test
   import:         lang
 
   -- needs linux 'diff' available
-  if os(windows)
+  if (os(windows) || arch(wasm32))
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -439,7 +439,7 @@ library untyped-plutus-core-testlib
   hs-source-dirs:     untyped-plutus-core/testlib
 
   -- needs linux 'diff' available
-  if os(windows)
+  if (os(windows) || arch(wasm32))
     buildable: False
 
   exposed-modules:
@@ -614,7 +614,7 @@ test-suite plutus-ir-test
   import:             lang
 
   -- needs linux 'diff' available
-  if os(windows)
+  if (os(windows) || arch(wasm32))
     buildable: False
 
   type:               exitcode-stdio-1.0
@@ -687,7 +687,7 @@ executable plutus
 
   -- Hydra complains that this is not buildable on mingw32 because of brick.
   -- Strange, because I thought vty added support for windows.
-  if os(windows)
+  if (os(windows) || arch(wasm32))
     buildable: False
 
   other-modules:
@@ -988,7 +988,7 @@ executable generate-cost-model
     buildable: False
 
   -- Can't build on windows as it depends on R.
-  if os(windows)
+  if (os(windows) || arch(wasm32))
     buildable: False
 
   build-depends:
@@ -1033,7 +1033,7 @@ benchmark cost-model-test
     buildable: False
 
   -- Can't build on windows as it depends on R.
-  if os(windows)
+  if (os(windows) || arch(wasm32))
     buildable: False
 
   build-depends:
