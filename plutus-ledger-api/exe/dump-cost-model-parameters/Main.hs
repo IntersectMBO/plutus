@@ -67,9 +67,9 @@ infoFor =
   let paramNames :: forall a. IsParamName a => [Text]
       paramNames = fmap showParamName $ enumerate @a
    in \case
-        PlutusV1 -> (PLC.DefaultFunSemanticsVariantB, paramNames @V1.ParamName)
-        PlutusV2 -> (PLC.DefaultFunSemanticsVariantB, paramNames @V2.ParamName)
-        PlutusV3 -> (PLC.DefaultFunSemanticsVariantC, paramNames @V3.ParamName)
+        PlutusV1 -> (PLC.DefaultFunSemanticsVariantD, paramNames @V1.ParamName)
+        PlutusV2 -> (PLC.DefaultFunSemanticsVariantD, paramNames @V2.ParamName)
+        PlutusV3 -> (PLC.DefaultFunSemanticsVariantE, paramNames @V3.ParamName)
 
 -- Return the current cost model parameters for a given LL version in the form
 -- of a list of (name, value) pairs ordered by name according to the relevant

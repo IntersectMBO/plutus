@@ -226,7 +226,7 @@ builtinSemanticsVariant =
     ( long "builtin-semantics-variant"
         <> short 'S'
         <> metavar "VARIANT"
-        <> value DefaultFunSemanticsVariantC
+        <> value DefaultFunSemanticsVariantE
         <> showDefaultWith showBuiltinSemanticsVariant
         <> help
           ( "Builtin semantics variant: A -> DefaultFunSemanticsVariantA, "
