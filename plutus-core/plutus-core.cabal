@@ -308,7 +308,7 @@ library
     , base64-bytestring
     , bimap
     , bytestring
-    , cardano-crypto-class        ^>=2.2.3
+    , cardano-crypto-class        ^>=2.3
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1

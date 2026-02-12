@@ -16,7 +16,7 @@ index-state:
   -- Bump both the following dates if you need newer packages from Hackage
   , hackage.haskell.org 2025-09-21T21:31:06Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2025-09-18T12:21:32Z
+  , cardano-haskell-packages 2026-02-11T11:49:13Z
 
 packages: cardano-constitution
           plutus-benchmark
