@@ -66,7 +66,6 @@ import PlutusCore.Core
 import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
-import Data.Word
 import Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
