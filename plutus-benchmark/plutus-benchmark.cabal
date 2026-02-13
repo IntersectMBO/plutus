@@ -17,7 +17,9 @@ build-type:    Simple
 data-files:
   common/templates/*.tpl
   marlowe/scripts/rolepayout/*.benchmark
+  marlowe/scripts/rolepayout/*.flat
   marlowe/scripts/semantics/*.benchmark
+  marlowe/scripts/semantics/*.flat
   validation/data/*.flat
 
 source-repository head
