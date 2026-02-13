@@ -60,25 +60,39 @@ instance AgdaUnparse SimplifierStage where
   agdaUnparse CSE = "cseT"
 
 instance AgdaUnparse Hints.Hints where
-  -- FIXME (https://github.com/IntersectMBO/plutus-private/issues/2063):
-  -- add unparsing for inline hints
-  agdaUnparse _ = "none"
+  agdaUnparse = \case
+    Hints.NoHints -> "none"
+    Hints.Inline x -> agdaUnparse x
+
+instance AgdaUnparse Hints.Inline where
+  agdaUnparse = \case
+    Hints.InlVar -> "var"
+    Hints.InlLam t -> "(ƛ " ++ agdaUnparse t ++ ")"
+    Hints.InlApply f x -> "(" ++ agdaUnparse f ++ " · " ++ agdaUnparse x ++ ")"
+    Hints.InlForce t -> "(force " ++ agdaUnparse t ++ ")"
+    Hints.InlDelay t -> "(delay " ++ agdaUnparse t ++ ")"
+    Hints.InlCon -> "con"
+    Hints.InlBuiltin -> "builtin"
+    Hints.InlError -> "error"
+    Hints.InlConstr ts -> "(constr " ++ agdaUnparse ts ++ ")"
+    Hints.InlCase t ts -> "(case " ++ agdaUnparse t ++ " " ++ agdaUnparse ts ++ ")"
+    Hints.InlExpand t -> "(expand " ++ agdaUnparse t ++ ")"
+    Hints.InlDrop t -> "(" ++ agdaUnparse t ++ " ·↓)"
 
 instance AgdaUnparse Natural where
   agdaUnparse = show
 
 instance AgdaUnparse Integer where
-  agdaUnparse x =
-    case (x < 0) of
-      True -> "(ℤ.negsuc " ++ show (x - 1) ++ ")"
-      False -> "(ℤ.pos " ++ show x ++ ")"
+  agdaUnparse x
+    | x < 0 = "(ℤ.negsuc " ++ show (x - 1) ++ ")"
+    | otherwise = "(ℤ.pos " ++ show x ++ ")"
 
 instance AgdaUnparse Bool where
   agdaUnparse True = "true"
   agdaUnparse False = "false"
 
 instance AgdaUnparse Char where
-  agdaUnparse c = show c
+  agdaUnparse = show
 instance AgdaUnparse Text where
   agdaUnparse = show . T.unpack
 
