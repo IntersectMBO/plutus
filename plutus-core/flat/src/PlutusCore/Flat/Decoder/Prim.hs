@@ -18,7 +18,6 @@ module PlutusCore.Flat.Decoder.Prim
   , dropBits
   , dFloat
   , dDouble
-  , getChunksInfo
   , dByteString_
   , dLazyByteString_
   , dByteArray_
@@ -32,6 +31,7 @@ module PlutusCore.Flat.Decoder.Prim
   ) where
 
 import Control.Monad (when)
+import Data.Bifunctor (second)
 import Data.ByteString qualified as B
 import Data.ByteString.Lazy qualified as L
 import Data.Word (Word16, Word32, Word64, Word8)
@@ -432,29 +432,38 @@ dDouble = wordToDouble <$> dBE64
 -- | Decode a Lazy ByteString
 dLazyByteString_ :: Get L.ByteString
 dLazyByteString_ = L.fromStrict <$> dByteString_
+{-# INLINE dLazyByteString_ #-}
 
 -- | Decode a ByteString
 dByteString_ :: Get B.ByteString
 dByteString_ = chunksToByteString <$> getChunksInfo
+{-# INLINE dByteString_ #-}
 
 -- | Decode a ByteArray and its length
 dByteArray_ :: Get (ByteArray, Int)
 dByteArray_ = chunksToByteArray <$> getChunksInfo
+{-# INLINE dByteArray_ #-}
 
 -- | Decode an Array (a list of chunks up to 255 bytes long) returning the pointer to the first data byte and a list of chunk sizes
 getChunksInfo :: Get (Ptr Word8, [Int])
 getChunksInfo = Get $ \endPtr s -> do
-  let getChunks srcPtr l = do
-        ensureBits endPtr s 8
-        !n <- fromIntegral <$> peek srcPtr
-        if n == 0
-          then return (srcPtr `plusPtr` 1, l [])
-          else do
-            ensureBits endPtr s ((n + 1) * 8)
-            getChunks (srcPtr `plusPtr` (n + 1)) (l . (n :)) -- ETA: stack overflow (missing tail call optimisation)
   when (usedBits s /= 0) $ badEncoding endPtr s "usedBits /= 0"
-  (currPtr', ns) <- getChunks (currPtr s) id
+  (currPtr', ns) <- getChunks endPtr (currPtr s)
   return $ GetResult (s {currPtr = currPtr'}) (currPtr s `plusPtr` 1, ns)
+  where
+    {-# INLINE getChunks #-}
+    getChunks :: Ptr Word8 -> Ptr Word8 -> IO (Ptr Word8, [Int])
+    getChunks !endPtr = go
+      where
+        go srcPtr = do
+          ensureBits endPtr (S srcPtr 0) 8
+          !n <- fromIntegral <$> peek srcPtr
+          if n == 0
+            then pure (srcPtr `plusPtr` 1, [])
+            else do
+              let srcPtr' = srcPtr `plusPtr` 1
+              ensureBits endPtr (S srcPtr' 0) (n * 8)
+              second (n :) <$> go (srcPtr `plusPtr` (n + 1))
 
 {-| Given a value's decoder, returns the size in bits of the encoded value
 
