@@ -557,7 +557,7 @@ scaleValue c (Value outer sizes size neg)
   | otherwise = BuiltinSuccess empty
   where
     go :: NestedMap -> BuiltinResult NestedMap
-    go x = traverse (traverse goScale) x
+    go = traverse (traverse goScale)
     goScale :: Quantity -> BuiltinResult Quantity
     goScale x =
       case scaleQuantity c x of

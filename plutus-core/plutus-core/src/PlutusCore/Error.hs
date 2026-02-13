@@ -136,7 +136,7 @@ data TypeError term uni fun ann
 -- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
 -- on @ParseErrorBundle@.
 -- TODO: this can be killed
-data ParserErrorBundle
+newtype ParserErrorBundle
   = ParseErrorB !(ParseErrorBundle T.Text ParserError)
   deriving stock (Eq, Generic)
   deriving anyclass (NFData)
