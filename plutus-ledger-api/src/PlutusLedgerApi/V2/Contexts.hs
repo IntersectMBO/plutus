@@ -119,8 +119,7 @@ Since TxInfo contains Map fields (which use AssocMap internally), we cannot deri
 PlutusTx.Eq for it. This affects V2 onwards where assoc lists were changed to Maps.
 -}
 
--- See Note [No PlutusTx.Eq for types with AssocMap]
--- deriveEq ''TxInfo
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 instance Pretty TxInfo where
   pretty TxInfo {txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
@@ -148,8 +147,7 @@ data ScriptContext = ScriptContext
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
--- See Note [No PlutusTx.Eq for types with AssocMap]
--- deriveEq ''ScriptContext
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 instance Pretty ScriptContext where
   pretty ScriptContext {scriptContextTxInfo, scriptContextPurpose} =

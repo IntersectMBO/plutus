@@ -360,8 +360,7 @@ data GovernanceAction
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
--- See Note [No PlutusTx.Eq for types with AssocMap]
--- PlutusTx.deriveEq ''GovernanceAction
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 -- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
@@ -372,8 +371,7 @@ data ProposalProcedure = ProposalProcedure
   deriving stock (Generic, Haskell.Show, Haskell.Eq, Haskell.Ord)
   deriving anyclass (HasBlueprintDefinition)
 
--- See Note [No PlutusTx.Eq for types with AssocMap]
--- PlutusTx.deriveEq ''ProposalProcedure
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 instance Pretty ProposalProcedure where
   pretty ProposalProcedure {..} =
@@ -459,8 +457,7 @@ data TxInfo = TxInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
--- See Note [No PlutusTx.Eq for types with AssocMap]
--- PlutusTx.deriveEq ''TxInfo
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 instance Pretty TxInfo where
   pretty TxInfo {..} =
@@ -496,8 +493,7 @@ data ScriptContext = ScriptContext
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
   deriving anyclass (HasBlueprintDefinition)
 
--- See Note [No PlutusTx.Eq for types with AssocMap]
--- PlutusTx.deriveEq ''ScriptContext
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 instance Pretty ScriptContext where
   pretty ScriptContext {..} =
