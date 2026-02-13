@@ -5,21 +5,35 @@ module Main (main) where
 import Cardano.Binary (serialize')
 import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
+import Data.Foldable
+import Data.Functor (void)
 import Data.List (intercalate)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusBenchmark.Marlowe.BenchUtil
   ( rolePayoutBenchmarks
   , semanticsBenchmarks
   , tabulateResults
+  , writeFlat
   , writeFlatUPLCs
   )
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout
+import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as DataRolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Data.Semantics qualified as DataSemantics (marloweValidator)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as RolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Semantics qualified as Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Semantics qualified as Semantics
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
+import PlutusTx.Code (getPlc)
 import System.FilePath (normalise, (</>))
 
-{-| Run the benchmarks and export information about
-the validators and the benchmarking results. -}
+{-
+Generates .flat files of the compiled marlowe validators.
+
+Additionally:
+- Generates .flat files of validators applied to a all benchmark arguments
+- Saves the validators to .plutus files in base-16 encoded CBOR format
+- Writes .tsv files with tables of the reference costs
+-}
 main :: IO ()
 main = do
   dir <- normalise <$> getDataDir
@@ -32,7 +46,20 @@ main = do
       rolePayoutValidatorExportDir = dir </> "marlowe/exe/marlowe-rolepayout"
       rolePayoutValidatorResults = dir </> "marlowe/exe/marlowe-rolepayout.tsv"
 
-  -- Read the semantics benchmarks.
+  -- Write .flat files for validators
+  let
+    vs =
+      [ (semanticsUplcDir </> "validator/sop.flat", Semantics.marloweValidator)
+      , (semanticsUplcDir </> "validator/data.flat", DataSemantics.marloweValidator)
+      , (rolePayoutUplcDir </> "validator/sop.flat", RolePayout.rolePayoutValidator)
+      , (rolePayoutUplcDir </> "validator/data.flat", DataRolePayout.rolePayoutValidator)
+      ]
+
+  for_ vs $ \(path, validator) -> do
+    putStrLn $ "Writing " <> path
+    writeFlat path (void . getPlc $ validator)
+
+  -- Read the benchmark arguments for semantics validator
   benchmarks <- either error id <$> semanticsBenchmarks
 
   -- Write the tabulation of semantics benchmark results.

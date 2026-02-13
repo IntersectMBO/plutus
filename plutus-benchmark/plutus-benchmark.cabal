@@ -19,7 +19,9 @@ data-files:
   common/templates/*.tpl
   force-delay/data/*.flat
   marlowe/scripts/rolepayout/*.benchmark
+  marlowe/scripts/rolepayout/validator/*.flat
   marlowe/scripts/semantics/*.benchmark
+  marlowe/scripts/semantics/validator/*.flat
   validation/data/*.flat
 
 source-repository head
@@ -606,6 +608,7 @@ library marlowe-internal
     , plutus-ledger-api:plutus-execlib
     , plutus-tx                         ^>=1.60
     , plutus-tx-plugin                  ^>=1.60
+    , plutus-core:flat
     , serialise
 
 executable marlowe-validators
@@ -639,6 +642,7 @@ benchmark marlowe
   build-depends:
     , base                     >=4.9   && <5
     , criterion
+    , filepath
     , marlowe-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.60
