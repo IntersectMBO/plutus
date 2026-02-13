@@ -62,8 +62,8 @@ newtype MintValue = UnsafeMintValue (Map CurrencySymbol (Map TokenName Integer))
   deriving newtype (ToData, FromData, UnsafeFromData)
   deriving (Pretty) via (PrettyShow MintValue)
 
--- Manual Eq instance: two MintValues are equal if they mint and burn the same assets,
--- regardless of internal Map representation. Cannot use deriveEq for semantic equality.
+{-| Manual Eq instance: two MintValues are equal if they mint and burn the same assets,
+regardless of internal Map representation. Cannot use deriveEq for semantic equality. -}
 instance PlutusTx.Eq MintValue where
   {-# INLINEABLE (==) #-}
   l == r = mintValueMinted l == mintValueMinted r && mintValueBurned l == mintValueBurned r
