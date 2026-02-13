@@ -51,11 +51,12 @@ open import Data.Nat using (ℕ; suc; zero)
 open import Data.Fin using (Fin; suc; zero)
 open import Data.Empty using (⊥)
 open import Untyped.Equality using (DecEq)
+open import Untyped.RenamingSubstitution using (Sub)
 open import VerifiedCompilation.UntypedTranslation using (Relation)
 import Relation.Unary as Unary using (Decidable)
 import Agda.Builtin.Int
 import Relation.Nary as Nary using (Decidable)
-open import VerifiedCompilation.Certificate using (CertResult; Hints; ce; proof; abort; pcePointwise; MatchOrCE; SimplifierTag)
+open import VerifiedCompilation.Certificate using (CertResult; Hints; inline; none; ce; proof; abort; pcePointwise; MatchOrCE; SimplifierTag)
 open import Agda.Builtin.Sigma using (Σ; _,_)
 ```
 
@@ -70,7 +71,7 @@ respective modules.
 The `isTrace?` decision procedure is at the core of the certification process. It produces the proof that the given
 list of ASTs are in relation with one another according to the transformations implemented in the project.
 
-The `isTransformation?` decision procedure just dispatches to the decision procedure indicated by the tag.
+The `isTransformation?` procedure just dispatches to the decision or checking procedure indicated by the tag.
 
 **TODO**: The `Trace` type or decision procedure should also enforce that the second element of a pair is the first
 element of the next pair in the list. This might not be necessary if we decide that we can assume that the function
@@ -82,8 +83,7 @@ data Transformation : SimplifierTag → Relation where
   isFD : {X : ℕ} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
   isFlD : {X : ℕ} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
   isCSE : {X : ℕ} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
-  -- FIXME: Inline currently rejects some valid translations so is disabled.
-  inlineNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.inlineT ast ast'
+  isInline : {ast ast' : 0 ⊢} → Transformation SimplifierTag.inlineT ast ast'
   isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
   forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
@@ -97,23 +97,28 @@ data Trace : { X : ℕ }  → List (SimplifierTag × Hints × (X ⊢) × (X ⊢)
     → Trace xs
     → Trace ((tag , hints , x , x') ∷ xs)
 
-isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → (a : X ⊢) → (b : X ⊢) → CertResult (Transformation tag a b)
-isTransformation? tag ast ast' with tag
-isTransformation? tag ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
+isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → (hints : Hints) → (a : X ⊢) → (b : X ⊢) → CertResult (Transformation tag a b)
+isTransformation? tag hints ast ast' with tag
+isTransformation? tag hints ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
 ... | ce ¬p t b a = ce (λ { (isFlD x) → ¬p x}) t b a
 ... | proof p = proof (isFlD p)
-isTransformation? tag ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
+isTransformation? tag hints ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
 ... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
 ... | proof p = proof (isFD p)
-isTransformation? tag ast ast' | SimplifierTag.forceCaseDelayT = proof forceCaseDelayNotImplemented
-isTransformation? tag ast ast' | SimplifierTag.caseOfCaseT with UCC.isCaseOfCase? ast ast'
+isTransformation? tag hints ast ast' | SimplifierTag.forceCaseDelayT = proof forceCaseDelayNotImplemented
+isTransformation? tag hints ast ast' | SimplifierTag.caseOfCaseT with UCC.isCaseOfCase? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCoC x) → ¬p x}) t b a
 ... | proof p = proof (isCoC p)
-isTransformation? tag ast ast' | SimplifierTag.caseReduceT with UCR.isCaseReduce? ast ast'
+isTransformation? tag hints ast ast' | SimplifierTag.caseReduceT with UCR.isCaseReduce? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCaseReduce x) → ¬p x}) t b a
 ... | proof p = proof (isCaseReduce p)
-isTransformation? tag ast ast' | SimplifierTag.inlineT = proof inlineNotImplemented
-isTransformation? tag ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
+isTransformation? {X} tag hints ast ast' | SimplifierTag.inlineT with hints | X
+... | inline h | 0 with UInline.top-check h ast ast'
+...                     | proof p = proof isInline  -- TODO: update
+...                     | abort t b a = proof isInline -- TODO: update
+isTransformation? tag hints ast ast' | SimplifierTag.inlineT
+    | _ | _ = abort tag ast ast'
+isTransformation? tag hints ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
 ... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
 ... | proof p = proof (isCSE p)
 
@@ -122,7 +127,7 @@ isTrace? [] = proof empty
 isTrace? {X} ((tag , hints , x₁ , x₂) ∷ xs) with isTrace? xs
 ... | ce ¬p t b a = ce (λ { (cons x xx) → ¬p xx}) t b a
 ... | abort t b a = abort t b a
-... | proof pₜ with isTransformation? {X} tag x₁ x₂
+... | proof pₜ with isTransformation? {X} tag hints x₁ x₂
 ...                 | ce ¬p t b a = ce (λ { (cons x xx) → ¬p x}) t b a
 ...                 | abort t b a = abort t b a
 ...                 | proof pₑ = proof (cons pₑ pₜ)

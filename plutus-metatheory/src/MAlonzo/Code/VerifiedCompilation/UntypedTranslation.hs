@@ -1894,7 +1894,7 @@ du_translation'63'_164 v0 v1 v2 v3 v4
                                            MAlonzo.Code.Relation.Nullary.Reflects.C_of'696'_22 v14
                                              -> let v15
                                                       = coe
-                                                          MAlonzo.Code.VerifiedCompilation.Certificate.du_decToPCE_128
+                                                          MAlonzo.Code.VerifiedCompilation.Certificate.du_decToPCE_148
                                                           (coe v1)
                                                           (coe
                                                              MAlonzo.Code.Relation.Nullary.Decidable.Core.du_map'8242'_168

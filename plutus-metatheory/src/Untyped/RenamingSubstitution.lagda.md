@@ -165,6 +165,9 @@ extend : ∀{X Y} → Sub X Y → Y ⊢ → Sub (suc X) Y
 extend σ t zero  = t
 extend σ t (suc x) = σ x
 
+_↑ˢ : ∀{X Y} → Sub X Y → Sub X (suc Y)
+_↑ˢ σ x = weaken (σ x)
+
 _[_] : ∀{X} → suc X ⊢ → X ⊢ → X ⊢
 t [ u ] = sub (extend ` u) t
 ```
