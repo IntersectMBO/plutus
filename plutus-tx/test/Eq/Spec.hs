@@ -29,7 +29,7 @@ deriveEq ''SomeVoid
 data SomeLargeADT a b c d e
   = SomeLargeADT1 Integer a Tx.Bool b c d
   | SomeLargeADT2
-  | SomeLargeADT3 {f1 :: e, f2 :: e, _f3 :: e, _f4 :: e, _f5 :: e}
+  | SomeLargeADT3 {_f1 :: e, _f2 :: e, _f3 :: e, _f4 :: e, _f5 :: e}
   deriving stock (HS.Eq)
 deriveEq ''SomeLargeADT
 
@@ -52,8 +52,8 @@ unitTests =
   let v1 :: SomeLargeADT () BuiltinString () () () = SomeLargeADT1 1 () Tx.True "foobar" () ()
       v2 :: SomeLargeADT () () () () () = SomeLargeADT2
       v3 :: SomeLargeADT () () () () Integer = SomeLargeADT3 1 2 3 4 5
-      v3Error1 = v3 {f1 = 0, f2 = error ()} -- mismatch comes first, error comes later
-      v3Error2 = v3 {f1 = error (), f2 = 0} -- error comes first, mismatch later
+      v3Error1 = SomeLargeADT3 0 (error ()) 3 4 5 -- mismatch comes first, error comes later
+      v3Error2 = SomeLargeADT3 (error ()) 0 3 4 5 -- error comes first, mismatch later
       v4 :: SomeVoid = undefined
       v5 = MyNewtype 42
       v6 = MyNewtype 99
