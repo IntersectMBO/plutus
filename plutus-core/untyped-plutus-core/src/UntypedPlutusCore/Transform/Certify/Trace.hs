@@ -11,6 +11,7 @@ data SimplifierStage
   | CaseReduce
   | Inline
   | CSE
+  deriving stock (Show)
 
 data Simplification name uni fun a
   = Simplification

@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module UntypedPlutusCore.Subst
   ( substVarA
@@ -26,33 +27,33 @@ import Universe
 -- | Applicatively replace a variable using the given function.
 substVarA
   :: Applicative f
-  => (name -> f (Maybe (Term name uni fun ann)))
+  => (name -> ann -> f (Maybe (Term name uni fun ann)))
   -> Term name uni fun ann
   -> f (Term name uni fun ann)
-substVarA nameF t@(Var _ name) = fromMaybe t <$> nameF name
+substVarA nameF t@(Var a name) = fromMaybe t <$> nameF name a
 substVarA _ t = pure t
 
 -- | Replace a variable using the given function.
 substVar
-  :: (name -> Maybe (Term name uni fun ann))
+  :: (name -> ann -> Maybe (Term name uni fun ann))
   -> Term name uni fun ann
   -> Term name uni fun ann
-substVar = purely substVarA
+substVar = purely (substVarA . curry) . uncurry
 
 -- | Naively monadically substitute names using the given function (i.e. do not substitute binders).
 termSubstNamesM
   :: Monad m
-  => (name -> m (Maybe (Term name uni fun ann)))
+  => (name -> ann -> m (Maybe (Term name uni fun ann)))
   -> Term name uni fun ann
   -> m (Term name uni fun ann)
 termSubstNamesM = transformMOf termSubterms . substVarA
 
 -- | Naively substitute names using the given function (i.e. do not substitute binders).
 termSubstNames
-  :: (name -> Maybe (Term name uni fun ann))
+  :: (name -> ann -> Maybe (Term name uni fun ann))
   -> Term name uni fun ann
   -> Term name uni fun ann
-termSubstNames = purely termSubstNamesM
+termSubstNames = purely (termSubstNamesM . curry) . uncurry
 
 -- | Completely replace the names with a new name type.
 termMapNames
