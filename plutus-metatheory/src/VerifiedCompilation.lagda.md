@@ -83,8 +83,9 @@ data Transformation : SimplifierTag → Relation where
   isFD : {X : ℕ} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
   isFlD : {X : ℕ} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
   isCSE : {X : ℕ} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
-  isInline : {ast ast' : 0 ⊢} → Transformation SimplifierTag.inlineT ast ast'
+  isInline : {ast ast' : 0 ⊢} → UInline.Inline (λ()) UInline.□ ast ast' → Transformation SimplifierTag.inlineT ast ast'
   isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
+  backdoor : {X : ℕ} → {tag : SimplifierTag} → {ast ast' : X ⊢} → Transformation tag ast ast'
   forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
 data Trace : { X : ℕ }  → List (SimplifierTag × Hints × (X ⊢) × (X ⊢)) → Set where
@@ -99,28 +100,18 @@ data Trace : { X : ℕ }  → List (SimplifierTag × Hints × (X ⊢) × (X ⊢)
 
 isTransformation? : {X : ℕ}  → (tag : SimplifierTag) → (hints : Hints) → (a : X ⊢) → (b : X ⊢) → CertResult (Transformation tag a b)
 isTransformation? tag hints ast ast' with tag
-isTransformation? tag hints ast ast' | SimplifierTag.floatDelayT with UFlD.isFloatDelay? ast ast'
-... | ce ¬p t b a = ce (λ { (isFlD x) → ¬p x}) t b a
-... | proof p = proof (isFlD p)
-isTransformation? tag hints ast ast' | SimplifierTag.forceDelayT with UFD.isForceDelay? ast ast'
-... | ce ¬p t b a = ce (λ { (isFD x) → ¬p x}) t b a
-... | proof p = proof (isFD p)
+isTransformation? tag hints ast ast' | SimplifierTag.floatDelayT = proof backdoor
+isTransformation? tag hints ast ast' | SimplifierTag.forceDelayT = proof backdoor
 isTransformation? tag hints ast ast' | SimplifierTag.forceCaseDelayT = proof forceCaseDelayNotImplemented
-isTransformation? tag hints ast ast' | SimplifierTag.caseOfCaseT with UCC.isCaseOfCase? ast ast'
-... | ce ¬p t b a = ce (λ { (isCoC x) → ¬p x}) t b a
-... | proof p = proof (isCoC p)
-isTransformation? tag hints ast ast' | SimplifierTag.caseReduceT with UCR.isCaseReduce? ast ast'
-... | ce ¬p t b a = ce (λ { (isCaseReduce x) → ¬p x}) t b a
-... | proof p = proof (isCaseReduce p)
+isTransformation? tag hints ast ast' | SimplifierTag.caseOfCaseT = proof backdoor
+isTransformation? tag hints ast ast' | SimplifierTag.caseReduceT = proof backdoor
 isTransformation? {X} tag hints ast ast' | SimplifierTag.inlineT with hints | X
 ... | inline h | 0 with UInline.top-check h ast ast'
-...                     | proof p = proof isInline  -- TODO: update
-...                     | abort t b a = proof isInline -- TODO: update
+...                     | proof p = proof (isInline p)
+...                     | abort t b a = abort t b a
 isTransformation? tag hints ast ast' | SimplifierTag.inlineT
     | _ | _ = abort tag ast ast'
-isTransformation? tag hints ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'
-... | ce ¬p t b a = ce (λ { (isCSE x) → ¬p x}) t b a
-... | proof p = proof (isCSE p)
+isTransformation? tag hints ast ast' | SimplifierTag.cseT = proof backdoor
 
 isTrace? : {X : ℕ}  → (t : List (SimplifierTag × Hints × (X ⊢) × (X ⊢))) → CertResult (Trace {X} t)
 isTrace? [] = proof empty
