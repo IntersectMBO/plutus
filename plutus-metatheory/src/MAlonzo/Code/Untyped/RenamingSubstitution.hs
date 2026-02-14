@@ -321,19 +321,35 @@ du_extend_454 v0 v1 v2
       MAlonzo.Code.Data.Fin.Base.C_zero_12 -> coe v1
       MAlonzo.Code.Data.Fin.Base.C_suc_16 v4 -> coe v0 v4
       _ -> MAlonzo.RTE.mazUnreachableError
+-- Untyped.RenamingSubstitution._↑ˢ
+d__'8593''738'_470 ::
+  Integer ->
+  Integer ->
+  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
+   MAlonzo.Code.Untyped.T__'8866'_14) ->
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
+  MAlonzo.Code.Untyped.T__'8866'_14
+d__'8593''738'_470 ~v0 v1 v2 v3 = du__'8593''738'_470 v1 v2 v3
+du__'8593''738'_470 ::
+  Integer ->
+  (MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
+   MAlonzo.Code.Untyped.T__'8866'_14) ->
+  MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
+  MAlonzo.Code.Untyped.T__'8866'_14
+du__'8593''738'_470 v0 v1 v2 = coe d_weaken_88 (coe v0) (coe v1 v2)
 -- Untyped.RenamingSubstitution._[_]
-d__'91'_'93'_468 ::
+d__'91'_'93'_478 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Untyped.T__'8866'_14
-d__'91'_'93'_468 v0 v1 v2
+d__'91'_'93'_478 v0 v1 v2
   = coe
       d_sub_396 (coe addInt (coe (1 :: Integer)) (coe v0)) (coe v0)
       (coe du_extend_454 (coe MAlonzo.Code.Untyped.C_'96'_18) (coe v2))
       (coe v1)
 -- Untyped.RenamingSubstitution.lifts-cong
-d_lifts'45'cong_486 ::
+d_lifts'45'cong_496 ::
   Integer ->
   Integer ->
   (MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
@@ -344,9 +360,9 @@ d_lifts'45'cong_486 ::
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_lifts'45'cong_486 = erased
+d_lifts'45'cong_496 = erased
 -- Untyped.RenamingSubstitution.subList-cong
-d_subList'45'cong_506 ::
+d_subList'45'cong_516 ::
   Integer ->
   Integer ->
   (MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
@@ -357,9 +373,9 @@ d_subList'45'cong_506 ::
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_subList'45'cong_506 = erased
+d_subList'45'cong_516 = erased
 -- Untyped.RenamingSubstitution.sub-cong
-d_sub'45'cong_520 ::
+d_sub'45'cong_530 ::
   Integer ->
   Integer ->
   (MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
@@ -370,27 +386,27 @@ d_sub'45'cong_520 ::
    MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_sub'45'cong_520 = erased
+d_sub'45'cong_530 = erased
 -- Untyped.RenamingSubstitution.lifts-id
-d_lifts'45'id_578 ::
+d_lifts'45'id_588 ::
   Integer ->
   MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_lifts'45'id_578 = erased
+d_lifts'45'id_588 = erased
 -- Untyped.RenamingSubstitution.subList-id
-d_subList'45'id_586 ::
+d_subList'45'id_596 ::
   Integer ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_subList'45'id_586 = erased
+d_subList'45'id_596 = erased
 -- Untyped.RenamingSubstitution.sub-id
-d_sub'45'id_592 ::
+d_sub'45'id_602 ::
   Integer ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_sub'45'id_592 = erased
+d_sub'45'id_602 = erased
 -- Untyped.RenamingSubstitution.lifts-lift
-d_lifts'45'lift_634 ::
+d_lifts'45'lift_644 ::
   Integer ->
   Integer ->
   Integer ->
@@ -400,9 +416,9 @@ d_lifts'45'lift_634 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_lifts'45'lift_634 = erased
+d_lifts'45'lift_644 = erased
 -- Untyped.RenamingSubstitution.subList-ren
-d_subList'45'ren_658 ::
+d_subList'45'ren_668 ::
   Integer ->
   Integer ->
   Integer ->
@@ -412,9 +428,9 @@ d_subList'45'ren_658 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_subList'45'ren_658 = erased
+d_subList'45'ren_668 = erased
 -- Untyped.RenamingSubstitution.sub-ren
-d_sub'45'ren_672 ::
+d_sub'45'ren_682 ::
   Integer ->
   Integer ->
   Integer ->
@@ -424,9 +440,9 @@ d_sub'45'ren_672 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_sub'45'ren_672 = erased
+d_sub'45'ren_682 = erased
 -- Untyped.RenamingSubstitution.ren-lift-lifts
-d_ren'45'lift'45'lifts_762 ::
+d_ren'45'lift'45'lifts_772 ::
   Integer ->
   Integer ->
   Integer ->
@@ -436,9 +452,9 @@ d_ren'45'lift'45'lifts_762 ::
    MAlonzo.Code.Data.Fin.Base.T_Fin_10) ->
   MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_ren'45'lift'45'lifts_762 = erased
+d_ren'45'lift'45'lifts_772 = erased
 -- Untyped.RenamingSubstitution.renList-sub
-d_renList'45'sub_786 ::
+d_renList'45'sub_796 ::
   Integer ->
   Integer ->
   Integer ->
@@ -448,9 +464,9 @@ d_renList'45'sub_786 ::
    MAlonzo.Code.Data.Fin.Base.T_Fin_10) ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_renList'45'sub_786 = erased
+d_renList'45'sub_796 = erased
 -- Untyped.RenamingSubstitution.ren-sub
-d_ren'45'sub_800 ::
+d_ren'45'sub_810 ::
   Integer ->
   Integer ->
   Integer ->
@@ -460,9 +476,9 @@ d_ren'45'sub_800 ::
    MAlonzo.Code.Data.Fin.Base.T_Fin_10) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_ren'45'sub_800 = erased
+d_ren'45'sub_810 = erased
 -- Untyped.RenamingSubstitution.lifts-comp
-d_lifts'45'comp_890 ::
+d_lifts'45'comp_900 ::
   Integer ->
   Integer ->
   Integer ->
@@ -472,9 +488,9 @@ d_lifts'45'comp_890 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   MAlonzo.Code.Data.Fin.Base.T_Fin_10 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_lifts'45'comp_890 = erased
+d_lifts'45'comp_900 = erased
 -- Untyped.RenamingSubstitution.subList-comp
-d_subList'45'comp_914 ::
+d_subList'45'comp_924 ::
   Integer ->
   Integer ->
   Integer ->
@@ -484,9 +500,9 @@ d_subList'45'comp_914 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   [MAlonzo.Code.Untyped.T__'8866'_14] ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_subList'45'comp_914 = erased
+d_subList'45'comp_924 = erased
 -- Untyped.RenamingSubstitution.sub-comp
-d_sub'45'comp_928 ::
+d_sub'45'comp_938 ::
   Integer ->
   Integer ->
   Integer ->
@@ -496,4 +512,4 @@ d_sub'45'comp_928 ::
    MAlonzo.Code.Untyped.T__'8866'_14) ->
   MAlonzo.Code.Untyped.T__'8866'_14 ->
   MAlonzo.Code.Agda.Builtin.Equality.T__'8801'__12
-d_sub'45'comp_928 = erased
+d_sub'45'comp_938 = erased

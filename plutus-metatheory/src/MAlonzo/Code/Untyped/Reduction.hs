@@ -271,7 +271,7 @@ d_progress_532 v0
                                         MAlonzo.Code.Untyped.C_ƛ_20 v10
                                           -> coe
                                                C_step_522
-                                               (MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_468
+                                               (MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_478
                                                   (coe (0 :: Integer)) (coe v10) (coe v2))
                                                (coe C_β_286 v8)
                                         _ -> MAlonzo.RTE.mazUnreachableError
@@ -1014,7 +1014,7 @@ d_progress_532 v0
                                           -> case coe v3 of
                                                MAlonzo.Code.Untyped.C_ƛ_20 v12
                                                  -> let v13
-                                                          = MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_468
+                                                          = MAlonzo.Code.Untyped.RenamingSubstitution.d__'91'_'93'_478
                                                               (coe (0 :: Integer)) (coe v12)
                                                               (coe v4) in
                                                     coe
