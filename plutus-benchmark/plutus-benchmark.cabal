@@ -926,3 +926,25 @@ test-suite uplc-evaluator-integration-tests
     , text
     , uuid
     , with-utf8
+
+executable dump
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: dump
+  build-depends:
+    , base                     >=4.9   && <5
+    , bytestring
+    , cardano-loans-internal
+    , containers
+    , coop
+    , exceptions
+    , filepath
+    , linear-vesting-internal
+    , marlowe-internal
+    , nofib-internal
+    , plutus-core              ^>=1.58
+    , plutus-core:flat
+    , plutus-core:plutus-ir
+    , plutus-ledger-api
+    , serialise
+    , text
