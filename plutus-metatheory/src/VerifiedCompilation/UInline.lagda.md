@@ -11,107 +11,299 @@ module VerifiedCompilation.UInline where
 ## Imports
 
 ```
+open import Function using (_∘_)
 open import Untyped.Equality using (DecEq; _≟_; decPointwise)
 open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLambda?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; islambda; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
 open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.Fin using (Fin; suc; zero)
-open import Untyped.RenamingSubstitution using (_[_])
+import Data.Fin as Fin using (_≟_)
+open import Data.List using (List; []; _∷_)
+open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
+open import Untyped.RenamingSubstitution using (_[_]; Sub; _↑ˢ; lifts; extend; weaken)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
 open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
+open import Relation.Binary using (DecidableEquality)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Untyped.RenamingSubstitution using (weaken)
 open import Data.Empty using (⊥)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)
-open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; inlineT)
-```
-## Translation Relation
-
-Abstractly, inlining is much like β-reduction - where a term is applied to a lambda,
-the term is substituted in. This can be expressed quite easily and cleanly with the
-substitution operation from the general metatheory.
-
-```
-data pureInline : Relation where
-  tr : {X : ℕ} {x x' : X ⊢} → Translation pureInline x x' → pureInline x x'
-  _⨾_ : {X : ℕ} {x x' x'' : X ⊢} → pureInline x x' → pureInline x' x'' → pureInline x x''
-  inline : {X : ℕ} {x' : X ⊢} {x : suc X ⊢} {y : X ⊢}
-         → pureInline (x [ y ]) x'
-         → pureInline (ƛ x · y) x'
-
-_ : pureInline {0} (ƛ (` zero) · error) error
-_ = inline (tr reflexive)
-{-
-_ : {X : ℕ} {a b : X} {{_ : DecEq X}} → pureInline (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((` a) · (` b))
-_ = tr (Translation.app (Translation.istranslation (inline (tr reflexive))) reflexive) ⨾ inline (tr reflexive)
--}
-```
-However, this has several intermediate values that are very hard to determine for a decision procedure.
-
-The Haskell code works by building an environment of variable values and then inlines from these. We can
-replicate that here to try and make the decision procedure easier.
-```
-data Env {X : ℕ} : Set where
-  □ : Env
-  _,_ : Env {X} → (X ⊢) → Env {X}
-
-```
-# Decidable Inline Type
-
-This type is closer to how the Haskell code works, and also closer to the way Jacco's inline example works in the literature.
-
-It recurses to the Translation type, but it needs to not do that initially or the `translation?` decision procedure
-will recurse infinitely. Instead there is the `last-sub` constructor to allow the recursion only if at least
-something has happened.
-
+open import VerifiedCompilation.Certificate using (Proof?; _>>=_; abort; proof; inlineT)
 ```
 
-data Inline {X : ℕ} : Env {X} → (X ⊢) → (X ⊢) → Set where
-  var : {x y z : X ⊢} {e : Env} → Inline (e , x) z y → Inline e (z · x) y
-  last-sub : {x : suc X ⊢ } {y v : X ⊢} → Translation (Inline □) (x [ v ]) y → Inline (□ , v) (ƛ x) y
-  sub : {x : suc X ⊢ } {y v v₁ : X ⊢} {e : Env} → Inline (e , v₁) (x [ v ]) y → Inline ((e , v₁) , v) (ƛ x) y
-
-_ : {X : ℕ} {a b : Fin X} → Inline □ (((ƛ (ƛ ((` (suc zero)) · (` zero)))) · (` a)) · (` b)) ((` a) · (` b))
-_ = var (var (sub (last-sub reflexive)))
-
-{-
-_ : {X : ℕ} {a b : X} {{_ : DecEq X}} → Translation (Inline □) (((ƛ (ƛ ((` (just nothing)) · (` nothing)))) · (` a)) · (` b)) ((ƛ ((` (just a)) · (` nothing))) · (` b))
-_ = Translation.app (Translation.istranslation (var (last-sub reflexive))) reflexive
--}
-```
-# Inline implies pureInline
-```
---- TODO
-postulate
-  Inline→pureInline : {X : ℕ} → {x y : X ⊢} → Inline □ x y → pureInline x y
-```
-## Decision Procedure
+# Zippers, and relating two zippers
 
 ```
-isInline? : {X : ℕ} → (ast ast' : X ⊢) → ProofOrCE (Translation (Inline □) ast ast')
+infix 4 _≽_
+infix 8 _↝
 
-{-# TERMINATING #-}
-isIl? : {X : ℕ} → (e : Env {X}) → (ast ast' : X ⊢) → ProofOrCE (Inline e ast ast')
-isIl? e ast ast' with (isApp? isTerm? isTerm? ast)
-... | yes (isapp (isterm x) (isterm y)) with isIl? (e , y) x ast'
-...     | proof p = proof (var p)
-...     | ce ¬p t b a = ce (λ { (var xx) → ¬p xx}) t b a
-isIl? e ast ast' | no ¬app with (isLambda? isTerm? ast)
-isIl? □ ast ast' | no ¬app | no ¬ƛ = ce (λ { (var xx) → ¬app (isapp (isterm _) (isterm _))}) inlineT ast ast'
-isIl? (e , v) ast ast' | no ¬app | no ¬ƛ = ce (λ { (var xx) → ¬app (isapp (isterm _) (isterm _)) ; (last-sub x) → ¬ƛ (islambda (isterm _)) ; (sub xx) → ¬ƛ (islambda (isterm _))}) inlineT ast ast'
-isIl? □ .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) = ce (λ { ()}) inlineT (ƛ x) ast'
-isIl? {X} (□ , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isInline? (x [ v ]) ast')
-... | proof t = proof (last-sub t)
-... | ce ¬p t b a = ce (λ { (last-sub x) → ¬p x}) t b a
-isIl? ((e , v₁) , v) .(ƛ x) ast' | no ¬app | yes (islambda (isterm x)) with (isIl? (e , v₁) (x [ v ]) ast')
-... | proof p = proof (sub p)
-... | ce ¬p t b a = ce (λ { (sub xx) → ¬p xx}) t b a
+variable
+  X Y : ℕ
 
-isInline? = translation? inlineT (isIl? □)
+variable
+  x y : Fin X
 
-UInline : {X : ℕ} → (ast : X ⊢) → (ast' : X ⊢) → Set
-UInline = Translation (Inline □)
+variable
+  σ : Sub X Y
 
+variable
+  L M N L′ M′ N′ : X ⊢
+
+-- | Zipper
+data _↝ (X : ℕ) : Set where
+  □ : X ↝
+  _·_ : X ↝ → (X ⊢) → X ↝
+
+variable
+  z z′ : X ↝
+
+_↑ᶻ : X ↝ → (suc X) ↝
+□ ↑ᶻ = □
+(z · M) ↑ᶻ = (z ↑ᶻ) · weaken M
+
+injᶻˡ : (z · M ≡ z′ · M′) → z ≡ z′
+injᶻˡ refl = refl
+
+injᶻʳ : (z · M ≡ z′ · M′) → M ≡ M′
+injᶻʳ refl = refl
+
+_≟ᶻ_ : DecidableEquality (X ↝)
+□ ≟ᶻ □ = yes refl
+(z · M) ≟ᶻ (z′ · M′) with z ≟ᶻ z′ | M ≟ M′
+... | yes refl | yes refl = yes refl
+... | no z≠z′ | _ = no (z≠z′ ∘ injᶻˡ)
+... | yes refl | no M≠M′ = no (M≠M′ ∘ injᶻʳ)
+(z · M) ≟ᶻ □ = no λ()
+□ ≟ᶻ (z′ · M′) = no λ()
+
+-- | Relating two zippers
+data _≽_ {X : ℕ} : X ↝ → X ↝ → Set where
+  □ : □ ≽ □
+  keep : ∀ {z z′} (M : X ⊢) → z ≽ z′ → (z · M) ≽ (z′ · M)
+  drop : ∀ {z z′} (M : X ⊢) → z ≽ z′ → (z · M) ≽ (z′ · M)
+
+variable
+  zz : z ≽ z′
+
+_↑ᶻᶻ : z ≽ z′ → (z ↑ᶻ) ≽ (z′ ↑ᶻ)
+□ ↑ᶻᶻ = □
+(keep M zᵃ) ↑ᶻᶻ = keep (weaken M) (zᵃ ↑ᶻᶻ)
+(drop M zᵃ) ↑ᶻᶻ = drop (weaken M) (zᵃ ↑ᶻᶻ)
+
+idᶻᶻ : (z : X ↝) → z ≽ z
+idᶻᶻ □ = □
+idᶻᶻ (z · M) = keep M (idᶻᶻ z)
+
+-- We could define `_≟ᶻᶻ_ : DecidableEquality (z ≽ z′)` instead, but it's much longer.
+_≟ᶻᶻ_ : (zz zz′ : z ≽ z′) → Maybe (zz ≡ zz′)
+□ ≟ᶻᶻ □ = just refl
+keep M zz ≟ᶻᶻ keep M′ zz′ with M ≟ M′ | zz ≟ᶻᶻ zz′
+... | yes refl | just refl = just refl
+... | _ | _ = nothing
+drop M zz ≟ᶻᶻ drop M′ zz′ with M ≟ M′ | zz ≟ᶻᶻ zz′
+... | yes refl | just refl = just refl
+... | _ | _ = nothing
+{-# CATCHALL #-}
+zz ≟ᶻᶻ zz′ = nothing
+```
+
+# Inline relation
+
+```
+data Inline {X : ℕ} :
+  (σ : Sub X X)
+  {z z′ : X ↝}
+  (zz : z ≽ z′)
+  (M M′ : X ⊢)
+  → Set where
+
+  ` :
+      (x : Fin X)
+    → -----------------------------
+      Inline σ (idᶻᶻ z) (` x) (` x)
+
+  `↓ :
+      (r : Inline σ zz (σ x) M′)
+    → -----------------------------
+      Inline σ zz (` x) M′
+
+  ƛ□ :
+      Inline (lifts σ) □ N N′
+    → -----------------------------
+      Inline σ □ (ƛ N) (ƛ N′)
+
+  ƛ :
+      (t : Inline (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′)
+    → ---------------------------------------
+      Inline σ (keep M zz) (ƛ N) (ƛ N′)
+
+  ƛ↓ :
+      (t : Inline (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′))
+    → ---------------------------------------
+      Inline σ (drop M zz) (ƛ N) N′
+
+  _·_ :
+      (r : Inline σ (keep M zz) L L′)
+      (s : Inline σ □ M M′)
+    → -------------------------------
+      Inline σ zz (L · M) (L′ · M′)
+
+  _·↓ :
+      (r : Inline σ (drop M zz) L N′)
+    → -------------------------------
+      Inline σ zz (L · M) N′
+
+  -- The following constructors are for compatible closure
+
+  force :
+      (r : Inline σ zz M M′)
+    → -------------------------------
+      Inline σ zz (force M) (force M′)
+
+  delay :
+      (r : Inline σ zz M M′)
+    → -------------------------------
+      Inline σ zz (delay M) (delay M′)
+
+  con :
+      ∀ {c}
+    → -------------------------------
+      Inline σ zz (con c) (con c)
+
+  builtin :
+      ∀ {b}
+    → -------------------------------
+      Inline σ zz (builtin b) (builtin b)
+
+  constr :
+      ∀ {i Ms M′s}
+      (rs : Pointwise (Inline σ zz) Ms M′s)
+    → -------------------------------
+      Inline σ zz (constr i Ms) (constr i M′s)
+
+  case :
+      ∀ {Ms M′s}
+      (r  : Inline σ zz M M′)
+      (rs : Pointwise (Inline σ zz) Ms M′s)
+    → -------------------------------
+      Inline σ zz (case M Ms) (case M′ M′s)
+
+  error : Inline σ zz error error
+```
+
+# Annotation
+
+```
+data ann : Set where
+  var    : ann
+  expand : ann → ann
+  ƛ     : ann → ann
+  _·_    : ann → ann → ann
+  _·↓    : ann → ann
+  force : ann → ann
+  delay : ann → ann
+  con     : ann
+  builtin : ann
+  error   : ann
+  constr : List ann → ann
+  case   : ann → List ann → ann
+```
+
+# Check aided by annotations
+
+```
+checkPointwise :
+        (as : List ann)
+        (σ : Sub X X)
+        (zz : z ≽ z′)
+        (Ms M′s : List (X ⊢))
+        → Proof? (Pointwise (Inline σ zz) Ms M′s)
+
+check : (a : ann)
+        (σ : Sub X X)
+        (zz : z ≽ z′)
+        (M M′ : X ⊢)
+        → Proof? (Inline σ zz M M′)
+check {z = z} {z′ = z′} var σ zz M@(` x) M′@(` x′)
+  with x Fin.≟ x′ | z ≟ᶻ z′
+... | yes refl | yes refl
+    with zz ≟ᶻᶻ idᶻᶻ z
+...   | just refl = proof (` x)
+...   | nothing = abort inlineT M M′
+check var σ zz M@(` x) M′@(` x′)
+    | _ | _ = abort inlineT M M′
+
+check (expand a) σ zz (` x) M′ =
+   do r ← check a σ zz (σ x) M′
+      proof (`↓ r)
+
+check (ƛ a) σ □ (ƛ N) (ƛ N′) =
+   do t ← check a (lifts σ) □ N N′
+      proof (ƛ□ t)
+
+check (ƛ a) σ (keep M zz) (ƛ N) (ƛ N′)  =
+   do t ← check a (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′
+      proof (ƛ t)
+
+check (ƛ a) σ (drop M zz) (ƛ N) N′  =
+   do t ← check a (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′)
+      proof (ƛ↓ t)
+
+check (a · b) σ zz (L · M) (L′ · M′) =
+   do r ← check a σ (keep M zz) L L′
+      s ← check b σ □ M M′
+      proof (r · s)
+
+check (a ·↓) σ zz (L · M) N′ =
+   do r ← check a σ (drop M zz) L N′
+      proof (r ·↓)
+
+check (force a) σ zz (force M) (force M′) =
+   do r ← check a σ zz M M′
+      proof (force r)
+
+check (delay a) σ zz (delay M) (delay M′) =
+   do r ← check a σ zz M M′
+      proof (delay r)
+
+check con σ zz M@(con c) M′@(con c′)
+  with c ≟ c′
+... | yes refl = proof con
+... | no  _ = abort inlineT M M′
+
+check builtin σ zz M@(builtin b) M′@(builtin b′)
+  with b ≟ b′
+... | yes refl = proof builtin
+... | no  _ = abort inlineT M M′
+
+check (constr as) σ zz M@(constr i Ms) M′@(constr i′ M′s) with i ≟ i′
+... | yes refl =
+   do rs ← checkPointwise as σ zz Ms M′s
+      proof (constr rs)
+... | no _ = abort inlineT M M′
+
+check (case a as) σ zz (case M Ms) (case M′ M′s) =
+  do r ← check a σ zz M M′
+     rs ← checkPointwise as σ zz Ms M′s
+     proof (case r rs)
+
+check error σ zz error error = proof error
+
+check a σ zz M M′ = abort inlineT M M′
+
+checkPointwise [] σ zz [] [] = proof Pointwise.[]
+checkPointwise (a ∷ as) σ zz (M ∷ Ms) (M′ ∷ M′s) =
+   do p ← check a σ zz M M′
+      ps ← checkPointwise as σ zz Ms M′s
+      proof (p Pointwise.∷ ps)
+checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
+```
+
+# Top-level check
+```
+top-check : (a : ann) (M M′ : 0 ⊢)
+            → Proof? (Inline (λ()) □ M M′)
+top-check a M M′ = check a (λ()) □ M M′
 ```

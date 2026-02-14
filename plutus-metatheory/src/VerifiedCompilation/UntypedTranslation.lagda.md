@@ -21,7 +21,6 @@ open import RawU using (TmCon; tmCon; TyTag; ⟦_⟧tag; decTagCon; tmCon2TagCon
 open import Data.List using (List; [_])
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ; suc; eq?)
-open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Builtin using (Builtin)
 import Relation.Binary.PropositionalEquality as Eq
 open Eq using (_≡_; refl)

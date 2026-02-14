@@ -88,6 +88,12 @@ data Proof? (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → Proof? P
   abort : {X X' : Set} → SimplifierTag → X → X' → Proof? P
 
+infixl 1 _>>=_
+
+_>>=_ : ∀ {𝓁 𝓁′} {P : Set 𝓁} {P′ : Set 𝓁′} → Proof? P → (P → Proof? P′) → Proof? P′
+proof p >>= k = k p
+abort tag b a >>= _ = abort tag b a
+
 decToPCE : {X : Set} {P : Set} → SimplifierTag → Dec P → {before after : X} → ProofOrCE P
 decToPCE _ (yes p) = proof p
 decToPCE tag (no ¬p) {before} {after} = ce ¬p tag before after
