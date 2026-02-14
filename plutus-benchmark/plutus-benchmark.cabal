@@ -970,3 +970,29 @@ benchmark certifier-bench
     , criterion
     , deepseq
     , plutus-metatheory
+
+executable dump
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: dump
+  other-modules:  Script
+  build-depends:
+    , base                   >=4.9   && <5
+    , bytestring
+    , containers
+    , exceptions
+    , filepath
+    , lens
+    , lists-internal
+    , plutus-core            ^>=1.59
+    , plutus-core:flat
+    , plutus-core:plutus-ir
+    , plutus-ledger-api
+    , serialise
+    , text
+
+-- , cardano-loans-internal
+-- , coop
+-- , linear-vesting-internal
+-- , marlowe-internal
+-- , nofib-internal

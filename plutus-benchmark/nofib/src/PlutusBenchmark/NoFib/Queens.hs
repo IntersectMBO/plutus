@@ -14,6 +14,8 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:datatypes=BuiltinCasing #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module PlutusBenchmark.NoFib.Queens where
 
@@ -99,9 +101,13 @@ runQueens n alg = nqueens n (lookupAlgorithm alg)
 -- % Compile a Plutus Core term which runs nqueens on given arguments
 mkQueensCode :: Integer -> Algorithm -> Tx.CompiledCode [State]
 mkQueensCode sz alg =
-  $$(Tx.compile [||runQueens||])
+  mkQueensCode2
     `Tx.unsafeApplyCode` Tx.liftCodeDef sz
     `Tx.unsafeApplyCode` Tx.liftCodeDef alg
+
+mkQueensCode2 :: Tx.CompiledCode (Integer -> Algorithm -> [State])
+mkQueensCode2 =
+  $$(Tx.compile [||runQueens||])
 
 mkQueensTerm :: Integer -> Algorithm -> Term
 mkQueensTerm sz alg = compiledCodeToTerm $ mkQueensCode sz alg
