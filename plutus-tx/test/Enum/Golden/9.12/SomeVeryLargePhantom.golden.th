@@ -1,53 +1,56 @@
 instance PlutusTx.Enum.Class.Enum (Enum.Spec.SomeVeryLargePhantom a_0
-                                                                  b_1
-                                                                  c_2
-                                                                  d_3
-                                                                  e_4
-                                                                  f_5
-                                                                  g_6
-                                                                  h_7)
-    where {PlutusTx.Enum.Class.succ (Enum.Spec.P1) = Enum.Spec.P2;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P2) = Enum.Spec.P3;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P3) = Enum.Spec.P4;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P4) = Enum.Spec.P5;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P5) = Enum.Spec.P6;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P6) = Enum.Spec.P7;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P7) = Enum.Spec.P8;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P8) = Enum.Spec.P9;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P9) = Enum.Spec.P10;
-           PlutusTx.Enum.Class.succ (Enum.Spec.P10) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.succBadArgumentError;
-           {-# INLINABLE PlutusTx.Enum.Class.succ #-};
-           PlutusTx.Enum.Class.pred (Enum.Spec.P1) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.predBadArgumentError;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P2) = Enum.Spec.P1;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P3) = Enum.Spec.P2;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P4) = Enum.Spec.P3;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P5) = Enum.Spec.P4;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P6) = Enum.Spec.P5;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P7) = Enum.Spec.P6;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P8) = Enum.Spec.P7;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P9) = Enum.Spec.P8;
-           PlutusTx.Enum.Class.pred (Enum.Spec.P10) = Enum.Spec.P9;
-           {-# INLINABLE PlutusTx.Enum.Class.pred #-};
-           PlutusTx.Enum.Class.toEnum 0 = Enum.Spec.P1;
-           PlutusTx.Enum.Class.toEnum 1 = Enum.Spec.P2;
-           PlutusTx.Enum.Class.toEnum 2 = Enum.Spec.P3;
-           PlutusTx.Enum.Class.toEnum 3 = Enum.Spec.P4;
-           PlutusTx.Enum.Class.toEnum 4 = Enum.Spec.P5;
-           PlutusTx.Enum.Class.toEnum 5 = Enum.Spec.P6;
-           PlutusTx.Enum.Class.toEnum 6 = Enum.Spec.P7;
-           PlutusTx.Enum.Class.toEnum 7 = Enum.Spec.P8;
-           PlutusTx.Enum.Class.toEnum 8 = Enum.Spec.P9;
-           PlutusTx.Enum.Class.toEnum 9 = Enum.Spec.P10;
-           PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.toEnumBadArgumentError;
-           {-# INLINABLE PlutusTx.Enum.Class.toEnum #-};
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P1) = 0;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P2) = 1;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P3) = 2;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P4) = 3;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P5) = 4;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P6) = 5;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P7) = 6;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P8) = 7;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P9) = 8;
-           PlutusTx.Enum.Class.fromEnum (Enum.Spec.P10) = 9;
-           {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}}
+    b_0
+    c_0
+    d_0
+    e_0
+    f_0
+    g_0
+    h_0) where
+  PlutusTx.Enum.Class.succ (Enum.Spec.P1) = Enum.Spec.P2
+  PlutusTx.Enum.Class.succ (Enum.Spec.P2) = Enum.Spec.P3
+  PlutusTx.Enum.Class.succ (Enum.Spec.P3) = Enum.Spec.P4
+  PlutusTx.Enum.Class.succ (Enum.Spec.P4) = Enum.Spec.P5
+  PlutusTx.Enum.Class.succ (Enum.Spec.P5) = Enum.Spec.P6
+  PlutusTx.Enum.Class.succ (Enum.Spec.P6) = Enum.Spec.P7
+  PlutusTx.Enum.Class.succ (Enum.Spec.P7) = Enum.Spec.P8
+  PlutusTx.Enum.Class.succ (Enum.Spec.P8) = Enum.Spec.P9
+  PlutusTx.Enum.Class.succ (Enum.Spec.P9) = Enum.Spec.P10
+  PlutusTx.Enum.Class.succ (Enum.Spec.P10) = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.succBadArgumentError
+  {-# INLINABLE PlutusTx.Enum.Class.succ #-}
+  PlutusTx.Enum.Class.pred (Enum.Spec.P1) = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.predBadArgumentError
+  PlutusTx.Enum.Class.pred (Enum.Spec.P2) = Enum.Spec.P1
+  PlutusTx.Enum.Class.pred (Enum.Spec.P3) = Enum.Spec.P2
+  PlutusTx.Enum.Class.pred (Enum.Spec.P4) = Enum.Spec.P3
+  PlutusTx.Enum.Class.pred (Enum.Spec.P5) = Enum.Spec.P4
+  PlutusTx.Enum.Class.pred (Enum.Spec.P6) = Enum.Spec.P5
+  PlutusTx.Enum.Class.pred (Enum.Spec.P7) = Enum.Spec.P6
+  PlutusTx.Enum.Class.pred (Enum.Spec.P8) = Enum.Spec.P7
+  PlutusTx.Enum.Class.pred (Enum.Spec.P9) = Enum.Spec.P8
+  PlutusTx.Enum.Class.pred (Enum.Spec.P10) = Enum.Spec.P9
+  {-# INLINABLE PlutusTx.Enum.Class.pred #-}
+  PlutusTx.Enum.Class.toEnum 0 = Enum.Spec.P1
+  PlutusTx.Enum.Class.toEnum 1 = Enum.Spec.P2
+  PlutusTx.Enum.Class.toEnum 2 = Enum.Spec.P3
+  PlutusTx.Enum.Class.toEnum 3 = Enum.Spec.P4
+  PlutusTx.Enum.Class.toEnum 4 = Enum.Spec.P5
+  PlutusTx.Enum.Class.toEnum 5 = Enum.Spec.P6
+  PlutusTx.Enum.Class.toEnum 6 = Enum.Spec.P7
+  PlutusTx.Enum.Class.toEnum 7 = Enum.Spec.P8
+  PlutusTx.Enum.Class.toEnum 8 = Enum.Spec.P9
+  PlutusTx.Enum.Class.toEnum 9 = Enum.Spec.P10
+  PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.toEnumBadArgumentError
+  {-# INLINABLE PlutusTx.Enum.Class.toEnum #-}
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P1) = 0
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P2) = 1
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P3) = 2
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P4) = 3
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P5) = 4
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P6) = 5
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P7) = 6
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P8) = 7
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P9) = 8
+  PlutusTx.Enum.Class.fromEnum (Enum.Spec.P10) = 9
+  {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}

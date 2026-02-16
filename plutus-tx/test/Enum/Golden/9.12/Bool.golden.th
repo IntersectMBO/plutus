@@ -1,14 +1,17 @@
-instance PlutusTx.Enum.Class.Enum GHC.Types.Bool
-    where {PlutusTx.Enum.Class.succ (GHC.Types.False) = GHC.Types.True;
-           PlutusTx.Enum.Class.succ (GHC.Types.True) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.succBadArgumentError;
-           {-# INLINABLE PlutusTx.Enum.Class.succ #-};
-           PlutusTx.Enum.Class.pred (GHC.Types.False) = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.predBadArgumentError;
-           PlutusTx.Enum.Class.pred (GHC.Types.True) = GHC.Types.False;
-           {-# INLINABLE PlutusTx.Enum.Class.pred #-};
-           PlutusTx.Enum.Class.toEnum 0 = GHC.Types.False;
-           PlutusTx.Enum.Class.toEnum 1 = GHC.Types.True;
-           PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError PlutusTx.ErrorCodes.toEnumBadArgumentError;
-           {-# INLINABLE PlutusTx.Enum.Class.toEnum #-};
-           PlutusTx.Enum.Class.fromEnum (GHC.Types.False) = 0;
-           PlutusTx.Enum.Class.fromEnum (GHC.Types.True) = 1;
-           {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}}
+instance PlutusTx.Enum.Class.Enum GHC.Types.Bool where
+  PlutusTx.Enum.Class.succ (GHC.Types.False) = GHC.Types.True
+  PlutusTx.Enum.Class.succ (GHC.Types.True) = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.succBadArgumentError
+  {-# INLINABLE PlutusTx.Enum.Class.succ #-}
+  PlutusTx.Enum.Class.pred (GHC.Types.False) = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.predBadArgumentError
+  PlutusTx.Enum.Class.pred (GHC.Types.True) = GHC.Types.False
+  {-# INLINABLE PlutusTx.Enum.Class.pred #-}
+  PlutusTx.Enum.Class.toEnum 0 = GHC.Types.False
+  PlutusTx.Enum.Class.toEnum 1 = GHC.Types.True
+  PlutusTx.Enum.Class.toEnum _ = PlutusTx.Trace.traceError
+      PlutusTx.ErrorCodes.toEnumBadArgumentError
+  {-# INLINABLE PlutusTx.Enum.Class.toEnum #-}
+  PlutusTx.Enum.Class.fromEnum (GHC.Types.False) = 0
+  PlutusTx.Enum.Class.fromEnum (GHC.Types.True) = 1
+  {-# INLINABLE PlutusTx.Enum.Class.fromEnum #-}
