@@ -64,8 +64,7 @@ import PlutusPrelude
 
 -- | The default cost model for built-in functions (variant A)
 builtinCostModelVariantA :: BuiltinCostModel
-builtinCostModelVariantA =
-  $$(readJSONFromFile DFP.builtinCostModelFileA)
+builtinCostModelVariantA = readJSONFromFile DFP.builtinCostModelFileA
 -- This is a huge record, inlining it is wasteful.
 {-# OPAQUE builtinCostModelVariantA #-}
 
@@ -75,8 +74,7 @@ appears faster than 'CekMachineCosts' that we get in production after applying
 the costing parameters provided by the ledger. -}
 -- | Default costs for CEK machine instructions (variant A)
 cekMachineCostsVariantA :: CekMachineCosts
-cekMachineCostsVariantA =
-  $$(readJSONFromFile DFP.cekMachineCostsFileA)
+cekMachineCostsVariantA = readJSONFromFile DFP.cekMachineCostsFileA
 {-# OPAQUE cekMachineCostsVariantA #-}
 
 {-| The default cost model, including both builtin costs and machine step costs.
@@ -91,56 +89,48 @@ cekCostModelVariantA :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantA = CostModel cekMachineCostsVariantA builtinCostModelVariantA
 
 builtinCostModelVariantB :: BuiltinCostModel
-builtinCostModelVariantB =
-  $$(readJSONFromFile DFP.builtinCostModelFileB)
+builtinCostModelVariantB = readJSONFromFile DFP.builtinCostModelFileB
 {-# OPAQUE builtinCostModelVariantB #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantB :: CekMachineCosts
-cekMachineCostsVariantB =
-  $$(readJSONFromFile DFP.cekMachineCostsFileB)
+cekMachineCostsVariantB = readJSONFromFile DFP.cekMachineCostsFileB
 {-# OPAQUE cekMachineCostsVariantB #-}
 
 cekCostModelVariantB :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantB = CostModel cekMachineCostsVariantB builtinCostModelVariantB
 
 builtinCostModelVariantC :: BuiltinCostModel
-builtinCostModelVariantC =
-  $$(readJSONFromFile DFP.builtinCostModelFileC)
+builtinCostModelVariantC = readJSONFromFile DFP.builtinCostModelFileC
 {-# OPAQUE builtinCostModelVariantC #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantC :: CekMachineCosts
-cekMachineCostsVariantC =
-  $$(readJSONFromFile DFP.cekMachineCostsFileC)
+cekMachineCostsVariantC = readJSONFromFile DFP.cekMachineCostsFileC
 {-# OPAQUE cekMachineCostsVariantC #-}
 
 cekCostModelVariantC :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantC = CostModel cekMachineCostsVariantC builtinCostModelVariantC
 
 builtinCostModelVariantD :: BuiltinCostModel
-builtinCostModelVariantD =
-  $$(readJSONFromFile DFP.builtinCostModelFileD)
+builtinCostModelVariantD = readJSONFromFile DFP.builtinCostModelFileD
 {-# OPAQUE builtinCostModelVariantD #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantD :: CekMachineCosts
-cekMachineCostsVariantD =
-  $$(readJSONFromFile DFP.cekMachineCostsFileD)
+cekMachineCostsVariantD = readJSONFromFile DFP.cekMachineCostsFileD
 {-# OPAQUE cekMachineCostsVariantD #-}
 
 cekCostModelVariantD :: CostModel CekMachineCosts BuiltinCostModel
 cekCostModelVariantD = CostModel cekMachineCostsVariantD builtinCostModelVariantD
 
 builtinCostModelVariantE :: BuiltinCostModel
-builtinCostModelVariantE =
-  $$(readJSONFromFile DFP.builtinCostModelFileE)
+builtinCostModelVariantE = readJSONFromFile DFP.builtinCostModelFileE
 {-# OPAQUE builtinCostModelVariantE #-}
 
 -- See Note [No inlining for CekMachineCosts]
 cekMachineCostsVariantE :: CekMachineCosts
-cekMachineCostsVariantE =
-  $$(readJSONFromFile DFP.cekMachineCostsFileE)
+cekMachineCostsVariantE = readJSONFromFile DFP.cekMachineCostsFileE
 {-# OPAQUE cekMachineCostsVariantE #-}
 
 cekCostModelVariantE :: CostModel CekMachineCosts BuiltinCostModel
