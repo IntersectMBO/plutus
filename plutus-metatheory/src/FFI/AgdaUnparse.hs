@@ -62,7 +62,7 @@ instance AgdaUnparse SimplifierStage where
 instance AgdaUnparse Hints.Hints where
   agdaUnparse = \case
     Hints.NoHints -> "none"
-    Hints.Inline x -> agdaUnparse x
+    Hints.Inline x -> "inline (" ++ agdaUnparse x ++ ")"
 
 instance AgdaUnparse Hints.Inline where
   agdaUnparse = \case

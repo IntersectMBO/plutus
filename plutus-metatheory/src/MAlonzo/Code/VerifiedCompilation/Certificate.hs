@@ -149,19 +149,35 @@ d_Proof'63'_106 a0 a1 = ()
 data T_Proof'63'_106
   = C_proof_112 AgdaAny |
     C_abort_118 T_SimplifierTag_4 AgdaAny AgdaAny
+-- VerifiedCompilation.Certificate._>>=_
+d__'62''62''61'__128 ::
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  MAlonzo.Code.Agda.Primitive.T_Level_18 ->
+  () ->
+  () ->
+  T_Proof'63'_106 -> (AgdaAny -> T_Proof'63'_106) -> T_Proof'63'_106
+d__'62''62''61'__128 ~v0 ~v1 ~v2 ~v3 v4 v5
+  = du__'62''62''61'__128 v4 v5
+du__'62''62''61'__128 ::
+  T_Proof'63'_106 -> (AgdaAny -> T_Proof'63'_106) -> T_Proof'63'_106
+du__'62''62''61'__128 v0 v1
+  = case coe v0 of
+      C_proof_112 v2 -> coe v1 v2
+      C_abort_118 v4 v5 v6 -> coe C_abort_118 v4 v5 v6
+      _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Certificate.decToPCE
-d_decToPCE_128 ::
+d_decToPCE_148 ::
   () ->
   () ->
   T_SimplifierTag_4 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20 ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_86
-d_decToPCE_128 ~v0 ~v1 v2 v3 v4 v5 = du_decToPCE_128 v2 v3 v4 v5
-du_decToPCE_128 ::
+d_decToPCE_148 ~v0 ~v1 v2 v3 v4 v5 = du_decToPCE_148 v2 v3 v4 v5
+du_decToPCE_148 ::
   T_SimplifierTag_4 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20 ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_86
-du_decToPCE_128 v0 v1 v2 v3
+du_decToPCE_148 v0 v1 v2 v3
   = case coe v1 of
       MAlonzo.Code.Relation.Nullary.Decidable.Core.C__because__32 v4 v5
         -> if coe v4
@@ -172,15 +188,15 @@ du_decToPCE_128 v0 v1 v2 v3
              else coe seq (coe v5) (coe C_ce_100 v0 v2 v3)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Certificate.pceToDec
-d_pceToDec_142 ::
+d_pceToDec_162 ::
   () ->
   T_ProofOrCE_86 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-d_pceToDec_142 ~v0 v1 = du_pceToDec_142 v1
-du_pceToDec_142 ::
+d_pceToDec_162 ~v0 v1 = du_pceToDec_162 v1
+du_pceToDec_162 ::
   T_ProofOrCE_86 ->
   MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20
-du_pceToDec_142 v0
+du_pceToDec_162 v0
   = case coe v0 of
       C_proof_92 v1
         -> coe
@@ -194,14 +210,14 @@ du_pceToDec_142 v0
              (coe MAlonzo.Code.Relation.Nullary.Reflects.C_of'8319'_26)
       _ -> MAlonzo.RTE.mazUnreachableError
 -- VerifiedCompilation.Certificate.MatchOrCE
-d_MatchOrCE_156 ::
+d_MatchOrCE_176 ::
   () ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
   (AgdaAny -> AgdaAny -> ()) -> ()
-d_MatchOrCE_156 = erased
+d_MatchOrCE_176 = erased
 -- VerifiedCompilation.Certificate.matchOrCE
-d_matchOrCE_176 ::
+d_matchOrCE_196 ::
   () ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -211,15 +227,15 @@ d_matchOrCE_176 ::
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_86
-d_matchOrCE_176 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
-  = du_matchOrCE_176 v4 v5 v6 v7
-du_matchOrCE_176 ::
+d_matchOrCE_196 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
+  = du_matchOrCE_196 v4 v5 v6 v7
+du_matchOrCE_196 ::
   T_SimplifierTag_4 ->
   (AgdaAny ->
    AgdaAny ->
    MAlonzo.Code.Relation.Nullary.Decidable.Core.T_Dec_20) ->
   AgdaAny -> AgdaAny -> T_ProofOrCE_86
-du_matchOrCE_176 v0 v1 v2 v3
+du_matchOrCE_196 v0 v1 v2 v3
   = let v4 = coe v1 v2 v3 in
     coe
       (case coe v4 of
@@ -232,7 +248,7 @@ du_matchOrCE_176 v0 v1 v2 v3
                 else coe seq (coe v6) (coe C_ce_100 v0 v2 v3)
          _ -> MAlonzo.RTE.mazUnreachableError)
 -- VerifiedCompilation.Certificate.pcePointwise
-d_pcePointwise_218 ::
+d_pcePointwise_238 ::
   () ->
   () ->
   MAlonzo.Code.Agda.Primitive.T_Level_18 ->
@@ -240,13 +256,13 @@ d_pcePointwise_218 ::
   T_SimplifierTag_4 ->
   (AgdaAny -> AgdaAny -> T_ProofOrCE_86) ->
   [AgdaAny] -> [AgdaAny] -> T_ProofOrCE_86
-d_pcePointwise_218 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
-  = du_pcePointwise_218 v4 v5 v6 v7
-du_pcePointwise_218 ::
+d_pcePointwise_238 ~v0 ~v1 ~v2 ~v3 v4 v5 v6 v7
+  = du_pcePointwise_238 v4 v5 v6 v7
+du_pcePointwise_238 ::
   T_SimplifierTag_4 ->
   (AgdaAny -> AgdaAny -> T_ProofOrCE_86) ->
   [AgdaAny] -> [AgdaAny] -> T_ProofOrCE_86
-du_pcePointwise_218 v0 v1 v2 v3
+du_pcePointwise_238 v0 v1 v2 v3
   = case coe v2 of
       []
         -> case coe v3 of
@@ -266,7 +282,7 @@ du_pcePointwise_218 v0 v1 v2 v3
                     (case coe v8 of
                        C_proof_92 v9
                          -> let v10
-                                  = coe du_pcePointwise_218 (coe v0) (coe v1) (coe v5) (coe v7) in
+                                  = coe du_pcePointwise_238 (coe v0) (coe v1) (coe v5) (coe v7) in
                             coe
                               (case coe v10 of
                                  C_proof_92 v11

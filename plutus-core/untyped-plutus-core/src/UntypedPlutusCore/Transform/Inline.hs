@@ -63,10 +63,11 @@ import UntypedPlutusCore.Purity
   )
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Subst (termSubstNamesM)
+import UntypedPlutusCore.Transform.Certify.Hints qualified as CertifierHints
 import UntypedPlutusCore.Transform.Simplifier
   ( SimplifierStage (Inline)
   , SimplifierT
-  , recordSimplification
+  , recordSimplificationWithHints
   )
 import Witherable (wither)
 
@@ -230,7 +231,8 @@ inline
               , _iiInlineCallsiteGrowth = callsiteGrowth
               , _iiPreserveLogging = preserveLogging
               }
-    recordSimplification t Inline result
+    -- TODO populate hints
+    recordSimplificationWithHints (CertifierHints.Inline CertifierHints.InlError) t Inline result
     return result
 
 -- See Note [Differences from PIR inliner] 3
