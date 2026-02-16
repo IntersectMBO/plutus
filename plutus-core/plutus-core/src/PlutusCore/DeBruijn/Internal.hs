@@ -108,7 +108,9 @@ newtype Index = Index Word64
 deBruijnInitIndex :: Index
 deBruijnInitIndex = 0
 
--- | Shift a 'NamedDeBruijn' index by a given amount.
+{-| Shift a 'NamedDeBruijn' index by a given amount.
+The addition is unchecked and will silently wrap on 'Word64' overflow,
+which is safe in practice since terms with @2^64@ nested binders cannot be constructed. -}
 shiftNamedDeBruijn :: Word64 -> NamedDeBruijn -> NamedDeBruijn
 shiftNamedDeBruijn i (NamedDeBruijn t (Index n)) = NamedDeBruijn t (Index (n + i))
 

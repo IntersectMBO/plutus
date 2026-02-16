@@ -673,6 +673,10 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue 0 value0
       -- We only return a discharged builtin application when (a) it's being returned by the
       -- machine, or (b) it's needed for an error message.
       -- @term@ is fully discharged, so we can return it directly without any further discharging.
+      -- In particular, no @global@ shifting is needed because the @term@ field of 'VBuiltin'
+      -- is maintained during evaluation as a fully-applied UPLC term whose variables already
+      -- refer to the correct scope — it is never stored in an environment to be discharged
+      -- under additional binders later.
       VBuiltin _ term _ -> term
       VConstr ind args -> Constr () ind . map (goValue global) $ argStackToList args
 
