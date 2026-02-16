@@ -77,6 +77,10 @@ testDischargeFree =
       , ("freeVarPastNonEmptyEnvWithLambda", freeVarPastNonEmptyEnvWithLambda)
       , ("freeVarPastNonEmptyEnvNested", freeVarPastNonEmptyEnvNested)
       , ("freeVarMixedBoundAndTrulyFree", freeVarMixedBoundAndTrulyFree)
+      , -- Edge case: shift == idx boundary (variable bound by the immediately enclosing lambda)
+        ("boundaryShiftEqualsIdx", boundaryShiftEqualsIdx)
+      , -- Constructor arguments containing free variables
+        ("constrWithFreeVars", constrWithFreeVars)
       ]
   where
     delayWithEmptyEnv =
@@ -288,6 +292,34 @@ testDischargeFree =
           ( toFakeTerm . Delay () . lamAbs0 $
               v 1 @@ [Constant () (someValue ()), v 4]
               -- x stays, unit substituted, free var 3 → var 4
+          )
+
+    boundaryShiftEqualsIdx =
+      -- VLamAbs _ (var 1) []
+      -- Under 1 lambda (shift=1), var 1 with idx=1: shift >= idx is true, so bound.
+      -- This tests the exact boundary of the bound-vs-free check.
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            (toFakeTerm $ v 1)
+            []
+        )
+        @?= DischargeNonConstant (toFakeTerm . lamAbs0 $ v 1)
+
+    constrWithFreeVars =
+      -- VConstr 0 [VDelay (var 1) []]  discharged under 1 lambda from outer env
+      -- The VDelay contains a free var; when discharged under the outer lambda
+      -- the free var should be shifted.
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            (toFakeTerm $ v 2)
+            [ VConstr 0 (MultiStack (LastStackNonEmpty (VDelay (toFakeTerm $ v 1) [])))
+            ]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 $
+              Constr () 0 [Delay () (v 2)] -- var 1 shifted by 1
           )
 
     dis = dischargeCekValue @DefaultUni @DefaultFun
