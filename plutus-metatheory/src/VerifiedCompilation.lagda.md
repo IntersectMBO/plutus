@@ -46,6 +46,7 @@ import VerifiedCompilation.UApplyToCase as UA2C
 import VerifiedCompilation.UCaseOfCase as UCC
 import VerifiedCompilation.UForceDelay as UFD
 import VerifiedCompilation.UFloatDelay as UFlD
+import VerifiedCompilation.UForceCaseDelay as UFCD
 import VerifiedCompilation.UCSE as UCSE
 import VerifiedCompilation.UInline as UInline
 import VerifiedCompilation.UCaseReduce as UCR
