@@ -30,9 +30,9 @@ import System.FilePath (normalise, (</>))
 Generates .flat files of the compiled marlowe validators.
 
 Additionally:
-- generates .flat files of validators applied to a all benchmark arguments
-- Saves both validators without arguments to file
-- Prints table of the reference
+- Generates .flat files of validators applied to a all benchmark arguments
+- Saves the validators to .plutus files in base-16 encoded CBOR format
+- Writes .tsv files with tables of the reference costs
 -}
 main :: IO ()
 main = do
