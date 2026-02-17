@@ -350,7 +350,6 @@ library
     , text
     , th-lift
     , th-lift-instances
-    , th-utilities
     , time
     , transformers
     , unordered-containers
