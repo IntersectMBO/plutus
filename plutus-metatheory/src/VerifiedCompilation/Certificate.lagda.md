@@ -37,6 +37,8 @@ open import Data.Sum using (_⊎_;inj₁; inj₂)
 open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Data.List.Relation.Binary.Pointwise using (Pointwise-≡⇒≡; ≡⇒Pointwise-≡)
+open import Data.Bool.Base using (Bool; false; true; not)
+open import Function.Base using (_∘_)
 
 variable
   𝓁 𝓂 : Level
@@ -50,6 +52,13 @@ data CertResult (P : Set 𝓁) : Set (suc 𝓁) where
 data ProofOrCE (P : Set 𝓁) : Set (suc 𝓁) where
   proof : (p : P) → ProofOrCE P
   ce : (¬p : ¬ P) → {X X' : Set} → SimplifierTag → X → X' → ProofOrCE P
+
+isProof? : {P : Set 𝓁} → ProofOrCE P → Bool
+isProof? (proof _) = true
+isProof? (ce _ _ _ _) = false
+
+isCE? : {P : Set 𝓁} → ProofOrCE P → Bool
+isCE? = not ∘ isProof?
 
 -- | Result of a checking procedure: either a proof or a failure
 data Proof? (P : Set 𝓁) : Set (suc 𝓁) where
