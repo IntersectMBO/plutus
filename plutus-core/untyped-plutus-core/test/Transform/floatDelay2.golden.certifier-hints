@@ -1,0 +1,33 @@
+-- Certifier hints #1 (FloatDelay) --
+NoHints
+
+-- Certifier hints #2 (ForceCaseDelay) --
+NoHints
+
+-- Certifier hints #3 (ForceDelay) --
+NoHints
+
+-- Certifier hints #4 (CaseOfCase) --
+NoHints
+
+-- Certifier hints #5 (CaseReduce) --
+NoHints
+
+-- Certifier hints #6 (Inline) --
+InlApply
+  InlLam
+    InlApply
+      InlApply
+        InlBuiltin
+        InlForce
+          InlVar
+      InlForce
+        InlVar
+  InlDelay
+    InlApply
+      InlApply
+        InlBuiltin
+        InlCon
+      InlCon
+
+

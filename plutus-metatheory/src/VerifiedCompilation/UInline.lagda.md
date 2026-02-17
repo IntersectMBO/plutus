@@ -1,9 +1,9 @@
 ---
-title: VerifiedCompilation.UInline
+title: VerifiedCompilation.UForceDelay
 layout: page
 ---
 
-# Inline Phase
+# Force-Delay Translation Phase
 ```
 module VerifiedCompilation.UInline where
 
@@ -17,11 +17,16 @@ open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isLam
 open import VerifiedCompilation.UntypedTranslation using (Translation; TransMatch; translation?; Relation; convert; reflexive)
 import Relation.Binary as Binary using (Decidable)
 open import Data.Nat using (ℕ; suc; zero)
+open import Data.String using (String; _++_)
 open import Data.Fin using (Fin; suc; zero)
+import Data.Fin as Fin using (_≟_)
+open import Data.List using (List; []; _∷_)
 open import Data.List.Relation.Binary.Pointwise.Base using (Pointwise)
 open import Untyped.RenamingSubstitution using (_[_]; Sub; _↑ˢ; lifts; extend; weaken)
 open import Agda.Builtin.Maybe using (Maybe; just; nothing)
-open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error)
+open import Untyped using (_⊢; case; builtin; _·_; force; `; ƛ; delay; con; constr; error; extricateU; extricateUList)
+open import RawU using (Untyped)
+open import Evaluator.Base using (prettyPrintUTm)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Nullary using (Dec; yes; no; ¬_)
 open import Untyped.RenamingSubstitution using (weaken)
@@ -193,9 +198,97 @@ data Inline {X : ℕ} :
 
 # Check aided by hints
 
+```
+checkPointwise :
+        (hs : List InlineHints)
+        (σ : Sub X X)
+        (zz : z ≽ z′)
+        (Ms M′s : List (X ⊢))
+        → Proof? (Pointwise (Inline σ zz) Ms M′s)
+
+check : (a : InlineHints)
+        (σ : Sub X X)
+        (zz : z ≽ z′)
+        (M M′ : X ⊢)
+        → Proof? (Inline σ zz M M′)
+check {z = z} {z′ = z′} var σ zz M@(` x) M′@(` x′)
+  with x Fin.≟ x′ | z ≟ᶻ z′
+... | yes refl | yes refl
+    with zz ≟ᶻᶻ idᶻᶻ z
+...   | just refl = proof (` x)
+...   | nothing = abort inlineT M M′
+check var σ zz M@(` x) M′@(` x′)
+    | _ | _ = abort inlineT M M′
+
+check (expand h) σ zz (` x) M′ =
+   do r ← check h σ zz (σ x) M′
+      proof (`↓ r)
+
+check (ƛ h) σ □ (ƛ N) (ƛ N′) =
+   do t ← check h (lifts σ) □ N N′
+      proof (ƛ□ t)
+
+check (ƛ h) σ (keep M zz) (ƛ N) (ƛ N′)  =
+   do t ← check h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N N′
+      proof (ƛ t)
+
+check h σ (drop M zz) (ƛ N) N′  =
+   do t ← check h (extend (σ ↑ˢ) (weaken M)) (zz ↑ᶻᶻ) N (weaken N′)
+      proof (ƛ↓ t)
+
+check (h · h′) σ zz (L · M) (L′ · M′) =
+   do r ← check h σ (keep M zz) L L′
+      s ← check h′ σ □ M M′
+      proof (r · s)
+
+check (h ·↓) σ zz (L · M) N′ =
+   do r ← check h σ (drop M zz) L N′
+      proof (r ·↓)
+
+check (force h) σ zz (force M) (force M′) =
+   do r ← check h σ zz M M′
+      proof (force r)
+
+check (delay h) σ zz (delay M) (delay M′) =
+   do r ← check h σ zz M M′
+      proof (delay r)
+
+check con σ zz M@(con c) M′@(con c′)
+  with c ≟ c′
+... | yes refl = proof con
+... | no  _ = abort inlineT M M′
+
+check builtin σ zz M@(builtin b) M′@(builtin b′)
+  with b ≟ b′
+... | yes refl = proof builtin
+... | no  _ = abort inlineT M M′
+
+check (constr hs) σ zz M@(constr i Ms) M′@(constr i′ M′s) with i ≟ i′
+... | yes refl =
+   do rs ← checkPointwise hs σ zz Ms M′s
+      proof (constr rs)
+... | no _ = abort inlineT M M′
+
+check (case h hs) σ zz (case M Ms) (case M′ M′s) =
+  do r ← check h σ zz M M′
+     rs ← checkPointwise hs σ zz Ms M′s
+     proof (case r rs)
+
+check error σ zz error error = proof error
+
+check h σ zz M M′ = abort inlineT M M′
+
+checkPointwise [] σ zz [] [] = proof Pointwise.[]
+checkPointwise (h ∷ hs) σ zz (M ∷ Ms) (M′ ∷ M′s) =
+   do p ← check h σ zz M M′
+      ps ← checkPointwise hs σ zz Ms M′s
+      proof (p Pointwise.∷ ps)
+checkPointwise _ _ _ Ms M′s = abort inlineT Ms M′s
+```
+
 # Top-level check
 ```
 top-check : (h : InlineHints) (M M′ : 0 ⊢)
             → Proof? (Inline (λ()) □ M M′)
-top-check h M M′ = abort inlineT M M′
+top-check h M M′ = check h (λ()) □ M M′
 ```
