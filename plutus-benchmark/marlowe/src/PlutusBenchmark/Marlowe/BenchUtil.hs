@@ -1,6 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
 
 -- | Benchmarking support for Marlowe's validators.
 module PlutusBenchmark.Marlowe.BenchUtil
