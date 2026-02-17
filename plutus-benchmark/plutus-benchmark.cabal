@@ -607,6 +607,7 @@ benchmark marlowe
   build-depends:
     , base                     >=4.9   && <5
     , criterion
+    , filepath
     , marlowe-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.58

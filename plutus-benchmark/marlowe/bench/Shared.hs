@@ -3,21 +3,21 @@ module Shared where
 
 import Criterion.Main (Benchmark, Benchmarkable, bench, bgroup, defaultMainWith)
 
-import PlutusBenchmark.Common (Program, getConfig)
+import PlutusBenchmark.Common (Program, getConfig, getDataDir)
 import PlutusBenchmark.Marlowe.BenchUtil
   ( benchmarkToUPLC
+  , readFlat
   , rolePayoutBenchmarks
   , semanticsBenchmarks
   )
-import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
-import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
 import PlutusTx.Code (CompiledCode)
+import System.FilePath
 
 mkBenchmarkable
   :: (Program -> Benchmarkable)
-  -> CompiledCode a
+  -> Program
   -> M.Benchmark
   -> (String, Benchmarkable)
 mkBenchmarkable benchmarker validator bm@M.Benchmark {..} =
@@ -26,10 +26,14 @@ mkBenchmarkable benchmarker validator bm@M.Benchmark {..} =
 
 runBenchmarks :: (Program -> Benchmarkable) -> IO ()
 runBenchmarks benchmarker = do
+  dir <- getDataDir
+
   -- Read the semantics benchmark files.
+  marloweValidator <- readFlat $ dir </> "marlowe/scripts/semantics/validator.flat"
   semanticsMBench <- either error id <$> semanticsBenchmarks
 
   -- Read the role payout benchmark files.
+  rolePayoutValidator <- readFlat $ dir </> "marlowe/scripts/rolepayout/validator.flat"
   rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
 
   let
