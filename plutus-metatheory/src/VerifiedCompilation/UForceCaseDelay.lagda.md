@@ -8,24 +8,75 @@ layout: page
 module VerifiedCompilation.UForceCaseDelay where
 
 open import Data.Nat using (ℕ)
-open import Untyped using (_⊢)
+open import Untyped 
 open import VerifiedCompilation.UntypedTranslation using (Translation; translation?)
 open import VerifiedCompilation.Certificate using (ProofOrCE; ce; proof; pcePointwise; MatchOrCE; forceCaseDelayT)
+open import Data.List using (List; _∷_; [])
+open import VerifiedCompilation.UntypedViews using (Pred; isCase?; isApp?; isForce?; isBuiltin?; isConstr?; isDelay?; isTerm?; allTerms?; iscase; isapp; isforce; isbuiltin; isconstr; isterm; allterms; isdelay)
+open import Relation.Nullary using (Dec; yes; no; ¬_)
+open import Untyped.Equality using (_≟_)
+import Relation.Binary.PropositionalEquality as Eq
+open Eq using (_≡_; refl; sym; cong₂; subst; subst₂; cong)
+import Data.Fin as Fin
+open import Data.List.Relation.Unary.All using (All; all?)
 
 variable
-  X : ℕ
-  x x' y y' : X ⊢
+  n : ℕ
+  M N : n ⊢
+  scrut : n ⊢
+  alts : List (n ⊢)
 
-data FCD : (X ⊢) → (X ⊢) → Set where
-  fcd : FCD x x'
+-- force (case scrut [\x1... -> delay term_1, ..., \x1... -> delay term_m])
 
-isFCD? : MatchOrCE (FCD {X})
-isFCD? = λ a b → proof fcd
+data IsBranch : n ⊢ → Set where
+  B-delay : IsBranch (delay M)
+  B-ƛ : IsBranch M → IsBranch (ƛ M)
 
-ForceCaseDelay : (ast : X ⊢) → (ast' : X ⊢) → Set
+isBranch? : (t : n ⊢) → Dec (IsBranch t)
+isBranch? (delay t) = yes B-delay
+isBranch? (ƛ t) with isBranch? t
+... | yes p = yes (B-ƛ p)
+... | no ¬p = no λ { (B-ƛ x) → ¬p x }
+isBranch? (` x) = no λ ()
+isBranch? (t · t₁) = no λ ()
+isBranch? (force t) = no λ ()
+isBranch? (con x) = no λ ()
+isBranch? (constr i xs) = no λ ()
+isBranch? (case t ts) = no λ ()
+isBranch? (builtin b) = no λ ()
+isBranch? error = no λ ()
+
+removeDelay : List (n ⊢) → List (n ⊢)
+removeDelay l = Data.List.map go l
+  where
+    go : n ⊢ → n ⊢
+    go (delay M) = M
+    go (ƛ M) = ƛ (go M)
+    go t = t
+
+data FCD : (n ⊢) → (n ⊢) → Set where
+  isFCD
+    : All IsBranch alts
+    → FCD (force (case scrut alts)) (case scrut (removeDelay alts))
+
+isFCD? : MatchOrCE (FCD {n})
+isFCD? t t' with (isForce? (isCase? isTerm? allTerms?)) t
+... | no ¬matchFst = ce (λ { (isFCD _) → ¬matchFst (isforce (iscase (isterm _) (allterms _))) }) forceCaseDelayT t t'
+... | yes (isforce (iscase (isterm scrut) (allterms alts))) with (isCase? isTerm? allTerms?) t'
+... | no ¬matchSnd = ce (λ { (isFCD _) → ¬matchSnd (iscase (isterm _) (allterms _)) }) forceCaseDelayT t t'
+... | yes (iscase (isterm scrut') (allterms alts')) with scrut ≟ scrut'
+... | no ¬scrutEq = ce (λ { (isFCD _) → ¬scrutEq refl }) forceCaseDelayT t t'
+... | yes scrutEq with alts' ≟ removeDelay alts
+... | no ¬altsEq = ce (λ { (isFCD _) → ¬altsEq refl }) forceCaseDelayT t t'
+... | yes altsEq with all? isBranch? alts
+... | no ¬allBranch = ce (λ { (isFCD p) → ¬allBranch p }) forceCaseDelayT t t'
+... | yes allBranch = proof (subst₂ (λ s a → FCD (force (case scrut alts)) (case s a)) 
+                                     scrutEq (sym altsEq) (isFCD allBranch))
+
+ForceCaseDelay : (ast : n ⊢) → (ast' : n ⊢) → Set
 ForceCaseDelay = Translation FCD
 
-isForceCaseDelay? : MatchOrCE (ForceCaseDelay {X})
+isForceCaseDelay? : MatchOrCE (ForceCaseDelay {n})
 isForceCaseDelay? = translation? forceCaseDelayT isFCD?
 
 ```
