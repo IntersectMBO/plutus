@@ -929,7 +929,7 @@ test-suite uplc-evaluator-integration-tests
     , with-utf8
 
 benchmark certifier-bench
-  import:           lang, os-support
+  import:           lang, ghc-version-support, os-support
   type:             exitcode-stdio-1.0
   default-language: Haskell2010
   main-is:          Main.hs
