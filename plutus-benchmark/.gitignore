@@ -3,6 +3,8 @@ flat-sizes.txt
 report.html
 report.json
 PlutusBenchmark.Marlowe.Scripts.*.flat
+marlowe/scripts/rolepayout/*.flat
+marlowe/scripts/semantics/*.flat
 marlowe/test/*.actual.tsv
 marlowe/exe/*.tsv
 *.plutus

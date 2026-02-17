@@ -28,11 +28,11 @@ runBenchmarks benchmarker = do
   dir <- getDataDir
 
   -- Read the semantics benchmark files.
-  marloweValidator <- readFlat $ dir </> "marlowe/scripts/semantics/validator.flat"
+  marloweValidator <- readFlat $ dir </> "marlowe/scripts/semantics/validator/sop.flat"
   semanticsMBench <- either error id <$> semanticsBenchmarks
 
   -- Read the role payout benchmark files.
-  rolePayoutValidator <- readFlat $ dir </> "marlowe/scripts/rolepayout/validator.flat"
+  rolePayoutValidator <- readFlat $ dir </> "marlowe/scripts/rolepayout/validator/sop.flat"
   rolePayoutMBench <- either error id <$> rolePayoutBenchmarks
 
   let

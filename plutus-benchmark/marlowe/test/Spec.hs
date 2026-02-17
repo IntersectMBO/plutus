@@ -27,12 +27,12 @@ main = withUtf8 $ do
   checkGoldenFileExists goldenFile -- See Note [Paths to golden files]
   let
     benchSOP =
-      [ (scriptDir </> "semantics/validator.flat", semanticsBenchmarks)
-      , (scriptDir </> "rolepayout/validator.flat", rolePayoutBenchmarks)
+      [ (scriptDir </> "semantics/validator/sop.flat", semanticsBenchmarks)
+      , (scriptDir </> "rolepayout/validator/sop.flat", rolePayoutBenchmarks)
       ]
     benchData =
-      [ (scriptDir </> "semantics/validator-data.flat", semanticsBenchmarks)
-      , (scriptDir </> "rolepayout/validator-data.flat", rolePayoutBenchmarks)
+      [ (scriptDir </> "semantics/validator/data.flat", semanticsBenchmarks)
+      , (scriptDir </> "rolepayout/validator/data.flat", rolePayoutBenchmarks)
       ]
 
     measure (validatorPath, getCases) = do

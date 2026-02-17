@@ -63,13 +63,14 @@ main = do
   -- Write flat validators
   let
     vs =
-      [ (semanticsUplcDir </> "validator.flat", Semantics.marloweValidator)
-      , (semanticsUplcDir </> "validator-data.flat", DataSemantics.marloweValidator)
-      , (rolePayoutUplcDir </> "validator.flat", RolePayout.rolePayoutValidator)
-      , (rolePayoutUplcDir </> "validator-data.flat", DataRolePayout.rolePayoutValidator)
+      [ (semanticsUplcDir </> "validator/sop.flat", Semantics.marloweValidator)
+      , (semanticsUplcDir </> "validator/data.flat", DataSemantics.marloweValidator)
+      , (rolePayoutUplcDir </> "validator/sop.flat", RolePayout.rolePayoutValidator)
+      , (rolePayoutUplcDir </> "validator/data.flat", DataRolePayout.rolePayoutValidator)
       ]
 
-  for_ vs $ \(path, validator) ->
+  for_ vs $ \(path, validator) -> do
+    putStrLn $ "Writing " <> path
     writeFlat path (void . getPlc $ validator)
 
   -- Print the semantics validator, and write the plutus file.
