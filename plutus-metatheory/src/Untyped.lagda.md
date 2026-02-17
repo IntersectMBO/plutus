@@ -43,9 +43,7 @@ open Untyped
 
 This defines the syntax for UPLC and requires that it be "well scoped", which
 is that only variables in the context are used. The context uses de Bruijn naming,
-so the variables are numbered. This numbering is provided by an inductively defined
-natural number, which uses the Maybe type (so: `Nothing` = zero, `Just Just Nothing` = 2)
-to allow direct translation to Haskell.
+so the variables are numbered.
 
 ```
 data _⊢ (n : ℕ) : Set where
