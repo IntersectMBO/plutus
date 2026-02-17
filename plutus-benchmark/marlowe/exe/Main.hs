@@ -26,11 +26,11 @@ import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import PlutusTx.Code (getPlc)
 import System.FilePath (normalise, (</>))
 
-{- Generates the UPLC .flat files for benchmarking the two marlowe validators.
-Each flat file is consists of the compiled validator applied to a set of
-fixed arguments (redeemer, input and datum), read from file.
+{-
+Generates .flat files of the compiled marlowe validators.
 
 Additionally:
+- generates .flat files of validators applied to a all benchmark arguments
 - Saves both validators without arguments to file
 - Prints table of the reference
 -}
@@ -46,6 +46,19 @@ main = do
       rolePayoutValidatorExportDir = dir </> "marlowe/exe/marlowe-rolepayout"
       rolePayoutValidatorResults = dir </> "marlowe/exe/marlowe-rolepayout.tsv"
 
+  -- Write .flat files for validators
+  let
+    vs =
+      [ (semanticsUplcDir </> "validator/sop.flat", Semantics.marloweValidator)
+      , (semanticsUplcDir </> "validator/data.flat", DataSemantics.marloweValidator)
+      , (rolePayoutUplcDir </> "validator/sop.flat", RolePayout.rolePayoutValidator)
+      , (rolePayoutUplcDir </> "validator/data.flat", DataRolePayout.rolePayoutValidator)
+      ]
+
+  for_ vs $ \(path, validator) -> do
+    putStrLn $ "Writing " <> path
+    writeFlat path (void . getPlc $ validator)
+
   -- Read the benchmark arguments for semantics validator
   benchmarks <- either error id <$> semanticsBenchmarks
 
@@ -59,19 +72,6 @@ main = do
 
   -- Write the flat UPLC files for the semantics benchmarks.
   writeFlatUPLCs Semantics.writeUPLC benchmarks semanticsUplcDir
-
-  -- Write flat validators
-  let
-    vs =
-      [ (semanticsUplcDir </> "validator/sop.flat", Semantics.marloweValidator)
-      , (semanticsUplcDir </> "validator/data.flat", DataSemantics.marloweValidator)
-      , (rolePayoutUplcDir </> "validator/sop.flat", RolePayout.rolePayoutValidator)
-      , (rolePayoutUplcDir </> "validator/data.flat", DataRolePayout.rolePayoutValidator)
-      ]
-
-  for_ vs $ \(path, validator) -> do
-    putStrLn $ "Writing " <> path
-    writeFlat path (void . getPlc $ validator)
 
   -- Print the semantics validator, and write the plutus file.
   printValidator
