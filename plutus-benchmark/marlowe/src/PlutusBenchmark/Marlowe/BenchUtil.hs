@@ -13,6 +13,7 @@ module PlutusBenchmark.Marlowe.BenchUtil
   , printBenchmark
   , printResult
   , tabulateResults
+  , readFlat
   , writeFlat
   , writeFlatUPLC
   , writeFlatUPLCs

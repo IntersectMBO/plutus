@@ -5,6 +5,7 @@ module Main (main) where
 import Cardano.Binary (serialize')
 import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
+import Data.Foldable
 import Data.Functor (void)
 import Data.List (intercalate)
 import PlutusBenchmark.Common (getDataDir)
@@ -16,8 +17,10 @@ import PlutusBenchmark.Marlowe.BenchUtil
   , writeFlatUPLCs
   )
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout
-import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
-import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
+import PlutusBenchmark.Marlowe.Scripts.Data.RolePayout qualified as DataRolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Data.Semantics qualified as DataSemantics (marloweValidator)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout qualified as RolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Semantics qualified as Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Semantics qualified as Semantics
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import PlutusTx.Code (getPlc)
@@ -58,8 +61,16 @@ main = do
   writeFlatUPLCs Semantics.writeUPLC benchmarks semanticsUplcDir
 
   -- Write flat validators
-  writeFlat (semanticsUplcDir </> "validator.flat") (void . getPlc $ marloweValidator)
-  writeFlat (rolePayoutUplcDir </> "validator.flat") (void . getPlc $ rolePayoutValidator)
+  let
+    vs =
+      [ (semanticsUplcDir </> "validator.flat", Semantics.marloweValidator)
+      , (semanticsUplcDir </> "validator-data.flat", DataSemantics.marloweValidator)
+      , (rolePayoutUplcDir </> "validator.flat", RolePayout.rolePayoutValidator)
+      , (rolePayoutUplcDir </> "validator-data.flat", DataRolePayout.rolePayoutValidator)
+      ]
+
+  for_ vs $ \(path, validator) ->
+    writeFlat path (void . getPlc $ validator)
 
   -- Print the semantics validator, and write the plutus file.
   printValidator
