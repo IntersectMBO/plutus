@@ -9,7 +9,6 @@ module PlutusBenchmark.Marlowe.BenchUtil
   , evaluationContext
   , readBenchmark
   , readBenchmarks
-  , readAppliedValidators
   , printBenchmark
   , printResult
   , tabulateResults
@@ -50,21 +49,20 @@ import PlutusCore.Executable.Types
   )
 import PlutusCore.Flat (flat, unflat)
 import PlutusCore.MkPlc (mkConstant)
-import PlutusCore.Quote as PLC
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V2
-import PlutusPrelude (unsafeFromRight, (.*))
+import PlutusPrelude ((.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
 import System.FilePath ((<.>), (</>))
-import UntypedPlutusCore (Name, NamedDeBruijn, applyProgram)
+import UntypedPlutusCore (NamedDeBruijn, applyProgram)
 import UntypedPlutusCore qualified as UPLC
 
 type Program a = UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun a
 
 -- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
 benchmarkToUPLC
-  :: Program a
+  :: Program ()
   -- ^ semantics or role payout validator.
   -> M.Benchmark
   {-^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by
@@ -73,13 +71,12 @@ benchmarkToUPLC
   -- ^ A named DeBruijn program, for turning to `Benchmarkable`.
 benchmarkToUPLC validator M.Benchmark {..} =
   foldl1 (unsafeFromEither .* applyProgram) $
-    void prog : [datum, redeemer, context]
+    validator : [datum, redeemer, context]
   where
     wrap = UPLC.Program () (UPLC.Version 1 0 0)
     datum = wrap $ mkConstant () bDatum
     redeemer = wrap $ mkConstant () bRedeemer
     context = wrap $ mkConstant () $ toData bScriptContext
-    prog = validator
 
 -- | Read all of the benchmarking cases for a particular validator.
 readBenchmarks :: FilePath -> IO (Either String [Benchmark])
@@ -99,20 +96,6 @@ readFlat path = do
 
 writeFlat :: FilePath -> Program () -> IO ()
 writeFlat path = BS.writeFile path . flat . UPLC.UnrestrictedProgram
-  where
-    toNamed :: Program () -> UPLC.Program Name UPLC.DefaultUni UPLC.DefaultFun ()
-    toNamed = unsafeFromRight . PLC.runQuoteT . UPLC.progTerm UPLC.unDeBruijnTerm
-
-{-| Read the validator and all arguments to benchmark it with, return the applied
-validators as programs -}
-readAppliedValidators :: FilePath -> FilePath -> IO [Program ()]
-readAppliedValidators validatorPath argsPath = do
-  validator <- readFlat validatorPath
-  readBenchmarks argsPath >>= \case
-    Left err -> fail $ "Error reading benchmark arguments: " <> err
-    Right args -> do
-      let args' = map rescript args
-      return $ map (benchmarkToUPLC validator) args'
 
 -- | Read a benchmarking file.
 readBenchmark :: FilePath -> IO (Either String Benchmark)

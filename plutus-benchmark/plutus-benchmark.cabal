@@ -611,7 +611,6 @@ benchmark marlowe
     , marlowe-internal
     , plutus-benchmark-common
     , plutus-ledger-api        ^>=1.58
-    , plutus-tx                ^>=1.58
 
 test-suite plutus-benchmark-marlowe-tests
   import:         lang, ghc-version-support, os-support

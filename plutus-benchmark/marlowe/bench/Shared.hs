@@ -12,7 +12,6 @@ import PlutusBenchmark.Marlowe.BenchUtil
   )
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
-import PlutusTx.Code (CompiledCode)
 import System.FilePath
 
 mkBenchmarkable
