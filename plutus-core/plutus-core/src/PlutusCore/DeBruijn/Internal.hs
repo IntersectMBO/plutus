@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
@@ -112,7 +113,7 @@ deBruijnInitIndex = 0
 The addition is unchecked and will silently wrap on 'Word64' overflow,
 which is safe in practice since terms with @2^64@ nested binders cannot be constructed. -}
 shiftNamedDeBruijn :: Word64 -> NamedDeBruijn -> NamedDeBruijn
-shiftNamedDeBruijn i (NamedDeBruijn t (Index n)) = NamedDeBruijn t (Index (n + i))
+shiftNamedDeBruijn !i (NamedDeBruijn t (Index n)) = NamedDeBruijn t (Index (n + i))
 
 -- The bangs gave us a speedup of 6%.
 

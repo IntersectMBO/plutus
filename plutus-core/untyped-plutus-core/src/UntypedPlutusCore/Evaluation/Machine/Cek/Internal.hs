@@ -293,8 +293,10 @@ data CekValue uni fun ann
   | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
     We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
-    values always store their corresponding 'Term's fully discharged, see the comments at
-    the call sites (search for 'VBuiltin'). -}
+    values store their corresponding 'Term's fully discharged, see the comments at
+    the call sites (search for 'VBuiltin').  Note however that a 'VBuiltin' /can/ be stored
+    in an environment (e.g. when passed as an argument to a lambda), so 'dischargeCekValue'
+    must still shift its free variables when discharging under additional binders. -}
     VBuiltin
       !fun
       {-^ So that we know, for what builtin we're calculating the cost. We can sneak this into
@@ -673,11 +675,10 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue 0 value0
       -- We only return a discharged builtin application when (a) it's being returned by the
       -- machine, or (b) it's needed for an error message.
       -- @term@ is fully discharged, so we can return it directly without any further discharging.
-      -- In particular, no @global@ shifting is needed because the @term@ field of 'VBuiltin'
-      -- is maintained during evaluation as a fully-applied UPLC term whose variables already
-      -- refer to the correct scope — it is never stored in an environment to be discharged
-      -- under additional binders later.
-      VBuiltin _ term _ -> term
+      -- However, @global@ shifting IS needed because a 'VBuiltin' can be stored in an
+      -- environment and later discharged under additional binders — e.g. when a partially
+      -- applied builtin containing free variables is passed as an argument to a lambda.
+      VBuiltin _ term _ -> shiftTerm global term
       VConstr ind args -> Constr () ind . map (goValue global) $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
@@ -711,6 +712,27 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue 0 value0
           Error _ -> Error ()
           Constr _ ind args -> Constr () ind $ map (go global shift) args
           Case _ scrut alts -> Case () (go global shift scrut) $ fmap (go global shift) alts
+
+    -- \| Shift all free variables in a fully discharged term by the given amount.
+    -- Used for 'VBuiltin' terms which have no associated environment.
+    shiftTerm :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
+    shiftTerm 0 t = t
+    shiftTerm amount t = goShift 0 t
+      where
+        goShift :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
+        goShift !depth = \case
+          Var _ named@(NamedDeBruijn _ (coerce -> idx))
+            | depth >= idx -> Var () named
+            | otherwise -> Var () (shiftNamedDeBruijn amount named)
+          LamAbs _ name body -> LamAbs () name $ goShift (depth + 1) body
+          Apply _ fun arg -> Apply () (goShift depth fun) (goShift depth arg)
+          Delay _ term -> Delay () $ goShift depth term
+          Force _ term -> Force () $ goShift depth term
+          Constant _ val -> Constant () val
+          Builtin _ fun -> Builtin () fun
+          Error _ -> Error ()
+          Constr _ ind args -> Constr () ind $ map (goShift depth) args
+          Case _ scrut alts -> Case () (goShift depth scrut) $ fmap (goShift depth) alts
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue

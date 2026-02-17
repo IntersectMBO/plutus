@@ -4,6 +4,11 @@
 
 module Evaluation.FreeVars (test_freevars) where
 
+import PlutusCore.Builtin
+  ( BuiltinError (BuiltinEvaluationFailure)
+  , BuiltinRuntime
+  , builtinRuntimeFailure
+  )
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.MkPlc
@@ -81,6 +86,8 @@ testDischargeFree =
         ("boundaryShiftEqualsIdx", boundaryShiftEqualsIdx)
       , -- Constructor arguments containing free variables
         ("constrWithFreeVars", constrWithFreeVars)
+      , -- VBuiltin with free variables (basetunnel's example from issue #7526)
+        ("builtinWithFreeVars", builtinWithFreeVars)
       ]
   where
     delayWithEmptyEnv =
@@ -321,6 +328,33 @@ testDischargeFree =
           ( toFakeTerm . lamAbs0 $
               Constr () 0 [Delay () (v 2)] -- var 1 shifted by 1
           )
+
+    builtinWithFreeVars =
+      -- VLamAbs _ (var 2) [VBuiltin IfThenElse "(force ifThenElse) True (delay (var 1))" _]
+      -- The VBuiltin term contains free var 1.
+      -- Under 1 lambda: var 2 looks up env[1] → VBuiltin → term returned.
+      -- Free var 1 in term should shift by 1 → var 2.
+      dis
+        ( VLamAbs
+            (fakeNameDeBruijn $ DeBruijn deBruijnInitIndex)
+            (toFakeTerm $ v 2)
+            [ VBuiltin
+                IfThenElse
+                ( toFakeTerm $
+                    Force () (Builtin () IfThenElse)
+                      @@ [Constant () (someValue True), Delay () (v 1)]
+                )
+                dummyRuntime
+            ]
+        )
+        @?= DischargeNonConstant
+          ( toFakeTerm . lamAbs0 $
+              Force () (Builtin () IfThenElse)
+                @@ [Constant () (someValue True), Delay () (v 2)]
+          )
+
+    dummyRuntime :: BuiltinRuntime val
+    dummyRuntime = builtinRuntimeFailure BuiltinEvaluationFailure
 
     dis = dischargeCekValue @DefaultUni @DefaultFun
     v = Var () . DeBruijn
