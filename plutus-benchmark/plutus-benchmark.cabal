@@ -569,6 +569,7 @@ library marlowe-internal
     , newtype-generics
     , plutus-benchmark-common
     , plutus-core                      ^>=1.58
+    , plutus-core:flat
     , plutus-core:plutus-core-execlib
     , plutus-ledger-api                ^>=1.58
     , plutus-tx                        ^>=1.58

@@ -1,4 +1,6 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 
 -- | Benchmarking support for Marlowe's validators.
 module PlutusBenchmark.Marlowe.BenchUtil
@@ -7,9 +9,11 @@ module PlutusBenchmark.Marlowe.BenchUtil
   , evaluationContext
   , readBenchmark
   , readBenchmarks
+  , readAppliedValidators
   , printBenchmark
   , printResult
   , tabulateResults
+  , writeFlat
   , writeFlatUPLC
   , writeFlatUPLCs
   , updateScriptHash
@@ -22,7 +26,8 @@ import Control.Monad (void)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Writer (runWriterT)
 import Data.Bifunctor (bimap, second)
-import Data.ByteString.Lazy qualified as LBS (readFile)
+import Data.ByteString qualified as BS
+import Data.ByteString.Lazy qualified as LBS
 import Data.Either.Extras (unsafeFromEither)
 import Data.Int (Int64)
 import Data.List (isSuffixOf, sort)
@@ -42,24 +47,28 @@ import PlutusCore.Executable.Types
   , PrintMode (Readable)
   , UplcProg
   )
+import PlutusCore.Flat (flat, unflat)
 import PlutusCore.MkPlc (mkConstant)
+import PlutusCore.Quote as PLC
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V2
-import PlutusPrelude ((.*))
+import PlutusPrelude (unsafeFromRight, (.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
 import System.FilePath ((<.>), (</>))
-import UntypedPlutusCore (NamedDeBruijn, Program (..), applyProgram)
-import UntypedPlutusCore.Core.Type qualified as UPLC
+import UntypedPlutusCore (Name, NamedDeBruijn, applyProgram)
+import UntypedPlutusCore qualified as UPLC
+
+type Program a = UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun a
 
 -- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
 benchmarkToUPLC
-  :: CompiledCode a
+  :: Program a
   -- ^ semantics or role payout validator.
   -> M.Benchmark
   {-^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by
   the executable, it includes benchmarking results along with script info. -}
-  -> UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -> Program ()
   -- ^ A named DeBruijn program, for turning to `Benchmarkable`.
 benchmarkToUPLC validator M.Benchmark {..} =
   foldl1 (unsafeFromEither .* applyProgram) $
@@ -69,7 +78,7 @@ benchmarkToUPLC validator M.Benchmark {..} =
     datum = wrap $ mkConstant () bDatum
     redeemer = wrap $ mkConstant () bRedeemer
     context = wrap $ mkConstant () $ toData bScriptContext
-    prog = getPlc validator
+    prog = validator
 
 -- | Read all of the benchmarking cases for a particular validator.
 readBenchmarks :: FilePath -> IO (Either String [Benchmark])
@@ -79,6 +88,30 @@ readBenchmarks subfolder = do
     filter (isSuffixOf ".benchmark") . fmap (folder </>)
       <$> listDirectory folder
   sequence <$> mapM readBenchmark (sort files)
+
+readFlat :: FilePath -> IO (Program ())
+readFlat path = do
+  contents <- BS.readFile path
+  case unflat contents of
+    Left e -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ path ++ ": " ++ show e
+    Right (UPLC.UnrestrictedProgram prog) -> return prog
+
+writeFlat :: FilePath -> Program () -> IO ()
+writeFlat path = BS.writeFile path . flat . UPLC.UnrestrictedProgram
+  where
+    toNamed :: Program () -> UPLC.Program Name UPLC.DefaultUni UPLC.DefaultFun ()
+    toNamed = unsafeFromRight . PLC.runQuoteT . UPLC.progTerm UPLC.unDeBruijnTerm
+
+{-| Read the validator and all arguments to benchmark it with, return the applied
+validators as programs -}
+readAppliedValidators :: FilePath -> FilePath -> IO [Program ()]
+readAppliedValidators validatorPath argsPath = do
+  validator <- readFlat validatorPath
+  readBenchmarks argsPath >>= \case
+    Left err -> fail $ "Error reading benchmark arguments: " <> err
+    Right args -> do
+      let args' = map rescript args
+      return $ map (benchmarkToUPLC validator) args'
 
 -- | Read a benchmarking file.
 readBenchmark :: FilePath -> IO (Either String Benchmark)
@@ -251,7 +284,7 @@ writeFlatUPLCs writer benchmarks folder =
 writeFlatUPLC :: CompiledCode a -> FilePath -> Benchmark -> IO ()
 writeFlatUPLC validator filename Benchmark {..} =
   let
-    wrap = Program () (Version 1 0 0)
+    wrap = UPLC.Program () (Version 1 0 0)
     datum = wrap $ mkConstant () bDatum :: UplcProg ()
     redeemer = wrap $ mkConstant () bRedeemer :: UplcProg ()
     context = wrap $ mkConstant () $ toData bScriptContext :: UplcProg ()

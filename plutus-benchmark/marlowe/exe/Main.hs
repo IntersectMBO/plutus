@@ -5,21 +5,32 @@ module Main (main) where
 import Cardano.Binary (serialize')
 import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
+import Data.Functor (void)
 import Data.List (intercalate)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusBenchmark.Marlowe.BenchUtil
   ( rolePayoutBenchmarks
   , semanticsBenchmarks
   , tabulateResults
+  , writeFlat
   , writeFlatUPLCs
   )
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout
+import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
+import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Semantics qualified as Semantics
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
+import PlutusTx.Code (getPlc)
 import System.FilePath (normalise, (</>))
 
-{-| Run the benchmarks and export information about
-the validators and the benchmarking results. -}
+{- Generates the UPLC .flat files for benchmarking the two marlowe validators.
+Each flat file is consists of the compiled validator applied to a set of
+fixed arguments (redeemer, input and datum), read from file.
+
+Additionally:
+- Saves both validators without arguments to file
+- Prints table of the reference
+-}
 main :: IO ()
 main = do
   dir <- normalise <$> getDataDir
@@ -32,7 +43,7 @@ main = do
       rolePayoutValidatorExportDir = dir </> "marlowe/exe/marlowe-rolepayout"
       rolePayoutValidatorResults = dir </> "marlowe/exe/marlowe-rolepayout.tsv"
 
-  -- Read the semantics benchmarks.
+  -- Read the benchmark arguments for semantics validator
   benchmarks <- either error id <$> semanticsBenchmarks
 
   -- Write the tabulation of semantics benchmark results.
@@ -45,6 +56,10 @@ main = do
 
   -- Write the flat UPLC files for the semantics benchmarks.
   writeFlatUPLCs Semantics.writeUPLC benchmarks semanticsUplcDir
+
+  -- Write flat validators
+  writeFlat (semanticsUplcDir </> "validator.flat") (void . getPlc $ marloweValidator)
+  writeFlat (rolePayoutUplcDir </> "validator.flat") (void . getPlc $ rolePayoutValidator)
 
   -- Print the semantics validator, and write the plutus file.
   printValidator
