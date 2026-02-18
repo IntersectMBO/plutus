@@ -161,12 +161,12 @@ data Inline {X : ℕ} :
   -- The following constructors are for compatible closure
 
   force :
-      (r : Inline σ zz M M′)
+      (r : Inline σ □ M M′)
     → -------------------------------
       Inline σ zz (force M) (force M′)
 
   delay :
-      (r : Inline σ zz M M′)
+      (r : Inline σ □ M M′)
     → -------------------------------
       Inline σ zz (delay M) (delay M′)
 
@@ -182,14 +182,14 @@ data Inline {X : ℕ} :
 
   constr :
       ∀ {i Ms M′s}
-      (rs : Pointwise (Inline σ zz) Ms M′s)
+      (rs : Pointwise (Inline σ □) Ms M′s)
     → -------------------------------
       Inline σ zz (constr i Ms) (constr i M′s)
 
   case :
       ∀ {Ms M′s}
-      (r  : Inline σ zz M M′)
-      (rs : Pointwise (Inline σ zz) Ms M′s)
+      (r  : Inline σ □ M M′)
+      (rs : Pointwise (Inline σ □) Ms M′s)
     → -------------------------------
       Inline σ zz (case M Ms) (case M′ M′s)
 
@@ -246,11 +246,11 @@ check (h ·↓) σ zz (L · M) N′ =
       proof (r ·↓)
 
 check (force h) σ zz (force M) (force M′) =
-   do r ← check h σ zz M M′
+   do r ← check h σ □ M M′
       proof (force r)
 
 check (delay h) σ zz (delay M) (delay M′) =
-   do r ← check h σ zz M M′
+   do r ← check h σ □ M M′
       proof (delay r)
 
 check con σ zz M@(con c) M′@(con c′)
@@ -265,13 +265,13 @@ check builtin σ zz M@(builtin b) M′@(builtin b′)
 
 check (constr hs) σ zz M@(constr i Ms) M′@(constr i′ M′s) with i ≟ i′
 ... | yes refl =
-   do rs ← checkPointwise hs σ zz Ms M′s
+   do rs ← checkPointwise hs σ □ Ms M′s
       proof (constr rs)
 ... | no _ = abort inlineT M M′
 
 check (case h hs) σ zz (case M Ms) (case M′ M′s) =
-  do r ← check h σ zz M M′
-     rs ← checkPointwise hs σ zz Ms M′s
+  do r ← check h σ □ M M′
+     rs ← checkPointwise hs σ □ Ms M′s
      proof (case r rs)
 
 check error σ zz error error = proof error

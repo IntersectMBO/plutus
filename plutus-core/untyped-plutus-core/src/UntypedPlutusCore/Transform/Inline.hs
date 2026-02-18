@@ -244,7 +244,7 @@ inline
 {-| Extract the list of applications from a term,
 a bit like a "multi-beta" reduction.
 
-Some examples will help:
+Some examples will help (annotations are omitted):
 [(\x . t) a] -> Just ([(x, a)], t)
 
 [[[(\x . (\y . (\z . t))) a] b] c] -> Just ([(x, a), (y, b), (z, c)]) t)
@@ -723,7 +723,10 @@ inliner as a process that repeatedly performs one of the following two operation
 1. Substituting a term for a variable
 2. Dropping a dead binding
 
-Certifier hints are then defined constructively according to the following procedure:
+Certifier hints are then defined constructively according to the following procedure.
+In the end, the final hints mirror the post-term structure, except that each node may be
+decorated with an arbitrary number of `InlDrop` or `InlExpand` layers, reflecting the
+inlining operations that the inliner has performed.
 
 - Initially the hints mirror the pre-term structure, using constructors of `Inline`
   except `InlExpand` and `InlDrop`. Excluding these two constructors, there is a
@@ -761,9 +764,8 @@ Certifier hints are then defined constructively according to the following proce
   `(\x‾ₙ y. M) X‾ₙ` becomes `M`, and therefore, `hints(M)` should be decorated with
   `decorations₁` plus `InlDrop` plus `decorations₂`.
 
-In the end, the final hints mirror the post-term structure, except that each node may be
-decorated with an arbitrary number of `InlDrop` or `InlExpand` layers, reflecting the
-inlining operations that the inliner has performed.
+Refer to the golden tests for examples of hints (look for files ending with
+`.golden.certifier-hints`).
 
 Implementing this is quite fiddly, but is still easier than it sounds from the above
 description. Observe that at any point during inlining, the hints structure mirrors
