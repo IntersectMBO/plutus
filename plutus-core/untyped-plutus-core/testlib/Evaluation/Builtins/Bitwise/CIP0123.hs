@@ -440,6 +440,7 @@ rotateHomomorphism =
               ]
       evaluateTheSame lhs rhs
 
+-- | A pos rotation and neg rotation cancel each other out.
 rotateInverse :: Property
 rotateInverse = property $ do
   bs <- forAllByteString 0 512
@@ -458,6 +459,7 @@ rotateInverse = property $ do
           ]
   evaluatesToConstant bs inverted
 
+-- | Rotation with multiples of @bitLen@ is identity.
 rotateIdentity :: Property
 rotateIdentity = property $ do
   bs <- forAllByteString 0 512
