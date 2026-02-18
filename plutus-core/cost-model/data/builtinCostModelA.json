@@ -34,8 +34,8 @@
   "appendString": {
     "cpu": {
       "arguments": {
-        "intercept": 1000,
-        "slope": 24177
+        "intercept": 312532,
+        "slope": 80
       },
       "type": "added_sizes"
     },
@@ -367,8 +367,8 @@
   "decodeUtf8": {
     "cpu": {
       "arguments": {
-        "intercept": 497525,
-        "slope": 14068
+        "intercept": 295335,
+        "slope": 943
       },
       "type": "linear_in_x"
     },
@@ -406,8 +406,8 @@
   "encodeUtf8": {
     "cpu": {
       "arguments": {
-        "intercept": 1000,
-        "slope": 28662
+        "intercept": 281370,
+        "slope": 80
       },
       "type": "linear_in_x"
     },
@@ -462,9 +462,9 @@
   "equalsString": {
     "cpu": {
       "arguments": {
-        "constant": 187000,
-        "intercept": 1000,
-        "slope": 52998
+        "constant": 247418,
+        "intercept": 241082,
+        "slope": 65
       },
       "type": "linear_on_diagonal"
     },
@@ -1225,10 +1225,10 @@
         "constant": 213283,
         "model": {
           "arguments": {
-             "intercept": 618401,
-             "slope1": 1998,
-             "slope2": 28258
-           },
+            "intercept": 618401,
+            "slope1": 1998,
+            "slope2": 28258
+          },
           "type": "linear_in_x_and_y"
         }
       },
@@ -1240,37 +1240,37 @@
     }
   },
   "valueData": {
-      "cpu": {
-          "arguments": {
-              "intercept": 1000,
-              "slope": 38159
-          },
-          "type": "linear_in_x"
+    "cpu": {
+      "arguments": {
+        "intercept": 1000,
+        "slope": 38159
       },
-      "memory": {
-          "arguments": {
-              "intercept": 2,
-              "slope": 22
-          },
-          "type": "linear_in_x"
-      }
+      "type": "linear_in_x"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 2,
+        "slope": 22
+      },
+      "type": "linear_in_x"
+    }
   },
   "unValueData": {
-      "cpu": {
-          "arguments": {
-              "c0": 1000,
-              "c1": 95933,
-              "c2": 1
-          },
-          "type": "quadratic_in_x"
+    "cpu": {
+      "arguments": {
+        "c0": 1000,
+        "c1": 95933,
+        "c2": 1
       },
-      "memory": {
-          "arguments": {
-              "intercept": 11,
-              "slope": 1
-          },
-          "type": "linear_in_x"
-      }
+      "type": "quadratic_in_x"
+    },
+    "memory": {
+      "arguments": {
+        "intercept": 11,
+        "slope": 1
+      },
+      "type": "linear_in_x"
+    }
   },
   "insertCoin": {
     "cpu": {
