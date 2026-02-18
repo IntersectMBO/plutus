@@ -596,26 +596,28 @@ shiftNegClearHigh = property $ do
 posShiftMoveBits :: Property
 posShiftMoveBits = property $ do
   n <- forAll . Gen.integral $ Range.linear 1 7
-  let bs = BS.singleton 0x01
+  b <- forAll Gen.enumBounded
+  let bs = BS.singleton b
   let shifted =
         mkIterAppNoAnn
           (builtin () PLC.ShiftByteString)
           [ mkConstant @ByteString () bs
           , mkConstant @Integer () n
           ]
-  evaluatesToConstant (BS.singleton $ 0x01 `Bits.shiftL` fromInteger n) shifted
+  evaluatesToConstant (BS.singleton $ b `Bits.shiftL` fromInteger n) shifted
 
 negShiftMoveBits :: Property
 negShiftMoveBits = property $ do
   n <- forAll . Gen.integral $ Range.linear 1 7
-  let bs = BS.singleton 0x80
+  b <- forAll Gen.enumBounded
+  let bs = BS.singleton b
   let shifted =
         mkIterAppNoAnn
           (builtin () PLC.ShiftByteString)
           [ mkConstant @ByteString () bs
           , mkConstant @Integer () (negate n)
           ]
-  evaluatesToConstant (BS.singleton $ 0x80 `Bits.shiftR` fromInteger n) shifted
+  evaluatesToConstant (BS.singleton $ b `Bits.shiftR` fromInteger n) shifted
 
 -- | Rotations by more than the bit length 'roll over' bits.
 rotateRollover :: Property
