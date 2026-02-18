@@ -384,7 +384,7 @@ instance ExMemoryUsage Data where
       sizeData d = addConstantRose dataNodeRose $ case d of
         -- TODO: include the size of the tag, but not just yet. See PLT-1176.
         Constr _ l -> CostRose 0 $ l <&> sizeData
-        Map l -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
+        Map l -> CostRose 0 $ foldr (\(d1, d2) acc -> sizeData d1 : sizeData d2 : acc) [] l
         List l -> CostRose 0 $ l <&> sizeData
         I n -> memoryUsage n
         B b -> memoryUsage b
@@ -400,15 +400,16 @@ instance ExMemoryUsage DataNodeCount where
       go d = CostRose 1 $
         case d of
           Constr _ ds -> ds <&> go
-          Map pairs -> pairs >>= \(d1, d2) -> [d1, d2] <&> go
+          Map pairs -> foldr (\(d1, d2) acc -> go d1 : go d2 : acc) [] pairs
           List ds -> ds <&> go
           I _ -> []
           B _ -> []
       {-# INLINE go #-}
   {-# INLINE memoryUsage #-}
 
+-- | Measure the size of a `Value` by its `Value.totalSize`.
 instance ExMemoryUsage Value where
-  memoryUsage = singletonRose . fromIntegral . Value.totalSize
+  memoryUsage = memoryUsage . ValueTotalSize
   {-# INLINE memoryUsage #-}
 
 -- | Measure the size of a `Value` by its `Value.totalSize`.
