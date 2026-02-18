@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -77,6 +76,7 @@ about 14K).  This restriction may be removed once a more efficient implementatio
    Plutus Core so that we can continue to support the current behaviour for old scripts.-}
 maximumOutputLength :: Integer
 maximumOutputLength = 8192
+{-# INLINE maximumOutputLength #-}
 
 -- | Wrapper for 'unsafeIntegerToByteString' to make it more convenient to define as a builtin.
 integerToByteString :: Bool -> Integer -> Integer -> BuiltinResult ByteString
@@ -84,7 +84,7 @@ integerToByteString endiannessArg lengthArg input
   -- Check that the length is non-negative.
   | lengthArg < 0 = do
       emit "integerToByteString: negative length argument"
-      emit $ "Length requested: " <> (pack . show $ input)
+      emit $ "Length requested: " <> (pack . show $ lengthArg)
       builtinResultFailure
   -- Check that the requested length does not exceed the limit.  *NB*: if we remove the limit we'll
   -- still have to make sure that the length fits into an Int.
@@ -159,7 +159,7 @@ unsafeIntegerToByteString requestedByteOrder requestedLength input = case input 
           -- directly depend on the number of leading zeroes: every full
           -- 8 leading zeroes means a byte we _don't_ need to use. We
           -- can then figure out the number of unused bytes (all-zero)
-          -- byt taking the quotient of the leading zero count by 8.
+          -- by taking the quotient of the leading zero count by 8.
           let counted# = clz# (int2Word# i#)
               minLength = 8 - I# (quotInt# (word2Int# counted#) 8#)
            in if
@@ -298,6 +298,7 @@ byteStringToInteger
 byteStringToInteger statedEndiannessArg input =
   let endianness = endiannessArgToByteOrder statedEndiannessArg
    in unsafeByteStringToInteger endianness input
+{-# INLINE byteStringToInteger #-}
 
 -- For clarity, the stated endianness argument uses 'ByteOrder'.
 -- This function may not actually be unsafe, but it shouldn't be used outside this module.
@@ -703,7 +704,8 @@ unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $
         --    boundary and apply them.
         let !invSmallShift = 8 - smallShift
         let !mask = 0xFF `Bits.unsafeShiftR` invSmallShift
-        for_ [len - 1, len - 2 .. len - copyLen] $ \byteIx -> do
+        let !firstIx = len - copyLen
+        for_ [len - 1, len - 2 .. firstIx + 1] $ \byteIx -> do
           -- To handle shifts across byte boundaries, we have to 'read
           -- backwards', mask off the relevant part, then recombine.
           !(currentByte :: Word8) <- peekByteOff dstPtr byteIx
@@ -713,8 +715,8 @@ unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $
                 (currentByte `Bits.unsafeShiftR` smallShift)
                   Bits..|. (prevOverflowBits `Bits.unsafeShiftL` invSmallShift)
           pokeByteOff dstPtr byteIx newCurrentByte
-        !(firstByte :: Word8) <- peekByteOff dstPtr (len - copyLen - 1)
-        pokeByteOff dstPtr (len - copyLen - 1) (firstByte `Bits.unsafeShiftR` smallShift)
+        !(firstByte :: Word8) <- peekByteOff dstPtr firstIx
+        pokeByteOff dstPtr firstIx (firstByte `Bits.unsafeShiftR` smallShift)
     -- This works similarly to `negativeShift` above, but in the opposite direction.
     positiveShift :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> IO ()
     positiveShift srcPtr dstPtr bigShift smallShift = do
@@ -724,7 +726,8 @@ unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $
       when (smallShift > 0) $ do
         let !invSmallShift = 8 - smallShift
         let !mask = 0xFF `Bits.unsafeShiftL` invSmallShift
-        for_ [0, 1 .. copyLen - 2] $ \byteIx -> do
+        let !lastIx = copyLen - 1
+        for_ [0, 1 .. lastIx - 1] $ \byteIx -> do
           !(currentByte :: Word8) <- peekByteOff dstPtr byteIx
           !(nextByte :: Word8) <- peekByteOff dstPtr (byteIx + 1)
           let !nextOverflowBits = nextByte Bits..&. mask
@@ -732,11 +735,11 @@ unsafeShiftByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $
                 (currentByte `Bits.unsafeShiftL` smallShift)
                   Bits..|. (nextOverflowBits `Bits.unsafeShiftR` invSmallShift)
           pokeByteOff dstPtr byteIx newCurrentByte
-        !(lastByte :: Word8) <- peekByteOff dstPtr (copyLen - 1)
-        pokeByteOff dstPtr (copyLen - 1) (lastByte `Bits.unsafeShiftL` smallShift)
+        !(lastByte :: Word8) <- peekByteOff dstPtr lastIx
+        pokeByteOff dstPtr lastIx (lastByte `Bits.unsafeShiftL` smallShift)
 
 {-| Rotations, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
-This is defintely unsafe: calling it with bitMove = minBound::Int can cause a
+This is definitely unsafe: calling it with bitMove = minBound::Int can cause a
 segmentation fault.  It must not be used outside this module. -}
 unsafeRotateByteString :: ByteString -> Int -> ByteString
 unsafeRotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs $ \srcPtr ->
@@ -762,8 +765,9 @@ unsafeRotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs 
         -- This works similarly to shifts
         let !invSmallRotate = 8 - smallRotate
         let !mask = 0xFF `Bits.unsafeShiftL` invSmallRotate
+        let !lastIx = len - 1
         !(cloneFirstByte :: Word8) <- peekByteOff dstPtr 0
-        for_ [0, 1 .. len - 2] $ \byteIx -> do
+        for_ [0, 1 .. lastIx - 1] $ \byteIx -> do
           !(currentByte :: Word8) <- peekByteOff dstPtr byteIx
           !(nextByte :: Word8) <- peekByteOff dstPtr (byteIx + 1)
           let !nextOverflowBits = nextByte Bits..&. mask
@@ -771,12 +775,12 @@ unsafeRotateByteString bs bitMove = unsafeDupablePerformIO . BS.useAsCString bs 
                 (currentByte `Bits.unsafeShiftL` smallRotate)
                   Bits..|. (nextOverflowBits `Bits.unsafeShiftR` invSmallRotate)
           pokeByteOff dstPtr byteIx newCurrentByte
-        !(lastByte :: Word8) <- peekByteOff dstPtr (len - 1)
+        !(lastByte :: Word8) <- peekByteOff dstPtr lastIx
         let !firstOverflowBits = cloneFirstByte Bits..&. mask
         let !newLastByte =
               (lastByte `Bits.unsafeShiftL` smallRotate)
                 Bits..|. (firstOverflowBits `Bits.unsafeShiftR` invSmallRotate)
-        pokeByteOff dstPtr (len - 1) newLastByte
+        pokeByteOff dstPtr lastIx newLastByte
 
 -- | Counting the number of set bits, as per [CIP-123](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0123).
 countSetBits :: ByteString -> Int
