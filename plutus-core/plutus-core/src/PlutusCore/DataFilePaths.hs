@@ -18,10 +18,10 @@ builtinCostModelFileC :: FilePath
 builtinCostModelFileC = costModelDataDir </> "builtinCostModelC" <.> "json"
 
 builtinCostModelFileD :: FilePath
-builtinCostModelFileD = costModelDataDir </> "builtinCostModelB" <.> "json"
+builtinCostModelFileD = costModelDataDir </> "builtinCostModelD" <.> "json"
 
 builtinCostModelFileE :: FilePath
-builtinCostModelFileE = costModelDataDir </> "builtinCostModelC" <.> "json"
+builtinCostModelFileE = costModelDataDir </> "builtinCostModelE" <.> "json"
 
 latestBuiltinCostModelFile :: FilePath
 latestBuiltinCostModelFile = builtinCostModelFileC

@@ -287,10 +287,15 @@ builtinMemoryModels =
     , paramVerifySchnorrSecp256k1Signature = Id $ ModelThreeArgumentsConstantCost 10
     , paramAppendString = Id $ ModelTwoArgumentsAddedSizes $ OneVariableLinearFunction 4 1
     , paramEqualsString = Id $ boolMemModel
-    , -- In the worst case two UTF-16 bytes encode to three UTF-8 bytes, so two
-      -- output words per input word should cover that.
+    , -- For pre-PV11 variants (A/B/C), Text is measured by character count while
+      -- ByteString is measured in 8-byte words.  A slope of 2 is a safe
+      -- overestimate: in the worst case (4-byte UTF-8 chars), output is
+      -- 4*charCount bytes = charCount/2 words, well under 2*charCount.
+      -- For PV11+ variants (D/E) where Text is measured by byte length, the
+      -- slope should be 1 (input bytes = output bytes); this is handled by
+      -- manually setting the memory slope in builtinCostModel{D,E}.json.
       paramEncodeUtf8 = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
-    , -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
+    , -- See paramEncodeUtf8.
       paramDecodeUtf8 = Id $ ModelOneArgumentLinearInX $ OneVariableLinearFunction 4 2
     , paramIfThenElse = Id $ ModelThreeArgumentsConstantCost 1
     , paramChooseUnit = Id $ ModelTwoArgumentsConstantCost 4

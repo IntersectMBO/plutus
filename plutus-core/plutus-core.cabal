@@ -26,6 +26,8 @@ extra-source-files:
   cost-model/data/builtinCostModelA.json
   cost-model/data/builtinCostModelB.json
   cost-model/data/builtinCostModelC.json
+  cost-model/data/builtinCostModelD.json
+  cost-model/data/builtinCostModelE.json
   cost-model/data/cekMachineCostsA.json
   cost-model/data/cekMachineCostsB.json
   cost-model/data/cekMachineCostsC.json

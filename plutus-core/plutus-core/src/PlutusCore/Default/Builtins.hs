@@ -29,6 +29,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
   , ExMemoryUsage
   , IntegerCostedLiterally (..)
   , NumBytesCostedAsNumWords (..)
+  , TextCostingByteLength (..)
   , ValueMaxDepth (..)
   , ValueTotalSize (..)
   , memoryUsage
@@ -1314,38 +1315,123 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           verifySchnorrSecp256k1SignatureDenotation
           (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
   -- Strings
-  toBuiltinMeaning _semvar AppendString =
-    let appendStringDenotation :: Text -> Text -> Text
-        appendStringDenotation = (<>)
-        {-# INLINE appendStringDenotation #-}
-     in makeBuiltinMeaning
-          appendStringDenotation
-          (runCostingFunTwoArguments . paramAppendString)
-  toBuiltinMeaning _semvar EqualsString =
-    let equalsStringDenotation :: Text -> Text -> Bool
-        equalsStringDenotation = (==)
-        {-# INLINE equalsStringDenotation #-}
-     in makeBuiltinMeaning
-          equalsStringDenotation
-          (runCostingFunTwoArguments . paramEqualsString)
-  toBuiltinMeaning _semvar EncodeUtf8 =
-    let encodeUtf8Denotation :: Text -> BS.ByteString
-        encodeUtf8Denotation = encodeUtf8
-        {-# INLINE encodeUtf8Denotation #-}
-     in makeBuiltinMeaning
-          encodeUtf8Denotation
-          (runCostingFunOneArgument . paramEncodeUtf8)
-  toBuiltinMeaning _semvar DecodeUtf8 =
-    let decodeUtf8Denotation :: BS.ByteString -> BuiltinResult Text
-        decodeUtf8Denotation s
-          | BS.isValidUtf8 s =
-              let !(SBS.SBS arr) = SBS.toShort s
-               in pure $ Text (ByteArray arr) 0 (BS.length s)
-          | otherwise = fail "decodeUtf8: invalid input"
-        {-# INLINE decodeUtf8Denotation #-}
-     in makeBuiltinMeaning
-          decodeUtf8Denotation
-          (runCostingFunOneArgument . paramDecodeUtf8)
+  -- See Note [Builtin semantics variants]
+  toBuiltinMeaning semvar AppendString =
+    let costingFun
+          :: ExMemoryUsage a => BuiltinCostModel -> a -> a -> ExBudgetStream
+        costingFun = runCostingFunTwoArguments . paramAppendString
+        {-# INLINE costingFun #-}
+        appendStringMeaning_charCount =
+          let appendStringDenotation :: Text -> Text -> Text
+              appendStringDenotation = (<>)
+              {-# INLINE appendStringDenotation #-}
+           in makeBuiltinMeaning
+                appendStringDenotation
+                costingFun
+        appendStringMeaning_byteCount =
+          let appendStringDenotation
+                :: TextCostingByteLength -> TextCostingByteLength -> TextCostingByteLength
+              appendStringDenotation (TextCostingByteLength x) (TextCostingByteLength y) =
+                TextCostingByteLength (x <> y)
+              {-# INLINE appendStringDenotation #-}
+           in makeBuiltinMeaning
+                appendStringDenotation
+                costingFun
+     in case semvar of
+          DefaultFunSemanticsVariantA -> appendStringMeaning_charCount
+          DefaultFunSemanticsVariantB -> appendStringMeaning_charCount
+          DefaultFunSemanticsVariantC -> appendStringMeaning_charCount
+          DefaultFunSemanticsVariantD -> appendStringMeaning_byteCount
+          DefaultFunSemanticsVariantE -> appendStringMeaning_byteCount
+  -- See Note [Builtin semantics variants]
+  toBuiltinMeaning semvar EqualsString =
+    let costingFun
+          :: ExMemoryUsage a => BuiltinCostModel -> a -> a -> ExBudgetStream
+        costingFun = runCostingFunTwoArguments . paramEqualsString
+        {-# INLINE costingFun #-}
+        equalsStringMeaning_charCount =
+          let equalsStringDenotation :: Text -> Text -> Bool
+              equalsStringDenotation = (==)
+              {-# INLINE equalsStringDenotation #-}
+           in makeBuiltinMeaning
+                equalsStringDenotation
+                costingFun
+        equalsStringMeaning_byteCount =
+          let equalsStringDenotation
+                :: TextCostingByteLength -> TextCostingByteLength -> Bool
+              equalsStringDenotation (TextCostingByteLength x) (TextCostingByteLength y) =
+                x == y
+              {-# INLINE equalsStringDenotation #-}
+           in makeBuiltinMeaning
+                equalsStringDenotation
+                costingFun
+     in case semvar of
+          DefaultFunSemanticsVariantA -> equalsStringMeaning_charCount
+          DefaultFunSemanticsVariantB -> equalsStringMeaning_charCount
+          DefaultFunSemanticsVariantC -> equalsStringMeaning_charCount
+          DefaultFunSemanticsVariantD -> equalsStringMeaning_byteCount
+          DefaultFunSemanticsVariantE -> equalsStringMeaning_byteCount
+  -- See Note [Builtin semantics variants]
+  toBuiltinMeaning semvar EncodeUtf8 =
+    let costingFun
+          :: ExMemoryUsage a => BuiltinCostModel -> a -> ExBudgetStream
+        costingFun = runCostingFunOneArgument . paramEncodeUtf8
+        {-# INLINE costingFun #-}
+        encodeUtf8Meaning_charCount =
+          let encodeUtf8Denotation :: Text -> BS.ByteString
+              encodeUtf8Denotation = encodeUtf8
+              {-# INLINE encodeUtf8Denotation #-}
+           in makeBuiltinMeaning
+                encodeUtf8Denotation
+                costingFun
+        encodeUtf8Meaning_byteCount =
+          let encodeUtf8Denotation :: TextCostingByteLength -> BS.ByteString
+              encodeUtf8Denotation (TextCostingByteLength t) = encodeUtf8 t
+              {-# INLINE encodeUtf8Denotation #-}
+           in makeBuiltinMeaning
+                encodeUtf8Denotation
+                costingFun
+     in case semvar of
+          DefaultFunSemanticsVariantA -> encodeUtf8Meaning_charCount
+          DefaultFunSemanticsVariantB -> encodeUtf8Meaning_charCount
+          DefaultFunSemanticsVariantC -> encodeUtf8Meaning_charCount
+          DefaultFunSemanticsVariantD -> encodeUtf8Meaning_byteCount
+          DefaultFunSemanticsVariantE -> encodeUtf8Meaning_byteCount
+  -- See Note [Builtin semantics variants]
+  toBuiltinMeaning semvar DecodeUtf8 =
+    let costingFun
+          :: ExMemoryUsage a => BuiltinCostModel -> a -> ExBudgetStream
+        costingFun = runCostingFunOneArgument . paramDecodeUtf8
+        {-# INLINE costingFun #-}
+        decodeUtf8Meaning_charCount =
+          let decodeUtf8Denotation :: BS.ByteString -> BuiltinResult Text
+              decodeUtf8Denotation s
+                | BS.isValidUtf8 s =
+                    let !(SBS.SBS arr) = SBS.toShort s
+                     in pure $ Text (ByteArray arr) 0 (BS.length s)
+                | otherwise = fail "decodeUtf8: invalid input"
+              {-# INLINE decodeUtf8Denotation #-}
+           in makeBuiltinMeaning
+                decodeUtf8Denotation
+                costingFun
+        decodeUtf8Meaning_byteCount =
+          let decodeUtf8Denotation
+                :: BS.ByteString -> BuiltinResult TextCostingByteLength
+              decodeUtf8Denotation s
+                | BS.isValidUtf8 s =
+                    let !(SBS.SBS arr) = SBS.toShort s
+                     in pure $ TextCostingByteLength $ Text (ByteArray arr) 0 (BS.length s)
+                | otherwise = fail "decodeUtf8: invalid input"
+              {-# INLINE decodeUtf8Denotation #-}
+           in makeBuiltinMeaning
+                decodeUtf8Denotation
+                costingFun
+     in case semvar of
+          DefaultFunSemanticsVariantA -> decodeUtf8Meaning_charCount
+          DefaultFunSemanticsVariantB -> decodeUtf8Meaning_charCount
+          DefaultFunSemanticsVariantC -> decodeUtf8Meaning_charCount
+          DefaultFunSemanticsVariantD -> decodeUtf8Meaning_byteCount
+          DefaultFunSemanticsVariantE -> decodeUtf8Meaning_byteCount
   -- Bool
   toBuiltinMeaning _semvar IfThenElse =
     let ifThenElseDenotation :: Bool -> a -> a -> a
@@ -1363,6 +1449,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           chooseUnitDenotation
           (runCostingFunTwoArguments . paramChooseUnit)
   -- Tracing
+  -- Trace has constant cost (ModelTwoArgumentsConstantCost), so the Text size
+  -- metric is never used by the costing function.  No variant dispatch needed.
   toBuiltinMeaning _semvar Trace =
     let traceDenotation :: Text -> a -> BuiltinResult a
         traceDenotation text a = a <$ emit text

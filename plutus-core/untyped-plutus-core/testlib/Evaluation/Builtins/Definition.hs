@@ -62,11 +62,13 @@ import PlutusCore.StdLib.Data.ScottList qualified as Scott
 import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.Test
+import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.Exception (evaluate, try)
 import Data.Bifunctor (bimap)
 import Data.ByteString (ByteString, pack)
+import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as Base16
 import Data.DList qualified as DList
 import Data.List (find)
@@ -77,10 +79,13 @@ import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
+import Data.Word (Word64)
 import Hedgehog (forAll, property, withTests, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Prettyprinter (vsep)
+import System.CPUTime (getCPUTime)
+import System.Mem (performGC)
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, assertBool, assertFailure, testCase, (@=?), (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
@@ -598,6 +603,68 @@ test_fixId =
             , mkConstant @Integer () 42
             ]
     typecheckAndEvalToOutOfEx fixId
+
+{-| Evaluate a UPLC term under 'restrictingLarge' and assert the CEK evaluation
+completes within @maxSeconds@ of CPU time.  A warmup run on a trivial term and
+a 'performGC' are performed before measuring to reduce noise from JIT-like
+effects and pending GC work. -}
+evalCekInTime :: Double -> UPLC.Term Name DefaultUni DefaultFun () -> Assertion
+evalCekInTime maxSeconds term = do
+  -- Warm up the evaluator with a trivial term.
+  _ <- evaluate $ runCekNoEmit defaultCekParametersForTesting restrictingLarge (ctor_ 0 [])
+  performGC
+  startTime <- getCPUTime
+  _ <- evaluate $ runCekNoEmit defaultCekParametersForTesting restrictingLarge term
+  endTime <- getCPUTime
+  let cpuSeconds = fromIntegral (endTime - startTime) / (1e12 :: Double)
+  assertBool
+    ("CEK evaluation took " ++ show cpuSeconds ++ "s, expected < " ++ show maxSeconds ++ "s")
+    (cpuSeconds < maxSeconds)
+
+{-| Build a large 'Text' from a bytestring doubled many times, then repeatedly compare
+it with the empty string. This must complete promptly rather than spending excessive
+time in costing. -}
+test_LargeTextComparison :: TestTree
+test_LargeTextComparison =
+  testCase "Comparing a large Text completes in time" $ do
+    let
+      term :: UPLC.Term Name DefaultUni DefaultFun ()
+      term = runQuote $ do
+        let seedSize = 20 -- initial bytestring: 20 bytes of 'C'
+            doublings = 19 -- double 19 times → 20 * 2^19 ≈ 10MB
+            innerRepeat = 192 -- equalsString calls in the delayed thunk
+            outerRepeat = 150 -- force-and-repeat count in the outer layer
+        x <- freshName "x"
+        double <- freshName "double"
+        bigStr <- freshName "bigStr"
+        eqEmpty <- freshName "eqEmpty"
+        thunk <- freshName "thunk"
+
+        pure
+          -- let double = \x -> appendByteString x x
+          . let_ double (lam_ x $ bi AppendByteString @@ [ref x, ref x])
+          -- let bigStr = decodeUtf8 (double^19 (replicate 20 'C'))
+          . let_
+            bigStr
+            ( app (bi DecodeUtf8) . timesA doublings (app $ ref double) $
+                const_ (BS.replicate seedSize 67)
+            )
+          -- let eqEmpty = equalsString ""
+          . let_ eqEmpty (bi EqualsString `app` const_ @Text "")
+          -- let thunk = delay (constr 0 [eqEmpty bigStr, ..., eqEmpty bigStr])
+          . let_
+            thunk
+            ( delay_
+                . ctor_ 0
+                . replicate innerRepeat
+                $ ref eqEmpty `app` ref bigStr
+            )
+          -- constr 0 [force thunk, ..., force thunk]
+          . ctor_ 0
+          . replicate outerRepeat
+          . force_
+          $ ref thunk
+    evalCekInTime 5 term
 
 {-| If the first char is an opening paren and the last chat is a closing paren, then remove them.
 This is useful for rendering a term-as-a-test-name in CLI, since currently we wrap readably
@@ -2108,6 +2175,7 @@ test_definition =
     , ignoreTestWhenHpcEnabled test_TrackCostsRetaining
     , test_SerialiseDataImpossible
     , test_fixId
+    , test_LargeTextComparison
     , runTestNestedHere
         [ test_Integer
         , test_String
@@ -2127,3 +2195,46 @@ test_definition =
     , test_Bitwise_CIP0123
     , test_Case
     ]
+
+-- ---------------------------------------------------------------------------
+-- Smart constructors / shorthands for UPLC term construction
+-- ---------------------------------------------------------------------------
+
+-- | UPLC let-binding: @let_ x rhs body = (\\x -> body) rhs@.
+let_ :: Name -> UPLC.Term Name uni fun () -> UPLC.Term Name uni fun () -> UPLC.Term Name uni fun ()
+let_ name rhs body = UPLC.Apply () (UPLC.LamAbs () name body) rhs
+
+-- | Shorthand for 'UPLC.Builtin' at unit annotation.
+bi :: DefaultFun -> UPLC.Term Name DefaultUni DefaultFun ()
+bi = UPLC.Builtin ()
+
+-- | Shorthand for 'UPLC.Apply' at unit annotation.
+app
+  :: UPLC.Term Name DefaultUni DefaultFun ()
+  -> UPLC.Term Name DefaultUni DefaultFun ()
+  -> UPLC.Term Name DefaultUni DefaultFun ()
+app = UPLC.Apply ()
+
+-- | Shorthand for 'UPLC.Var' at unit annotation.  Not @var@ to avoid clashing with 'MkPlc.var'.
+ref :: Name -> UPLC.Term Name DefaultUni DefaultFun ()
+ref = UPLC.Var ()
+
+-- | Shorthand for 'mkConstant' at unit annotation (UPLC).
+const_ :: DefaultUni `HasTermLevel` a => a -> UPLC.Term Name DefaultUni DefaultFun ()
+const_ = mkConstant ()
+
+-- | Shorthand for 'UPLC.LamAbs' at unit annotation.
+lam_ :: Name -> UPLC.Term Name uni fun () -> UPLC.Term Name uni fun ()
+lam_ = UPLC.LamAbs ()
+
+-- | Shorthand for 'UPLC.Delay' at unit annotation.
+delay_ :: UPLC.Term Name uni fun () -> UPLC.Term Name uni fun ()
+delay_ = UPLC.Delay ()
+
+-- | Shorthand for 'UPLC.Force' at unit annotation.
+force_ :: UPLC.Term Name uni fun () -> UPLC.Term Name uni fun ()
+force_ = UPLC.Force ()
+
+-- | Shorthand for 'UPLC.Constr' at unit annotation.
+ctor_ :: Word64 -> [UPLC.Term Name uni fun ()] -> UPLC.Term Name uni fun ()
+ctor_ = UPLC.Constr ()

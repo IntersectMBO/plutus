@@ -243,12 +243,28 @@ test_dumpTypeRepDefaultFuns =
         [ let semVarChanges =
                 -- Keep the inner lists sorted.
                 [
+                  ( AppendString
+                  , [DefaultFunSemanticsVariantD]
+                  )
+                ,
                   ( ConsByteString
                   ,
                     [ DefaultFunSemanticsVariantC
                     , DefaultFunSemanticsVariantD
                     , DefaultFunSemanticsVariantE
                     ]
+                  )
+                ,
+                  ( DecodeUtf8
+                  , [DefaultFunSemanticsVariantD]
+                  )
+                ,
+                  ( EncodeUtf8
+                  , [DefaultFunSemanticsVariantD]
+                  )
+                ,
+                  ( EqualsString
+                  , [DefaultFunSemanticsVariantD]
                   )
                 ]
            in map (test_dumpTypeRepAllFun @DefaultFun "DefaultFun" semVarChanges) enumerate

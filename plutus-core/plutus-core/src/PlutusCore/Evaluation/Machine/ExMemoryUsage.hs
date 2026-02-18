@@ -12,6 +12,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
   , flattenCostRose
   , NumBytesCostedAsNumWords (..)
   , IntegerCostedLiterally (..)
+  , TextCostingByteLength (..)
   , ValueTotalSize (..)
   , ValueMaxDepth (..)
   , DataNodeCount (..)
@@ -33,6 +34,7 @@ import Data.Map.Strict qualified as Map
 import Data.Proxy
 import Data.SatInt
 import Data.Text qualified as T
+import Data.Text.Internal qualified as TI
 import Data.Vector.Strict (Vector)
 import Data.Vector.Strict qualified as Vector
 import Data.Word
@@ -321,19 +323,37 @@ instance ExMemoryUsage BS.ByteString where
       n = BS.length bs
   {-# INLINE memoryUsage #-}
 
+{- Note [ExMemoryUsage for Text]
+The default instance measures Text by character count (T.length), which is
+the metric used by pre-PV11 cost models.  The 'TextCostingByteLength' newtype
+(below) provides a byte-based metric for PV11+ cost models, where the costing
+function is calibrated against the UTF-8 byte length of the underlying array.
+See Note [Alternative memory usage instances].
+-}
 instance ExMemoryUsage T.Text where
-  -- This says that @Text@ allocates 1 'CostingInteger' worth of memory (i.e. 8 bytes) per
-  -- character, which is a conservative overestimate (i.e. is safe) regardless of whether @Text@
-  -- is UTF16-based (like it used to when we implemented this instance) or UTF8-based (like it is
-  -- now).
-  --
-  -- Note that the @ExMemoryUsage Char@ instance does not affect this one, this is for performance
-  -- reasons, since @T.length@ is O(1) unlike @sum . map (memoryUsage @Char) . T.unpack@. We used
-  -- to have the latter, but changed it to the former for easy performance gains.
-  --
-  -- We may want to make this a bit less of an overestimate in future just not to overcharge
-  -- users.
-  memoryUsage = singletonRose . fromIntegral . T.length
+  memoryUsage t = singletonRose . fromIntegral $ T.length t
+  {-# INLINE memoryUsage #-}
+
+{-| When invoking a built-in function, a value of type 'TextCostingByteLength'
+   can be used transparently as a built-in Text but with a different size
+   measure: the UTF-8 byte length of the underlying array, converted to 4-byte
+   half-words via @ceil(bytes\/4)@.
+
+   For 4-byte characters @ceil(bytes\/4) = char_count@, so the D\/E cost model
+   parameters match the character-count model (A\/B\/C) within ~1%.  For ASCII
+   characters @ceil(bytes\/4) = ceil(chars\/4)@, correctly reflecting that ASCII
+   is 4x cheaper to process than worst-case 4-byte characters.
+
+   This is used by PV11+ (semvar D/E) string builtins whose benchmarks are
+   calibrated against byte length rather than character count.  If this is used
+   to wrap an argument in the denotation of a builtin then it *MUST* also be
+   used to wrap the same argument in the relevant budgeting benchmark. -}
+newtype TextCostingByteLength = TextCostingByteLength {unTextCostingByteLength :: T.Text}
+
+instance ExMemoryUsage TextCostingByteLength where
+  memoryUsage (TextCostingByteLength (TI.Text _ _ lenInBytes))
+    | lenInBytes == 0 = singletonRose 0
+    | otherwise = singletonRose . unsafeToSatInt $ ((lenInBytes - 1) `quot` 4) + 1
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
