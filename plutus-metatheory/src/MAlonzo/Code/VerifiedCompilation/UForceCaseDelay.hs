@@ -540,6 +540,6 @@ du_sndTest5_284
                MAlonzo.Code.Untyped.C_case_40
                (coe MAlonzo.Code.Untyped.C_error_46)
                (coe
-                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe du_fstTest2_270)
+                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe du_sndTest2_272)
                   (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))))
          (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))

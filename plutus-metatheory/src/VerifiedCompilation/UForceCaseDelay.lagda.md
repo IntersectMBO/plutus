@@ -59,6 +59,13 @@ data FCD : (n ⊢) → (n ⊢) → Set where
     : All IsBranch alts
     → FCD (force (case scrut alts)) (case scrut (removeDelay alts))
 
+-- I have two ASTs, term1 and term2. Checking if they are in a translation relation means that
+-- all the changes in term2 compared to term1 are of a specific form.
+-- How would you write this algorithm with performance in mind? 
+-- Traverse both ASTs simultaneously. When a node from term1 is different from a node from term2, 
+-- check if the difference is accepted by the translation relation. If it is, continue
+-- traversing from the next node 
+
 isFCD? : MatchOrCE (FCD {n})
 isFCD? t t' with (isForce? (isCase? isTerm? allTerms?)) t
 ... | no ¬matchFst = ce (λ { (isFCD _) → ¬matchFst (isforce (iscase (isterm _) (allterms _))) }) forceCaseDelayT t t'
@@ -103,14 +110,13 @@ fstTest4 = case error (ƛ (force (case error (delay fstTest1 ∷ []))) ∷ [])
 sndTest4 : n ⊢
 sndTest4 = case error (ƛ (case error (fstTest1 ∷ [])) ∷ [])
 
--- This should fail, but it doesn't because the decision procedure only checks
--- if there is one case of forceCaseDelay, but this has two, and the second is
--- incorrect
+-- This should fail, and it actually does without doing any weird recursion in
+-- the FCD type, hmm
 fstTest5 : n ⊢
 fstTest5 = case error (ƛ (force (case error (delay fstTest2 ∷ []))) ∷ [])
 
 sndTest5 : n ⊢
-sndTest5 = case error (ƛ (case error (fstTest2 ∷ [])) ∷ [])
+sndTest5 = case error (ƛ (case error (sndTest2 ∷ [])) ∷ [])
 
 
 ```
