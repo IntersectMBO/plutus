@@ -355,7 +355,6 @@ library
     , transformers
     , unordered-containers
     , vector                      ^>=0.13.2
-    , witherable
 
 test-suite plutus-core-test
   import:           lang
