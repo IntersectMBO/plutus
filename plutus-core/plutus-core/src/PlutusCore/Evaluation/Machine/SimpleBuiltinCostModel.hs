@@ -29,11 +29,7 @@ type BuiltinCostKeyMap = KeyMap.KeyMap CpuAndMemoryModel
 {-| The default builtin cost map.
 TODO: maybe we should take account of the semantic variant here. -}
 defaultBuiltinCostKeyMap :: BuiltinCostKeyMap
-defaultBuiltinCostKeyMap =
-  -- Convert the Haskell cost model to JSON and then parse it as a KeyMap
-  case Data.Aeson.Types.parseEither KeyMap.parseJSON <$> Data.Aeson.decode (Data.Aeson.encode builtinCostModelC) of
-    Just (Right keyMap) -> keyMap
-    _ -> error "Failed to convert builtinCostModelC to KeyMap"
+defaultBuiltinCostKeyMap = undefined
 
 -- replace underscores _ by dashes -
 builtinName :: Text -> Text
