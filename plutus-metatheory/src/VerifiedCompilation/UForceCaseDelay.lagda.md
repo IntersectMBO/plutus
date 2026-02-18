@@ -79,4 +79,38 @@ ForceCaseDelay = Translation FCD
 isForceCaseDelay? : MatchOrCE (ForceCaseDelay {n})
 isForceCaseDelay? = translation? forceCaseDelayT isFCD?
 
+fstTest1 : n ⊢
+fstTest1 = force (case error (delay error ∷ []))
+
+sndTest1 : n ⊢
+sndTest1 = case error (error ∷ [])
+
+fstTest2 : n ⊢
+fstTest2 = force (case error (delay error ∷ []))
+
+sndTest2 : n ⊢
+sndTest2 = case error ((delay error) ∷ [])
+
+fstTest3 : n ⊢
+fstTest3 = case error (ƛ (force (case error (delay error ∷ []))) ∷ [])
+
+sndTest3 : n ⊢
+sndTest3 = case error (ƛ (case error (error ∷ [])) ∷ [])
+
+fstTest4 : n ⊢
+fstTest4 = case error (ƛ (force (case error (delay fstTest1 ∷ []))) ∷ [])
+
+sndTest4 : n ⊢
+sndTest4 = case error (ƛ (case error (fstTest1 ∷ [])) ∷ [])
+
+-- This should fail, but it doesn't because the decision procedure only checks
+-- if there is one case of forceCaseDelay, but this has two, and the second is
+-- incorrect
+fstTest5 : n ⊢
+fstTest5 = case error (ƛ (force (case error (delay fstTest2 ∷ []))) ∷ [])
+
+sndTest5 : n ⊢
+sndTest5 = case error (ƛ (case error (fstTest2 ∷ [])) ∷ [])
+
+
 ```

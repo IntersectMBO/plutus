@@ -18,6 +18,7 @@ import MAlonzo.RTE (coe, erased, AgdaAny, addInt, subInt, mulInt,
 import qualified MAlonzo.RTE
 import qualified Data.Text
 import qualified MAlonzo.Code.Agda.Builtin.Bool
+import qualified MAlonzo.Code.Agda.Builtin.List
 import qualified MAlonzo.Code.Data.List.Base
 import qualified MAlonzo.Code.Data.List.Properties
 import qualified MAlonzo.Code.Data.List.Relation.Unary.All
@@ -358,3 +359,187 @@ d_isForceCaseDelay'63'_264 v0
       (coe
          MAlonzo.Code.VerifiedCompilation.Certificate.C_forceCaseDelayT_10)
       (coe d_isFCD'63'_84)
+-- VerifiedCompilation.UForceCaseDelay.fstTest1
+d_fstTest1_266 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_fstTest1_266 ~v0 = du_fstTest1_266
+du_fstTest1_266 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_fstTest1_266
+  = coe
+      MAlonzo.Code.Untyped.C_force_24
+      (coe
+         MAlonzo.Code.Untyped.C_case_40
+         (coe MAlonzo.Code.Untyped.C_error_46)
+         (coe
+            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+            (coe
+               MAlonzo.Code.Untyped.C_delay_26
+               (coe MAlonzo.Code.Untyped.C_error_46))
+            (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))
+-- VerifiedCompilation.UForceCaseDelay.sndTest1
+d_sndTest1_268 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_sndTest1_268 ~v0 = du_sndTest1_268
+du_sndTest1_268 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_sndTest1_268
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe MAlonzo.Code.Untyped.C_error_46)
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+-- VerifiedCompilation.UForceCaseDelay.fstTest2
+d_fstTest2_270 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_fstTest2_270 ~v0 = du_fstTest2_270
+du_fstTest2_270 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_fstTest2_270
+  = coe
+      MAlonzo.Code.Untyped.C_force_24
+      (coe
+         MAlonzo.Code.Untyped.C_case_40
+         (coe MAlonzo.Code.Untyped.C_error_46)
+         (coe
+            MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+            (coe
+               MAlonzo.Code.Untyped.C_delay_26
+               (coe MAlonzo.Code.Untyped.C_error_46))
+            (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))
+-- VerifiedCompilation.UForceCaseDelay.sndTest2
+d_sndTest2_272 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_sndTest2_272 ~v0 = du_sndTest2_272
+du_sndTest2_272 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_sndTest2_272
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe
+            MAlonzo.Code.Untyped.C_delay_26
+            (coe MAlonzo.Code.Untyped.C_error_46))
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+-- VerifiedCompilation.UForceCaseDelay.fstTest3
+d_fstTest3_274 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_fstTest3_274 ~v0 = du_fstTest3_274
+du_fstTest3_274 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_fstTest3_274
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe
+            MAlonzo.Code.Untyped.C_ƛ_20
+            (coe
+               MAlonzo.Code.Untyped.C_force_24
+               (coe
+                  MAlonzo.Code.Untyped.C_case_40
+                  (coe MAlonzo.Code.Untyped.C_error_46)
+                  (coe
+                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                     (coe
+                        MAlonzo.Code.Untyped.C_delay_26
+                        (coe MAlonzo.Code.Untyped.C_error_46))
+                     (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))))
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+-- VerifiedCompilation.UForceCaseDelay.sndTest3
+d_sndTest3_276 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_sndTest3_276 ~v0 = du_sndTest3_276
+du_sndTest3_276 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_sndTest3_276
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe
+            MAlonzo.Code.Untyped.C_ƛ_20
+            (coe
+               MAlonzo.Code.Untyped.C_case_40
+               (coe MAlonzo.Code.Untyped.C_error_46)
+               (coe
+                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                  (coe MAlonzo.Code.Untyped.C_error_46)
+                  (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))))
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+-- VerifiedCompilation.UForceCaseDelay.fstTest4
+d_fstTest4_278 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_fstTest4_278 ~v0 = du_fstTest4_278
+du_fstTest4_278 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_fstTest4_278
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe
+            MAlonzo.Code.Untyped.C_ƛ_20
+            (coe
+               MAlonzo.Code.Untyped.C_force_24
+               (coe
+                  MAlonzo.Code.Untyped.C_case_40
+                  (coe MAlonzo.Code.Untyped.C_error_46)
+                  (coe
+                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                     (coe MAlonzo.Code.Untyped.C_delay_26 (coe du_fstTest1_266))
+                     (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))))
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+-- VerifiedCompilation.UForceCaseDelay.sndTest4
+d_sndTest4_280 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_sndTest4_280 ~v0 = du_sndTest4_280
+du_sndTest4_280 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_sndTest4_280
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe
+            MAlonzo.Code.Untyped.C_ƛ_20
+            (coe
+               MAlonzo.Code.Untyped.C_case_40
+               (coe MAlonzo.Code.Untyped.C_error_46)
+               (coe
+                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe du_fstTest1_266)
+                  (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))))
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+-- VerifiedCompilation.UForceCaseDelay.fstTest5
+d_fstTest5_282 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_fstTest5_282 ~v0 = du_fstTest5_282
+du_fstTest5_282 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_fstTest5_282
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe
+            MAlonzo.Code.Untyped.C_ƛ_20
+            (coe
+               MAlonzo.Code.Untyped.C_force_24
+               (coe
+                  MAlonzo.Code.Untyped.C_case_40
+                  (coe MAlonzo.Code.Untyped.C_error_46)
+                  (coe
+                     MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+                     (coe MAlonzo.Code.Untyped.C_delay_26 (coe du_fstTest2_270))
+                     (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16)))))
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
+-- VerifiedCompilation.UForceCaseDelay.sndTest5
+d_sndTest5_284 :: Integer -> MAlonzo.Code.Untyped.T__'8866'_14
+d_sndTest5_284 ~v0 = du_sndTest5_284
+du_sndTest5_284 :: MAlonzo.Code.Untyped.T__'8866'_14
+du_sndTest5_284
+  = coe
+      MAlonzo.Code.Untyped.C_case_40
+      (coe MAlonzo.Code.Untyped.C_error_46)
+      (coe
+         MAlonzo.Code.Agda.Builtin.List.C__'8759'__22
+         (coe
+            MAlonzo.Code.Untyped.C_ƛ_20
+            (coe
+               MAlonzo.Code.Untyped.C_case_40
+               (coe MAlonzo.Code.Untyped.C_error_46)
+               (coe
+                  MAlonzo.Code.Agda.Builtin.List.C__'8759'__22 (coe du_fstTest2_270)
+                  (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))))
+         (coe MAlonzo.Code.Agda.Builtin.List.C_'91''93'_16))
