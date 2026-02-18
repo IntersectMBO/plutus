@@ -65,6 +65,7 @@ data FCD : (n ⊢) → (n ⊢) → Set where
 -- Traverse both ASTs simultaneously. When a node from term1 is different from a node from term2, 
 -- check if the difference is accepted by the translation relation. If it is, continue
 -- traversing from the next node 
+-- I think Translation does pretty much ^. I don't think FCD needs to be recursive itself
 
 isFCD? : MatchOrCE (FCD {n})
 isFCD? t t' with (isForce? (isCase? isTerm? allTerms?)) t
