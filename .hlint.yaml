@@ -28,3 +28,4 @@
 - ignore: {name: Redundant if, within: [PlutusLedgerApi.V1.Value, PlutusLedgerApi.V1.Data.Value]}
 - ignore: {name: Replace case with maybe, within: [PlutusLedgerApi.V1.Value, PlutusLedgerApi.V1.Data.Value]}
 - ignore: {name: Use bimap, within: [PlutusTx.Builtins.HasOpaque]}
+- ignore: {name: Use camelCase, within: [Common]}

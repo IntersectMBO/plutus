@@ -40,14 +40,14 @@ import Test.QuickCheck.Instances.ByteString ()
    fewer words, but we're generating uniformly distributed values so the
    probability of that happening should be at most 1 in 2^64. -}
 randNwords :: Int -> StdGen -> (Integer, StdGen)
-randNwords n gen = randomR (lb, ub) gen
+randNwords n = randomR (lowerBound, upperBound)
   where
-    lb = -2 ^ (64 * n - 1)
-    ub = 2 ^ (64 * n - 1) - 1
+    lowerBound = -(2 ^ (64 * n - 1))
+    upperBound = 2 ^ (64 * n - 1) - 1
 
 -- Generate a random Bool (just here for consistency)
 randBool :: StdGen -> (Bool, StdGen)
-randBool gen = randomR (False, True) gen
+randBool = randomR (False, True)
 
 -- Hedgehog generators
 seedA :: H.Seed
@@ -79,7 +79,7 @@ makeSizedByteString seed n = genSample seed (G.bytes (R.singleton (8 * n)))
 
 -- FIXME: this is terrible
 makeSizedByteStrings :: H.Seed -> [Int] -> [ByteString]
-makeSizedByteStrings seed l = map (makeSizedByteString seed) l
+makeSizedByteStrings seed = map (makeSizedByteString seed)
 
 -- TODO: don't use Hedgehog's 'sample' below: it silently resizes the generator
 -- to size 30, so listOfByteStringsOfLength and listOfByteStrings are biased
@@ -97,25 +97,55 @@ listOfByteStrings m =
 
 ---------------- Strings (Hedgehog) ----------------
 
-{- This makes a Text string containing n unicode characters.  We use the unicode
- generator since that mostly produces 4 bytes per character, which is the worst
- case. If we were to use the ascii generator that would give us two bytes per
- character.  See Note [Choosing the inputs for costing benchmarks] in Strings.hs. -}
+{-| Generate a Text string of n characters using the full Unicode range.  Since
+text-2.x uses UTF-8 internally, the byte size depends on character width: ASCII
+characters take 1 byte, characters in U+0080..U+07FF take 2 bytes, U+0800..U+FFFF
+take 3 bytes, and characters from supplementary planes take 4 bytes.  The 'unicode'
+generator produces characters from the full range, giving a mix of byte widths
+(predominantly 3-4 bytes per character).  See Note [Choosing the inputs for costing
+benchmarks] in Strings.hs. -}
 makeSizedTextString :: H.Seed -> Int -> Text
-makeSizedTextString seed n = genSample seed (G.text (R.singleton (2 * n)) G.unicode)
+makeSizedTextString seed n = genSample seed (G.text (R.singleton n) G.unicode)
 
 makeSizedTextStrings :: H.Seed -> [Integer] -> [Text]
-makeSizedTextStrings seed sizes = fmap (makeSizedTextString seed . fromInteger) sizes
+makeSizedTextStrings seed sizes = makeSizedTextString seed . fromInteger <$> sizes
 
-{-| Generate a valid UTF-8 bytestring with memory usage approximately n for
-   benchmarking decodeUtf8.  We use the 'unicode' generator beacuse that gives
-   the worst-case behaviour: see Note [Choosing the inputs for costing
-   benchmarks] in Strings.hs). -}
+-- | Generate a Text string of n ASCII characters (1 byte each in UTF-8).
+makeSizedAsciiTextString :: H.Seed -> Int -> Text
+makeSizedAsciiTextString seed n = genSample seed (G.text (R.singleton n) G.ascii)
+
+makeSizedAsciiTextStrings :: H.Seed -> [Integer] -> [Text]
+makeSizedAsciiTextStrings seed sizes = makeSizedAsciiTextString seed . fromInteger <$> sizes
+
+-- | Generate a Text string of n 2-byte UTF-8 characters (U+0080..U+07FF).
+makeSized2ByteTextString :: H.Seed -> Int -> Text
+makeSized2ByteTextString seed n = genSample seed (G.text (R.singleton n) (G.enum '\x0080' '\x07FF'))
+
+makeSized2ByteTextStrings :: H.Seed -> [Integer] -> [Text]
+makeSized2ByteTextStrings seed sizes = makeSized2ByteTextString seed . fromInteger <$> sizes
+
+-- | Generate a Text string of n 4-byte UTF-8 characters (U+10000..U+10FFFF).
+makeSized4ByteTextString :: H.Seed -> Int -> Text
+makeSized4ByteTextString seed n = genSample seed (G.text (R.singleton n) (G.enum '\x10000' '\x10FFFF'))
+
+makeSized4ByteTextStrings :: H.Seed -> [Integer] -> [Text]
+makeSized4ByteTextStrings seed sizes = makeSized4ByteTextString seed . fromInteger <$> sizes
+
+{-| Generate a valid UTF-8 bytestring of approximately n bytes for benchmarking
+decodeUtf8.  Uses the 'unicode' generator for worst-case behaviour: see Note
+[Choosing the inputs for costing benchmarks] in Strings.hs. -}
 makeSizedUtf8ByteString :: H.Seed -> Int -> ByteString
-makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton (2 * n)) G.unicode)
+makeSizedUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton n) G.unicode)
 
 makeSizedUtf8ByteStrings :: H.Seed -> [Integer] -> [ByteString]
-makeSizedUtf8ByteStrings seed sizes = (makeSizedUtf8ByteString seed . fromInteger) <$> sizes
+makeSizedUtf8ByteStrings seed sizes = makeSizedUtf8ByteString seed . fromInteger <$> sizes
+
+-- | Generate a valid UTF-8 bytestring of n bytes using only ASCII characters.
+makeSizedAsciiUtf8ByteString :: H.Seed -> Int -> ByteString
+makeSizedAsciiUtf8ByteString seed n = genSample seed (G.utf8 (R.singleton n) G.ascii)
+
+makeSizedAsciiUtf8ByteStrings :: H.Seed -> [Integer] -> [ByteString]
+makeSizedAsciiUtf8ByteStrings seed sizes = makeSizedAsciiUtf8ByteString seed . fromInteger <$> sizes
 
 ---------------- Data (QuickCheck) ----------------
 
@@ -161,7 +191,7 @@ genB n = do
    nodes); for size 10 we get trees of depth 4 and up to about 20000 nodes; for
    size 20, depth 5 and up to about one million nodes. -}
 genBoundedData :: Int -> Int -> Int -> Gen Data
-genBoundedData imem bmem size = genD size
+genBoundedData imem bmem = genD
   where
     genD n =
       if n <= 1

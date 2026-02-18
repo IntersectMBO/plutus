@@ -314,6 +314,28 @@ createOneTermBuiltinBenchWithWrapper wrapX fun tys xs =
     | x <- xs
     ]
 
+{-| Like 'createOneTermBuiltinBenchWithWrapper' but with an explicit name for
+  the benchmark group instead of using 'show fun'. -}
+createOneTermBuiltinBenchNamedWithWrapper
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , ExMemoryUsage a'
+     , NFData a
+     )
+  => String
+  -> (a -> a')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> Benchmark
+createOneTermBuiltinBenchNamedWithWrapper name wrapX fun tys xs =
+  bgroup
+    name
+    [ benchDefault (showMemoryUsage (wrapX x)) (mkApp1 fun tys x)
+    | x <- xs
+    ]
+
 -- Create a benchmark for a one-argument builtin, but use `nf` instead of
 -- `whnf`.  At the moment this is the only case we need, but if we need to
 -- generalise this to more arguments later we might want to add a `Normaliser`
@@ -436,6 +458,30 @@ createTwoTermBuiltinBenchWithWrappers (wrapX, wrapY) fun tys xs ys =
   where
     mkBM x y = benchDefault (showMemoryUsage (wrapY y)) $ mkApp2 fun tys x y
 
+{-| Like 'createTwoTermBuiltinBenchWithWrappers' but with an explicit name for
+  the benchmark group instead of using 'show fun'. -}
+createTwoTermBuiltinBenchNamedWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , NFData a
+     , NFData b
+     )
+  => String
+  -> (a -> a', b -> b')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [a]
+  -> [b]
+  -> Benchmark
+createTwoTermBuiltinBenchNamedWithWrappers name (wrapX, wrapY) fun tys xs ys =
+  bgroup name [bgroup (showMemoryUsage (wrapX x)) [mkBM x y | y <- ys] | x <- xs]
+  where
+    mkBM x y = benchDefault (showMemoryUsage (wrapY y)) $ mkApp2 fun tys x y
+
 {-| Given a builtin function f of type a * b -> _ together with a list of (a,b)
    pairs, create a collection of benchmarks which run f on all of the pairs in
    the list.  This can be used when the worst-case execution time of a
@@ -483,6 +529,30 @@ createTwoTermBuiltinBenchElementwiseWithWrappers
   -> Benchmark
 createTwoTermBuiltinBenchElementwiseWithWrappers (wrapX, wrapY) fun tys inputs =
   bgroup (show fun) $
+    fmap (\(x, y) -> bgroup (showMemoryUsage $ wrapX x) [mkBM x y]) inputs
+  where
+    mkBM x y = benchDefault (showMemoryUsage $ wrapY y) $ mkApp2 fun tys x y
+
+{-| Like 'createTwoTermBuiltinBenchElementwiseWithWrappers' but with an explicit
+  name for the benchmark group instead of using 'show fun'. -}
+createTwoTermBuiltinBenchElementwiseNamedWithWrappers
+  :: ( fun ~ DefaultFun
+     , uni ~ DefaultUni
+     , uni `HasTermLevel` a
+     , uni `HasTermLevel` b
+     , ExMemoryUsage a'
+     , ExMemoryUsage b'
+     , NFData a
+     , NFData b
+     )
+  => String
+  -> (a -> a', b -> b')
+  -> fun
+  -> [Type tyname uni ()]
+  -> [(a, b)]
+  -> Benchmark
+createTwoTermBuiltinBenchElementwiseNamedWithWrappers name (wrapX, wrapY) fun tys inputs =
+  bgroup name $
     fmap (\(x, y) -> bgroup (showMemoryUsage $ wrapX x) [mkBM x y]) inputs
   where
     mkBM x y = benchDefault (showMemoryUsage $ wrapY y) $ mkApp2 fun tys x y
