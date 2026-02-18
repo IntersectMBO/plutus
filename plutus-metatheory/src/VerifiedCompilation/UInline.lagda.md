@@ -1,9 +1,9 @@
 ---
-title: VerifiedCompilation.UForceDelay
+title: VerifiedCompilation.UInline
 layout: page
 ---
 
-# Force-Delay Translation Phase
+# Inline Phase
 ```
 module VerifiedCompilation.UInline where
 
@@ -206,7 +206,7 @@ checkPointwise :
         (Ms M′s : List (X ⊢))
         → Proof? (Pointwise (Inline σ zz) Ms M′s)
 
-check : (a : InlineHints)
+check : (h : InlineHints)
         (σ : Sub X X)
         (zz : z ≽ z′)
         (M M′ : X ⊢)
