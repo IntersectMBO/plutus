@@ -1908,6 +1908,10 @@ test_Bitwise_CIP0123 =
             mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftPosClearLow
         , testPropertyNamed "negative shifts clear high indexes" "shift_neg_high" $
             mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftNegClearHigh
+        , testPropertyNamed "positive shifts move bits properly" "pos_shift_single" $
+            mapTestLimitAtLeast 99 (`div` 10) CIP0123.posShiftMoveBits
+        , testPropertyNamed "negative shifts move bits properly" "neg_shift_single" $
+            mapTestLimitAtLeast 99 (`div` 10) CIP0123.negShiftMoveBits
         , testPropertyNamed "shifts do not break when given minBound" "shift_min_bound" $
             mapTestLimitAtLeast 99 (`div` 10) CIP0123.shiftMinBound
         ]
@@ -1920,6 +1924,10 @@ test_Bitwise_CIP0123 =
             mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateMoveBits
         , testPropertyNamed "rotations do not break when given minBound" "rotate_min_bound" $
             mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateMinBound
+        , testPropertyNamed "rotations can be inverted" "rotate_inverse" $
+            mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateInverse
+        , testPropertyNamed "identity for rotations" "rotate_identity" $
+            mapTestLimitAtLeast 50 (`div` 20) CIP0123.rotateIdentity
         ]
     , testGroup
         "countSetBits"

@@ -12,7 +12,11 @@ module Evaluation.Builtins.Bitwise.CIP0123
   , csbRotate
   , shiftPosClearLow
   , shiftNegClearHigh
+  , posShiftMoveBits
+  , negShiftMoveBits
   , rotateMoveBits
+  , rotateInverse
+  , rotateIdentity
   , csbComplement
   , csbInclusionExclusion
   , csbXor
@@ -436,6 +440,39 @@ rotateHomomorphism =
               ]
       evaluateTheSame lhs rhs
 
+-- | A pos rotation and neg rotation cancel each other out.
+rotateInverse :: Property
+rotateInverse = property $ do
+  bs <- forAllByteString 0 512
+  i <- forAll . Gen.integral $ Range.linear (-512) 512
+  let rotated =
+        mkIterAppNoAnn
+          (builtin () PLC.RotateByteString)
+          [ mkConstant @ByteString () bs
+          , mkConstant @Integer () i
+          ]
+  let inverted =
+        mkIterAppNoAnn
+          (builtin () PLC.RotateByteString)
+          [ rotated
+          , mkConstant @Integer () (negate i)
+          ]
+  evaluatesToConstant bs inverted
+
+-- | Rotation with multiples of @bitLen@ is identity.
+rotateIdentity :: Property
+rotateIdentity = property $ do
+  bs <- forAllByteString 0 512
+  k <- forAll . Gen.integral $ Range.linear 1 16
+  let bitLen = toInteger (BS.length bs * 8)
+  let rotated =
+        mkIterAppNoAnn
+          (builtin () PLC.RotateByteString)
+          [ mkConstant @ByteString () bs
+          , mkConstant @Integer () (k * bitLen)
+          ]
+  evaluatesToConstant bs rotated
+
 {-| There should exist a monoid homomorphism between bytestring concatenation and natural number
 addition. -}
 csbHomomorphism :: [TestTree]
@@ -555,6 +592,32 @@ shiftNegClearHigh = property $ do
           , mkConstant @Integer () (fromIntegral $ bitLen - i - 1)
           ]
   evaluatesToConstant False lhs
+
+posShiftMoveBits :: Property
+posShiftMoveBits = property $ do
+  n <- forAll . Gen.integral $ Range.linear 1 7
+  b <- forAll Gen.enumBounded
+  let bs = BS.singleton b
+  let shifted =
+        mkIterAppNoAnn
+          (builtin () PLC.ShiftByteString)
+          [ mkConstant @ByteString () bs
+          , mkConstant @Integer () n
+          ]
+  evaluatesToConstant (BS.singleton $ b `Bits.shiftL` fromInteger n) shifted
+
+negShiftMoveBits :: Property
+negShiftMoveBits = property $ do
+  n <- forAll . Gen.integral $ Range.linear 1 7
+  b <- forAll Gen.enumBounded
+  let bs = BS.singleton b
+  let shifted =
+        mkIterAppNoAnn
+          (builtin () PLC.ShiftByteString)
+          [ mkConstant @ByteString () bs
+          , mkConstant @Integer () (negate n)
+          ]
+  evaluatesToConstant (BS.singleton $ b `Bits.shiftR` fromInteger n) shifted
 
 -- | Rotations by more than the bit length 'roll over' bits.
 rotateRollover :: Property
