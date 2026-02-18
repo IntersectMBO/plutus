@@ -24,7 +24,6 @@ extra-doc-files:
 extra-source-files:
   cost-model/data/*.csv
   cost-model/data/*.R
-  plutus-core/src/PlutusCore/Evaluation/Machine/CostModel/Generated/*.hs
   plutus-core/test/CostModelInterface/defaultCostModelParams.json
 
 source-repository head
@@ -132,12 +131,12 @@ library
     PlutusCore.Evaluation.Machine.CostingFun.Core
     PlutusCore.Evaluation.Machine.CostingFun.JSON
     PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
-    PlutusCore.Evaluation.Machine.CostModel.Generated.BuiltinCostModelA
-    PlutusCore.Evaluation.Machine.CostModel.Generated.BuiltinCostModelB
-    PlutusCore.Evaluation.Machine.CostModel.Generated.BuiltinCostModelC
-    PlutusCore.Evaluation.Machine.CostModel.Generated.CekMachineCostsA
-    PlutusCore.Evaluation.Machine.CostModel.Generated.CekMachineCostsB
-    PlutusCore.Evaluation.Machine.CostModel.Generated.CekMachineCostsC
+    PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelA
+    PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelB
+    PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelC
+    PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsA
+    PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsB
+    PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsC
     PlutusCore.Evaluation.Machine.CostModelInterface
     PlutusCore.Evaluation.Machine.CostStream
     PlutusCore.Evaluation.Machine.ExBudget
@@ -985,8 +984,8 @@ executable generate-cost-model
   -- This fails on Darwin with strange errors and I don't know why
   -- > Error: C stack usage  17556409549320 is too close to the limit
   -- > Fatal error: unable to initialize the JI
-  -- if os(osx)
-  --   buildable: False
+  if os(osx)
+    buildable: False
 
   -- Can't build on windows as it depends on R.
   if os(windows)
@@ -999,13 +998,12 @@ executable generate-cost-model
     , base                  >=4.9   && <5
     , bytestring
     , directory
-    , filepath
     , inline-r              >=1.0.1
     , optparse-applicative
     , plutus-core           ^>=1.58
+    , pretty-show
     , text
 
-  --    , exceptions
   other-modules:
     BuiltinMemoryModels
     CreateBuiltinCostModel
@@ -1032,8 +1030,8 @@ benchmark cost-model-test
   -- This fails on Darwin with strange errors and I don't know why
   -- > Error: C stack usage  17556409549320 is too close to the limit
   -- > Fatal error: unable to initialize the JI
-  -- if os(osx)
-  --   buildable: False
+  if os(osx)
+    buildable: False
 
   -- Can't build on windows as it depends on R.
   if os(windows)

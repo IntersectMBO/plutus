@@ -31,12 +31,12 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 -- Import generated cost model modules
-import PlutusCore.Evaluation.Machine.CostModel.Generated.BuiltinCostModelA (builtinCostModelA)
-import PlutusCore.Evaluation.Machine.CostModel.Generated.BuiltinCostModelB (builtinCostModelB)
-import PlutusCore.Evaluation.Machine.CostModel.Generated.BuiltinCostModelC (builtinCostModelC)
-import PlutusCore.Evaluation.Machine.CostModel.Generated.CekMachineCostsA (cekMachineCostsA)
-import PlutusCore.Evaluation.Machine.CostModel.Generated.CekMachineCostsB (cekMachineCostsB)
-import PlutusCore.Evaluation.Machine.CostModel.Generated.CekMachineCostsC (cekMachineCostsC)
+import PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelA (builtinCostModelA)
+import PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelB (builtinCostModelB)
+import PlutusCore.Evaluation.Machine.CostModel.BuiltinCostModelC (builtinCostModelC)
+import PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsA (cekMachineCostsA)
+import PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsB (cekMachineCostsB)
+import PlutusCore.Evaluation.Machine.CostModel.CekMachineCostsC (cekMachineCostsC)
 
 -- Not using 'noinline' from "GHC.Exts", because our CI was unable to find it there, somehow.
 import GHC.Magic (noinline)
@@ -51,7 +51,7 @@ import PlutusPrelude
 
       cabal run plutus-core:generate-cost-model
 
-   with appropriate output file specified (e.g., -o plutus-core/src/PlutusCore/Evaluation/Machine/CostModel/Generated/BuiltinCostModelC.hs).
+   with appropriate output file specified (e.g., -o BuiltinCostModelC).
    (You may also need to add 'data-default' to the 'build-depends' for the
    library in plutus-core.cabal). This will generate a new Haskell module filled with
    the correct values (assuming that suitable benchmarking data is in benching.csv and that

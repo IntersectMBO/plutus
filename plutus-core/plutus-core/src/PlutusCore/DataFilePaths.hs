@@ -1,9 +1,8 @@
 {-| Various file paths used in plutus-core.
     These paths are primarily used for testing and benchmarking.
     Cost models are embedded as Haskell modules in
-    PlutusCore.Evaluation.Machine.CostModel.Generated.* -}
-module PlutusCore.DataFilePaths
-where
+    PlutusCore.Evaluation.Machine.CostModel.* -}
+module PlutusCore.DataFilePaths where
 
 import System.FilePath
 
