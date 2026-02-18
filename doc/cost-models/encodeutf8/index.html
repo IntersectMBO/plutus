@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LengthOfArray - Plutus Cost Model Visualization</title>
+  <title>EncodeUtf8 - Plutus Cost Model Visualization</title>
   <link rel="stylesheet" href="../shared/styles.css">
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -15,21 +15,24 @@
       <li><a href="../unvaluedata/index.html">UnValueData</a></li>
       <li><a href="../valuecontains/index.html">ValueContains</a></li>
       <li><a href="../lookupcoin/index.html">LookupCoin</a></li>
+      <li><a href="../insertcoin/index.html">InsertCoin</a></li>
+      <li><a href="../unionvalue/index.html">UnionValue</a></li>
+      <li><a href="../scalevalue/index.html">ScaleValue</a></li>
       <li><a href="../listtoarray/index.html">ListToArray</a></li>
-      <li><a href="../lengthofarray/index.html" class="active">LengthOfArray</a></li>
+      <li><a href="../lengthofarray/index.html">LengthOfArray</a></li>
       <li><a href="../indexarray/index.html">IndexArray</a></li>
       <li><a href="../appendstring/index.html">AppendString</a></li>
       <li><a href="../equalsstring/index.html">EqualsString</a></li>
-      <li><a href="../encodeutf8/index.html">EncodeUtf8</a></li>
+      <li><a href="../encodeutf8/index.html" class="active">EncodeUtf8</a></li>
       <li><a href="../decodeutf8/index.html">DecodeUtf8</a></li>
     </ul>
   </nav>
 
   <div class="container">
-    <h1>LengthOfArray Cost Model Visualization</h1>
+    <h1>EncodeUtf8 Cost Model Visualization</h1>
     <p>
-      Interactive visualization of benchmark data and fitted cost model for the <code>LengthOfArray</code> builtin function.
-      This function returns the length of a Plutus array in O(1) time.
+      Interactive visualization of benchmark data and fitted cost model for the <code>EncodeUtf8</code> builtin function.
+      Encodes a Plutus <code>Text</code> value to a UTF-8 <code>ByteString</code>.
     </p>
 
     <div class="controls" id="data-source-controls">
@@ -84,7 +87,7 @@
         <div class="info-section">
           <dl>
             <dt>X-axis:</dt>
-            <dd id="info-x-axis">Array Size</dd>
+            <dd id="info-x-axis">Text size (characters)</dd>
 
             <dt>Y-axis:</dt>
             <dd id="info-y-axis">Time (nanoseconds)</dd>
@@ -110,7 +113,7 @@
             <dt>Data points:</dt>
             <dd id="info-data-points">-</dd>
 
-            <dt>Array Size range:</dt>
+            <dt>Text size range:</dt>
             <dd id="info-x-range">-</dd>
 
             <dt>Time range:</dt>

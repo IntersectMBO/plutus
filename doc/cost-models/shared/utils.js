@@ -131,6 +131,15 @@ const CostModelEvaluators = {
     return (coeffs.c0 || 0) + (coeffs.c1 || 0) * args[1] + (coeffs.c2 || 0) * args[2];
   },
 
+  linear_on_diagonal: (coeffs, args) => {
+    if (args[0] !== args[1]) {
+      return coeffs.constant || 0;
+    }
+    const intercept = coeffs.intercept || 0;
+    const slope = coeffs.slope || 0;
+    return intercept + slope * args[0];
+  },
+
   added_sizes: (coeffs, args) => {
     // added_sizes models cost as linear in sum of sizes
     const sum = args.reduce((a, b) => a + b, 0);
@@ -353,6 +362,13 @@ function formatModelFormula(modelType, coefficients) {
 
     case 'linear_in_yz':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (arg2) + ${formatCoeff(c2)} × (arg3) picoseconds`;
+
+    case 'linear_on_diagonal': {
+      const constant = coefficients.constant || 0;
+      const intercept = coefficients.intercept || 0;
+      const slope = coefficients.slope || 0;
+      return `if arg1 ≠ arg2: ${formatCoeff(constant)}, else: ${formatCoeff(intercept)} + ${formatCoeff(slope)} × (arg1) picoseconds`;
+    }
 
     case 'added_sizes':
       return `${formatCoeff(c0)} + ${formatCoeff(c1)} × (sum of args) picoseconds`;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LengthOfArray - Plutus Cost Model Visualization</title>
+  <title>AppendString - Plutus Cost Model Visualization</title>
   <link rel="stylesheet" href="../shared/styles.css">
   <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -15,10 +15,13 @@
       <li><a href="../unvaluedata/index.html">UnValueData</a></li>
       <li><a href="../valuecontains/index.html">ValueContains</a></li>
       <li><a href="../lookupcoin/index.html">LookupCoin</a></li>
+      <li><a href="../insertcoin/index.html">InsertCoin</a></li>
+      <li><a href="../unionvalue/index.html">UnionValue</a></li>
+      <li><a href="../scalevalue/index.html">ScaleValue</a></li>
       <li><a href="../listtoarray/index.html">ListToArray</a></li>
-      <li><a href="../lengthofarray/index.html" class="active">LengthOfArray</a></li>
+      <li><a href="../lengthofarray/index.html">LengthOfArray</a></li>
       <li><a href="../indexarray/index.html">IndexArray</a></li>
-      <li><a href="../appendstring/index.html">AppendString</a></li>
+      <li><a href="../appendstring/index.html" class="active">AppendString</a></li>
       <li><a href="../equalsstring/index.html">EqualsString</a></li>
       <li><a href="../encodeutf8/index.html">EncodeUtf8</a></li>
       <li><a href="../decodeutf8/index.html">DecodeUtf8</a></li>
@@ -26,10 +29,11 @@
   </nav>
 
   <div class="container">
-    <h1>LengthOfArray Cost Model Visualization</h1>
+    <h1>AppendString Cost Model Visualization</h1>
     <p>
-      Interactive visualization of benchmark data and fitted cost model for the <code>LengthOfArray</code> builtin function.
-      This function returns the length of a Plutus array in O(1) time.
+      Interactive 3D visualization of benchmark data and fitted cost model for the <code>AppendString</code> builtin.
+      Concatenates two Plutus <code>Text</code> strings.
+      The x- and y-axes show the sizes of the two string arguments; the z-axis shows execution time.
     </p>
 
     <div class="controls" id="data-source-controls">
@@ -64,8 +68,8 @@
           <label for="show-model">Show model predictions</label>
         </div>
         <div class="control-group">
-          <label for="y-axis-mode">Y-axis range:</label>
-          <select id="y-axis-mode">
+          <label for="z-axis-mode">Z-axis range:</label>
+          <select id="z-axis-mode">
             <option value="zero">Start from 0</option>
             <option value="auto">Auto-scale from min</option>
           </select>
@@ -83,38 +87,30 @@
 
         <div class="info-section">
           <dl>
-            <dt>X-axis:</dt>
-            <dd id="info-x-axis">Array Size</dd>
+            <dt>Data points:</dt>
+            <dd id="info-data-points">-</dd>
 
-            <dt>Y-axis:</dt>
-            <dd id="info-y-axis">Time (nanoseconds)</dd>
+            <dt>String 1 size range (arg1):</dt>
+            <dd id="info-x-range">-</dd>
 
-            <dt>Description:</dt>
-            <dd id="info-description">Each point represents one benchmark run</dd>
+            <dt>String 2 size range (arg2):</dt>
+            <dd id="info-y-range">-</dd>
+
+            <dt>Time range:</dt>
+            <dd id="info-time-range">-</dd>
           </dl>
         </div>
 
         <div class="info-section">
-          <dt>Cost Model Type:</dt>
-          <dd id="info-model-type">Loading...</dd>
-
-          <dt>Model Formula (net):</dt>
-          <dd class="formula" id="info-model-formula">Loading...</dd>
-
-          <dt>Overhead:</dt>
-          <dd id="info-overhead">Loading...</dd>
-        </div>
-
-        <div class="info-section">
           <dl>
-            <dt>Data points:</dt>
-            <dd id="info-data-points">-</dd>
+            <dt>Model type:</dt>
+            <dd id="info-model-type">-</dd>
 
-            <dt>Array Size range:</dt>
-            <dd id="info-x-range">-</dd>
+            <dt>Model formula:</dt>
+            <dd id="info-model-formula">-</dd>
 
-            <dt>Time range:</dt>
-            <dd id="info-time-range">-</dd>
+            <dt>Overhead:</dt>
+            <dd id="info-overhead">-</dd>
           </dl>
         </div>
 
