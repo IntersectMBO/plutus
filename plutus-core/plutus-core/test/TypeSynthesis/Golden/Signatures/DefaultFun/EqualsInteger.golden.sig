@@ -1,1 +1,1 @@
-Integer -> Integer -> Bool
+Integer -> Integer -> BuiltinResult Bool

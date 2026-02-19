@@ -1,1 +1,1 @@
-ByteString -> ByteString -> ByteString
+ByteString -> ByteString -> BuiltinResult ByteString

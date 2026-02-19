@@ -1,1 +1,1 @@
-Text -> Text -> Text
+Text -> Text -> BuiltinResult Text
