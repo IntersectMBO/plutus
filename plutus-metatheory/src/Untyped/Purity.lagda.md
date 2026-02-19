@@ -1,5 +1,5 @@
 ---
-title: VerifiedCompilation.Purity
+title: Untyped.Purity
 layout: page
 ---
 
@@ -41,13 +41,6 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     force : {t : X ⊢} → Pure t → Pure (force (delay t))
 
     constr : {i : ℕ} {xs : List (X ⊢)} → All Pure xs → Pure (constr i xs)
-
-    -- case applied to constr would reduce, and possibly be pure.
-    case : {i : ℕ} {t : X ⊢}{vs ts : List (X ⊢)}
-           → lookup? i ts ≡ just t
-           → Pure (iterApp t vs)
-           → Pure (case (constr i vs) ts)
-    -- case applied to anything else is Unknown
 
     -- This assumes there are no builtins with arity 0
     -- Or, if there are, they can just be replaced by a
@@ -92,7 +85,7 @@ data Pure {X : ℕ} : (X ⊢) → Set where
     delay : {t : X ⊢} → Pure (delay t)
     ƛ : {t : (suc X) ⊢} → Pure (ƛ t)
     con : {c : TmCon} → Pure (con c)
-    -- errors are not pure ever.
+    -- all `case` and `error` terms are considered impure.
 
 isPure? : {X : ℕ} → (t : X ⊢) → Dec (Pure t)
 
@@ -102,7 +95,6 @@ allPure? (t ∷ ts) with (isPure? t) ×-dec (allPure? ts)
 ... | yes (p , ps) = yes (p All.∷ ps)
 ... | no ¬p = no λ { (px All.∷ x) → ¬p (px , x) }
 
-{-# TERMINATING #-}
 isPure? (` x) = yes var
 isPure? (ƛ t) = yes ƛ
 isPure? (l · r) with isLambda? (isTerm?) l
@@ -146,20 +138,7 @@ isPure? (con x) = yes con
 isPure? (constr i xs) with allPure? xs
 ... | yes pp = yes (constr pp)
 ... | no ¬pp = no λ { (constr x) → ¬pp x }
-isPure? (case (` x) ts) =  no λ ()
-isPure? (case (ƛ t) ts) =  no λ ()
-isPure? (case (t · t₁) ts) =  no λ ()
-isPure? (case (force t) ts) =  no λ ()
-isPure? (case (delay t) ts) =  no λ ()
-isPure? (case (con x) ts) =  no λ ()
-isPure? (case (constr i vs) ts) with lookup? i ts in lookup-i
-... | nothing = no λ { (case lookup≡just pt·vs) → contradiction (trans (sym lookup-i) lookup≡just) λ () }
-... | just t with isPure? (iterApp t vs)
-...   | yes pt·vs = yes (case lookup-i pt·vs)
-...   | no ¬p = no λ { (case lookup≡just pt·vs) → contradiction (subst (λ x → Pure (iterApp x vs)) (just-injective (trans (sym lookup≡just) lookup-i)) pt·vs) ¬p }
-isPure? (case (case t ts₁) ts) = no λ ()
-isPure? (case (builtin b) ts) = no λ ()
-isPure? (case error ts) = no λ ()
+isPure? (case scrut ts) =  no λ ()
 isPure? (builtin b) = yes builtin
 isPure? error = no λ ()
 ```

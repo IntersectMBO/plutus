@@ -667,7 +667,7 @@ d_isFlD'63'_492 v0 v1 v2
                                                                                                                                                           v34 of
                                                                                                                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_92 v35
                                                                                                                                                        -> let v36
-                                                                                                                                                                = MAlonzo.Code.Untyped.Purity.d_isPure'63'_82
+                                                                                                                                                                = MAlonzo.Code.Untyped.Purity.d_isPure'63'_72
                                                                                                                                                                     (coe
                                                                                                                                                                        v0)
                                                                                                                                                                     (coe

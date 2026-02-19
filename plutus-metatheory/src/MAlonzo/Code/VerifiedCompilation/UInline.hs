@@ -724,8 +724,8 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                  -> coe
                                       MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                       (coe
-                                         d_check_316 (coe v0) (coe v1) (coe v2) (coe v9) (coe v4)
-                                         (coe v5) (coe v10) (coe v11))
+                                         d_check_316 (coe v0) (coe C_'9633'_32) (coe C_'9633'_32)
+                                         (coe v9) (coe v4) (coe C_'9633'_106) (coe v10) (coe v11))
                                       (coe
                                          (\ v12 ->
                                             coe
@@ -776,9 +776,9 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                  -> coe
                                                       MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                                       (coe
-                                                         d_check_316 (coe v0) (coe v1) (coe v2)
-                                                         (coe v9) (coe v4) (coe C_drop_122 v14)
-                                                         (coe v19) (coe v20))
+                                                         d_check_316 (coe v0) (coe C_'9633'_32)
+                                                         (coe C_'9633'_32) (coe v9) (coe v4)
+                                                         (coe C_'9633'_106) (coe v19) (coe v20))
                                                       (coe
                                                          (\ v21 ->
                                                             coe
@@ -798,8 +798,8 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                  -> coe
                                       MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                       (coe
-                                         d_check_316 (coe v0) (coe v1) (coe v2) (coe v9) (coe v4)
-                                         (coe v5) (coe v10) (coe v11))
+                                         d_check_316 (coe v0) (coe C_'9633'_32) (coe C_'9633'_32)
+                                         (coe v9) (coe v4) (coe C_'9633'_106) (coe v10) (coe v11))
                                       (coe
                                          (\ v12 ->
                                             coe
@@ -850,9 +850,9 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                  -> coe
                                                       MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                                       (coe
-                                                         d_check_316 (coe v0) (coe v1) (coe v2)
-                                                         (coe v9) (coe v4) (coe C_drop_122 v14)
-                                                         (coe v19) (coe v20))
+                                                         d_check_316 (coe v0) (coe C_'9633'_32)
+                                                         (coe C_'9633'_32) (coe v9) (coe v4)
+                                                         (coe C_'9633'_106) (coe v19) (coe v20))
                                                       (coe
                                                          (\ v21 ->
                                                             coe
@@ -1134,8 +1134,9 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                        (coe
                                                           MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                                           (coe
-                                                             d_checkPointwise_304 (coe v0) (coe v1)
-                                                             (coe v2) (coe v9) (coe v4) (coe v5)
+                                                             d_checkPointwise_304 (coe v0)
+                                                             (coe C_'9633'_32) (coe C_'9633'_32)
+                                                             (coe v9) (coe v4) (coe C_'9633'_106)
                                                              (coe v11) (coe v13))
                                                           (coe
                                                              (\ v17 ->
@@ -1213,10 +1214,11 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                                           MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                                                           (coe
                                                                              d_checkPointwise_304
-                                                                             (coe v0) (coe v1)
-                                                                             (coe v2) (coe v9)
-                                                                             (coe v4)
-                                                                             (coe C_drop_122 v14)
+                                                                             (coe v0)
+                                                                             (coe C_'9633'_32)
+                                                                             (coe C_'9633'_32)
+                                                                             (coe v9) (coe v4)
+                                                                             (coe C_'9633'_106)
                                                                              (coe v20) (coe v22))
                                                                           (coe
                                                                              (\ v26 ->
@@ -1247,15 +1249,16 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                  -> coe
                                       MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                       (coe
-                                         d_check_316 (coe v0) (coe v1) (coe v2) (coe v9) (coe v4)
-                                         (coe v5) (coe v11) (coe v13))
+                                         d_check_316 (coe v0) (coe C_'9633'_32) (coe C_'9633'_32)
+                                         (coe v9) (coe v4) (coe C_'9633'_106) (coe v11) (coe v13))
                                       (coe
                                          (\ v15 ->
                                             coe
                                               MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                               (coe
-                                                 d_checkPointwise_304 (coe v0) (coe v1) (coe v2)
-                                                 (coe v10) (coe v4) (coe v5) (coe v12) (coe v14))
+                                                 d_checkPointwise_304 (coe v0) (coe C_'9633'_32)
+                                                 (coe C_'9633'_32) (coe v10) (coe v4)
+                                                 (coe C_'9633'_106) (coe v12) (coe v14))
                                               (coe
                                                  (\ v16 ->
                                                     coe
@@ -1306,18 +1309,19 @@ d_check_316 v0 v1 v2 v3 v4 v5 v6 v7
                                                  -> coe
                                                       MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                                       (coe
-                                                         d_check_316 (coe v0) (coe v1) (coe v2)
-                                                         (coe v9) (coe v4) (coe C_drop_122 v15)
-                                                         (coe v20) (coe v22))
+                                                         d_check_316 (coe v0) (coe C_'9633'_32)
+                                                         (coe C_'9633'_32) (coe v9) (coe v4)
+                                                         (coe C_'9633'_106) (coe v20) (coe v22))
                                                       (coe
                                                          (\ v24 ->
                                                             coe
                                                               MAlonzo.Code.VerifiedCompilation.Certificate.du__'62''62''61'__128
                                                               (coe
                                                                  d_checkPointwise_304 (coe v0)
-                                                                 (coe v1) (coe v2) (coe v10)
-                                                                 (coe v4) (coe C_drop_122 v15)
-                                                                 (coe v21) (coe v23))
+                                                                 (coe C_'9633'_32) (coe C_'9633'_32)
+                                                                 (coe v10) (coe v4)
+                                                                 (coe C_'9633'_106) (coe v21)
+                                                                 (coe v23))
                                                               (coe
                                                                  (\ v25 ->
                                                                     coe
