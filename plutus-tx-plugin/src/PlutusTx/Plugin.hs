@@ -12,7 +12,6 @@
 
 module PlutusTx.Plugin (plugin, plc) where
 
-{- ORMOLU_DISABLE -}
 import PlutusPrelude
 import PlutusTx.AsData.Internal qualified
 import PlutusTx.Bool ((&&), (||))
@@ -69,6 +68,7 @@ import Control.Monad.State
 import Control.Monad.Writer
 import PlutusCore.Flat (Flat, flat, unflat)
 
+import Certifier (mkCertifier, prettyCertifierError, prettyCertifierSuccess, runCertifier)
 import Data.ByteString qualified as BS
 import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
@@ -84,10 +84,8 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openBinaryTempFile, hPutStrLn, stderr)
+import System.IO (hPutStrLn, openBinaryTempFile, stderr)
 import System.IO.Unsafe (unsafePerformIO)
-import Certifier (runCertifier, mkCertifier, prettyCertifierError, prettyCertifierSuccess)
-
 
 data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
