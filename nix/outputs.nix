@@ -76,18 +76,12 @@ let
 
   project-variants-hydra-jobs = {
     ghc96 = (project.flake { }).hydraJobs.ghc96;
-    ghc98 = (project.flake { }).hydraJobs.ghc98;
-    ghc910 = (project.flake { }).hydraJobs.ghc910;
     ghc912 = (project.flake { }).hydraJobs.ghc912;
   };
 
   project-variants-roots-and-plan-nix = {
     ghc96.roots = project-variants-hydra-jobs.ghc96.roots;
     ghc96.plan-nix = project-variants-hydra-jobs.ghc96.plan-nix;
-    ghc98.roots = project-variants-hydra-jobs.ghc98.roots;
-    ghc98.plan-nix = project-variants-hydra-jobs.ghc98.plan-nix;
-    ghc910.roots = project-variants-hydra-jobs.ghc910.roots;
-    ghc910.plan-nix = project-variants-hydra-jobs.ghc910.plan-nix;
     ghc912.roots = project-variants-hydra-jobs.ghc912.roots;
     ghc912.plan-nix = project-variants-hydra-jobs.ghc912.plan-nix;
   };
@@ -97,74 +91,53 @@ let
     exposed-haskell-packages //
     extra-artifacts;
 
-  non-profiled-shells = rec {
-    default = ghc96;
-    ghc96 = mkShell "ghc96";
-    ghc98 = mkShell "ghc98";
-    ghc910 = mkShell "ghc910";
-    ghc912 = mkShell "ghc912";
-  };
-
   # The default shell contains the agda-with-stdlib-and-metatheory package which will
   # break on `nix develop` if the .lagda files are broken. In order to escape this
   # situation we introduce a shell that doesn't contain that executable.
-  metatheory-jailbreak-shell = non-profiled-shells.default.overrideAttrs (attrs: {
+  metatheory-jailbreak-shell = devShells.default.overrideAttrs (attrs: {
     buildInputs =
       lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.buildInputs;
     nativeBuildInputs =
       lib.remove metatheory.agda-with-stdlib-and-metatheory attrs.nativeBuildInputs;
   });
 
-  devShells =
-    (non-profiled-shells) //
-    { profiled = mkShell project.projectVariants.ghc96-profiled; } //
-    { metatheory-jailbreak = metatheory-jailbreak-shell; };
+  devShells = rec {
+    default = ghc96;
+    ghc96 = mkShell "ghc96";
+    ghc96-profiled = mkShell "ghc96-profiled";
+    ghc912 = mkShell "ghc912";
+    ghc912-profiled = mkShell "ghc912-profiled";
+    metatheory-jailbreak = metatheory-jailbreak-shell;
+  };
 
-  full-nested-ci-jobs = {
+  nested-ci-jobs = {
     "x86_64-linux" =
-      (project-variants-hydra-jobs) //
       (windows-hydra-jobs) //
       (packages) //
-      { devShells = non-profiled-shells; } //
+      { ghc96 = project-variants-hydra-jobs.ghc96; } //
+      { ghc912 = project-variants-hydra-jobs.ghc912; } //
+      { devShells.ghc96 = devShells.ghc96; } //
+      { devShells.ghc912 = devShells.ghc912; } //
+      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { required = hydra-required-job; };
     "x86_64-darwin" =
-      (project-variants-hydra-jobs) //
-      { devShells = non-profiled-shells; } //
+      { ghc96 = project-variants-hydra-jobs.ghc96; } //
+      { ghc912 = project-variants-hydra-jobs.ghc912; } //
+      { devShells.ghc96 = devShells.ghc96; } //
+      { devShells.ghc912 = devShells.ghc912; } //
+      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { required = hydra-required-job; };
     "aarch64-linux" =
       { };
     "aarch64-darwin" =
       (project-variants-roots-and-plan-nix) //
-      { devShells = non-profiled-shells; } //
-      { required = hydra-required-job; };
-  };
-
-  small-nested-ci-jobs = {
-    "x86_64-linux" =
-      (windows-hydra-jobs) //
-      (packages) //
-      { ghc96 = project-variants-hydra-jobs.ghc96; } //
-      { ghc912 = project-variants-hydra-jobs.ghc912; } //
-      { devShells.default = non-profiled-shells.default; } //
-      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
-      { required = hydra-required-job; };
-    "x86_64-darwin" =
-      { ghc96 = project-variants-hydra-jobs.ghc96; } //
-      { ghc912 = project-variants-hydra-jobs.ghc912; } //
-      { devShells.default = non-profiled-shells.default; } //
-      { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
-      { required = hydra-required-job; };
-    "aarch64-linux" =
-      { };
-    "aarch64-darwin" =
-      { devShells.default = non-profiled-shells.default; } //
+      { devShells.ghc96 = devShells.ghc96; } //
+      { devShells.ghc912 = devShells.ghc912; } //
       { devShells.metatheory-jailbreak = metatheory-jailbreak-shell; } //
       { required = hydra-required-job; };
   };
 
-  flattened-ci-jobs = utils.flattenDerivationTree ":" small-nested-ci-jobs;
-
-  ciJobs = utils.flattenDerivationTree ":" small-nested-ci-jobs.${system};
+  ciJobs = utils.flattenDerivationTree ":" nested-ci-jobs.${system};
 
   checks = ciJobs;
 
@@ -181,9 +154,6 @@ let
     inherit windows-hydra-jobs;
     inherit static-haskell-packages;
     inherit exposed-haskell-packages;
-    inherit flattened-ci-jobs;
-    inherit full-nested-ci-jobs;
-    inherit small-nested-ci-jobs;
     inherit metatheory;
     inherit project-coverage-report;
   };

@@ -5,20 +5,23 @@
 let
 
   # Toolchain versions used in dev shells. Consumed by `project.shellFor`.
-  all-tools = {
+  all-tools = rec {
     "ghc96".cabal = project.projectVariants.ghc96.tool "cabal" "3.12.1.0";
     "ghc96".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest";
     "ghc96".haskell-language-server = project.projectVariants.ghc96.tool "haskell-language-server" "latest";
     "ghc96".stylish-haskell = project.projectVariants.ghc96.tool "stylish-haskell" "latest";
-    "ghc96".fourmolu = mkFourmolu ghc;
+    "ghc96".fourmolu = mkFourmolu "ghc96";
     "ghc96".hlint = project.projectVariants.ghc96.tool "hlint" "3.8";
 
     "ghc912".cabal = project.projectVariants.ghc912.tool "cabal" "latest";
     "ghc912".cabal-fmt = project.projectVariants.ghc96.tool "cabal-fmt" "latest"; # cabal-fmt not buildable with ghc9122
     "ghc912".haskell-language-server = project.projectVariants.ghc912.tool "haskell-language-server" "latest";
     "ghc912".stylish-haskell = project.projectVariants.ghc912.tool "stylish-haskell" "latest";
-    "ghc912".fourmolu = mkFourmolu ghc;
+    "ghc912".fourmolu = mkFourmolu "ghc912";
     "ghc912".hlint = project.projectVariants.ghc912.tool "hlint" "latest";
+
+    "ghc96-profiled" = ghc96;
+    "ghc912-profiled" = ghc912;
   };
 
   tools = all-tools.${ghc};
@@ -166,9 +169,9 @@ let
   # Select shell by compiler used in the project variant.
   shell = {
     ghc96 = full-shell;
-    ghc98 = quick-shell;
-    ghc910 = quick-shell;
     ghc912 = full-shell;
+    ghc96-profiled = full-shell;
+    ghc912-profiled = full-shell;
   }.${ghc};
 
 in
