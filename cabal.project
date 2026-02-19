@@ -65,6 +65,10 @@ if os(windows)
 package bitvec
   flags: -simd
 
+-- plutus-tx-plugin cannot be built with profiling enabled
+package plutus-tx-plugin 
+  profiling: False
+
 -- See the note on nix/agda-packages.nix for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
