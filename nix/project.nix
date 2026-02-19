@@ -19,8 +19,13 @@ let
           enableProfiling = true;
           enableLibraryProfiling = true;
         }];
-        ghc98.compiler-nix-name = "ghc98";
-        ghc910.compiler-nix-name = "ghc910";
+        ghc912-profiled = {
+          compiler-nix-name = "ghc912";
+          modules = [{
+            enableProfiling = true;
+            enableLibraryProfiling = true;
+          }];
+        };
         ghc912.compiler-nix-name = "ghc912";
         ghc96-coverage.modules = [{
           packages.plutus-metatheory.doCoverage = true;
@@ -64,6 +69,10 @@ let
             plutus-core.configureFlags = [
               "--ghc-option=-D__GIT_REV__=\\\"${utils.getSourceInfoRev inputs}\\\""
               "--ghc-option=-D__GIT_COMMIT_DATE__=\\\"${utils.getSourceInfoLastModifiedDate inputs}\\\""
+            ];
+
+            plutus-tx-plugin.configureFlags = [
+              "--disable-profiling" # plutus-tx-plugin-test can't be build with profiling enabled
             ];
 
             plutus-cert.components.library.build-tools = [
