@@ -278,6 +278,7 @@ mkCertificateModule certModule agdaTrace imports =
        \\nimport Agda.Builtin.Bool\
        \\nimport Relation.Nullary\
        \\nimport VerifiedCompilation.UntypedTranslation\
+       \\nopen import Agda.Builtin.List using (_∷_; [])\
        \\nopen import Agda.Builtin.Maybe\
        \\nopen import Data.Empty using (⊥)\
        \\nopen import Data.Bool.Base using (Bool; false; true)\
