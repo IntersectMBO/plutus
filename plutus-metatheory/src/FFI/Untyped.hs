@@ -7,7 +7,7 @@ module FFI.Untyped where
 import PlutusCore.Default
 import UntypedPlutusCore
 
-import Data.Text as T hiding (map)
+import Data.Text qualified as T hiding (map)
 import GHC.Exts (IsList (..))
 
 -- Untyped (Raw) syntax

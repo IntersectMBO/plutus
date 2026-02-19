@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
@@ -85,13 +84,10 @@ import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import PlutusIR.Transform.RewriteRules.RemoveTrace (rewriteRuleRemoveTrace)
 import Prettyprinter qualified as PP
-import System.IO (openBinaryTempFile)
+import System.IO (openBinaryTempFile, hPutStrLn, stderr)
 import System.IO.Unsafe (unsafePerformIO)
-
-#ifdef CERTIFY
 import Certifier (runCertifier, mkCertifier, prettyCertifierError, prettyCertifierSuccess)
-import System.IO (hPutStrLn, stderr)
-#endif
+
 
 data PluginCtx = PluginCtx
   { pcOpts :: PluginOptions
@@ -644,7 +640,6 @@ runCompiler moduleName opts expr = do
       modifyError PLC.TypeErrorE $
         PLC.inferTypeOfProgram plcTcConfig (plcP $> annMayInline)
 
-#ifdef CERTIFY
   let optCertify = opts ^. posCertify
   (uplcP, simplTrace) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
   liftIO $ case optCertify of
@@ -656,9 +651,6 @@ runCompiler moduleName opts expr = do
         Left err ->
           hPutStrLn stderr $ prettyCertifierError err
     Nothing -> pure ()
-#else
-  (uplcP, _) <- flip runReaderT plcOpts $ PLC.compileProgramWithTrace plcP
-#endif
 
   dbP <- liftExcept $ modifyError PLC.FreeVariableErrorE $ traverseOf UPLC.progTerm UPLC.deBruijnTerm uplcP
   when (opts ^. posDumpUPlc) . liftIO $
