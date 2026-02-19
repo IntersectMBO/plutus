@@ -48,7 +48,7 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if (impl(ghc <9.6) || impl(ghc >=9.7))
+  if !((impl(ghc >=9.6) && impl(ghc <9.7)) || (impl(ghc >=9.12) && impl(ghc <9.13)))
     buildable: False
 
 -- GHC 9.6 and 9.8 have a bug where profiling ticks cause a panic in

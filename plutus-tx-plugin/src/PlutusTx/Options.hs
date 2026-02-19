@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 -- editorconfig-checker-disable-file
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
@@ -42,14 +41,10 @@ import Data.Text qualified as Text
 import Data.Type.Equality
 import GHC.Plugins qualified as GHC
 import Prettyprinter
-
 import Text.Read (readMaybe)
 import Type.Reflection
-
-#ifdef CERTIFY
 import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 import Control.Applicative (many, optional, (<|>))
-#endif
   
 data PluginOptions = PluginOptions
   { _posPlcTargetVersion :: PLC.Version
@@ -89,9 +84,7 @@ data PluginOptions = PluginOptions
     -- Which effectively ignores the trace text.
     _posRemoveTrace :: Bool
   , _posDumpCompilationTrace :: Bool
-#ifdef CERTIFY
   , _posCertify :: Maybe String
-#endif
   }
 
 makeLenses ''PluginOptions
@@ -324,7 +317,6 @@ pluginOptions =
     , let k = "dump-compilation-trace"
           desc = "Dump compilation trace for debugging"
        in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
-#ifdef CERTIFY
     , let k = "certify"
           desc =
             "Produce a certificate for the compiled program, with the given name. "
@@ -337,7 +329,6 @@ pluginOptions =
               rest <- many (alphaNumChar <|> char '_' <|> char '\\')
               pure (firstC : rest)
        in (k, PluginOption typeRep (plcParserOption p k) posCertify desc [])
-#endif
     ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -411,9 +402,7 @@ defaultPluginOptions =
     , _posPreserveLogging = True
     , _posRemoveTrace = False
     , _posDumpCompilationTrace = False
-#ifdef CERTIFY
     , _posCertify = Nothing
-#endif
     }
 
 processOne
