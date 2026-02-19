@@ -71,10 +71,6 @@ let
               "--ghc-option=-D__GIT_COMMIT_DATE__=\\\"${utils.getSourceInfoLastModifiedDate inputs}\\\""
             ];
 
-            plutus-tx-plugin.configureFlags = [
-              "--disable-profiling" # plutus-tx-plugin-test can't be build with profiling enabled
-            ];
-
             plutus-cert.components.library.build-tools = [
               pkgs.perl
               pkgs.ocaml-ng.ocamlPackages_4_10.ocaml
