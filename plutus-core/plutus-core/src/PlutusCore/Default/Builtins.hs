@@ -1088,22 +1088,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -> DefaultFun
     -> BuiltinMeaning val BuiltinCostModel
   toBuiltinMeaning _semvar AddInteger =
-    let addIntegerDenotation :: Integer -> Integer -> Integer
-        addIntegerDenotation = (+)
+    let addIntegerDenotation :: Integer -> Integer -> BuiltinResult Integer
+        addIntegerDenotation = (pure .) . (+)
         {-# INLINE addIntegerDenotation #-}
      in makeBuiltinMeaning
           addIntegerDenotation
           (runCostingFunTwoArguments . paramAddInteger)
   toBuiltinMeaning _semvar SubtractInteger =
-    let subtractIntegerDenotation :: Integer -> Integer -> Integer
-        subtractIntegerDenotation = (-)
+    let subtractIntegerDenotation :: Integer -> Integer -> BuiltinResult Integer
+        subtractIntegerDenotation = (pure .) . (-)
         {-# INLINE subtractIntegerDenotation #-}
      in makeBuiltinMeaning
           subtractIntegerDenotation
           (runCostingFunTwoArguments . paramSubtractInteger)
   toBuiltinMeaning _semvar MultiplyInteger =
-    let multiplyIntegerDenotation :: Integer -> Integer -> Integer
-        multiplyIntegerDenotation = (*)
+    let multiplyIntegerDenotation :: Integer -> Integer -> BuiltinResult Integer
+        multiplyIntegerDenotation = (pure .) . (*)
         {-# INLINE multiplyIntegerDenotation #-}
      in makeBuiltinMeaning
           multiplyIntegerDenotation
@@ -1137,30 +1137,30 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           modIntegerDenotation
           (runCostingFunTwoArguments . paramModInteger)
   toBuiltinMeaning _semvar EqualsInteger =
-    let equalsIntegerDenotation :: Integer -> Integer -> Bool
-        equalsIntegerDenotation = (==)
+    let equalsIntegerDenotation :: Integer -> Integer -> BuiltinResult Bool
+        equalsIntegerDenotation = (pure .) . (==)
         {-# INLINE equalsIntegerDenotation #-}
      in makeBuiltinMeaning
           equalsIntegerDenotation
           (runCostingFunTwoArguments . paramEqualsInteger)
   toBuiltinMeaning _semvar LessThanInteger =
-    let lessThanIntegerDenotation :: Integer -> Integer -> Bool
-        lessThanIntegerDenotation = (<)
+    let lessThanIntegerDenotation :: Integer -> Integer -> BuiltinResult Bool
+        lessThanIntegerDenotation = (pure .) . (<)
         {-# INLINE lessThanIntegerDenotation #-}
      in makeBuiltinMeaning
           lessThanIntegerDenotation
           (runCostingFunTwoArguments . paramLessThanInteger)
   toBuiltinMeaning _semvar LessThanEqualsInteger =
-    let lessThanEqualsIntegerDenotation :: Integer -> Integer -> Bool
-        lessThanEqualsIntegerDenotation = (<=)
+    let lessThanEqualsIntegerDenotation :: Integer -> Integer -> BuiltinResult Bool
+        lessThanEqualsIntegerDenotation = (pure .) . (<=)
         {-# INLINE lessThanEqualsIntegerDenotation #-}
      in makeBuiltinMeaning
           lessThanEqualsIntegerDenotation
           (runCostingFunTwoArguments . paramLessThanEqualsInteger)
   -- Bytestrings
   toBuiltinMeaning _semvar AppendByteString =
-    let appendByteStringDenotation :: BS.ByteString -> BS.ByteString -> BS.ByteString
-        appendByteStringDenotation = BS.append
+    let appendByteStringDenotation :: BS.ByteString -> BS.ByteString -> BuiltinResult BS.ByteString
+        appendByteStringDenotation = (pure .) . BS.append
         {-# INLINE appendByteStringDenotation #-}
      in makeBuiltinMeaning
           appendByteStringDenotation
@@ -1176,8 +1176,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         costingFun = runCostingFunTwoArguments . paramConsByteString
         {-# INLINE costingFun #-}
         consByteStringMeaning_V1 =
-          let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
-              consByteStringDenotation n = BS.cons (fromIntegral n)
+          let consByteStringDenotation :: Integer -> BS.ByteString -> BuiltinResult BS.ByteString
+              consByteStringDenotation = (pure .) . BS.cons . fromIntegral
               -- Earlier instructions say never to use `fromIntegral` in the definition of a
               -- builtin; however in this case it reduces its argument modulo 256 to get a
               -- `Word8`, which is exactly what we want.
@@ -1188,8 +1188,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         -- For builtin semantics variants larger than 'DefaultFunSemanticsVariantA', the first
         -- input must be in range @[0..255]@.
         consByteStringMeaning_V2 =
-          let consByteStringDenotation :: Word8 -> BS.ByteString -> BS.ByteString
-              consByteStringDenotation = BS.cons
+          let consByteStringDenotation :: Word8 -> BS.ByteString -> BuiltinResult BS.ByteString
+              consByteStringDenotation = (pure .) . BS.cons
               {-# INLINE consByteStringDenotation #-}
            in makeBuiltinMeaning
                 consByteStringDenotation
@@ -1201,15 +1201,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           DefaultFunSemanticsVariantD -> consByteStringMeaning_V1
           DefaultFunSemanticsVariantE -> consByteStringMeaning_V2
   toBuiltinMeaning _semvar SliceByteString =
-    let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BS.ByteString
-        sliceByteStringDenotation start n xs = BS.take n (BS.drop start xs)
+    let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BuiltinResult BS.ByteString
+        sliceByteStringDenotation start n xs = pure $ BS.take n (BS.drop start xs)
         {-# INLINE sliceByteStringDenotation #-}
      in makeBuiltinMeaning
           sliceByteStringDenotation
           (runCostingFunThreeArguments . paramSliceByteString)
   toBuiltinMeaning _semvar LengthOfByteString =
-    let lengthOfByteStringDenotation :: BS.ByteString -> Int
-        lengthOfByteStringDenotation = BS.length
+    let lengthOfByteStringDenotation :: BS.ByteString -> BuiltinResult Int
+        lengthOfByteStringDenotation = pure . BS.length
         {-# INLINE lengthOfByteStringDenotation #-}
      in makeBuiltinMeaning
           lengthOfByteStringDenotation
@@ -1228,44 +1228,44 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           indexByteStringDenotation
           (runCostingFunTwoArguments . paramIndexByteString)
   toBuiltinMeaning _semvar EqualsByteString =
-    let equalsByteStringDenotation :: BS.ByteString -> BS.ByteString -> Bool
-        equalsByteStringDenotation = (==)
+    let equalsByteStringDenotation :: BS.ByteString -> BS.ByteString -> BuiltinResult Bool
+        equalsByteStringDenotation = (pure .) . (==)
         {-# INLINE equalsByteStringDenotation #-}
      in makeBuiltinMeaning
           equalsByteStringDenotation
           (runCostingFunTwoArguments . paramEqualsByteString)
   toBuiltinMeaning _semvar LessThanByteString =
-    let lessThanByteStringDenotation :: BS.ByteString -> BS.ByteString -> Bool
-        lessThanByteStringDenotation = (<)
+    let lessThanByteStringDenotation :: BS.ByteString -> BS.ByteString -> BuiltinResult Bool
+        lessThanByteStringDenotation = (pure .) . (<)
         {-# INLINE lessThanByteStringDenotation #-}
      in makeBuiltinMeaning
           lessThanByteStringDenotation
           (runCostingFunTwoArguments . paramLessThanByteString)
   toBuiltinMeaning _semvar LessThanEqualsByteString =
-    let lessThanEqualsByteStringDenotation :: BS.ByteString -> BS.ByteString -> Bool
-        lessThanEqualsByteStringDenotation = (<=)
+    let lessThanEqualsByteStringDenotation :: BS.ByteString -> BS.ByteString -> BuiltinResult Bool
+        lessThanEqualsByteStringDenotation = (pure .) . (<=)
         {-# INLINE lessThanEqualsByteStringDenotation #-}
      in makeBuiltinMeaning
           lessThanEqualsByteStringDenotation
           (runCostingFunTwoArguments . paramLessThanEqualsByteString)
   -- Cryptography and hashes
   toBuiltinMeaning _semvar Sha2_256 =
-    let sha2_256Denotation :: BS.ByteString -> BS.ByteString
-        sha2_256Denotation = Hash.sha2_256
+    let sha2_256Denotation :: BS.ByteString -> BuiltinResult BS.ByteString
+        sha2_256Denotation = pure . Hash.sha2_256
         {-# INLINE sha2_256Denotation #-}
      in makeBuiltinMeaning
           sha2_256Denotation
           (runCostingFunOneArgument . paramSha2_256)
   toBuiltinMeaning _semvar Sha3_256 =
-    let sha3_256Denotation :: BS.ByteString -> BS.ByteString
-        sha3_256Denotation = Hash.sha3_256
+    let sha3_256Denotation :: BS.ByteString -> BuiltinResult BS.ByteString
+        sha3_256Denotation = pure . Hash.sha3_256
         {-# INLINE sha3_256Denotation #-}
      in makeBuiltinMeaning
           sha3_256Denotation
           (runCostingFunOneArgument . paramSha3_256)
   toBuiltinMeaning _semvar Blake2b_256 =
-    let blake2b_256Denotation :: BS.ByteString -> BS.ByteString
-        blake2b_256Denotation = Hash.blake2b_256
+    let blake2b_256Denotation :: BS.ByteString -> BuiltinResult BS.ByteString
+        blake2b_256Denotation = pure . Hash.blake2b_256
         {-# INLINE blake2b_256Denotation #-}
      in makeBuiltinMeaning
           blake2b_256Denotation
@@ -1315,22 +1315,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           (runCostingFunThreeArguments . paramVerifySchnorrSecp256k1Signature)
   -- Strings
   toBuiltinMeaning _semvar AppendString =
-    let appendStringDenotation :: Text -> Text -> Text
-        appendStringDenotation = (<>)
+    let appendStringDenotation :: Text -> Text -> BuiltinResult Text
+        appendStringDenotation = (pure .) . (<>)
         {-# INLINE appendStringDenotation #-}
      in makeBuiltinMeaning
           appendStringDenotation
           (runCostingFunTwoArguments . paramAppendString)
   toBuiltinMeaning _semvar EqualsString =
-    let equalsStringDenotation :: Text -> Text -> Bool
-        equalsStringDenotation = (==)
+    let equalsStringDenotation :: Text -> Text -> BuiltinResult Bool
+        equalsStringDenotation = (pure .) . (==)
         {-# INLINE equalsStringDenotation #-}
      in makeBuiltinMeaning
           equalsStringDenotation
           (runCostingFunTwoArguments . paramEqualsString)
   toBuiltinMeaning _semvar EncodeUtf8 =
-    let encodeUtf8Denotation :: Text -> BS.ByteString
-        encodeUtf8Denotation = encodeUtf8
+    let encodeUtf8Denotation :: Text -> BuiltinResult BS.ByteString
+        encodeUtf8Denotation = pure . encodeUtf8
         {-# INLINE encodeUtf8Denotation #-}
      in makeBuiltinMeaning
           encodeUtf8Denotation
