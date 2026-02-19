@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -10,7 +11,6 @@
 
 module PlutusTx.Options where
 
-{- ORMOLU_DISABLE -}
 import PlutusCore.Error as PLC
 import PlutusCore.Parser as PLC
 import PlutusCore.Quote as PLC
@@ -30,6 +30,7 @@ import Data.Foldable (toList)
 #else 
 import Data.Foldable (foldl', toList)
 #endif 
+import Control.Applicative (many, optional, (<|>))
 import Data.List qualified as List
 import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
@@ -40,11 +41,10 @@ import Data.Text qualified as Text
 import Data.Type.Equality
 import GHC.Plugins qualified as GHC
 import Prettyprinter
+import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
 import Text.Read (readMaybe)
 import Type.Reflection
-import Text.Megaparsec.Char (alphaNumChar, char, upperChar)
-import Control.Applicative (many, optional, (<|>))
-  
+
 data PluginOptions = PluginOptions
   { _posPlcTargetVersion :: PLC.Version
   , _posDoTypecheck :: Bool
@@ -319,9 +319,9 @@ pluginOptions =
     , let k = "certify"
           desc =
             "Produce a certificate for the compiled program, with the given name. "
-            <> "This certificate provides evidence that the compiler optimizations have "
-            <> "preserved the functional behavior of the original program. "
-            <> "Currently, this is only supported for the UPLC compilation pipeline."
+              <> "This certificate provides evidence that the compiler optimizations have "
+              <> "preserved the functional behavior of the original program. "
+              <> "Currently, this is only supported for the UPLC compilation pipeline."
           p =
             optional $ do
               firstC <- upperChar
