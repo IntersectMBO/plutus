@@ -83,7 +83,7 @@ data Transformation : SimplifierTag → Relation where
   isFD : {X : ℕ} → {ast ast' : X ⊢} → UFD.ForceDelay ast ast' → Transformation SimplifierTag.forceDelayT ast ast'
   isFlD : {X : ℕ} → {ast ast' : X ⊢} → UFlD.FloatDelay ast ast' → Transformation SimplifierTag.floatDelayT ast ast'
   isCSE : {X : ℕ} → {ast ast' : X ⊢} → UCSE.UntypedCSE ast ast' → Transformation SimplifierTag.cseT ast ast'
-  isInline : {ast ast' : 0 ⊢} → Transformation SimplifierTag.inlineT ast ast'
+  isInline : {ast ast' : 0 ⊢} → UInline.Inline (λ()) UInline.□ ast ast' → Transformation SimplifierTag.inlineT ast ast'
   isCaseReduce : {X : ℕ} → {ast ast' : X ⊢} → UCR.UCaseReduce ast ast' → Transformation SimplifierTag.caseReduceT ast ast'
   forceCaseDelayNotImplemented : {X : ℕ} → {ast ast' : X ⊢} → Transformation SimplifierTag.forceCaseDelayT ast ast'
 
@@ -114,8 +114,8 @@ isTransformation? tag hints ast ast' | SimplifierTag.caseReduceT with UCR.isCase
 ... | proof p = proof (isCaseReduce p)
 isTransformation? {X} tag hints ast ast' | SimplifierTag.inlineT with hints | X
 ... | inline h | 0 with UInline.top-check h ast ast'
-...                     | proof p = proof isInline  -- TODO: update
-...                     | abort t b a = proof isInline -- TODO: update
+...                     | proof p = proof (isInline p)
+...                     | abort t b a = abort t b a
 isTransformation? tag hints ast ast' | SimplifierTag.inlineT
     | _ | _ = abort tag ast ast'
 isTransformation? tag hints ast ast' | SimplifierTag.cseT with UCSE.isUntypedCSE? ast ast'

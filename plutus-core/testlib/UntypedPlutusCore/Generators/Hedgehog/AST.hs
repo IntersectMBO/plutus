@@ -44,4 +44,4 @@ mangleNames
   -> PLC.AstGen (Maybe (Term Name DefaultUni DefaultFun ()))
 mangleNames term = do
   mayMang <- PLC.genNameMangler $ setOf vTerm term
-  for mayMang $ \mang -> termSubstNamesM (fmap (fmap $ UPLC.Var ()) . mang) term
+  for mayMang $ \mang -> termSubstNamesM (const . fmap (fmap $ UPLC.Var ()) . mang) term

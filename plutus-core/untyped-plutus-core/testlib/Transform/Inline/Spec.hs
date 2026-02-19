@@ -19,7 +19,8 @@ import Test.Tasty.HUnit (Assertion, assertBool, testCase)
 import UntypedPlutusCore.AstSize (AstSize (..))
 import UntypedPlutusCore.Core (Term (..))
 import UntypedPlutusCore.Transform.Inline
-  ( InlineHints (..)
+  ( Ann
+  , InlineHints (..)
   , InlineInfo (..)
   , InlineM
   , S (..)
@@ -168,7 +169,7 @@ runInlineM preserveLogging m = result
         , _iiInlineCallsiteGrowth = AstSize 1_000_000
         , _iiPreserveLogging = preserveLogging
         }
-    initialState :: S Name DefaultUni DefaultFun ()
+    initialState :: S Name DefaultUni DefaultFun (Ann ())
     initialState = S {_subst = Subst (TermEnv mempty), _vars = mempty}
 
 --------------------------------------------------------------------------------
