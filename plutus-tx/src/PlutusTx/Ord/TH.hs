@@ -64,7 +64,7 @@ deriveOrdSame (ConstructorInfo {constructorName = name, constructorFields = fiel
             case fields of
               [] -> TH.ConE 'EQ
               _ ->
-                foldr1 (\e acc -> TH.InfixE (pure e) (TH.VarE '(<>)) (pure acc)) $
+                foldr1 (\e acc -> TH.InfixE (pure e) (TH.VarE 'thenCmp) (pure acc)) $
                   zipWith
                     ( \argL argR ->
                         TH.InfixE (pure $ TH.VarE argL) (TH.VarE 'compare) (pure $ TH.VarE argR)

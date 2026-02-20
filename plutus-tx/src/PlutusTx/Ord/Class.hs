@@ -1,6 +1,7 @@
 module PlutusTx.Ord.Class
   ( Ord (..)
   , Ordering (..)
+  , thenCmp
   ) where
 
 {-
@@ -74,3 +75,11 @@ instance Ord Builtins.BuiltinByteString where
   (>) = Builtins.greaterThanByteString
   {-# INLINEABLE (>=) #-}
   (>=) = Builtins.greaterThanEqualsByteString
+
+{-| Lexicographic combination of two orderings. Used by 'deriveOrd' TH
+to avoid a direct reference to 'GHC.Base.<>' whose module path varies
+across GHC versions. -}
+{-# INLINEABLE thenCmp #-}
+thenCmp :: Ordering -> Ordering -> Ordering
+thenCmp EQ y = y
+thenCmp x _ = x

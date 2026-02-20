@@ -71,7 +71,7 @@ unitTests :: TestTree
 unitTests =
   testGroup "PlutusTx.Ord unit tests" $
     let l = Tx.enumFromTo @SomeVeryLargeEnum HS.minBound HS.maxBound
-        l' = HS.tail l
+        l' = HS.drop 1 l
         v1 :: SomeLargeADT () BuiltinByteString () () Integer
         v1 = SomeLargeADT3 1 2 3 4 5
         v2 :: SomeLargeADT () BuiltinByteString () () Integer

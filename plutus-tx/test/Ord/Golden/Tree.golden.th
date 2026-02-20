@@ -2,7 +2,8 @@ instance PlutusTx.Ord.Class.Ord a_0 => PlutusTx.Ord.Class.Ord Ord.Spec.Tree a_0 
   PlutusTx.Ord.Class.compare (Ord.Spec.Leaf l1l_0) (Ord.Spec.Leaf r1r_0) = l1l_0
       PlutusTx.Ord.Class.compare r1r_0
   PlutusTx.Ord.Class.compare (Ord.Spec.Node l1l_0 l2l_0) (Ord.Spec.Node r1r_0 r2r_0) = (l1l_0
-        PlutusTx.Ord.Class.compare r1r_0) GHC.Base.<> (l2l_0 PlutusTx.Ord.Class.compare r2r_0)
+        PlutusTx.Ord.Class.compare r1r_0) PlutusTx.Ord.Class.thenCmp (l2l_0
+        PlutusTx.Ord.Class.compare r2r_0)
   PlutusTx.Ord.Class.compare (Ord.Spec.Leaf {}) _ = GHC.Types.LT
   PlutusTx.Ord.Class.compare _ (Ord.Spec.Leaf {}) = GHC.Types.GT
   {-# INLINABLE PlutusTx.Ord.Class.compare #-}

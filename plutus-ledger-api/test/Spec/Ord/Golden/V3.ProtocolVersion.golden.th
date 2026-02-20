@@ -2,5 +2,6 @@ instance PlutusTx.Ord.Class.Ord PlutusLedgerApi.V3.Contexts.ProtocolVersion wher
   PlutusTx.Ord.Class.compare
     (PlutusLedgerApi.V3.Contexts.ProtocolVersion l1l_0 l2l_0)
     (PlutusLedgerApi.V3.Contexts.ProtocolVersion r1r_0 r2r_0) = (l1l_0
-        PlutusTx.Ord.Class.compare r1r_0) GHC.Base.<> (l2l_0 PlutusTx.Ord.Class.compare r2r_0)
+        PlutusTx.Ord.Class.compare r1r_0) PlutusTx.Ord.Class.thenCmp (l2l_0
+        PlutusTx.Ord.Class.compare r2r_0)
   {-# INLINABLE PlutusTx.Ord.Class.compare #-}

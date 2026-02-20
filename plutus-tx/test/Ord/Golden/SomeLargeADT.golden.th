@@ -10,18 +10,20 @@ instance (PlutusTx.Ord.Class.Ord a_0
   PlutusTx.Ord.Class.compare
     (Ord.Spec.SomeLargeADT1 l1l_0 l2l_0 l3l_0 l4l_0 l5l_0 l6l_0)
     (Ord.Spec.SomeLargeADT1 r1r_0 r2r_0 r3r_0 r4r_0 r5r_0 r6r_0) = (l1l_0
-        PlutusTx.Ord.Class.compare r1r_0) GHC.Base.<> ((l2l_0 PlutusTx.Ord.Class.compare r2r_0)
-        GHC.Base.<> ((l3l_0 PlutusTx.Ord.Class.compare r3r_0) GHC.Base.<> ((l4l_0
-              PlutusTx.Ord.Class.compare r4r_0) GHC.Base.<> ((l5l_0
-                PlutusTx.Ord.Class.compare r5r_0) GHC.Base.<> (l6l_0
+        PlutusTx.Ord.Class.compare r1r_0) PlutusTx.Ord.Class.thenCmp ((l2l_0
+          PlutusTx.Ord.Class.compare r2r_0) PlutusTx.Ord.Class.thenCmp ((l3l_0
+            PlutusTx.Ord.Class.compare r3r_0) PlutusTx.Ord.Class.thenCmp ((l4l_0
+              PlutusTx.Ord.Class.compare r4r_0) PlutusTx.Ord.Class.thenCmp ((l5l_0
+                PlutusTx.Ord.Class.compare r5r_0) PlutusTx.Ord.Class.thenCmp (l6l_0
                 PlutusTx.Ord.Class.compare r6r_0)))))
   PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT2) (Ord.Spec.SomeLargeADT2) = GHC.Types.EQ
   PlutusTx.Ord.Class.compare
     (Ord.Spec.SomeLargeADT3 l1l_0 l2l_0 l3l_0 l4l_0 l5l_0)
     (Ord.Spec.SomeLargeADT3 r1r_0 r2r_0 r3r_0 r4r_0 r5r_0) = (l1l_0
-        PlutusTx.Ord.Class.compare r1r_0) GHC.Base.<> ((l2l_0 PlutusTx.Ord.Class.compare r2r_0)
-        GHC.Base.<> ((l3l_0 PlutusTx.Ord.Class.compare r3r_0) GHC.Base.<> ((l4l_0
-              PlutusTx.Ord.Class.compare r4r_0) GHC.Base.<> (l5l_0
+        PlutusTx.Ord.Class.compare r1r_0) PlutusTx.Ord.Class.thenCmp ((l2l_0
+          PlutusTx.Ord.Class.compare r2r_0) PlutusTx.Ord.Class.thenCmp ((l3l_0
+            PlutusTx.Ord.Class.compare r3r_0) PlutusTx.Ord.Class.thenCmp ((l4l_0
+              PlutusTx.Ord.Class.compare r4r_0) PlutusTx.Ord.Class.thenCmp (l5l_0
               PlutusTx.Ord.Class.compare r5r_0))))
   PlutusTx.Ord.Class.compare (Ord.Spec.SomeLargeADT1 {}) _ = GHC.Types.LT
   PlutusTx.Ord.Class.compare _ (Ord.Spec.SomeLargeADT1 {}) = GHC.Types.GT
