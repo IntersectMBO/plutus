@@ -252,20 +252,24 @@
                      ds
                      {all dead. Ordering}
                      (/\dead -> GT)
-                     (\(r1r : a) ->
+                     (\(r1r : a) (r2r : List a) ->
                         let
-                          ~defaultBody : Ordering = compare {a} `$dOrd` l1l r1r
+                          ~defaultBody : Ordering
+                            = let
+                              !y : Ordering
+                                = `$fOrdList_$ccompare` {a} `$dOrd` l2l r2r
+                            in
+                            compare {a} `$dOrd` l1l r1r
                         in
-                        \(r2r : List a) ->
-                          /\dead ->
-                            Ordering_match
-                              (compare {a} `$dOrd` l1l r1r)
-                              {all dead. Ordering}
-                              (/\dead ->
-                                 `$fOrdList_$ccompare` {a} `$dOrd` l2l r2r)
-                              (/\dead -> defaultBody)
-                              (/\dead -> defaultBody)
-                              {all dead. dead})
+                        /\dead ->
+                          Ordering_match
+                            (compare {a} `$dOrd` l1l r1r)
+                            {all dead. Ordering}
+                            (/\dead ->
+                               `$fOrdList_$ccompare` {a} `$dOrd` l2l r2r)
+                            (/\dead -> defaultBody)
+                            (/\dead -> defaultBody)
+                            {all dead. dead})
                      {all dead. dead})
               {all dead. dead}
   in
@@ -495,46 +499,22 @@
                                              {b}
                                              ds
                                              {Ordering}
-                                             (\(r1r : a) ->
+                                             (\(r1r : a) (r2r : b) ->
                                                 let
                                                   ~defaultBody : Ordering
-                                                    = compare {a} v l1l r1r
+                                                    = let
+                                                      !y : Ordering
+                                                        = compare {b} v l2l r2r
+                                                    in
+                                                    compare {a} v l1l r1r
                                                 in
-                                                \(r2r : b) ->
-                                                  Ordering_match
-                                                    (compare {a} v l1l r1r)
-                                                    {all dead. Ordering}
-                                                    (/\dead ->
-                                                       compare {b} v l2l r2r)
-                                                    (/\dead -> defaultBody)
-                                                    (/\dead -> defaultBody)
-                                                    {all dead. dead})))
-                                   (\(x : Tuple2 a b) (y : Tuple2 a b) ->
-                                      Tuple2_match
-                                        {a}
-                                        {b}
-                                        x
-                                        {bool}
-                                        (\(ipv : a) (ipv : b) ->
-                                           Tuple2_match
-                                             {a}
-                                             {b}
-                                             y
-                                             {bool}
-                                             (\(ipv : a) (ipv : b) ->
                                                 Ordering_match
-                                                  (compare {a} v ipv ipv)
-                                                  {all dead. bool}
+                                                  (compare {a} v l1l r1r)
+                                                  {all dead. Ordering}
                                                   (/\dead ->
-                                                     Ordering_match
-                                                       (compare {b} v ipv ipv)
-                                                       {all dead. bool}
-                                                       (/\dead -> False)
-                                                       (/\dead -> False)
-                                                       (/\dead -> True)
-                                                       {all dead. dead})
-                                                  (/\dead -> False)
-                                                  (/\dead -> True)
+                                                     compare {b} v l2l r2r)
+                                                  (/\dead -> defaultBody)
+                                                  (/\dead -> defaultBody)
                                                   {all dead. dead})))
                                    (\(x : Tuple2 a b) (y : Tuple2 a b) ->
                                       Tuple2_match
@@ -549,6 +529,20 @@
                                              y
                                              {bool}
                                              (\(ipv : a) (ipv : b) ->
+                                                let
+                                                  ~defaultBody : bool
+                                                    = let
+                                                      !y : Ordering
+                                                        = compare {b} v ipv ipv
+                                                    in
+                                                    Ordering_match
+                                                      (compare {a} v ipv ipv)
+                                                      {all dead. bool}
+                                                      (/\dead -> error {bool})
+                                                      (/\dead -> False)
+                                                      (/\dead -> True)
+                                                      {all dead. dead}
+                                                in
                                                 Ordering_match
                                                   (compare {a} v ipv ipv)
                                                   {all dead. bool}
@@ -556,12 +550,12 @@
                                                      Ordering_match
                                                        (compare {b} v ipv ipv)
                                                        {all dead. bool}
-                                                       (/\dead -> True)
+                                                       (/\dead -> False)
                                                        (/\dead -> False)
                                                        (/\dead -> True)
                                                        {all dead. dead})
-                                                  (/\dead -> False)
-                                                  (/\dead -> True)
+                                                  (/\dead -> defaultBody)
+                                                  (/\dead -> defaultBody)
                                                   {all dead. dead})))
                                    (\(x : Tuple2 a b) (y : Tuple2 a b) ->
                                       Tuple2_match
@@ -576,6 +570,20 @@
                                              y
                                              {bool}
                                              (\(ipv : a) (ipv : b) ->
+                                                let
+                                                  ~defaultBody : bool
+                                                    = let
+                                                      !y : Ordering
+                                                        = compare {b} v ipv ipv
+                                                    in
+                                                    Ordering_match
+                                                      (compare {a} v ipv ipv)
+                                                      {all dead. bool}
+                                                      (/\dead -> error {bool})
+                                                      (/\dead -> False)
+                                                      (/\dead -> True)
+                                                      {all dead. dead}
+                                                in
                                                 Ordering_match
                                                   (compare {a} v ipv ipv)
                                                   {all dead. bool}
@@ -583,12 +591,12 @@
                                                      Ordering_match
                                                        (compare {b} v ipv ipv)
                                                        {all dead. bool}
-                                                       (/\dead -> False)
                                                        (/\dead -> True)
                                                        (/\dead -> False)
+                                                       (/\dead -> True)
                                                        {all dead. dead})
-                                                  (/\dead -> True)
-                                                  (/\dead -> False)
+                                                  (/\dead -> defaultBody)
+                                                  (/\dead -> defaultBody)
                                                   {all dead. dead})))
                                    (\(x : Tuple2 a b) (y : Tuple2 a b) ->
                                       Tuple2_match
@@ -603,6 +611,61 @@
                                              y
                                              {bool}
                                              (\(ipv : a) (ipv : b) ->
+                                                let
+                                                  ~defaultBody : bool
+                                                    = let
+                                                      !y : Ordering
+                                                        = compare {b} v ipv ipv
+                                                    in
+                                                    Ordering_match
+                                                      (compare {a} v ipv ipv)
+                                                      {all dead. bool}
+                                                      (/\dead -> error {bool})
+                                                      (/\dead -> True)
+                                                      (/\dead -> False)
+                                                      {all dead. dead}
+                                                in
+                                                Ordering_match
+                                                  (compare {a} v ipv ipv)
+                                                  {all dead. bool}
+                                                  (/\dead ->
+                                                     Ordering_match
+                                                       (compare {b} v ipv ipv)
+                                                       {all dead. bool}
+                                                       (/\dead -> False)
+                                                       (/\dead -> True)
+                                                       (/\dead -> False)
+                                                       {all dead. dead})
+                                                  (/\dead -> defaultBody)
+                                                  (/\dead -> defaultBody)
+                                                  {all dead. dead})))
+                                   (\(x : Tuple2 a b) (y : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        x
+                                        {bool}
+                                        (\(ipv : a) (ipv : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             y
+                                             {bool}
+                                             (\(ipv : a) (ipv : b) ->
+                                                let
+                                                  ~defaultBody : bool
+                                                    = let
+                                                      !y : Ordering
+                                                        = compare {b} v ipv ipv
+                                                    in
+                                                    Ordering_match
+                                                      (compare {a} v ipv ipv)
+                                                      {all dead. bool}
+                                                      (/\dead -> error {bool})
+                                                      (/\dead -> True)
+                                                      (/\dead -> False)
+                                                      {all dead. dead}
+                                                in
                                                 Ordering_match
                                                   (compare {a} v ipv ipv)
                                                   {all dead. bool}
@@ -614,8 +677,8 @@
                                                        (/\dead -> True)
                                                        (/\dead -> False)
                                                        {all dead. dead})
-                                                  (/\dead -> True)
-                                                  (/\dead -> False)
+                                                  (/\dead -> defaultBody)
+                                                  (/\dead -> defaultBody)
                                                   {all dead. dead})))
                                    (\(x : Tuple2 a b) (y : Tuple2 a b) ->
                                       Tuple2_match
@@ -630,6 +693,21 @@
                                              y
                                              {Tuple2 a b}
                                              (\(ipv : a) (ipv : b) ->
+                                                let
+                                                  ~defaultBody : Tuple2 a b
+                                                    = let
+                                                      !y : Ordering
+                                                        = compare {b} v ipv ipv
+                                                    in
+                                                    Ordering_match
+                                                      (compare {a} v ipv ipv)
+                                                      {all dead. Tuple2 a b}
+                                                      (/\dead ->
+                                                         error {Tuple2 a b})
+                                                      (/\dead -> x)
+                                                      (/\dead -> y)
+                                                      {all dead. dead}
+                                                in
                                                 Ordering_match
                                                   (compare {a} v ipv ipv)
                                                   {all dead. Tuple2 a b}
@@ -641,8 +719,8 @@
                                                        (/\dead -> x)
                                                        (/\dead -> y)
                                                        {all dead. dead})
-                                                  (/\dead -> x)
-                                                  (/\dead -> y)
+                                                  (/\dead -> defaultBody)
+                                                  (/\dead -> defaultBody)
                                                   {all dead. dead})))
                                    (\(x : Tuple2 a b) (y : Tuple2 a b) ->
                                       Tuple2_match
@@ -657,6 +735,21 @@
                                              y
                                              {Tuple2 a b}
                                              (\(ipv : a) (ipv : b) ->
+                                                let
+                                                  ~defaultBody : Tuple2 a b
+                                                    = let
+                                                      !y : Ordering
+                                                        = compare {b} v ipv ipv
+                                                    in
+                                                    Ordering_match
+                                                      (compare {a} v ipv ipv)
+                                                      {all dead. Tuple2 a b}
+                                                      (/\dead ->
+                                                         error {Tuple2 a b})
+                                                      (/\dead -> y)
+                                                      (/\dead -> x)
+                                                      {all dead. dead}
+                                                in
                                                 Ordering_match
                                                   (compare {a} v ipv ipv)
                                                   {all dead. Tuple2 a b}
@@ -668,8 +761,8 @@
                                                        (/\dead -> y)
                                                        (/\dead -> x)
                                                        {all dead. dead})
-                                                  (/\dead -> y)
-                                                  (/\dead -> x)
+                                                  (/\dead -> defaultBody)
+                                                  (/\dead -> defaultBody)
                                                   {all dead. dead}))))
                              {List integer}
                              `$dOrd`
