@@ -144,8 +144,8 @@ minusSI (SI (I# x#)) (SI (I# y#)) =
 
 timesSI :: SatInt -> SatInt -> SatInt
 timesSI (SI (I# x#)) (SI (I# y#)) =
-  case mulIntMayOflo# x# y# of
-    0# -> SI (I# (x# *# y#))
+  case timesInt2# x# y# of
+    (# 0#, _, lo# #) -> SI (I# lo#)
     -- Overflow
     _ ->
       if isTrue# ((x# ># 0#) `andI#` (y# ># 0#))
