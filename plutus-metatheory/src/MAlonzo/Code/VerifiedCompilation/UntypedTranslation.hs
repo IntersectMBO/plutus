@@ -743,15 +743,15 @@ du_translation'63'_164 v0 v1 v2 v3 v4
                                              -> let v15
                                                       = coe
                                                           du_translation'63'_164 (coe v0) (coe v1)
-                                                          (coe v2) (coe v7) (coe v10) in
+                                                          (coe v2) (coe v8) (coe v11) in
                                                 coe
                                                   (case coe v15 of
                                                      MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_92 v16
                                                        -> let v17
                                                                 = coe
                                                                     du_translation'63'_164 (coe v0)
-                                                                    (coe v1) (coe v2) (coe v8)
-                                                                    (coe v11) in
+                                                                    (coe v1) (coe v2) (coe v7)
+                                                                    (coe v10) in
                                                           coe
                                                             (case coe v17 of
                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_92 v18
@@ -759,7 +759,7 @@ du_translation'63'_164 v0 v1 v2 v3 v4
                                                                       MAlonzo.Code.VerifiedCompilation.Certificate.C_proof_92
                                                                       (coe
                                                                          C_match_98
-                                                                         (coe C_app_42 v16 v18))
+                                                                         (coe C_app_42 v18 v16))
                                                                MAlonzo.Code.VerifiedCompilation.Certificate.C_ce_100 v21 v22 v23
                                                                  -> let v24 = coe v2 v0 v3 v4 in
                                                                     coe

@@ -135,15 +135,15 @@ translation? {_} tag isR? (ƛ ast) (ƛ ast') | yes _ with translation? tag isR? 
 ...                  | ce ¬tr t b a with isR? (ƛ ast) (ƛ ast')
 ...                               | proof p = proof (istranslation p)
 ...                               | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (ƛ tr)) → ¬tr tr }) t b a
-translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ with (translation? tag isR? ast ast')
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ with (translation? tag isR? ast₁ ast₁')
 translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬p t b a with isR? (ast · ast₁) (ast' · ast₁')
 translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬p t b a | proof p = proof (istranslation p)
-translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x }) t b a
-translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l with (translation? tag isR? ast₁ ast₁')
-translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | proof r = proof (match (app l r))
-translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬p t b a with isR? (ast · ast₁) (ast' · ast₁')
-translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬p t b a | proof p = proof (istranslation p)
-translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof l | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x₁ }) t b a
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x₁ }) t b a
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof r with (translation? tag isR? ast ast')
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof r | proof l = proof (match (app l r))
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof r | ce ¬p t b a with isR? (ast · ast₁) (ast' · ast₁')
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof r | ce ¬p t b a | proof p = proof (istranslation p)
+translation? {_} tag isR? (ast · ast₁) (ast' · ast₁') | yes _ | proof r | ce ¬tr _ _ _ | ce ¬p t b a = ce (λ { (istranslation x) → ¬p x ; (match (app x x₁)) → ¬tr x }) t b a
 translation? {_} tag isR? (force ast) (force ast') | yes _ with translation? tag isR? ast ast'
 ...                  | proof t = proof (match (force t))
 ...                  | ce ¬tr t b a with isR? (force ast) (force ast')
