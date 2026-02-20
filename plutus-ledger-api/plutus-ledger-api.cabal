@@ -186,6 +186,7 @@ test-suite plutus-ledger-api-test
     Spec.Eq.Golden
     Spec.Eval
     Spec.Interval
+    Spec.Ord.Golden
     Spec.ScriptDecodeError
     Spec.V1.Data.Value
     Spec.V1.Value

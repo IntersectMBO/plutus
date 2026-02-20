@@ -1,0 +1,14 @@
+instance (PlutusTx.Ord.Class.Ord a_0, PlutusTx.Ord.Class.Ord b_0) => PlutusTx.Ord.Class.Ord
+  (PlutusTx.These.These a_0 b_0) where
+  PlutusTx.Ord.Class.compare (PlutusTx.These.This l1l_0) (PlutusTx.These.This r1r_0) = l1l_0
+      PlutusTx.Ord.Class.compare r1r_0
+  PlutusTx.Ord.Class.compare (PlutusTx.These.That l1l_0) (PlutusTx.These.That r1r_0) = l1l_0
+      PlutusTx.Ord.Class.compare r1r_0
+  PlutusTx.Ord.Class.compare (PlutusTx.These.These l1l_0 l2l_0) (PlutusTx.These.These r1r_0 r2r_0)
+    = (l1l_0 PlutusTx.Ord.Class.compare r1r_0) PlutusTx.Ord.Class.thenCmp (l2l_0
+        PlutusTx.Ord.Class.compare r2r_0)
+  PlutusTx.Ord.Class.compare (PlutusTx.These.This {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (PlutusTx.These.This {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (PlutusTx.These.That {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (PlutusTx.These.That {}) = GHC.Types.GT
+  {-# INLINABLE PlutusTx.Ord.Class.compare #-}

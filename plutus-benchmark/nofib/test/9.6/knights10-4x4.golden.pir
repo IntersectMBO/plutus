@@ -1063,7 +1063,8 @@
            {ChessSet}
            ds
            {List (Tuple2 integer ChessSet)}
-           (\(x : integer) (y : ChessSet) ->
+           (\(x : integer)
+             (y : ChessSet) ->
               (let
                   !a : integer = addInteger 1 x
                 in
@@ -1255,59 +1256,89 @@
                                                  {ChessSet}
                                                  ds
                                                  {Ordering}
-                                                 (\(a : integer)
-                                                   (b : ChessSet) ->
+                                                 (\(l1l : integer)
+                                                   (l2l : ChessSet) ->
                                                     Tuple2_match
                                                       {integer}
                                                       {ChessSet}
                                                       ds
                                                       {Ordering}
-                                                      (\(a' : integer) ->
+                                                      (\(r1r : integer)
+                                                        (r2r : ChessSet) ->
                                                          let
                                                            ~defaultBody :
                                                               Ordering
-                                                             = compare
-                                                                 {integer}
-                                                                 v
-                                                                 a
-                                                                 a'
+                                                             = let
+                                                               !y : Ordering
+                                                                 = compare
+                                                                     {ChessSet}
+                                                                     v
+                                                                     l2l
+                                                                     r2r
+                                                             in
+                                                             compare
+                                                               {integer}
+                                                               v
+                                                               l1l
+                                                               r1r
                                                          in
-                                                         \(b' : ChessSet) ->
-                                                           Ordering_match
-                                                             (compare
-                                                                {integer}
+                                                         Ordering_match
+                                                           (compare
+                                                              {integer}
+                                                              v
+                                                              l1l
+                                                              r1r)
+                                                           {all dead. Ordering}
+                                                           (/\dead ->
+                                                              compare
+                                                                {ChessSet}
                                                                 v
-                                                                a
-                                                                a')
-                                                             {all dead.
-                                                                Ordering}
-                                                             (/\dead ->
-                                                                compare
-                                                                  {ChessSet}
+                                                                l2l
+                                                                r2r)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           {all dead. dead})))
+                                            (\(x : Tuple2 integer ChessSet)
+                                              (y : Tuple2 integer ChessSet) ->
+                                               Tuple2_match
+                                                 {integer}
+                                                 {ChessSet}
+                                                 x
+                                                 {bool}
+                                                 (\(ipv : integer)
+                                                   (ipv : ChessSet) ->
+                                                    Tuple2_match
+                                                      {integer}
+                                                      {ChessSet}
+                                                      y
+                                                      {bool}
+                                                      (\(ipv : integer)
+                                                        (ipv : ChessSet) ->
+                                                         let
+                                                           ~defaultBody : bool
+                                                             = let
+                                                               !y : Ordering
+                                                                 = compare
+                                                                     {ChessSet}
+                                                                     v
+                                                                     ipv
+                                                                     ipv
+                                                             in
+                                                             Ordering_match
+                                                               (compare
+                                                                  {integer}
                                                                   v
-                                                                  b
-                                                                  b')
-                                                             (/\dead ->
-                                                                defaultBody)
-                                                             (/\dead ->
-                                                                defaultBody)
-                                                             {all dead. dead})))
-                                            (\(x : Tuple2 integer ChessSet)
-                                              (y : Tuple2 integer ChessSet) ->
-                                               Tuple2_match
-                                                 {integer}
-                                                 {ChessSet}
-                                                 x
-                                                 {bool}
-                                                 (\(ipv : integer)
-                                                   (ipv : ChessSet) ->
-                                                    Tuple2_match
-                                                      {integer}
-                                                      {ChessSet}
-                                                      y
-                                                      {bool}
-                                                      (\(ipv : integer)
-                                                        (ipv : ChessSet) ->
+                                                                  ipv
+                                                                  ipv)
+                                                               {all dead. bool}
+                                                               (/\dead ->
+                                                                  error {bool})
+                                                               (/\dead -> False)
+                                                               (/\dead -> True)
+                                                               {all dead. dead}
+                                                         in
                                                          Ordering_match
                                                            (compare
                                                               {integer}
@@ -1330,8 +1361,10 @@
                                                                 (/\dead -> True)
                                                                 {all dead.
                                                                    dead})
-                                                           (/\dead -> False)
-                                                           (/\dead -> True)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           (/\dead ->
+                                                              defaultBody)
                                                            {all dead. dead})))
                                             (\(x : Tuple2 integer ChessSet)
                                               (y : Tuple2 integer ChessSet) ->
@@ -1349,6 +1382,29 @@
                                                       {bool}
                                                       (\(ipv : integer)
                                                         (ipv : ChessSet) ->
+                                                         let
+                                                           ~defaultBody : bool
+                                                             = let
+                                                               !y : Ordering
+                                                                 = compare
+                                                                     {ChessSet}
+                                                                     v
+                                                                     ipv
+                                                                     ipv
+                                                             in
+                                                             Ordering_match
+                                                               (compare
+                                                                  {integer}
+                                                                  v
+                                                                  ipv
+                                                                  ipv)
+                                                               {all dead. bool}
+                                                               (/\dead ->
+                                                                  error {bool})
+                                                               (/\dead -> False)
+                                                               (/\dead -> True)
+                                                               {all dead. dead}
+                                                         in
                                                          Ordering_match
                                                            (compare
                                                               {integer}
@@ -1370,8 +1426,10 @@
                                                                 (/\dead -> True)
                                                                 {all dead.
                                                                    dead})
-                                                           (/\dead -> False)
-                                                           (/\dead -> True)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           (/\dead ->
+                                                              defaultBody)
                                                            {all dead. dead})))
                                             (\(x : Tuple2 integer ChessSet)
                                               (y : Tuple2 integer ChessSet) ->
@@ -1389,6 +1447,29 @@
                                                       {bool}
                                                       (\(ipv : integer)
                                                         (ipv : ChessSet) ->
+                                                         let
+                                                           ~defaultBody : bool
+                                                             = let
+                                                               !y : Ordering
+                                                                 = compare
+                                                                     {ChessSet}
+                                                                     v
+                                                                     ipv
+                                                                     ipv
+                                                             in
+                                                             Ordering_match
+                                                               (compare
+                                                                  {integer}
+                                                                  v
+                                                                  ipv
+                                                                  ipv)
+                                                               {all dead. bool}
+                                                               (/\dead ->
+                                                                  error {bool})
+                                                               (/\dead -> True)
+                                                               (/\dead -> False)
+                                                               {all dead. dead}
+                                                         in
                                                          Ordering_match
                                                            (compare
                                                               {integer}
@@ -1411,8 +1492,10 @@
                                                                    False)
                                                                 {all dead.
                                                                    dead})
-                                                           (/\dead -> True)
-                                                           (/\dead -> False)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           (/\dead ->
+                                                              defaultBody)
                                                            {all dead. dead})))
                                             (\(x : Tuple2 integer ChessSet)
                                               (y : Tuple2 integer ChessSet) ->
@@ -1430,6 +1513,29 @@
                                                       {bool}
                                                       (\(ipv : integer)
                                                         (ipv : ChessSet) ->
+                                                         let
+                                                           ~defaultBody : bool
+                                                             = let
+                                                               !y : Ordering
+                                                                 = compare
+                                                                     {ChessSet}
+                                                                     v
+                                                                     ipv
+                                                                     ipv
+                                                             in
+                                                             Ordering_match
+                                                               (compare
+                                                                  {integer}
+                                                                  v
+                                                                  ipv
+                                                                  ipv)
+                                                               {all dead. bool}
+                                                               (/\dead ->
+                                                                  error {bool})
+                                                               (/\dead -> True)
+                                                               (/\dead -> False)
+                                                               {all dead. dead}
+                                                         in
                                                          Ordering_match
                                                            (compare
                                                               {integer}
@@ -1451,8 +1557,10 @@
                                                                    False)
                                                                 {all dead.
                                                                    dead})
-                                                           (/\dead -> True)
-                                                           (/\dead -> False)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           (/\dead ->
+                                                              defaultBody)
                                                            {all dead. dead})))
                                             (\(x : Tuple2 integer ChessSet)
                                               (y : Tuple2 integer ChessSet) ->
@@ -1470,6 +1578,38 @@
                                                       {Tuple2 integer ChessSet}
                                                       (\(ipv : integer)
                                                         (ipv : ChessSet) ->
+                                                         let
+                                                           ~defaultBody :
+                                                              Tuple2
+                                                                integer
+                                                                ChessSet
+                                                             = let
+                                                               !y : Ordering
+                                                                 = compare
+                                                                     {ChessSet}
+                                                                     v
+                                                                     ipv
+                                                                     ipv
+                                                             in
+                                                             Ordering_match
+                                                               (compare
+                                                                  {integer}
+                                                                  v
+                                                                  ipv
+                                                                  ipv)
+                                                               {all dead.
+                                                                  Tuple2
+                                                                    integer
+                                                                    ChessSet}
+                                                               (/\dead ->
+                                                                  error
+                                                                    {Tuple2
+                                                                       integer
+                                                                       ChessSet})
+                                                               (/\dead -> x)
+                                                               (/\dead -> y)
+                                                               {all dead. dead}
+                                                         in
                                                          Ordering_match
                                                            (compare
                                                               {integer}
@@ -1496,8 +1636,10 @@
                                                                 (/\dead -> y)
                                                                 {all dead.
                                                                    dead})
-                                                           (/\dead -> x)
-                                                           (/\dead -> y)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           (/\dead ->
+                                                              defaultBody)
                                                            {all dead. dead})))
                                             (\(x : Tuple2 integer ChessSet)
                                               (y : Tuple2 integer ChessSet) ->
@@ -1515,6 +1657,38 @@
                                                       {Tuple2 integer ChessSet}
                                                       (\(ipv : integer)
                                                         (ipv : ChessSet) ->
+                                                         let
+                                                           ~defaultBody :
+                                                              Tuple2
+                                                                integer
+                                                                ChessSet
+                                                             = let
+                                                               !y : Ordering
+                                                                 = compare
+                                                                     {ChessSet}
+                                                                     v
+                                                                     ipv
+                                                                     ipv
+                                                             in
+                                                             Ordering_match
+                                                               (compare
+                                                                  {integer}
+                                                                  v
+                                                                  ipv
+                                                                  ipv)
+                                                               {all dead.
+                                                                  Tuple2
+                                                                    integer
+                                                                    ChessSet}
+                                                               (/\dead ->
+                                                                  error
+                                                                    {Tuple2
+                                                                       integer
+                                                                       ChessSet})
+                                                               (/\dead -> y)
+                                                               (/\dead -> x)
+                                                               {all dead. dead}
+                                                         in
                                                          Ordering_match
                                                            (compare
                                                               {integer}
@@ -1541,8 +1715,10 @@
                                                                 (/\dead -> x)
                                                                 {all dead.
                                                                    dead})
-                                                           (/\dead -> y)
-                                                           (/\dead -> x)
+                                                           (/\dead ->
+                                                              defaultBody)
+                                                           (/\dead ->
+                                                              defaultBody)
                                                            {all dead. dead}))))
                                          (descAndNo y))) ]
                                {all dead. dead})

@@ -1,0 +1,30 @@
+instance PlutusTx.Ord.Class.Ord Ord.Spec.SomeVeryLargeEnum where
+  PlutusTx.Ord.Class.compare (Ord.Spec.E1) (Ord.Spec.E1) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E2) (Ord.Spec.E2) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E3) (Ord.Spec.E3) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E4) (Ord.Spec.E4) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E5) (Ord.Spec.E5) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E6) (Ord.Spec.E6) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E7) (Ord.Spec.E7) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E8) (Ord.Spec.E8) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E9) (Ord.Spec.E9) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E10) (Ord.Spec.E10) = GHC.Types.EQ
+  PlutusTx.Ord.Class.compare (Ord.Spec.E1 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E1 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E2 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E2 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E3 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E3 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E4 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E4 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E5 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E5 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E6 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E6 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E7 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E7 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E8 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E8 {}) = GHC.Types.GT
+  PlutusTx.Ord.Class.compare (Ord.Spec.E9 {}) _ = GHC.Types.LT
+  PlutusTx.Ord.Class.compare _ (Ord.Spec.E9 {}) = GHC.Types.GT
+  {-# INLINABLE PlutusTx.Ord.Class.compare #-}
