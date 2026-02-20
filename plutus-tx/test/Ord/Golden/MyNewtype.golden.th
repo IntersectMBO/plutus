@@ -1,3 +1,4 @@
-instance PlutusTx.Ord.Class.Ord Ord.Spec.MyNewtype
-    where {PlutusTx.Ord.Class.compare (Ord.Spec.MyNewtype l1l_0) (Ord.Spec.MyNewtype r1r_1) = l1l_0 `PlutusTx.Ord.Class.compare` r1r_1;
-           {-# INLINABLE PlutusTx.Ord.Class.compare #-}}
+instance PlutusTx.Ord.Class.Ord Ord.Spec.MyNewtype where
+  PlutusTx.Ord.Class.compare (Ord.Spec.MyNewtype l1l_0) (Ord.Spec.MyNewtype r1r_0) = l1l_0
+      PlutusTx.Ord.Class.compare r1r_0
+  {-# INLINABLE PlutusTx.Ord.Class.compare #-}

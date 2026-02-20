@@ -1,3 +1,4 @@
-instance PlutusTx.Ord.Class.Ord (Ord.Spec.PhantomADT e_0)
-    where {PlutusTx.Ord.Class.compare (Ord.Spec.PhantomADT l1l_1) (Ord.Spec.PhantomADT r1r_2) = l1l_1 `PlutusTx.Ord.Class.compare` r1r_2;
-           {-# INLINABLE PlutusTx.Ord.Class.compare #-}}
+instance PlutusTx.Ord.Class.Ord Ord.Spec.PhantomADT e_0 where
+  PlutusTx.Ord.Class.compare (Ord.Spec.PhantomADT l1l_0) (Ord.Spec.PhantomADT r1r_0) = l1l_0
+      PlutusTx.Ord.Class.compare r1r_0
+  {-# INLINABLE PlutusTx.Ord.Class.compare #-}
