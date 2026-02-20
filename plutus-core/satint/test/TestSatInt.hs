@@ -2,6 +2,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 -- These tests are deliberately not in the same style as our other tests, but rather mirror the tests
 -- in safeint, since I want to upstream this in due course.
@@ -77,6 +78,9 @@ tests =
   , testProperty "+" (propBinOp (+))
   , testProperty "-" (propBinOp (-))
   , testProperty "/0" propDividedBy0
+  , testProperty "plusSI" (withMaxSuccess 10000 propPlusSI)
+  , testProperty "minusSI" (withMaxSuccess 10000 propMinusSI)
+  , testProperty "timesSI" (withMaxSuccess 10000 propTimesSI)
   -- lcm and gcd do *not* pass `behavesOk` since they *internally* use `abs` (which will give the wrong/saturated
   -- answer for minBound), and hence go astray after that. But we can't easily detect that this is the "correct"
   -- saturated thing to do as we do for other operations (where we can just see if the saturating version is
@@ -98,3 +102,29 @@ propDividedBy0 :: Property
 propDividedBy0 = withMaxSuccess 1000 $
   forAll intWithSpecialCases $
     \n -> saturatesPos ((fromIntegral n) `dividedBy` 0)
+
+propPlusSI :: SatInt -> SatInt -> Property
+propPlusSI x y = x + y === fromInteger (fromSatInt x + fromSatInt y)
+
+propMinusSI :: SatInt -> SatInt -> Property
+propMinusSI x y = x - y === fromInteger (fromSatInt x - fromSatInt y)
+
+propTimesSI :: SatInt -> SatInt -> Property
+propTimesSI x y = x * y === fromInteger (fromSatInt x * fromSatInt y)
+
+instance Arbitrary SatInt where
+  arbitrary =
+    unsafeToSatInt
+      <$> frequency
+        [ (1, pure (-1))
+        , (1, pure (-2))
+        , (1, pure 0)
+        , (1, pure 1)
+        , (1, pure 2)
+        , (1, pure minBound)
+        , (1, pure maxBound)
+        , (4, choose (2 ^ (30 :: Int), 2 ^ (62 :: Int)))
+        , (4, choose (negate (2 ^ (62 :: Int)), negate (2 ^ (30 :: Int))))
+        , (50, arbitrary)
+        ]
+  shrink = fmap unsafeToSatInt . shrink . unSatInt
