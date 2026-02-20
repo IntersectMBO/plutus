@@ -308,7 +308,7 @@ library
     , base64-bytestring
     , bimap
     , bytestring
-    , cardano-crypto-class        ^>=2.3
+    , cardano-crypto-class
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
@@ -738,7 +738,7 @@ executable plutus
     , singletons-th
     , text
     , text-zipper
-    , vty                    ^>=6.2
+    , vty                    ^>=6.5
     , vty-crossplatform      ^>=0.4
 
   ghc-options:        -O2 -threaded -rtsopts -with-rtsopts=-N
