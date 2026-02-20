@@ -640,27 +640,27 @@
                                                        {integer}
                                                        ds
                                                        {bool}
-                                                       (\(a : integer)
-                                                         (b : integer) ->
+                                                       (\(l1l : integer)
+                                                         (l2l : integer) ->
                                                           Tuple2_match
                                                             {integer}
                                                             {integer}
                                                             ds
                                                             {bool}
-                                                            (\(a' : integer)
-                                                              (b' : integer) ->
+                                                            (\(r1r : integer)
+                                                              (r2r : integer) ->
                                                                case
                                                                  (all dead.
                                                                     bool)
                                                                  (equalsInteger
-                                                                    a
-                                                                    a')
+                                                                    l1l
+                                                                    r1r)
                                                                  [ (/\dead ->
                                                                       False)
                                                                  , (/\dead ->
                                                                       equalsInteger
-                                                                        b
-                                                                        b') ]
+                                                                        l2l
+                                                                        r2r) ]
                                                                  {all dead.
                                                                     dead})))
                                                   t
@@ -900,16 +900,16 @@
            {ChessSet}
            ds
            {bool}
-           (\(a : integer) (b : ChessSet) ->
+           (\(l1l : integer) (l2l : ChessSet) ->
               Tuple2_match
                 {integer}
                 {ChessSet}
                 ds
                 {bool}
-                (\(a' : integer) (b' : ChessSet) ->
+                (\(r1r : integer) (r2r : ChessSet) ->
                    case
                      (all dead. bool)
-                     (equalsInteger a a')
+                     (equalsInteger l1l r1r)
                      [(/\dead -> False), (/\dead -> True)]
                      {all dead. dead})))
       depth
@@ -1224,29 +1224,29 @@
                                                  {ChessSet}
                                                  eta
                                                  {bool}
-                                                 (\(a : integer)
-                                                   (b : ChessSet) ->
+                                                 (\(l1l : integer)
+                                                   (l2l : ChessSet) ->
                                                     Tuple2_match
                                                       {integer}
                                                       {ChessSet}
                                                       eta
                                                       {bool}
-                                                      (\(a' : integer)
-                                                        (b' : ChessSet) ->
+                                                      (\(r1r : integer)
+                                                        (r2r : ChessSet) ->
                                                          case
                                                            (all dead. bool)
                                                            (`$p1Ord`
                                                               {integer}
                                                               v
-                                                              a
-                                                              a')
+                                                              l1l
+                                                              r1r)
                                                            [ (/\dead -> False)
                                                            , (/\dead ->
                                                                 `$p1Ord`
                                                                   {ChessSet}
                                                                   v
-                                                                  b
-                                                                  b') ]
+                                                                  l2l
+                                                                  r2r) ]
                                                            {all dead. dead})))
                                             (\(ds : Tuple2 integer ChessSet)
                                               (ds : Tuple2 integer ChessSet) ->

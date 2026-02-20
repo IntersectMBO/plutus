@@ -167,6 +167,11 @@ library plutus-ledger-api-testlib
 
 test-suite plutus-ledger-api-test
   import:         lang
+
+  -- needs linux 'diff' available
+  if os(windows)
+    buildable: False
+
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test
@@ -178,6 +183,7 @@ test-suite plutus-ledger-api-test
     Spec.Data.CostModelParams
     Spec.Data.Eval
     Spec.Data.Versions
+    Spec.Eq.Golden
     Spec.Eval
     Spec.Interval
     Spec.ScriptDecodeError

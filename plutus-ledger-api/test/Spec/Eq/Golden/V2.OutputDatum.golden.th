@@ -1,0 +1,11 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V2.Tx.OutputDatum where
+  (PlutusTx.Eq.Class.==) (PlutusLedgerApi.V2.Tx.NoOutputDatum) (PlutusLedgerApi.V2.Tx.NoOutputDatum)
+    = GHC.Types.True
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V2.Tx.OutputDatumHash l1l_0)
+    (PlutusLedgerApi.V2.Tx.OutputDatumHash r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V2.Tx.OutputDatum l1l_0)
+    (PlutusLedgerApi.V2.Tx.OutputDatum r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

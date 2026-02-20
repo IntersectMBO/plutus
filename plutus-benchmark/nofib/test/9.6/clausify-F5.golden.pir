@@ -285,19 +285,19 @@
                    {bool}
                    True
                    (\(ipv : a) (ipv : List a) -> False))
-              (\(x : a) (xs : List a) ->
+              (\(l1l : a) (l2l : List a) ->
                  /\dead ->
                    List_match
                      {a}
                      eta
                      {bool}
                      False
-                     (\(y : a) (ys : List a) ->
+                     (\(r1r : a) (r2r : List a) ->
                         case
                           (all dead. bool)
-                          (`$dEq` x y)
+                          (`$dEq` l1l r1r)
                           [ (/\dead -> False)
-                          , (/\dead -> `$fEqList_$c==` {a} `$dEq` xs ys) ]
+                          , (/\dead -> `$fEqList_$c==` {a} `$dEq` l2l r2r) ]
                           {all dead. dead}))
               {all dead. dead}
   in
@@ -469,19 +469,19 @@
                                         {b}
                                         eta
                                         {bool}
-                                        (\(a : a) (b : b) ->
+                                        (\(l1l : a) (l2l : b) ->
                                            Tuple2_match
                                              {a}
                                              {b}
                                              eta
                                              {bool}
-                                             (\(a' : a) (b' : b) ->
+                                             (\(r1r : a) (r2r : b) ->
                                                 case
                                                   (all dead. bool)
-                                                  (`$p1Ord` {a} v a a')
+                                                  (`$p1Ord` {a} v l1l r1r)
                                                   [ (/\dead -> False)
                                                   , (/\dead ->
-                                                       `$p1Ord` {b} v b b') ]
+                                                       `$p1Ord` {b} v l2l r2r) ]
                                                   {all dead. dead})))
                                    (\(ds : Tuple2 a b) (ds : Tuple2 a b) ->
                                       Tuple2_match

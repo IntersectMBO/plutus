@@ -9,6 +9,7 @@
 module PlutusTx.Test.Golden
   ( -- * TH CodGen
     goldenCodeGen
+  , goldenCodeGenNormalized
 
     -- * Compilation testing
   , goldenPir
@@ -40,6 +41,7 @@ import Prelude
 
 import Control.Lens (Field1 (_1), view)
 import Control.Monad.Except (runExceptT)
+import Data.Char (isAlphaNum, isDigit)
 import Data.List qualified as List
 import Data.SatInt (fromSatInt)
 import Data.Text (Text)
@@ -79,6 +81,7 @@ import PlutusIR.Test ()
 import PlutusTx.Code (CompiledCode, CompiledCodeIn (..), countAstNodes, getPir, getPirNoAnn)
 import PlutusTx.Test.Orphans ()
 import PlutusTx.Test.Run.Uplc (runPlcCek, runPlcCekBudget, runPlcCekTrace)
+import PlutusTx.Test.THPretty (pprintDecs)
 import PlutusTx.Test.Util.Compiled (countFlatBytes)
 import Prettyprinter (fill, vsep, (<+>))
 import Test.Tasty (TestName)
@@ -86,11 +89,49 @@ import Test.Tasty.Extras ()
 import Text.Printf (printf)
 import UntypedPlutusCore qualified as UPLC
 
+{- Note [Stripping TH-generated unique suffixes in golden tests]
+Template Haskell's 'newName' generates globally unique names by appending
+large numeric suffixes (e.g., @TxOutRef_6989586621680002620@). Types defined
+via 'PlutusTx.asData' use 'newName' for their internal constructor names,
+so when 'deriveEq' (or similar TH derivations) reify these types, the
+generated code includes these non-deterministic suffixes.
+
+The suffixes change across compilations, making golden tests fragile --
+every recompilation produces a diff even though the generated logic is
+identical. We strip suffixes of 7+ digits at word boundaries to normalize
+the output. Short suffixes like @_0@ or @_1@ (from local 'newName' calls
+in deriveEq) are stable and left intact.
+-}
+
 -- Value assertion tests
-goldenCodeGen :: TH.Ppr a => TestName -> TH.Q a -> TH.ExpQ
+
+-- | Golden test for TH-generated code, with exact output (no normalization).
+goldenCodeGen :: TestName -> TH.Q [TH.Dec] -> TH.ExpQ
 goldenCodeGen name code = do
-  c <- code
-  [|nestedGoldenVsDoc name ".th" $(TH.stringE $ TH.pprint c)|]
+  decs <- code
+  [|nestedGoldenVsDoc name ".th" (pretty @String $(TH.stringE $ pprintDecs decs))|]
+
+{-| Like 'goldenCodeGen' but strips TH-generated unique name suffixes
+to produce deterministic output.
+See Note [Stripping TH-generated unique suffixes in golden tests] -}
+goldenCodeGenNormalized :: TestName -> TH.Q [TH.Dec] -> TH.ExpQ
+goldenCodeGenNormalized name code = do
+  decs <- code
+  [|nestedGoldenVsDoc name ".th" (pretty @String $(TH.stringE $ stripTHSuffixes $ pprintDecs decs))|]
+
+-- | See Note [Stripping TH-generated unique suffixes in golden tests]
+stripTHSuffixes :: String -> String
+stripTHSuffixes [] = []
+stripTHSuffixes ('_' : rest)
+  | (digits, remaining) <- span isDigit rest
+  , length digits >= 7
+  , atWordBoundary remaining =
+      stripTHSuffixes remaining
+stripTHSuffixes (c : cs) = c : stripTHSuffixes cs
+
+atWordBoundary :: String -> Bool
+atWordBoundary [] = True
+atWordBoundary (c : _) = not (isAlphaNum c) && c /= '_' && c /= '\''
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
 goldenBudget name compiledCode = do

@@ -1,0 +1,21 @@
+instance (PlutusTx.Eq.Class.Eq a_0
+, PlutusTx.Eq.Class.Eq b_0
+, PlutusTx.Eq.Class.Eq c_0
+, PlutusTx.Eq.Class.Eq d_0
+, PlutusTx.Eq.Class.Eq e_0) => PlutusTx.Eq.Class.Eq (Eq.Spec.SomeLargeADT a_0 b_0 c_0 d_0 e_0) where
+  (PlutusTx.Eq.Class.==)
+    (Eq.Spec.SomeLargeADT1 l1l_0 l2l_0 l3l_0 l4l_0 l5l_0 l6l_0)
+    (Eq.Spec.SomeLargeADT1 r1r_0 r2r_0 r3r_0 r4r_0 r5r_0 r6r_0) = (l1l_0 PlutusTx.Eq.Class.== r1r_0)
+      PlutusTx.Bool.&& ((l2l_0 PlutusTx.Eq.Class.== r2r_0) PlutusTx.Bool.&& ((l3l_0
+            PlutusTx.Eq.Class.== r3r_0) PlutusTx.Bool.&& ((l4l_0 PlutusTx.Eq.Class.== r4r_0)
+            PlutusTx.Bool.&& ((l5l_0 PlutusTx.Eq.Class.== r5r_0) PlutusTx.Bool.&& (l6l_0
+                PlutusTx.Eq.Class.== r6r_0)))))
+  (PlutusTx.Eq.Class.==) (Eq.Spec.SomeLargeADT2) (Eq.Spec.SomeLargeADT2) = GHC.Types.True
+  (PlutusTx.Eq.Class.==)
+    (Eq.Spec.SomeLargeADT3 l1l_0 l2l_0 l3l_0 l4l_0 l5l_0)
+    (Eq.Spec.SomeLargeADT3 r1r_0 r2r_0 r3r_0 r4r_0 r5r_0) = (l1l_0 PlutusTx.Eq.Class.== r1r_0)
+      PlutusTx.Bool.&& ((l2l_0 PlutusTx.Eq.Class.== r2r_0) PlutusTx.Bool.&& ((l3l_0
+            PlutusTx.Eq.Class.== r3r_0) PlutusTx.Bool.&& ((l4l_0 PlutusTx.Eq.Class.== r4r_0)
+            PlutusTx.Bool.&& (l5l_0 PlutusTx.Eq.Class.== r5r_0))))
+  (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

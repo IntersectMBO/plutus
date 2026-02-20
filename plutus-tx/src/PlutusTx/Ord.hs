@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 -- editorconfig-checker-disable-file
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module PlutusTx.Ord (Ord (..), Ordering (..)) where
 
@@ -57,13 +57,6 @@ class Eq a => Ord a where
   {-# INLINEABLE min #-}
   min x y = if x <= y then x else y
   {-# MINIMAL compare | (<=) #-}
-
-instance Eq Ordering where
-  {-# INLINEABLE (==) #-}
-  EQ == EQ = True
-  GT == GT = True
-  LT == LT = True
-  _ == _ = False
 
 instance Ord Builtins.Integer where
   {-# INLINEABLE (<) #-}

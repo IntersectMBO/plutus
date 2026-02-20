@@ -91,6 +91,7 @@ library
     PlutusTx.Enum
     PlutusTx.Enum.Class
     PlutusTx.Eq
+    PlutusTx.Eq.Class
     PlutusTx.ErrorCodes
     PlutusTx.Eval
     PlutusTx.Foldable
@@ -124,6 +125,7 @@ library
 
   other-modules:
     PlutusTx.Enum.TH
+    PlutusTx.Eq.TH
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
@@ -179,6 +181,7 @@ library plutus-tx-testlib
     PlutusTx.Test.Orphans
     PlutusTx.Test.Run.Code
     PlutusTx.Test.Run.Uplc
+    PlutusTx.Test.THPretty
     PlutusTx.Test.Util.Apply
     PlutusTx.Test.Util.Compiled
 
@@ -216,6 +219,7 @@ test-suite plutus-tx-test
     Blueprint.Spec
     Bool.Spec
     Enum.Spec
+    Eq.Spec
     List.Spec
     Rational.Laws
     Rational.Laws.Additive

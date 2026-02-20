@@ -2,23 +2,23 @@
     data Credential | Credential_match where
       PubKeyCredential : bytestring -> Credential
       ScriptCredential : bytestring -> Credential
-    !`$fEqCredential_$c==` : Credential -> Credential -> bool
+    !`$fEqCredential0_$c==` : Credential -> Credential -> bool
       = \(ds : Credential) (ds : Credential) ->
           Credential_match
             ds
             {bool}
-            (\(l : bytestring) ->
+            (\(l1l : bytestring) ->
                Credential_match
                  ds
                  {bool}
-                 (\(r : bytestring) -> equalsByteString l r)
+                 (\(r1r : bytestring) -> equalsByteString l1l r1r)
                  (\(ipv : bytestring) -> False))
-            (\(a : bytestring) ->
+            (\(l1l : bytestring) ->
                Credential_match
                  ds
                  {bool}
                  (\(ipv : bytestring) -> False)
-                 (\(a' : bytestring) -> equalsByteString a a'))
+                 (\(r1r : bytestring) -> equalsByteString l1l r1r))
     data Unit | Unit_match where
       Unit : Unit
     !traceError : all a. string -> a
@@ -84,64 +84,66 @@
                         (Address_match
                            ds
                            {bool}
-                           (\(cred : Credential)
-                             (stakingCred : Maybe StakingCredential) ->
+                           (\(l1l : Credential)
+                             (l2l : Maybe StakingCredential) ->
                               Address_match
                                 ds
                                 {bool}
-                                (\(cred' : Credential)
-                                  (stakingCred' : Maybe StakingCredential) ->
+                                (\(r1r : Credential)
+                                  (r2r : Maybe StakingCredential) ->
                                    case
                                      (all dead. bool)
-                                     (`$fEqCredential_$c==` cred cred')
+                                     (`$fEqCredential0_$c==` l1l r1r)
                                      [ (/\dead -> False)
                                      , (/\dead ->
                                           Maybe_match
                                             {StakingCredential}
-                                            stakingCred
+                                            l2l
                                             {all dead. bool}
-                                            (\(a : StakingCredential) ->
+                                            (\(l1l : StakingCredential) ->
                                                /\dead ->
                                                  Maybe_match
                                                    {StakingCredential}
-                                                   stakingCred'
+                                                   r2r
                                                    {bool}
-                                                   (\(a : StakingCredential) ->
+                                                   (\(r1r :
+                                                        StakingCredential) ->
                                                       StakingCredential_match
-                                                        a
+                                                        l1l
                                                         {bool}
-                                                        (\(l : Credential) ->
+                                                        (\(l1l : Credential) ->
                                                            StakingCredential_match
-                                                             a
+                                                             r1r
                                                              {bool}
-                                                             (\(r :
+                                                             (\(r1r :
                                                                   Credential) ->
-                                                                `$fEqCredential_$c==`
-                                                                  l
-                                                                  r)
+                                                                `$fEqCredential0_$c==`
+                                                                  l1l
+                                                                  r1r)
                                                              (\(ipv : integer)
                                                                (ipv : integer)
                                                                (ipv :
                                                                   integer) ->
                                                                 False))
-                                                        (\(a : integer)
-                                                          (b : integer)
-                                                          (c : integer) ->
+                                                        (\(l1l : integer)
+                                                          (l2l : integer)
+                                                          (l3l : integer) ->
                                                            StakingCredential_match
-                                                             a
+                                                             r1r
                                                              {bool}
                                                              (\(ipv :
                                                                   Credential) ->
                                                                 False)
-                                                             (\(a' : integer)
-                                                               (b' : integer)
-                                                               (c' : integer) ->
+                                                             (\(r1r : integer)
+                                                               (r2r : integer)
+                                                               (r3r :
+                                                                  integer) ->
                                                                 case
                                                                   (all dead.
                                                                      bool)
                                                                   (equalsInteger
-                                                                     a
-                                                                     a')
+                                                                     l1l
+                                                                     r1r)
                                                                   [ (/\dead ->
                                                                        False)
                                                                   , (/\dead ->
@@ -149,14 +151,14 @@
                                                                          (all dead.
                                                                             bool)
                                                                          (equalsInteger
-                                                                            b
-                                                                            b')
+                                                                            l2l
+                                                                            r2r)
                                                                          [ (/\dead ->
                                                                               False)
                                                                          , (/\dead ->
                                                                               equalsInteger
-                                                                                c
-                                                                                c') ]
+                                                                                l3l
+                                                                                r3r) ]
                                                                          {all dead.
                                                                             dead}) ]
                                                                   {all dead.
@@ -165,7 +167,7 @@
                                             (/\dead ->
                                                Maybe_match
                                                  {StakingCredential}
-                                                 stakingCred'
+                                                 r2r
                                                  {bool}
                                                  (\(ipv : StakingCredential) ->
                                                     False)
@@ -231,44 +233,43 @@
                              (Address_match
                                 ds
                                 {bool}
-                                (\(cred : Credential)
-                                  (stakingCred : Maybe StakingCredential) ->
+                                (\(l1l : Credential)
+                                  (l2l : Maybe StakingCredential) ->
                                    Address_match
                                      ds
                                      {bool}
-                                     (\(cred' : Credential)
-                                       (stakingCred' :
-                                          Maybe StakingCredential) ->
+                                     (\(r1r : Credential)
+                                       (r2r : Maybe StakingCredential) ->
                                         case
                                           (all dead. bool)
-                                          (`$fEqCredential_$c==` cred cred')
+                                          (`$fEqCredential0_$c==` l1l r1r)
                                           [ (/\dead -> False)
                                           , (/\dead ->
                                                Maybe_match
                                                  {StakingCredential}
-                                                 stakingCred
+                                                 l2l
                                                  {all dead. bool}
-                                                 (\(a : StakingCredential) ->
+                                                 (\(l1l : StakingCredential) ->
                                                     /\dead ->
                                                       Maybe_match
                                                         {StakingCredential}
-                                                        stakingCred'
+                                                        r2r
                                                         {bool}
-                                                        (\(a :
+                                                        (\(r1r :
                                                              StakingCredential) ->
                                                            StakingCredential_match
-                                                             a
+                                                             l1l
                                                              {bool}
-                                                             (\(l :
+                                                             (\(l1l :
                                                                   Credential) ->
                                                                 StakingCredential_match
-                                                                  a
+                                                                  r1r
                                                                   {bool}
-                                                                  (\(r :
+                                                                  (\(r1r :
                                                                        Credential) ->
-                                                                     `$fEqCredential_$c==`
-                                                                       l
-                                                                       r)
+                                                                     `$fEqCredential0_$c==`
+                                                                       l1l
+                                                                       r1r)
                                                                   (\(ipv :
                                                                        integer)
                                                                     (ipv :
@@ -276,27 +277,28 @@
                                                                     (ipv :
                                                                        integer) ->
                                                                      False))
-                                                             (\(a : integer)
-                                                               (b : integer)
-                                                               (c : integer) ->
+                                                             (\(l1l : integer)
+                                                               (l2l : integer)
+                                                               (l3l :
+                                                                  integer) ->
                                                                 StakingCredential_match
-                                                                  a
+                                                                  r1r
                                                                   {bool}
                                                                   (\(ipv :
                                                                        Credential) ->
                                                                      False)
-                                                                  (\(a' :
+                                                                  (\(r1r :
                                                                        integer)
-                                                                    (b' :
+                                                                    (r2r :
                                                                        integer)
-                                                                    (c' :
+                                                                    (r3r :
                                                                        integer) ->
                                                                      case
                                                                        (all dead.
                                                                           bool)
                                                                        (equalsInteger
-                                                                          a
-                                                                          a')
+                                                                          l1l
+                                                                          r1r)
                                                                        [ (/\dead ->
                                                                             False)
                                                                        , (/\dead ->
@@ -304,14 +306,14 @@
                                                                               (all dead.
                                                                                  bool)
                                                                               (equalsInteger
-                                                                                 b
-                                                                                 b')
+                                                                                 l2l
+                                                                                 r2r)
                                                                               [ (/\dead ->
                                                                                    False)
                                                                               , (/\dead ->
                                                                                    equalsInteger
-                                                                                     c
-                                                                                     c') ]
+                                                                                     l3l
+                                                                                     r3r) ]
                                                                               {all dead.
                                                                                  dead}) ]
                                                                        {all dead.
@@ -320,7 +322,7 @@
                                                  (/\dead ->
                                                     Maybe_match
                                                       {StakingCredential}
-                                                      stakingCred'
+                                                      r2r
                                                       {bool}
                                                       (\(ipv :
                                                            StakingCredential) ->
@@ -5562,8 +5564,6 @@
             {all dead. dead}
   in
   let
-    !equalsInteger : integer -> integer -> bool
-      = \(x : integer) (y : integer) -> equalsInteger x y
     ~`$fAdditiveMonoidValue` :
        (\k v -> List (Tuple2 k v))
          bytestring
@@ -5701,36 +5701,29 @@
                    ds
                    {TxOut}
                    (\(iRef : TxOutRef) (ot : TxOut) ->
-                      case
-                        (all dead. TxOut)
-                        (case
-                           (all dead. bool)
-                           (TxOutRef_match
-                              iRef
-                              {bool}
-                              (\(ds : bytestring) (ds : integer) ->
-                                 TxOutRef_match
-                                   ds
-                                   {bool}
-                                   (\(ds : bytestring) (ds : integer) ->
-                                      equalsByteString ds ds)))
-                           [ (/\dead -> False)
-                           , (/\dead ->
-                                TxOutRef_match
-                                  iRef
-                                  {bool}
-                                  (\(ds : bytestring) (ds : integer) ->
-                                     TxOutRef_match
-                                       ds
-                                       {bool}
-                                       (\(ds : bytestring) (ds : integer) ->
-                                          equalsInteger ds ds))) ]
-                           {all dead. dead})
-                        [(/\dead -> getScriptInput tl ds), (/\dead -> ot)]
-                        {all dead. dead}))
+                      TxOutRef_match
+                        ds
+                        {TxOut}
+                        (\(ipv : bytestring) (ipv : integer) ->
+                           case
+                             (all dead. TxOut)
+                             (TxOutRef_match
+                                iRef
+                                {bool}
+                                (\(l1l : bytestring) (l2l : integer) ->
+                                   case
+                                     (all dead. bool)
+                                     (equalsByteString l1l ipv)
+                                     [ (/\dead -> False)
+                                     , (/\dead -> equalsInteger l2l ipv) ]
+                                     {all dead. dead}))
+                             [(/\dead -> getScriptInput tl ds), (/\dead -> ot)]
+                             {all dead. dead})))
             {all dead. dead}
   in
   let
+    !equalsInteger : integer -> integer -> bool
+      = \(x : integer) (y : integer) -> equalsInteger x y
     !lenderId : LoanDatum -> Tuple2 bytestring bytestring
       = \(ds : LoanDatum) ->
           LoanDatum_match
@@ -11539,7 +11532,7 @@
                                                         case
                                                           (all dead.
                                                              Maybe integer)
-                                                          (`$fEqCredential_$c==`
+                                                          (`$fEqCredential0_$c==`
                                                              c'
                                                              cred)
                                                           [ (/\dead -> go xs')

@@ -1,0 +1,12 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V3.Contexts.Voter where
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V3.Contexts.CommitteeVoter l1l_0)
+    (PlutusLedgerApi.V3.Contexts.CommitteeVoter r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V3.Contexts.DRepVoter l1l_0)
+    (PlutusLedgerApi.V3.Contexts.DRepVoter r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V3.Contexts.StakePoolVoter l1l_0)
+    (PlutusLedgerApi.V3.Contexts.StakePoolVoter r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

@@ -70,8 +70,7 @@ data TxInInfo = TxInInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
-instance Eq TxInInfo where
-  TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
+deriveEq ''TxInInfo
 
 instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
@@ -109,6 +108,19 @@ data TxInfo = TxInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
+{- Note [No PlutusTx.Eq for types with AssocMap]
+
+PlutusTx.AssocMap does not have an Eq instance because equality semantics are
+ambiguous when duplicate keys may be present. Two AssocMaps with the same logical
+mapping but different internal representations (e.g., different orderings or
+duplicate entries) could be considered equal or unequal depending on interpretation.
+
+Since TxInfo contains Map fields (which use AssocMap internally), we cannot derive
+PlutusTx.Eq for it. This affects V2 onwards where assoc lists were changed to Maps.
+-}
+
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
+
 instance Pretty TxInfo where
   pretty TxInfo {txInfoInputs, txInfoReferenceInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoRedeemers, txInfoData, txInfoId} =
     vsep
@@ -134,6 +146,8 @@ data ScriptContext = ScriptContext
   -- ^ the purpose of the currently-executing script
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
+
+-- No PlutusTx.Eq instance, see Note [No PlutusTx.Eq for types with AssocMap]
 
 instance Pretty ScriptContext where
   pretty ScriptContext {scriptContextTxInfo, scriptContextPurpose} =

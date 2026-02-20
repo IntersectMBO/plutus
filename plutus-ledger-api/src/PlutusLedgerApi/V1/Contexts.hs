@@ -78,8 +78,7 @@ data TxInInfo = TxInInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
-instance Eq TxInInfo where
-  TxInInfo ref res == TxInInfo ref' res' = ref == ref' && res == res'
+deriveEq ''TxInInfo
 
 instance Pretty TxInInfo where
   pretty TxInInfo {txInInfoOutRef, txInInfoResolved} =
@@ -95,13 +94,7 @@ data ScriptPurpose
   deriving anyclass (HasBlueprintDefinition)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
-instance Eq ScriptPurpose where
-  {-# INLINEABLE (==) #-}
-  Minting cs == Minting cs' = cs == cs'
-  Spending ref == Spending ref' = ref == ref'
-  Rewarding sc == Rewarding sc' = sc == sc'
-  Certifying cert == Certifying cert' = cert == cert'
-  _ == _ = False
+deriveEq ''ScriptPurpose
 
 -- | A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 data TxInfo = TxInfo
@@ -129,10 +122,7 @@ data TxInfo = TxInfo
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving anyclass (HasBlueprintDefinition)
 
-instance Eq TxInfo where
-  {-# INLINEABLE (==) #-}
-  TxInfo i o f m c w r s d tid == TxInfo i' o' f' m' c' w' r' s' d' tid' =
-    i == i' && o == o' && f == f' && m == m' && c == c' && w == w' && r == r' && s == s' && d == d' && tid == tid'
+deriveEq ''TxInfo
 
 instance Pretty TxInfo where
   pretty TxInfo {txInfoInputs, txInfoOutputs, txInfoFee, txInfoMint, txInfoDCert, txInfoWdrl, txInfoValidRange, txInfoSignatories, txInfoData, txInfoId} =
@@ -158,9 +148,7 @@ data ScriptContext = ScriptContext
   }
   deriving stock (Generic, Haskell.Eq, Haskell.Show)
 
-instance Eq ScriptContext where
-  {-# INLINEABLE (==) #-}
-  ScriptContext info purpose == ScriptContext info' purpose' = info == info' && purpose == purpose'
+deriveEq ''ScriptContext
 
 instance Pretty ScriptContext where
   pretty ScriptContext {scriptContextTxInfo, scriptContextPurpose} =

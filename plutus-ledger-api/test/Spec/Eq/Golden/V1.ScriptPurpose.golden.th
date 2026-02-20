@@ -1,0 +1,15 @@
+instance PlutusTx.Eq.Class.Eq PlutusLedgerApi.V1.Contexts.ScriptPurpose where
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V1.Contexts.Minting l1l_0)
+    (PlutusLedgerApi.V1.Contexts.Minting r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V1.Contexts.Spending l1l_0)
+    (PlutusLedgerApi.V1.Contexts.Spending r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V1.Contexts.Rewarding l1l_0)
+    (PlutusLedgerApi.V1.Contexts.Rewarding r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==)
+    (PlutusLedgerApi.V1.Contexts.Certifying l1l_0)
+    (PlutusLedgerApi.V1.Contexts.Certifying r1r_0) = l1l_0 PlutusTx.Eq.Class.== r1r_0
+  (PlutusTx.Eq.Class.==) _ _ = GHC.Types.False
+  {-# INLINABLE (PlutusTx.Eq.Class.==) #-}

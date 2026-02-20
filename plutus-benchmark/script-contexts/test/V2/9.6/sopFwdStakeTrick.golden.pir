@@ -720,61 +720,62 @@ in
                                                   (StakingCredential_match
                                                      c'
                                                      {bool}
-                                                     (\(l : Credential) ->
+                                                     (\(l1l : Credential) ->
                                                         StakingCredential_match
                                                           obsScriptCred'
                                                           {bool}
-                                                          (\(r : Credential) ->
+                                                          (\(r1r :
+                                                               Credential) ->
                                                              Credential_match
-                                                               l
+                                                               l1l
                                                                {bool}
-                                                               (\(l :
+                                                               (\(l1l :
                                                                     bytestring) ->
                                                                   Credential_match
-                                                                    r
+                                                                    r1r
                                                                     {bool}
-                                                                    (\(r :
+                                                                    (\(r1r :
                                                                          bytestring) ->
                                                                        equalsByteString
-                                                                         l
-                                                                         r)
+                                                                         l1l
+                                                                         r1r)
                                                                     (\(ipv :
                                                                          bytestring) ->
                                                                        False))
-                                                               (\(a :
+                                                               (\(l1l :
                                                                     bytestring) ->
                                                                   Credential_match
-                                                                    r
+                                                                    r1r
                                                                     {bool}
                                                                     (\(ipv :
                                                                          bytestring) ->
                                                                        False)
-                                                                    (\(a' :
+                                                                    (\(r1r :
                                                                          bytestring) ->
                                                                        equalsByteString
-                                                                         a
-                                                                         a')))
+                                                                         l1l
+                                                                         r1r)))
                                                           (\(ipv : integer)
                                                             (ipv : integer)
                                                             (ipv : integer) ->
                                                              False))
-                                                     (\(a : integer)
-                                                       (b : integer)
-                                                       (c : integer) ->
+                                                     (\(l1l : integer)
+                                                       (l2l : integer)
+                                                       (l3l : integer) ->
                                                         StakingCredential_match
                                                           obsScriptCred'
                                                           {bool}
                                                           (\(ipv :
                                                                Credential) ->
                                                              False)
-                                                          (\(a' : integer)
-                                                            (b' : integer)
-                                                            (c' : integer) ->
+                                                          (\(r1r : integer)
+                                                            (r2r : integer)
+                                                            (r3r : integer) ->
                                                              case
                                                                (all dead. bool)
                                                                (equalsInteger
-                                                                  a
-                                                                  a')
+                                                                  l1l
+                                                                  r1r)
                                                                [ (/\dead ->
                                                                     False)
                                                                , (/\dead ->
@@ -782,14 +783,14 @@ in
                                                                       (all dead.
                                                                          bool)
                                                                       (equalsInteger
-                                                                         b
-                                                                         b')
+                                                                         l2l
+                                                                         r2r)
                                                                       [ (/\dead ->
                                                                            False)
                                                                       , (/\dead ->
                                                                            equalsInteger
-                                                                             c
-                                                                             c') ]
+                                                                             l3l
+                                                                             r3r) ]
                                                                       {all dead.
                                                                          dead}) ]
                                                                {all dead.
@@ -805,36 +806,40 @@ in
                                 = StakingCredential_match
                                     obsScriptCred'
                                     {Unit}
-                                    (\(l : Credential) ->
+                                    (\(l1l : Credential) ->
                                        StakingCredential_match
                                          a
                                          {Unit}
-                                         (\(r : Credential) ->
+                                         (\(r1r : Credential) ->
                                             Credential_match
-                                              l
+                                              l1l
                                               {Unit}
-                                              (\(l : bytestring) ->
+                                              (\(l1l : bytestring) ->
                                                  Credential_match
-                                                   r
+                                                   r1r
                                                    {Unit}
-                                                   (\(r : bytestring) ->
+                                                   (\(r1r : bytestring) ->
                                                       case
                                                         (all dead. Unit)
-                                                        (equalsByteString l r)
+                                                        (equalsByteString
+                                                           l1l
+                                                           r1r)
                                                         [ (/\dead -> `$j`)
                                                         , (/\dead -> Unit) ]
                                                         {all dead. dead})
                                                    (\(ipv : bytestring) ->
                                                       `$j`))
-                                              (\(a : bytestring) ->
+                                              (\(l1l : bytestring) ->
                                                  Credential_match
-                                                   r
+                                                   r1r
                                                    {Unit}
                                                    (\(ipv : bytestring) -> `$j`)
-                                                   (\(a' : bytestring) ->
+                                                   (\(r1r : bytestring) ->
                                                       case
                                                         (all dead. Unit)
-                                                        (equalsByteString a a')
+                                                        (equalsByteString
+                                                           l1l
+                                                           r1r)
                                                         [ (/\dead -> `$j`)
                                                         , (/\dead -> Unit) ]
                                                         {all dead. dead})))
@@ -842,31 +847,31 @@ in
                                            (ipv : integer)
                                            (ipv : integer) ->
                                             `$j`))
-                                    (\(a : integer)
-                                      (b : integer)
-                                      (c : integer) ->
+                                    (\(l1l : integer)
+                                      (l2l : integer)
+                                      (l3l : integer) ->
                                        StakingCredential_match
                                          a
                                          {Unit}
                                          (\(ipv : Credential) -> `$j`)
-                                         (\(a' : integer)
-                                           (b' : integer)
-                                           (c' : integer) ->
+                                         (\(r1r : integer)
+                                           (r2r : integer)
+                                           (r3r : integer) ->
                                             case
                                               (all dead. Unit)
                                               (case
                                                  (all dead. bool)
-                                                 (equalsInteger a a')
+                                                 (equalsInteger l1l r1r)
                                                  [ (/\dead -> False)
                                                  , (/\dead ->
                                                       case
                                                         (all dead. bool)
-                                                        (equalsInteger b b')
+                                                        (equalsInteger l2l r2r)
                                                         [ (/\dead -> False)
                                                         , (/\dead ->
                                                              equalsInteger
-                                                               c
-                                                               c') ]
+                                                               l3l
+                                                               r3r) ]
                                                         {all dead. dead}) ]
                                                  {all dead. dead})
                                               [ (/\dead -> `$j`)
@@ -876,35 +881,35 @@ in
                             StakingCredential_match
                               obsScriptCred'
                               {Unit}
-                              (\(l : Credential) ->
+                              (\(l1l : Credential) ->
                                  StakingCredential_match
                                    a
                                    {Unit}
-                                   (\(r : Credential) ->
+                                   (\(r1r : Credential) ->
                                       Credential_match
-                                        l
+                                        l1l
                                         {Unit}
-                                        (\(l : bytestring) ->
+                                        (\(l1l : bytestring) ->
                                            Credential_match
-                                             r
+                                             r1r
                                              {Unit}
-                                             (\(r : bytestring) ->
+                                             (\(r1r : bytestring) ->
                                                 case
                                                   (all dead. Unit)
-                                                  (equalsByteString l r)
+                                                  (equalsByteString l1l r1r)
                                                   [ (/\dead -> `$j`)
                                                   , (/\dead -> Unit) ]
                                                   {all dead. dead})
                                              (\(ipv : bytestring) -> `$j`))
-                                        (\(a : bytestring) ->
+                                        (\(l1l : bytestring) ->
                                            Credential_match
-                                             r
+                                             r1r
                                              {Unit}
                                              (\(ipv : bytestring) -> `$j`)
-                                             (\(a' : bytestring) ->
+                                             (\(r1r : bytestring) ->
                                                 case
                                                   (all dead. Unit)
-                                                  (equalsByteString a a')
+                                                  (equalsByteString l1l r1r)
                                                   [ (/\dead -> `$j`)
                                                   , (/\dead -> Unit) ]
                                                   {all dead. dead})))
@@ -912,27 +917,29 @@ in
                                      (ipv : integer)
                                      (ipv : integer) ->
                                       `$j`))
-                              (\(a : integer) (b : integer) (c : integer) ->
+                              (\(l1l : integer)
+                                (l2l : integer)
+                                (l3l : integer) ->
                                  StakingCredential_match
                                    a
                                    {Unit}
                                    (\(ipv : Credential) -> `$j`)
-                                   (\(a' : integer)
-                                     (b' : integer)
-                                     (c' : integer) ->
+                                   (\(r1r : integer)
+                                     (r2r : integer)
+                                     (r3r : integer) ->
                                       case
                                         (all dead. Unit)
                                         (case
                                            (all dead. bool)
-                                           (equalsInteger a a')
+                                           (equalsInteger l1l r1r)
                                            [ (/\dead -> False)
                                            , (/\dead ->
                                                 case
                                                   (all dead. bool)
-                                                  (equalsInteger b b')
+                                                  (equalsInteger l2l r2r)
                                                   [ (/\dead -> False)
                                                   , (/\dead ->
-                                                       equalsInteger c c') ]
+                                                       equalsInteger l3l r3r) ]
                                                   {all dead. dead}) ]
                                            {all dead. dead})
                                         [(/\dead -> `$j`), (/\dead -> Unit)]
