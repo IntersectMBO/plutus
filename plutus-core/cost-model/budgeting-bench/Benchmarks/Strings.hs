@@ -130,10 +130,56 @@ benchSameTwoTextStrings name =
   where
     inputs = makeSized4ByteTextStrings seedA oneArgumentSizes
 
+-- 1-byte (ASCII) benchmark variants for costing analysis.
+-- These cover the same byte range as the 4-byte variants (which are 4x wider
+-- in bytes than in characters).  Since ASCII chars are 1 byte each, we use 4x
+-- the character counts to match.  Same number of benchmark entries per function.
+oneArgumentSizes1Byte :: [Integer]
+oneArgumentSizes1Byte = [0, 800 .. 80000] -- 101 entries, same byte range as 4-byte
+
+twoArgumentSizes1Byte :: [Integer]
+twoArgumentSizes1Byte = [0, 2000 .. 40000] -- 21 entries, same byte range as 4-byte
+
+benchOne1ByteTextString :: DefaultFun -> Benchmark
+benchOne1ByteTextString name =
+  createOneTermBuiltinBenchNamedWithWrapper
+    (show name ++ "1Byte")
+    id
+    name
+    []
+    $ makeSizedAsciiTextStrings seedA oneArgumentSizes1Byte
+
+benchTwo1ByteTextStrings :: DefaultFun -> Benchmark
+benchTwo1ByteTextStrings name =
+  let s1 = makeSizedAsciiTextStrings seedA twoArgumentSizes1Byte
+      s2 = makeSizedAsciiTextStrings seedB twoArgumentSizes1Byte
+   in createTwoTermBuiltinBenchNamedWithWrappers
+        (show name ++ "1Byte")
+        (id, id)
+        name
+        []
+        s1
+        s2
+
+benchSameTwo1ByteTextStrings :: DefaultFun -> Benchmark
+benchSameTwo1ByteTextStrings name =
+  createTwoTermBuiltinBenchElementwiseNamedWithWrappers
+    (show name ++ "1Byte")
+    (id, id)
+    name
+    []
+    $ pairWith T.copy inputs
+  where
+    inputs = makeSizedAsciiTextStrings seedA oneArgumentSizes1Byte
+
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks _gen =
   [ benchOneTextString EncodeUtf8
   , benchOneUtf8ByteString DecodeUtf8
   , benchTwoTextStrings AppendString
   , benchSameTwoTextStrings EqualsString
+  , -- 1-byte (ASCII) variants for costing analysis
+    benchOne1ByteTextString EncodeUtf8
+  , benchTwo1ByteTextStrings AppendString
+  , benchSameTwo1ByteTextStrings EqualsString
   ]
