@@ -293,8 +293,10 @@ data CekValue uni fun ann
   | VLamAbs !NamedDeBruijn !(NTerm uni fun ann) !(CekValEnv uni fun ann)
   | {-| A partial builtin application, accumulating arguments for eventual full application.
     We don't need a 'CekValEnv' here unlike in the other constructors, because 'VBuiltin'
-    values always store their corresponding 'Term's fully discharged, see the comments at
-    the call sites (search for 'VBuiltin'). -}
+    values store their corresponding 'Term's fully discharged, see the comments at
+    the call sites (search for 'VBuiltin').  Note however that a 'VBuiltin' /can/ be stored
+    in an environment (e.g. when passed as an argument to a lambda), so 'dischargeCekValue'
+    must still shift its free variables when discharging under additional binders. -}
     VBuiltin
       !fun
       {-^ So that we know, for what builtin we're calculating the cost. We can sneak this into
@@ -652,34 +654,43 @@ dischargeResultToTerm (DischargeConstant val) = Constant () val
 dischargeResultToTerm (DischargeNonConstant term) = term
 
 {-| Convert a 'CekValue' into a 'Term' by replacing all bound variables with the terms
-they're bound to (which themselves have to be obtained by recursively discharging values). -}
+they're bound to (which themselves have to be obtained by recursively discharging values).
+
+The @global@ parameter threads a cumulative shift through the traversal: when a value looked
+up from an environment is discharged, its own free variables must be shifted by the number of
+binders that were between the reference site and the environment boundary.  Instead of doing a
+separate post-pass ('shiftTermBy'), we fuse the shifting into the discharge by passing @global@
+down through 'goValue'. -}
 dischargeCekValue :: forall uni fun ann. CekValue uni fun ann -> DischargeResult uni fun
 dischargeCekValue (VCon val) = DischargeConstant val
-dischargeCekValue value0 = DischargeNonConstant $ goValue value0
+dischargeCekValue value0 = DischargeNonConstant $ goValue 0 value0
   where
-    goValue :: CekValue uni fun ann -> NTerm uni fun ()
-    goValue = \case
+    goValue :: Word64 -> CekValue uni fun ann -> NTerm uni fun ()
+    goValue !global = \case
       VCon val -> Constant () val
-      VDelay body env -> Delay () $ goValEnv env 0 body
+      VDelay body env -> Delay () $ goValEnv env global 0 body
       VLamAbs (NamedDeBruijn n _ix) body env ->
         -- The index on the binder is meaningless, we put @0@ by convention, see 'Binder'.
-        LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env 1 body
+        LamAbs () (NamedDeBruijn n deBruijnInitIndex) $ goValEnv env global 1 body
       -- We only return a discharged builtin application when (a) it's being returned by the
       -- machine, or (b) it's needed for an error message.
       -- @term@ is fully discharged, so we can return it directly without any further discharging.
-      VBuiltin _ term _ -> term
-      VConstr ind args -> Constr () ind . map goValue $ argStackToList args
+      -- However, @global@ shifting IS needed because a 'VBuiltin' can be stored in an
+      -- environment and later discharged under additional binders — e.g. when a partially
+      -- applied builtin containing free variables is passed as an argument to a lambda.
+      VBuiltin _ term _ -> shiftTerm global term
+      VConstr ind args -> Constr () ind . map (goValue global) $ argStackToList args
 
     -- Instantiate all the free variables of a term by looking them up in an environment.
     -- Mutually recursive with @goValue@.
-    goValEnv :: CekValEnv uni fun ann -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
+    goValEnv :: CekValEnv uni fun ann -> Word64 -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
     goValEnv env = go
       where
-        -- @shift@ is just a counter that measures how many lambda-abstractions we have descended
-        -- into so far.
-        go :: Word64 -> NTerm uni fun ann -> NTerm uni fun ()
-        go !shift = \case
-          LamAbs _ name body -> LamAbs () name $ go (shift + 1) body
+        -- @global@ is the accumulated shift from outer discharge contexts.
+        -- @shift@ counts how many lambda-abstractions we have descended into so far.
+        go :: Word64 -> Word64 -> NTerm uni fun ann -> NTerm uni fun ()
+        go !global !shift = \case
+          LamAbs _ name body -> LamAbs () name $ go global (shift + 1) body
           Var _ named@(NamedDeBruijn _ (coerce -> idx)) ->
             if shift >= idx
               -- the index n is less-than-or-equal than the number of lambdas we have descended
@@ -687,20 +698,41 @@ dischargeCekValue value0 = DischargeNonConstant $ goValue value0
               then Var () named
               else
                 maybe
-                  -- var is free, leave it alone
-                  (Var () named)
-                  -- var is in the env, discharge its value
-                  goValue
+                  -- var is free and not in the env, shift it
+                  (Var () (shiftNamedDeBruijn (global + shift) named))
+                  -- var is in the env, discharge its value with the accumulated shift
+                  (goValue (global + shift))
                   -- index relative to (as seen from the point of view of) the environment
                   (Env.indexOne env $ idx - shift)
-          Apply _ fun arg -> Apply () (go shift fun) $ go shift arg
-          Delay _ term -> Delay () $ go shift term
-          Force _ term -> Force () $ go shift term
+          Apply _ fun arg -> Apply () (go global shift fun) $ go global shift arg
+          Delay _ term -> Delay () $ go global shift term
+          Force _ term -> Force () $ go global shift term
           Constant _ val -> Constant () val
           Builtin _ fun -> Builtin () fun
           Error _ -> Error ()
-          Constr _ ind args -> Constr () ind $ map (go shift) args
-          Case _ scrut alts -> Case () (go shift scrut) $ fmap (go shift) alts
+          Constr _ ind args -> Constr () ind $ map (go global shift) args
+          Case _ scrut alts -> Case () (go global shift scrut) $ fmap (go global shift) alts
+
+    -- \| Shift all free variables in a fully discharged term by the given amount.
+    -- Used for 'VBuiltin' terms which have no associated environment.
+    shiftTerm :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
+    shiftTerm 0 t = t
+    shiftTerm amount t = goShift 0 t
+      where
+        goShift :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
+        goShift !depth = \case
+          Var _ named@(NamedDeBruijn _ (coerce -> idx))
+            | depth >= idx -> Var () named
+            | otherwise -> Var () (shiftNamedDeBruijn amount named)
+          LamAbs _ name body -> LamAbs () name $ goShift (depth + 1) body
+          Apply _ fun arg -> Apply () (goShift depth fun) (goShift depth arg)
+          Delay _ term -> Delay () $ goShift depth term
+          Force _ term -> Force () $ goShift depth term
+          Constant _ val -> Constant () val
+          Builtin _ fun -> Builtin () fun
+          Error _ -> Error ()
+          Constr _ ind args -> Constr () ind $ map (goShift depth) args
+          Case _ scrut alts -> Case () (goShift depth scrut) $ fmap (goShift depth) alts
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
   prettyBy cfg = prettyBy cfg . dischargeResultToTerm . dischargeCekValue
